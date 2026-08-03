@@ -110,6 +110,13 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
     );
   }
 
+  /// Weakness-weighted set — the app decides the mix so the user doesn't have
+  /// to guess which module needs work.
+  Future<void> _startAdaptive() async {
+    final questions = await AppDatabase.instance.fetchAdaptive(limit: _count);
+    await _open(questions, title: '弱项强化');
+  }
+
   Future<void> _startWrong() async {
     await _open(await AppDatabase.instance.fetchWrong(limit: _count));
   }
@@ -232,6 +239,14 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
                   glyph: AppIcon.shuffle,
                   colors: [t.brand],
                   onTap: () => _start(),
+                ),
+                const SizedBox(width: 11),
+                _FeatureCard(
+                  title: '弱项强化',
+                  meta: _done < 20 ? '先练一组再解锁' : '按薄弱模块配比',
+                  glyph: AppIcon.chart,
+                  colors: [t.category('panduan')],
+                  onTap: _done < 20 ? null : _startAdaptive,
                 ),
                 const SizedBox(width: 11),
                 _FeatureCard(

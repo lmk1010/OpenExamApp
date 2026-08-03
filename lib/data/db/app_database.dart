@@ -304,6 +304,63 @@ class AppDatabase {
     });
   }
 
+  /// Weakness-weighted set: modules you are worst at get the biggest share,
+  /// and inside each module previously-wrong questions come first, then
+  /// unseen ones. This is what "刷题要刷弱项" means in practice.
+  Future<List<Question>> fetchAdaptive({int limit = 20}) async {
+    final stats = await categoryStats();
+    final practised = stats.where((s) => s.total > 0).toList();
+    if (practised.isEmpty) return fetchPractice(limit: limit);
+
+    // Never-practised modules count as 50% accuracy so they still show up.
+    double weightOf(CategoryStat s) {
+      final acc = s.done < 5 ? 0.5 : s.accuracy;
+      return (1 - acc).clamp(0.12, 1.0);
+    }
+
+    final weights = {for (final s in practised) s.category: weightOf(s)};
+    final sum = weights.values.fold<double>(0, (a, b) => a + b);
+    final quota = <String, int>{};
+    var assigned = 0;
+    for (final s in practised) {
+      final n = ((weights[s.category]! / sum) * limit).floor();
+      quota[s.category] = n;
+      assigned += n;
+    }
+    // Hand the rounding remainder to the weakest module.
+    if (assigned < limit) {
+      final weakest = practised
+          .reduce((a, b) => weightOf(a) >= weightOf(b) ? a : b)
+          .category;
+      quota[weakest] = (quota[weakest] ?? 0) + (limit - assigned);
+    }
+
+    final db = await database;
+    final picked = <Question>[];
+    for (final entry in quota.entries) {
+      if (entry.value <= 0) continue;
+      final rows = await db.rawQuery('''
+        SELECT q.*,
+               CASE
+                 WHEN l.is_correct = 0 THEN 0
+                 WHEN l.question_id IS NULL THEN 1
+                 ELSE 2
+               END AS priority
+        FROM questions q
+        LEFT JOIN (
+          SELECT question_id, MAX(id) AS last_id FROM practice_logs GROUP BY question_id
+        ) last ON last.question_id = q.id
+        LEFT JOIN practice_logs l ON l.id = last.last_id
+        WHERE q.category = ?
+        ORDER BY priority ASC, RANDOM()
+        LIMIT ?
+      ''', [entry.key, entry.value]);
+      picked.addAll(rows.map(_fromRow));
+    }
+    picked.shuffle();
+    return picked;
+  }
+
   // ------------------------------------------------------------------- notes
 
   Future<void> setNote(String questionId, String body) async {
