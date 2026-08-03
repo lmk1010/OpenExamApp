@@ -35,3 +35,26 @@ AppIcon categoryIcon(String? key) {
   }
   return AppIcon.shuffle;
 }
+
+/// 错因分类 — from how 考生 actually review: 粗心 / 不会 / 审题 / 没时间.
+class WrongReason {
+  const WrongReason({required this.key, required this.label, required this.hint});
+
+  final String key;
+  final String label;
+  final String hint;
+}
+
+const kWrongReasons = <WrongReason>[
+  WrongReason(key: 'careless', label: '粗心', hint: '会做但看漏、算错、选错'),
+  WrongReason(key: 'unknown', label: '不会', hint: '知识点或方法没掌握'),
+  WrongReason(key: 'misread', label: '审题', hint: '看错题干、单位、限定词'),
+  WrongReason(key: 'timeout', label: '没时间', hint: '时间不够，蒙的或没做完'),
+];
+
+String wrongReasonLabel(String? key) {
+  for (final r in kWrongReasons) {
+    if (r.key == key) return r.label;
+  }
+  return '';
+}

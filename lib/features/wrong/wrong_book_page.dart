@@ -22,11 +22,14 @@ class WrongBookPage extends StatefulWidget {
 class _WrongBookPageState extends State<WrongBookPage> {
   bool _loading = true;
   List<Question> _wrong = const [];
+  Map<String, String> _reasons = const {};
   String _filter = 'all';
+
+  /// 'type' groups by 题型, 'paper' by 试卷, 'reason' by 错因.
+  String _mode = 'type';
 
   /// Reviewing by 题型 finds weak modules; reviewing by 试卷 finds the paper you
   /// bombed. Both are how 考生 actually revisit mistakes.
-  bool _byPaper = false;
 
   @override
   void initState() {
@@ -37,9 +40,11 @@ class _WrongBookPageState extends State<WrongBookPage> {
   Future<void> _reload() async {
     if (!_loading) setState(() => _loading = true);
     final wrong = await AppDatabase.instance.fetchWrong(limit: 200);
+    final reasons = await AppDatabase.instance.wrongReasons();
     if (!mounted) return;
     setState(() {
       _wrong = wrong;
+      _reasons = reasons;
       _loading = false;
     });
   }
@@ -97,9 +102,19 @@ class _WrongBookPageState extends State<WrongBookPage> {
         (a, b) => papers[b]!.items.length.compareTo(papers[a]!.items.length),
       );
 
+    final reasonCounts = <String, int>{};
+    for (final q in _wrong) {
+      final key = _reasons[q.id] ?? '_none';
+      reasonCounts[key] = (reasonCounts[key] ?? 0) + 1;
+    }
+
     final shown = _filter == 'all'
         ? _wrong
-        : _wrong.where((q) => q.category == _filter).toList();
+        : (_mode == 'reason'
+              ? _wrong
+                    .where((q) => (_reasons[q.id] ?? '_none') == _filter)
+                    .toList()
+              : _wrong.where((q) => q.category == _filter).toList());
 
     return RefreshIndicator(
       color: t.brand,
@@ -185,19 +200,31 @@ class _WrongBookPageState extends State<WrongBookPage> {
                 children: [
                   _ModeTab(
                     label: '按题型',
-                    selected: !_byPaper,
-                    onTap: () => setState(() => _byPaper = false),
+                    selected: _mode == 'type',
+                    onTap: () => setState(() {
+                      _mode = 'type';
+                      _filter = 'all';
+                    }),
+                  ),
+                  const SizedBox(width: 18),
+                  _ModeTab(
+                    label: '按错因',
+                    selected: _mode == 'reason',
+                    onTap: () => setState(() {
+                      _mode = 'reason';
+                      _filter = 'all';
+                    }),
                   ),
                   const SizedBox(width: 18),
                   _ModeTab(
                     label: '按试卷',
-                    selected: _byPaper,
-                    onTap: () => setState(() => _byPaper = true),
+                    selected: _mode == 'paper',
+                    onTap: () => setState(() => _mode = 'paper'),
                   ),
                 ],
               ),
             ),
-            if (_byPaper) ...[
+            if (_mode == 'paper') ...[
               for (final key in paperKeys) ...[
                 Padding(
                   padding: const EdgeInsets.fromLTRB(
@@ -236,6 +263,7 @@ class _WrongBookPageState extends State<WrongBookPage> {
                   if (i > 0) const RowDivider(),
                   _WrongRow(
                     question: papers[key]!.items[i],
+                    reason: _reasons[papers[key]!.items[i].id],
                     onTap: () => _practise([papers[key]!.items[i]]),
                     onRemove: () => _remove(papers[key]!.items[i]),
                   ),
@@ -275,6 +303,7 @@ class _WrongBookPageState extends State<WrongBookPage> {
                 if (i > 0) const RowDivider(),
                 _WrongRow(
                   question: shown[i],
+                  reason: _reasons[shown[i].id],
                   onTap: () => _practise([shown[i]]),
                   onRemove: () => _remove(shown[i]),
                 ),
@@ -378,11 +407,13 @@ class _FilterChip extends StatelessWidget {
 class _WrongRow extends StatelessWidget {
   const _WrongRow({
     required this.question,
+    required this.reason,
     required this.onTap,
     required this.onRemove,
   });
 
   final Question question;
+  final String? reason;
   final VoidCallback onTap;
   final VoidCallback onRemove;
 

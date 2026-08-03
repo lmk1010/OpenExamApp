@@ -22,6 +22,7 @@ class _StatsPageState extends State<StatsPage> {
   List<DailyStat> _days = const [];
   List<CategoryStat> _stats = const [];
   List<ExamReport> _reports = const [];
+  Map<String, int> _reasons = const {};
 
   @override
   void initState() {
@@ -33,12 +34,14 @@ class _StatsPageState extends State<StatsPage> {
     final days = await AppDatabase.instance.dailyStats(days: 30);
     final stats = await AppDatabase.instance.categoryStats();
     final reports = await AppDatabase.instance.listReports(limit: 40);
+    final reasons = await AppDatabase.instance.wrongReasonCounts();
     if (!mounted) return;
     setState(() {
       _days = days;
       _stats = stats;
       // Oldest first so the trend reads left-to-right like every other chart.
       _reports = reports.reversed.toList();
+      _reasons = reasons;
       _loading = false;
     });
   }
@@ -133,6 +136,14 @@ class _StatsPageState extends State<StatsPage> {
                         : () => _review(_reports.last),
                   ),
                 ),
+                if (_reasons.isNotEmpty) ...[
+                  const SizedBox(height: 28),
+                  const SectionHeader(title: '错因分布', caption: '标记过的错题'),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
+                    child: _ReasonBreakdown(counts: _reasons),
+                  ),
+                ],
                 const SizedBox(height: 28),
                 SectionHeader(
                   title: '题型强弱',
@@ -567,6 +578,71 @@ class _ScoreTrend extends StatelessWidget {
           '最右为最近一次（${latest.isExam ? '模考' : '练习'} · ${latest.total} 题），点它可逐题回顾',
           style: text.bodySmall?.copyWith(fontSize: 11.5),
         ),
+      ],
+    );
+  }
+}
+
+/// 错因分布 — one bar per reason, biggest first. Tells you whether to slow
+/// down (粗心/审题) or go back to the textbook (不会).
+class _ReasonBreakdown extends StatelessWidget {
+  const _ReasonBreakdown({required this.counts});
+
+  final Map<String, int> counts;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+    final total = counts.values.fold<int>(0, (a, b) => a + b);
+    if (total == 0) return const SizedBox.shrink();
+
+    final rows = kWrongReasons
+        .where((r) => (counts[r.key] ?? 0) > 0)
+        .toList()
+      ..sort((a, b) => (counts[b.key] ?? 0).compareTo(counts[a.key] ?? 0));
+
+    final top = rows.first;
+    final advice = switch (top.key) {
+      'careless' => '大部分错题是粗心 —— 别加练，先放慢做题速度、把答案带回题干核对。',
+      'unknown' => '大部分错题是知识点没掌握 —— 先回去补方法，再刷同类题。',
+      'misread' => '大部分错题栽在审题 —— 做题时把限定词、单位圈出来。',
+      _ => '大部分错题是时间不够 —— 先练单模块限时，再上整卷。',
+    };
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (final r in rows)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 14),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 52,
+                  child: Text(r.label, style: text.titleSmall?.copyWith(fontSize: 14.5)),
+                ),
+                Expanded(
+                  child: Meter(
+                    value: (counts[r.key] ?? 0) / total,
+                    color: r.key == 'unknown' ? t.danger : t.brand,
+                    height: 6,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                SizedBox(
+                  width: 62,
+                  child: Text(
+                    '${counts[r.key]} 题',
+                    textAlign: TextAlign.right,
+                    style: text.bodySmall,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        const SizedBox(height: 2),
+        Text(advice, style: text.bodyMedium?.copyWith(fontSize: 13.5)),
       ],
     );
   }

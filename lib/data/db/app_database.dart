@@ -112,6 +112,14 @@ class AppDatabase {
         created_at TEXT NOT NULL
       )
     ''');
+    // 复盘的关键不是"我错了"，而是"我为什么错"。
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS wrong_reasons (
+        question_id TEXT PRIMARY KEY,
+        reason TEXT NOT NULL,
+        created_at TEXT NOT NULL
+      )
+    ''');
     await db.execute('''
       CREATE TABLE IF NOT EXISTS meta (
         key TEXT PRIMARY KEY,
@@ -286,6 +294,53 @@ class AppDatabase {
       final hit = byDay[key];
       return DailyStat(date: d, answered: hit?.n ?? 0, correct: hit?.correct ?? 0);
     });
+  }
+
+  // ------------------------------------------------------------ wrong reasons
+
+  Future<void> setWrongReason(String questionId, String? reason) async {
+    final db = await database;
+    if (reason == null) {
+      await db.delete('wrong_reasons', where: 'question_id = ?', whereArgs: [questionId]);
+      return;
+    }
+    await db.insert(
+      'wrong_reasons',
+      {
+        'question_id': questionId,
+        'reason': reason,
+        'created_at': DateTime.now().toIso8601String(),
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  /// question id -> reason key, for the 错题本 rows and filters.
+  Future<Map<String, String>> wrongReasons() async {
+    final db = await database;
+    final rows = await db.query('wrong_reasons');
+    return {
+      for (final row in rows) '${row['question_id']}': '${row['reason']}',
+    };
+  }
+
+  /// How many currently-wrong questions carry each reason.
+  Future<Map<String, int>> wrongReasonCounts() async {
+    final db = await database;
+    final rows = await db.rawQuery('''
+      SELECT r.reason AS reason, COUNT(*) AS n
+      FROM wrong_reasons r
+      JOIN (
+        SELECT question_id, MAX(id) AS last_id FROM practice_logs GROUP BY question_id
+      ) last ON last.question_id = r.question_id
+      JOIN practice_logs l ON l.id = last.last_id
+      WHERE l.is_correct = 0
+      GROUP BY r.reason
+    ''');
+    return {
+      for (final row in rows)
+        '${row['reason']}': int.tryParse('${row['n']}') ?? 0,
+    };
   }
 
   // ----------------------------------------------------------------- reports

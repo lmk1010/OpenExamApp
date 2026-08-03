@@ -63,6 +63,10 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
   double _fontScale = 1;
   bool _autoNext = true;
 
+  /// question id -> 错因. Tagging right after answering is the only moment the
+  /// reason is still fresh in the user's head.
+  Map<String, String> _reasons = {};
+
   List<Question> get _questions => widget.questions;
   Question get _current => _questions[_index];
   bool get _isExam => widget.limit != null && !_isReview;
@@ -95,9 +99,11 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
   Future<void> _loadPrefs() async {
     final prefs = await SharedPreferences.getInstance();
     final marked = await AppDatabase.instance.markedIds();
+    final reasons = await AppDatabase.instance.wrongReasons();
     if (!mounted) return;
     setState(() {
       _marked = marked;
+      _reasons = reasons;
       _fontScale = prefs.getDouble(Prefs.fontScale) ?? 1;
       _autoNext = prefs.getBool(Prefs.autoNext) ?? true;
     });
@@ -245,6 +251,14 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
         content: Text(next ? '已收藏，可在「我的 → 我的收藏」查看' : '已取消收藏'),
         duration: const Duration(milliseconds: 1200),
       ));
+  }
+
+  Future<void> _setReason(String questionId, String? reason) async {
+    setState(() {
+      reason == null ? _reasons.remove(questionId) : _reasons[questionId] = reason;
+    });
+    HapticFeedback.selectionClick();
+    await AppDatabase.instance.setWrongReason(questionId, reason);
   }
 
   Future<void> _openAnswerCard() async {
@@ -413,6 +427,8 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
             fontScale: _fontScale,
             isLast: i == total - 1 && !_isReview,
             isReview: _isReview,
+            reason: _reasons[_questions[i].id],
+            onReason: (r) => _setReason(_questions[i].id, r),
             onSelect: _select,
             onSubmit: _submit,
           ),
@@ -431,6 +447,8 @@ class _QuestionView extends StatelessWidget {
     required this.fontScale,
     required this.isLast,
     required this.isReview,
+    required this.reason,
+    required this.onReason,
     required this.onSelect,
     required this.onSubmit,
   });
@@ -441,6 +459,8 @@ class _QuestionView extends StatelessWidget {
   final double fontScale;
   final bool isLast;
   final bool isReview;
+  final String? reason;
+  final ValueChanged<String?> onReason;
   final ValueChanged<String> onSelect;
   final VoidCallback onSubmit;
 
@@ -582,6 +602,12 @@ class _QuestionView extends StatelessWidget {
             ),
           );
         }),
+        // Wrong answers get a one-tap 错因 tag; this is what makes the 错题本
+        // worth reviewing instead of just a pile of questions.
+        if (revealed && selected != null && selected != question.answer.toUpperCase()) ...[
+          const SizedBox(height: 6),
+          _ReasonPicker(selected: reason, onPick: onReason),
+        ],
         if (revealed && question.analysisMarkup.isNotEmpty) ...[
           const SizedBox(height: 8),
           Container(
@@ -876,6 +902,76 @@ class _ResultView extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// 错因 chips — 粗心 / 不会 / 审题 / 没时间, tapping again clears the tag.
+class _ReasonPicker extends StatelessWidget {
+  const _ReasonPicker({required this.selected, required this.onPick});
+
+  final String? selected;
+  final ValueChanged<String?> onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text('这题为什么错？', style: text.bodySmall),
+              const SizedBox(width: 8),
+              if (selected != null)
+                Text(
+                  '已标记，可再点一次取消',
+                  style: text.bodySmall?.copyWith(fontSize: 11.5, color: t.muted),
+                ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final r in kWrongReasons)
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => onPick(selected == r.key ? null : r.key),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 140),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+                    decoration: BoxDecoration(
+                      color: selected == r.key
+                          ? t.brand.withValues(alpha: 0.15)
+                          : t.glass,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: selected == r.key
+                            ? t.brand.withValues(alpha: 0.55)
+                            : Colors.transparent,
+                      ),
+                    ),
+                    child: Text(
+                      r.label,
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w600,
+                        height: 1,
+                        color: selected == r.key ? t.brand : t.textSoft,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ],
       ),
     );
   }
