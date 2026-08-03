@@ -72,6 +72,7 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
   /// question id -> 错因. Tagging right after answering is the only moment the
   /// reason is still fresh in the user's head.
   Map<String, String> _reasons = {};
+  Map<String, String> _notes = {};
 
   List<Question> get _questions => widget.questions;
   Question get _current => _questions[_index];
@@ -108,10 +109,12 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
     final prefs = await SharedPreferences.getInstance();
     final marked = await AppDatabase.instance.markedIds();
     final reasons = await AppDatabase.instance.wrongReasons();
+    final notes = await AppDatabase.instance.notes();
     if (!mounted) return;
     setState(() {
       _marked = marked;
       _reasons = reasons;
+      _notes = notes;
       _fontScale = prefs.getDouble(Prefs.fontScale) ?? 1;
       _autoNext = prefs.getBool(Prefs.autoNext) ?? true;
     });
@@ -286,6 +289,21 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
     await AppDatabase.instance.setWrongReason(questionId, reason);
   }
 
+  Future<void> _editNote() async {
+    final id = _current.id;
+    final body = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _NoteSheet(current: _notes[id] ?? ''),
+    );
+    if (body == null || !mounted) return;
+    setState(() {
+      body.trim().isEmpty ? _notes.remove(id) : _notes[id] = body.trim();
+    });
+    await AppDatabase.instance.setNote(id, body);
+  }
+
   Future<void> _openAnswerCard() async {
     final target = await showModalBottomSheet<int>(
       context: context,
@@ -390,6 +408,13 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
           ),
           actions: [
             _BarButton(
+              icon: _notes.containsKey(q.id)
+                  ? Icons.sticky_note_2
+                  : Icons.sticky_note_2_outlined,
+              color: _notes.containsKey(q.id) ? t.brand : t.textSoft,
+              onTap: _editNote,
+            ),
+            _BarButton(
               icon: Icons.text_fields_rounded,
               color: t.textSoft,
               onTap: _openReadingSettings,
@@ -456,7 +481,9 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
             isLast: i == total - 1 && !_isReview,
             isReview: _isReview,
             reason: _reasons[_questions[i].id],
+            note: _notes[_questions[i].id],
             onReason: (r) => _setReason(_questions[i].id, r),
+            onEditNote: _editNote,
             onSelect: _select,
             onSubmit: _submit,
           ),
@@ -476,7 +503,9 @@ class _QuestionView extends StatelessWidget {
     required this.isLast,
     required this.isReview,
     required this.reason,
+    required this.note,
     required this.onReason,
+    required this.onEditNote,
     required this.onSelect,
     required this.onSubmit,
   });
@@ -488,7 +517,9 @@ class _QuestionView extends StatelessWidget {
   final bool isLast;
   final bool isReview;
   final String? reason;
+  final String? note;
   final ValueChanged<String?> onReason;
+  final VoidCallback onEditNote;
   final ValueChanged<String> onSelect;
   final VoidCallback onSubmit;
 
@@ -678,6 +709,48 @@ class _QuestionView extends StatelessWidget {
               style: text.bodySmall?.copyWith(fontSize: 12),
             ),
           ),
+        if (note != null && (revealed || isReview)) ...[
+          const SizedBox(height: 10),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: onEditNote,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(15),
+              decoration: BoxDecoration(
+                color: t.category('shuliang').withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.sticky_note_2_outlined,
+                          size: 15, color: t.category('shuliang')),
+                      const SizedBox(width: 6),
+                      Text(
+                        '我的笔记',
+                        style: text.labelLarge?.copyWith(
+                          color: t.category('shuliang'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    note!,
+                    style: text.bodyMedium?.copyWith(
+                      fontSize: 14 * fontScale,
+                      color: t.text,
+                      height: 1.6,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
         // Submitting lives on the last page (and in the answer card), not in a
         // bar that eats a strip of every screen.
         if (isLast) ...[
@@ -927,6 +1000,84 @@ class _ResultView extends StatelessWidget {
                         ),
                 child: Text(wrong.isEmpty ? '完成' : '重做错题 ${wrong.length}'),
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Free-text note for one question.
+class _NoteSheet extends StatefulWidget {
+  const _NoteSheet({required this.current});
+
+  final String current;
+
+  @override
+  State<_NoteSheet> createState() => _NoteSheetState();
+}
+
+class _NoteSheetState extends State<_NoteSheet> {
+  late final TextEditingController _controller =
+      TextEditingController(text: widget.current);
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: _SheetShell(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('这道题的笔记', style: text.titleMedium),
+            const SizedBox(height: 6),
+            Text('记方法、坑点、公式 —— 回顾时会显示在解析下面', style: text.bodySmall),
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: GlassDecor.panel(t, radius: 14, raised: false),
+              child: TextField(
+                controller: _controller,
+                autofocus: true,
+                maxLines: 5,
+                minLines: 3,
+                style: text.bodyMedium?.copyWith(color: t.text, fontSize: 15),
+                decoration: const InputDecoration(
+                  isDense: true,
+                  border: InputBorder.none,
+                  hintText: '例如：看到"至少"先想最不利原则',
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                if (widget.current.isNotEmpty) ...[
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.of(context).pop(''),
+                      child: const Text('删除'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                ],
+                Expanded(
+                  child: FilledButton(
+                    onPressed: () => Navigator.of(context).pop(_controller.text),
+                    child: const Text('保存'),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

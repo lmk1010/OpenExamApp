@@ -113,6 +113,14 @@ class AppDatabase {
       )
     ''');
     // 复盘的关键不是"我错了"，而是"我为什么错"。
+    // 自己的解题笔记比任何官方解析都好使，尤其是回看的时候。
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS notes (
+        question_id TEXT PRIMARY KEY,
+        body TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      )
+    ''');
     await db.execute('''
       CREATE TABLE IF NOT EXISTS wrong_reasons (
         question_id TEXT PRIMARY KEY,
@@ -294,6 +302,58 @@ class AppDatabase {
       final hit = byDay[key];
       return DailyStat(date: d, answered: hit?.n ?? 0, correct: hit?.correct ?? 0);
     });
+  }
+
+  // ------------------------------------------------------------------- notes
+
+  Future<void> setNote(String questionId, String body) async {
+    final db = await database;
+    final text = body.trim();
+    if (text.isEmpty) {
+      await db.delete('notes', where: 'question_id = ?', whereArgs: [questionId]);
+      return;
+    }
+    await db.insert(
+      'notes',
+      {
+        'question_id': questionId,
+        'body': text,
+        'updated_at': DateTime.now().toIso8601String(),
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<Map<String, String>> notes() async {
+    final db = await database;
+    final rows = await db.query('notes');
+    return {for (final r in rows) '${r['question_id']}': '${r['body']}'};
+  }
+
+  Future<int> countNotes() async {
+    final db = await database;
+    return Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM notes')) ?? 0;
+  }
+
+  /// Noted questions, newest note first — the 我的笔记 list.
+  Future<List<({Question question, String body, DateTime at})>> notedQuestions({
+    int limit = 200,
+  }) async {
+    final db = await database;
+    final rows = await db.rawQuery('''
+      SELECT q.*, n.body AS note_body, n.updated_at AS note_at
+      FROM notes n
+      JOIN questions q ON q.id = n.question_id
+      ORDER BY n.updated_at DESC
+      LIMIT ?
+    ''', [limit]);
+    return rows
+        .map((r) => (
+              question: _fromRow(r),
+              body: '${r['note_body']}',
+              at: DateTime.tryParse('${r['note_at']}') ?? DateTime.now(),
+            ))
+        .toList();
   }
 
   // ------------------------------------------------------------- resume state
