@@ -31,6 +31,7 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
   String _name = '备考中';
   DateTime? _examDate;
   int _goal = 30;
+  ResumeState? _resume;
 
   @override
   void initState() {
@@ -50,6 +51,7 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
     final name = prefs.getString(Prefs.nickname) ?? '备考中';
     final examRaw = prefs.getString(Prefs.examDate);
     final goal = prefs.getInt(Prefs.dailyGoal) ?? 30;
+    final resume = await db.loadResume();
     if (!mounted) return;
     setState(() {
       _total = total;
@@ -59,6 +61,7 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
       _count = saved;
       _name = name;
       _goal = goal;
+      _resume = resume;
       _examDate = examRaw == null ? null : DateTime.tryParse(examRaw);
       _loading = false;
     });
@@ -124,6 +127,37 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
     await prefs.setInt(Prefs.dailyGoal, picked);
   }
 
+  /// Picks an interrupted session back up where it stopped.
+  Future<void> _continueResume() async {
+    final state = _resume;
+    if (state == null) return;
+    final questions = await AppDatabase.instance.fetchByIds(state.questionIds);
+    if (questions.isEmpty) {
+      await AppDatabase.instance.clearResume();
+      _reload();
+      return;
+    }
+    if (!mounted) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => PracticeSessionPage(
+          questions: questions,
+          title: state.title,
+          limit: state.limit,
+          startAt: state.index.clamp(0, questions.length - 1),
+          resumeAnswers: state.answers,
+          resumeElapsed: state.elapsed,
+        ),
+      ),
+    );
+    _reload();
+  }
+
+  Future<void> _dismissResume() async {
+    await AppDatabase.instance.clearResume();
+    if (mounted) setState(() => _resume = null);
+  }
+
   Future<void> _pickCount() async {
     final picked = await showModalBottomSheet<int>(
       context: context,
@@ -175,7 +209,16 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
             streak: _streak,
             onTapGoal: _pickGoal,
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 18),
+          if (_resume != null && _resume!.remaining > 0)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 0, AppTheme.gutter, 18),
+              child: _ResumeBanner(
+                state: _resume!,
+                onContinue: _continueResume,
+                onDismiss: _dismissResume,
+              ),
+            ),
           // Feature carousel — each card is a one-tap entry, image-led.
           SizedBox(
             height: 138,
@@ -391,6 +434,68 @@ class _Hero extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Offer to pick up an interrupted session — losing half a 130-question paper
+/// to a phone call is the kind of thing that makes people quit an app.
+class _ResumeBanner extends StatelessWidget {
+  const _ResumeBanner({
+    required this.state,
+    required this.onContinue,
+    required this.onDismiss,
+  });
+
+  final ResumeState state;
+  final VoidCallback onContinue;
+  final VoidCallback onDismiss;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onContinue,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
+        decoration: GlassDecor.panel(t, radius: 18),
+        child: Row(
+          children: [
+            StrokeIcon(AppIcon.replay, size: 20, color: t.brand),
+            const SizedBox(width: 13),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '继续 ${state.title}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: text.titleSmall?.copyWith(fontSize: 15),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '还剩 ${state.remaining} 题'
+                    '${state.isExam ? ' · 模考计时会接着走' : ''}',
+                    style: text.bodySmall,
+                  ),
+                ],
+              ),
+            ),
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: onDismiss,
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: Icon(Icons.close, size: 17, color: t.muted),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

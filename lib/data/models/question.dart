@@ -259,3 +259,41 @@ class ExamReport {
             DateTime.tryParse('${row['created_at'] ?? ''}') ?? DateTime.now(),
       );
 }
+
+/// An unfinished session, restored on the next launch.
+class ResumeState {
+  const ResumeState({
+    required this.title,
+    required this.questionIds,
+    required this.answers,
+    required this.index,
+    required this.limit,
+    required this.elapsed,
+    required this.savedAt,
+  });
+
+  final String title;
+  final List<String> questionIds;
+  final Map<String, String> answers;
+  final int index;
+  final Duration? limit;
+  final Duration elapsed;
+  final DateTime savedAt;
+
+  int get remaining => questionIds.length - answers.length;
+  bool get isExam => limit != null;
+
+  factory ResumeState.fromJson(Map<String, dynamic> json) => ResumeState(
+        title: '${json['title'] ?? '练习'}',
+        questionIds:
+            (json['ids'] as List? ?? const []).map((e) => '$e').toList(),
+        answers: (json['answers'] as Map? ?? const {})
+            .map((k, v) => MapEntry('$k', '$v')),
+        index: int.tryParse('${json['index'] ?? 0}') ?? 0,
+        limit: json['limitMs'] == null
+            ? null
+            : Duration(milliseconds: int.tryParse('${json['limitMs']}') ?? 0),
+        elapsed: Duration(milliseconds: int.tryParse('${json['elapsedMs'] ?? 0}') ?? 0),
+        savedAt: DateTime.tryParse('${json['at'] ?? ''}') ?? DateTime.now(),
+      );
+}

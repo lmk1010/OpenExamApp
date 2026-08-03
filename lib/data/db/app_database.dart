@@ -296,6 +296,63 @@ class AppDatabase {
     });
   }
 
+  // ------------------------------------------------------------- resume state
+
+  static const _resumeKey = 'resume_session';
+
+  /// Snapshot of an unfinished session so closing the app mid-practice is not
+  /// punished. Stored in `meta` as JSON — one live session at a time.
+  Future<void> saveResume({
+    required String title,
+    required List<String> questionIds,
+    required Map<String, String> answers,
+    required int index,
+    Duration? limit,
+    required Duration elapsed,
+  }) async {
+    final db = await database;
+    await db.insert(
+      'meta',
+      {
+        'key': _resumeKey,
+        'value': jsonEncode({
+          'title': title,
+          'ids': questionIds,
+          'answers': answers,
+          'index': index,
+          'limitMs': limit?.inMilliseconds,
+          'elapsedMs': elapsed.inMilliseconds,
+          'at': DateTime.now().toIso8601String(),
+        }),
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<void> clearResume() async {
+    final db = await database;
+    await db.delete('meta', where: 'key = ?', whereArgs: [_resumeKey]);
+  }
+
+  Future<ResumeState?> loadResume() async {
+    final db = await database;
+    final rows = await db.query('meta', where: 'key = ?', whereArgs: [_resumeKey]);
+    if (rows.isEmpty) return null;
+    try {
+      final map = jsonDecode('${rows.first['value']}') as Map<String, dynamic>;
+      final state = ResumeState.fromJson(map);
+      // A day-old snapshot is noise, not a helpful offer.
+      if (DateTime.now().difference(state.savedAt).inHours > 24) {
+        await clearResume();
+        return null;
+      }
+      return state;
+    } catch (_) {
+      await clearResume();
+      return null;
+    }
+  }
+
   // ------------------------------------------------------------ wrong reasons
 
   Future<void> setWrongReason(String questionId, String? reason) async {

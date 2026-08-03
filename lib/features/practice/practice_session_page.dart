@@ -22,7 +22,13 @@ class PracticeSessionPage extends StatefulWidget {
     this.title,
     this.reviewAnswers,
     this.startAt = 0,
+    this.resumeAnswers,
+    this.resumeElapsed,
   });
+
+  /// Answers carried over from an interrupted session.
+  final Map<String, String>? resumeAnswers;
+  final Duration? resumeElapsed;
 
   /// When set the session opens in review mode: the same question UI, but
   /// answers are already filled in and locked — reading a report should look
@@ -82,9 +88,11 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
       _answers.addAll(widget.reviewAnswers!);
       return;
     }
+    if (widget.resumeAnswers != null) _answers.addAll(widget.resumeAnswers!);
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted || _finished) return;
-      setState(() => _elapsed = DateTime.now().difference(_started));
+      setState(() => _elapsed =
+          DateTime.now().difference(_started) + (widget.resumeElapsed ?? Duration.zero));
       if (_isExam && _left.inSeconds <= 0) _finish();
     });
   }
@@ -135,6 +143,7 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
       isCorrect: correct,
       elapsedMs: spent,
     );
+    await _snapshot();
 
     // In a mock exam picking an option IS the action — no confirm step, the
     // paper just advances. In practice mode a wrong answer stops for the
@@ -165,11 +174,27 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
     _ticker?.cancel();
     if (!mounted || _finished) return;
     setState(() {
-      _elapsed = DateTime.now().difference(_started);
+      _elapsed = DateTime.now().difference(_started) +
+          (widget.resumeElapsed ?? Duration.zero);
       _finished = true;
     });
     HapticFeedback.mediumImpact();
     _saveReport();
+    AppDatabase.instance.clearResume();
+  }
+
+  /// Keeps an up-to-date copy of the session so an accidental exit, a phone
+  /// call or a killed app doesn't throw the work away.
+  Future<void> _snapshot() async {
+    if (_isReview || _finished || _questions.length < 5) return;
+    await AppDatabase.instance.saveResume(
+      title: widget.title ?? (_isExam ? '限时模考' : '练习 ${_questions.length} 题'),
+      questionIds: _questions.map((q) => q.id).toList(),
+      answers: _answers,
+      index: _index,
+      limit: widget.limit,
+      elapsed: _elapsed,
+    );
   }
 
   /// Sessions worth revisiting are kept; a two-question retry is not.
@@ -416,10 +441,13 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
         body: PageView.builder(
           controller: _pager,
           itemCount: total,
-          onPageChanged: (i) => setState(() {
-            _index = i;
-            _questionShownAt = DateTime.now();
-          }),
+          onPageChanged: (i) {
+            setState(() {
+              _index = i;
+              _questionShownAt = DateTime.now();
+            });
+            _snapshot();
+          },
           itemBuilder: (context, i) => _QuestionView(
             question: _questions[i],
             selected: _answers[_questions[i].id],
