@@ -46,6 +46,10 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
   Timer? _ticker;
   Duration _elapsed = Duration.zero;
 
+  /// When the current question came on screen — 行测 lives or dies on pace.
+  DateTime _questionShownAt = DateTime.now();
+  final Map<String, int> _questionMs = {};
+
   double _fontScale = 1;
   bool _autoNext = true;
 
@@ -93,6 +97,8 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
 
     final answer = key.toUpperCase();
     final correct = answer == q.answer.toUpperCase();
+    final spent = DateTime.now().difference(_questionShownAt).inMilliseconds;
+    _questionMs[q.id] = spent;
     setState(() => _answers[q.id] = answer);
 
     // Physical feedback: a soft tick for right, a heavier bump for wrong.
@@ -106,10 +112,18 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
       questionId: q.id,
       userAnswer: answer,
       isCorrect: correct,
+      elapsedMs: spent,
     );
 
-    // Getting it right needs no explanation — move on unless told otherwise.
-    if (!_isExam && correct && _autoNext && _index < _questions.length - 1) {
+    // In a mock exam picking an option IS the action — no confirm step, the
+    // paper just advances. In practice mode a wrong answer stops for the
+    // explanation; a right one flows on unless the user turned that off.
+    final last = _index >= _questions.length - 1;
+    if (last) return;
+    if (_isExam) {
+      await Future<void>.delayed(const Duration(milliseconds: 220));
+      if (mounted && !_finished) _next();
+    } else if (correct && _autoNext) {
       await Future<void>.delayed(const Duration(milliseconds: 450));
       if (mounted && !_finished) _next();
     }
@@ -125,7 +139,6 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
   }
 
   void _next() => _goTo(_index + 1);
-  void _prev() => _goTo(_index - 1);
 
   void _finish() {
     _ticker?.cancel();
@@ -256,7 +269,6 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
     final text = Theme.of(context).textTheme;
     final total = _questions.length;
     final q = _current;
-    final accent = t.category(q.category);
 
     return PopScope(
       canPop: false,
@@ -272,9 +284,24 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
           ),
           titleSpacing: 0,
           title: Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
             children: [
-              Text('${_index + 1}', style: text.titleMedium),
+              Text(
+                '${_index + 1}',
+                style: text.titleMedium?.copyWith(fontFeatures: AppTheme.numeric),
+              ),
               Text(' / $total', style: text.bodySmall),
+              const SizedBox(width: 10),
+              // Elapsed (practice) or remaining (exam) — pace is the thing
+              // 行测 candidates actually lose points to.
+              Text(
+                _isExam ? _clock(_left) : _clock(_elapsed),
+                style: text.bodySmall?.copyWith(
+                  color: _isExam && _left.inMinutes < 5 ? t.danger : t.muted,
+                  fontFeatures: AppTheme.numeric,
+                ),
+              ),
               if (widget.title != null) ...[
                 const SizedBox(width: 10),
                 Flexible(
@@ -288,35 +315,10 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
             ],
           ),
           actions: [
-            if (_isExam)
-              Center(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: (_left.inMinutes < 5 ? t.danger : t.brand)
-                        .withValues(alpha: 0.13),
-                    borderRadius: BorderRadius.circular(9),
-                  ),
-                  child: Text(
-                    _clock(_left),
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: _left.inMinutes < 5 ? t.danger : t.brand,
-                      fontFeatures: AppTheme.numeric,
-                    ),
-                  ),
-                ),
-              ),
             _BarButton(
               icon: Icons.text_fields_rounded,
               color: t.textSoft,
               onTap: _openReadingSettings,
-            ),
-            _BarButton(
-              icon: Icons.grid_view_rounded,
-              color: t.textSoft,
-              onTap: _openAnswerCard,
             ),
             _BarButton(
               icon: _marked.contains(q.id)
@@ -325,25 +327,36 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
               color: _marked.contains(q.id) ? const Color(0xFFE9A400) : t.muted,
               onTap: _toggleMark,
             ),
-            if (!_isExam)
-              Padding(
-                padding: const EdgeInsets.only(right: AppTheme.gutter - 6),
-                child: Center(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: accent.withValues(alpha: 0.13),
-                      borderRadius: BorderRadius.circular(9),
-                    ),
-                    child: Text(
-                      categoryLabel(q.category),
-                      style: text.labelMedium?.copyWith(color: accent, fontSize: 12),
-                    ),
-                  ),
+            // Answer card doubles as the progress readout, so it carries the count.
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: _openAnswerCard,
+              child: Container(
+                height: 30,
+                margin: const EdgeInsets.only(right: AppTheme.gutter - 6, left: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: t.brand.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-              )
-            else
-              const SizedBox(width: AppTheme.gutter - 8),
+                child: Row(
+                  children: [
+                    Icon(Icons.grid_view_rounded, size: 14, color: t.brand),
+                    const SizedBox(width: 6),
+                    Text(
+                      '${_answers.length}/$total',
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                        color: t.brand,
+                        fontFeatures: AppTheme.numeric,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(3),
@@ -354,41 +367,18 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
         body: PageView.builder(
           controller: _pager,
           itemCount: total,
-          onPageChanged: (i) => setState(() => _index = i),
+          onPageChanged: (i) => setState(() {
+            _index = i;
+            _questionShownAt = DateTime.now();
+          }),
           itemBuilder: (context, i) => _QuestionView(
             question: _questions[i],
             selected: _answers[_questions[i].id],
             isExam: _isExam,
             fontScale: _fontScale,
+            isLast: i == total - 1,
             onSelect: _select,
-          ),
-        ),
-        bottomNavigationBar: ActionBar(
-          safeBottom: true,
-          child: Row(
-            children: [
-              if (_index > 0)
-                _GhostButton(icon: Icons.chevron_left, label: '上一题', onTap: _prev),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: _isExam
-                      ? GestureDetector(
-                          onTap: _openAnswerCard,
-                          child: Text(
-                            '已答 ${_answers.length} / $total',
-                            textAlign: TextAlign.center,
-                            style: text.bodySmall,
-                          ),
-                        )
-                      : _StatusLine(question: q, selected: _answers[q.id]),
-                ),
-              ),
-              FilledButton(
-                onPressed: _index >= total - 1 ? _submit : _next,
-                child: Text(_index >= total - 1 ? '交卷' : '下一题'),
-              ),
-            ],
+            onSubmit: _submit,
           ),
         ),
       ),
@@ -403,24 +393,46 @@ class _QuestionView extends StatelessWidget {
     required this.selected,
     required this.isExam,
     required this.fontScale,
+    required this.isLast,
     required this.onSelect,
+    required this.onSubmit,
   });
 
   final Question question;
   final String? selected;
   final bool isExam;
   final double fontScale;
+  final bool isLast;
   final ValueChanged<String> onSelect;
+  final VoidCallback onSubmit;
 
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
     final text = Theme.of(context).textTheme;
     final revealed = selected != null && !isExam;
+    final accent = t.category(question.category);
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 16, AppTheme.gutter, 28),
       children: [
+        if (!isExam)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Row(
+              children: [
+                StrokeIcon(categoryIcon(question.category), size: 15, color: accent),
+                const SizedBox(width: 6),
+                Text(
+                  categoryLabel(question.category),
+                  style: text.bodySmall?.copyWith(color: accent),
+                ),
+                if (question.year > 0) ...[
+                  Text(' · ${question.year} 年', style: text.bodySmall),
+                ],
+              ],
+            ),
+          ),
         RichContent(
           question.bodyMarkup,
           style: text.bodyLarge?.copyWith(fontSize: 16 * fontScale, height: 1.75),
@@ -558,51 +570,23 @@ class _QuestionView extends StatelessWidget {
               ],
             ),
           ),
-        ] else if (!isExam && selected == null)
+        ] else if (selected == null)
           Padding(
             padding: const EdgeInsets.only(top: 6),
             child: Text(
-              '左右滑动切换题目 · 点图片可放大',
+              isExam ? '选中即进入下一题 · 左右滑动可回看' : '左右滑动切换题目 · 点图片可放大',
               style: text.bodySmall?.copyWith(fontSize: 12),
             ),
           ),
-      ],
-    );
-  }
-}
-
-class _StatusLine extends StatelessWidget {
-  const _StatusLine({required this.question, required this.selected});
-
-  final Question question;
-  final String? selected;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.tokens;
-    if (selected == null) {
-      return Text('选择一个答案', style: Theme.of(context).textTheme.bodySmall);
-    }
-    final right = selected == question.answer.toUpperCase();
-    return Row(
-      children: [
-        Icon(
-          right ? Icons.check_circle : Icons.cancel,
-          size: 17,
-          color: right ? t.success : t.danger,
-        ),
-        const SizedBox(width: 7),
-        Flexible(
-          child: Text(
-            right ? '回答正确' : '正确答案 ${question.answer.toUpperCase()}',
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: right ? t.success : t.danger,
-            ),
+        // Submitting lives on the last page (and in the answer card), not in a
+        // bar that eats a strip of every screen.
+        if (isLast) ...[
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(onPressed: onSubmit, child: const Text('交卷')),
           ),
-        ),
+        ],
       ],
     );
   }
@@ -621,43 +605,6 @@ class _BarButton extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: SizedBox(width: 38, height: 42, child: Icon(icon, size: 20, color: color)),
-    );
-  }
-}
-
-class _GhostButton extends StatelessWidget {
-  const _GhostButton({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.tokens;
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        child: Row(
-          children: [
-            Icon(icon, size: 18, color: t.textSoft),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 13.5,
-                fontWeight: FontWeight.w600,
-                color: t.textSoft,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
@@ -741,6 +688,16 @@ class _ResultView extends StatelessWidget {
                     StrokeIcon(AppIcon.timer, size: 15, color: t.muted),
                     const SizedBox(width: 6),
                     Text('用时 ${session._clock(session._elapsed)}', style: text.bodySmall),
+                    const SizedBox(width: 14),
+                    StrokeIcon(AppIcon.chart, size: 15, color: t.muted),
+                    const SizedBox(width: 6),
+                    // Pace is the number 行测 candidates need most.
+                    Text(
+                      answers.isEmpty
+                          ? '每题 —'
+                          : '每题 ${(session._questionMs.values.fold<int>(0, (a, b) => a + b) / answers.length / 1000).toStringAsFixed(1)}s',
+                      style: text.bodySmall,
+                    ),
                     if (answers.length < total) ...[
                       const SizedBox(width: 14),
                       StrokeIcon(AppIcon.wrongBook, size: 15, color: t.muted),
@@ -754,7 +711,31 @@ class _ResultView extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 26),
+          const SizedBox(height: 22),
+          if (session._questionMs.isNotEmpty) ...[
+            Builder(builder: (context) {
+              final slow = questions
+                  .where((q) => (session._questionMs[q.id] ?? 0) > 90000)
+                  .toList();
+              if (slow.isEmpty) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 20),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    StrokeIcon(AppIcon.timer, size: 16, color: t.category('shuliang')),
+                    const SizedBox(width: 9),
+                    Expanded(
+                      child: Text(
+                        '有 ${slow.length} 题超过 90 秒，考场上这类题应该先跳过',
+                        style: text.bodyMedium?.copyWith(fontSize: 13.5),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ],
           if (byCategory.length > 1) ...[
             const SectionHeader(title: '各题型得分'),
             for (final key in byCategory)

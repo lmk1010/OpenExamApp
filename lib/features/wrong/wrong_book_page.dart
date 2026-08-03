@@ -24,6 +24,10 @@ class _WrongBookPageState extends State<WrongBookPage> {
   List<Question> _wrong = const [];
   String _filter = 'all';
 
+  /// Reviewing by 题型 finds weak modules; reviewing by 试卷 finds the paper you
+  /// bombed. Both are how 考生 actually revisit mistakes.
+  bool _byPaper = false;
+
   @override
   void initState() {
     super.initState();
@@ -75,6 +79,24 @@ class _WrongBookPageState extends State<WrongBookPage> {
     for (final q in _wrong) {
       counts[q.category] = (counts[q.category] ?? 0) + 1;
     }
+    final papers = <String, ({String title, int year, List<Question> items})>{};
+    for (final q in _wrong) {
+      final key = q.paperId.isEmpty ? '_' : q.paperId;
+      papers.putIfAbsent(
+        key,
+        () => (
+          title: q.paperTitle.isEmpty ? '未归卷题目' : q.paperTitle,
+          year: q.year,
+          items: <Question>[],
+        ),
+      );
+      papers[key]!.items.add(q);
+    }
+    final paperKeys = papers.keys.toList()
+      ..sort(
+        (a, b) => papers[b]!.items.length.compareTo(papers[a]!.items.length),
+      );
+
     final shown = _filter == 'all'
         ? _wrong
         : _wrong.where((q) => q.category == _filter).toList();
@@ -152,44 +174,156 @@ class _WrongBookPageState extends State<WrongBookPage> {
               message: '去练习页刷一组，答错的题会自动进入这里，答对后自动移出。',
             )
           else ...[
-            SizedBox(
-              height: 36,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppTheme.gutter,
-                ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppTheme.gutter,
+                0,
+                AppTheme.gutter,
+                12,
+              ),
+              child: Row(
                 children: [
-                  _FilterChip(
-                    label: '全部 ${_wrong.length}',
-                    selected: _filter == 'all',
-                    color: t.brand,
-                    onTap: () => setState(() => _filter = 'all'),
+                  _ModeTab(
+                    label: '按题型',
+                    selected: !_byPaper,
+                    onTap: () => setState(() => _byPaper = false),
                   ),
-                  for (final c in kGongkaoCategories)
-                    if ((counts[c.key] ?? 0) > 0)
-                      Padding(
-                        padding: const EdgeInsets.only(left: 8),
-                        child: _FilterChip(
-                          label: '${c.short} ${counts[c.key]}',
-                          selected: _filter == c.key,
-                          color: t.category(c.key),
-                          onTap: () => setState(() => _filter = c.key),
-                        ),
-                      ),
+                  const SizedBox(width: 18),
+                  _ModeTab(
+                    label: '按试卷',
+                    selected: _byPaper,
+                    onTap: () => setState(() => _byPaper = true),
+                  ),
                 ],
               ),
             ),
-            const SizedBox(height: 8),
-            for (var i = 0; i < shown.length; i++) ...[
-              if (i > 0) const RowDivider(),
-              _WrongRow(
-                question: shown[i],
-                onTap: () => _practise([shown[i]]),
-                onRemove: () => _remove(shown[i]),
+            if (_byPaper) ...[
+              for (final key in paperKeys) ...[
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppTheme.gutter,
+                    12,
+                    AppTheme.gutter,
+                    8,
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          papers[key]!.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: text.titleSmall?.copyWith(fontSize: 14.5),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        '${papers[key]!.items.length} 题',
+                        style: text.bodySmall,
+                      ),
+                      const SizedBox(width: 10),
+                      GestureDetector(
+                        onTap: () => _practise(papers[key]!.items),
+                        child: Text(
+                          '重练',
+                          style: text.labelMedium?.copyWith(color: t.brand),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                for (var i = 0; i < papers[key]!.items.length; i++) ...[
+                  if (i > 0) const RowDivider(),
+                  _WrongRow(
+                    question: papers[key]!.items[i],
+                    onTap: () => _practise([papers[key]!.items[i]]),
+                    onRemove: () => _remove(papers[key]!.items[i]),
+                  ),
+                ],
+              ],
+            ] else ...[
+              SizedBox(
+                height: 36,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppTheme.gutter,
+                  ),
+                  children: [
+                    _FilterChip(
+                      label: '全部 ${_wrong.length}',
+                      selected: _filter == 'all',
+                      color: t.brand,
+                      onTap: () => setState(() => _filter = 'all'),
+                    ),
+                    for (final c in kGongkaoCategories)
+                      if ((counts[c.key] ?? 0) > 0)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8),
+                          child: _FilterChip(
+                            label: '${c.short} ${counts[c.key]}',
+                            selected: _filter == c.key,
+                            color: t.category(c.key),
+                            onTap: () => setState(() => _filter = c.key),
+                          ),
+                        ),
+                  ],
+                ),
               ),
+              const SizedBox(height: 8),
+              for (var i = 0; i < shown.length; i++) ...[
+                if (i > 0) const RowDivider(),
+                _WrongRow(
+                  question: shown[i],
+                  onTap: () => _practise([shown[i]]),
+                  onRemove: () => _remove(shown[i]),
+                ),
+              ],
             ],
           ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Underlined switch between the two review modes.
+class _ModeTab extends StatelessWidget {
+  const _ModeTab({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Column(
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+              color: selected ? t.text : t.muted,
+            ),
+          ),
+          const SizedBox(height: 5),
+          Container(
+            height: 2.5,
+            width: selected ? 20 : 0,
+            decoration: BoxDecoration(
+              color: t.brand,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
         ],
       ),
     );

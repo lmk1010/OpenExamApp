@@ -5,7 +5,7 @@ import 'package:openexam_app/core/ui/glass.dart';
 import 'package:openexam_app/core/ui/stroke_icons.dart';
 import 'package:openexam_app/core/ui/ui_kit.dart';
 import 'package:openexam_app/data/db/app_database.dart';
-import 'package:openexam_app/features/practice/practice_session_page.dart';
+import 'package:openexam_app/features/bank/paper_page.dart';
 
 /// 题库 — 137 real papers. Searchable, grouped by year, each row showing how
 /// far through that paper you are.
@@ -49,21 +49,13 @@ class _BankPageState extends State<BankPage> {
   }
 
   Future<void> _openPaper(_Paper paper) async {
-    final all = await AppDatabase.instance.fetchByPaper(paper.id);
-    if (!mounted) return;
-    if (all.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('该试卷暂无题目')),
-      );
-      return;
-    }
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => PracticeSessionPage(
-          questions: all,
-          // Real papers are 120-minute exams; keep that pressure.
-          limit: const Duration(minutes: 120),
+        builder: (_) => PaperPage(
+          paperId: paper.id,
           title: paper.shortTitle,
+          year: paper.year,
+          total: paper.count,
         ),
       ),
     );

@@ -84,6 +84,12 @@ class AppDatabase {
         created_at TEXT NOT NULL
       )
     ''');
+    // Speed is what 行测 is actually about, so every answer records its time.
+    try {
+      await db.execute('ALTER TABLE practice_logs ADD COLUMN elapsed_ms INTEGER DEFAULT 0');
+    } catch (_) {
+      // Column already exists.
+    }
     await db.execute('''
       CREATE TABLE IF NOT EXISTS marks (
         question_id TEXT PRIMARY KEY,
@@ -293,14 +299,130 @@ class AppDatabase {
     required String questionId,
     required String userAnswer,
     required bool isCorrect,
+    int elapsedMs = 0,
   }) async {
     final db = await database;
     await db.insert('practice_logs', {
       'question_id': questionId,
       'user_answer': userAnswer,
       'is_correct': isCorrect ? 1 : 0,
+      'elapsed_ms': elapsedMs,
       'created_at': DateTime.now().toIso8601String(),
     });
+  }
+
+  /// Median-ish pace per category: average seconds spent on answered questions.
+  Future<Map<String, double>> categoryPace() async {
+    final db = await database;
+    final rows = await db.rawQuery('''
+      SELECT q.category AS category, AVG(l.elapsed_ms) AS ms
+      FROM practice_logs l
+      JOIN questions q ON q.id = l.question_id
+      WHERE l.elapsed_ms > 0
+      GROUP BY q.category
+    ''');
+    return {
+      for (final row in rows)
+        '${row['category']}': (double.tryParse('${row['ms']}') ?? 0) / 1000,
+    };
+  }
+
+  /// Everything the 试卷详情 page needs: per-category totals and progress.
+  Future<List<CategoryStat>> paperCategoryStats(String paperId) async {
+    final db = await database;
+    final totals = await db.rawQuery(
+      'SELECT category, COUNT(*) AS total FROM questions WHERE paper_id = ? GROUP BY category',
+      [paperId],
+    );
+    final logs = await db.rawQuery('''
+      SELECT q.category AS category,
+             COUNT(DISTINCT l.question_id) AS done,
+             SUM(CASE WHEN l.is_correct = 1 THEN 1 ELSE 0 END) AS correct
+      FROM practice_logs l
+      JOIN questions q ON q.id = l.question_id
+      WHERE q.paper_id = ?
+      GROUP BY q.category
+    ''', [paperId]);
+    final byCat = <String, Map<String, int>>{};
+    for (final row in logs) {
+      byCat['${row['category']}'] = {
+        'done': int.tryParse('${row['done']}') ?? 0,
+        'correct': int.tryParse('${row['correct']}') ?? 0,
+      };
+    }
+    return totals.map((row) {
+      final cat = '${row['category'] ?? ''}';
+      return CategoryStat(
+        category: cat,
+        total: int.tryParse('${row['total']}') ?? 0,
+        done: byCat[cat]?['done'] ?? 0,
+        correct: byCat[cat]?['correct'] ?? 0,
+      );
+    }).toList();
+  }
+
+  /// Questions of one category inside one paper — 卷内模块练习.
+  Future<List<Question>> fetchByPaperCategory(
+    String paperId,
+    String? category, {
+    bool onlyUnanswered = false,
+  }) async {
+    final db = await database;
+    final where = <String>['paper_id = ?'];
+    final args = <Object?>[paperId];
+    if (category != null && category.isNotEmpty) {
+      where.add('category = ?');
+      args.add(category);
+    }
+    if (onlyUnanswered) {
+      where.add('id NOT IN (SELECT question_id FROM practice_logs)');
+    }
+    final rows = await db.rawQuery(
+      'SELECT * FROM questions WHERE ${where.join(' AND ')} ORDER BY order_num ASC',
+      args,
+    );
+    return rows.map(_fromRow).toList();
+  }
+
+  /// Wrong questions inside one paper.
+  Future<List<Question>> fetchWrongByPaper(String paperId) async {
+    final db = await database;
+    final rows = await db.rawQuery('''
+      SELECT q.* FROM questions q
+      JOIN (
+        SELECT question_id, MAX(id) AS last_id FROM practice_logs GROUP BY question_id
+      ) last ON last.question_id = q.id
+      JOIN practice_logs l ON l.id = last.last_id
+      WHERE l.is_correct = 0 AND q.paper_id = ?
+      ORDER BY q.order_num ASC
+    ''', [paperId]);
+    return rows.map(_fromRow).toList();
+  }
+
+  /// Wrong-answer counts per paper, for grouping 错题本 by 试卷.
+  Future<List<({String id, String title, int year, int count})>>
+      wrongByPaper() async {
+    final db = await database;
+    final rows = await db.rawQuery('''
+      SELECT q.paper_id AS id, q.paper_title AS title, q.year AS year,
+             COUNT(*) AS n
+      FROM questions q
+      JOIN (
+        SELECT question_id, MAX(id) AS last_id FROM practice_logs GROUP BY question_id
+      ) last ON last.question_id = q.id
+      JOIN practice_logs l ON l.id = last.last_id
+      WHERE l.is_correct = 0
+      GROUP BY q.paper_id, q.paper_title, q.year
+      ORDER BY n DESC
+    ''');
+    return rows
+        .map((r) => (
+              id: '${r['id'] ?? ''}',
+              title: '${r['title'] ?? '未命名试卷'}',
+              year: int.tryParse('${r['year'] ?? 0}') ?? 0,
+              count: int.tryParse('${r['n']}') ?? 0,
+            ))
+        .toList();
   }
 
   /// Questions whose most recent answer was wrong.
