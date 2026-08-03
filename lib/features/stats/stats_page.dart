@@ -6,6 +6,8 @@ import 'package:openexam_app/core/ui/stroke_icons.dart';
 import 'package:openexam_app/core/ui/ui_kit.dart';
 import 'package:openexam_app/data/db/app_database.dart';
 import 'package:openexam_app/data/models/question.dart';
+import 'package:openexam_app/features/practice/practice_session_page.dart';
+import 'package:openexam_app/features/reports/reports_page.dart';
 
 /// 学习统计 — 30-day volume + accuracy trend and a per-category breakdown.
 class StatsPage extends StatefulWidget {
@@ -19,6 +21,7 @@ class _StatsPageState extends State<StatsPage> {
   bool _loading = true;
   List<DailyStat> _days = const [];
   List<CategoryStat> _stats = const [];
+  List<ExamReport> _reports = const [];
 
   @override
   void initState() {
@@ -29,12 +32,30 @@ class _StatsPageState extends State<StatsPage> {
   Future<void> _load() async {
     final days = await AppDatabase.instance.dailyStats(days: 30);
     final stats = await AppDatabase.instance.categoryStats();
+    final reports = await AppDatabase.instance.listReports(limit: 40);
     if (!mounted) return;
     setState(() {
       _days = days;
       _stats = stats;
+      // Oldest first so the trend reads left-to-right like every other chart.
+      _reports = reports.reversed.toList();
       _loading = false;
     });
+  }
+
+  /// Opens a saved session in review mode.
+  Future<void> _review(ExamReport report) async {
+    final questions = await AppDatabase.instance.fetchByIds(report.questionIds);
+    if (!mounted || questions.isEmpty) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => PracticeSessionPage(
+          questions: questions,
+          reviewAnswers: report.answers,
+          title: report.title,
+        ),
+      ),
+    );
   }
 
   @override
@@ -86,6 +107,31 @@ class _StatsPageState extends State<StatsPage> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
                   child: _AccuracyTrend(days: _days),
+                ),
+                const SizedBox(height: 28),
+                SectionHeader(
+                  title: '成绩趋势',
+                  caption: _reports.length < 2
+                      ? '完成 2 次以上练习后显示'
+                      : '最近 ${_reports.length} 次',
+                  trailing: _reports.isEmpty ? null : '全部记录',
+                  onTapTrailing: _reports.isEmpty
+                      ? null
+                      : () async {
+                          await Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => const ReportsPage()),
+                          );
+                          _load();
+                        },
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
+                  child: _ScoreTrend(
+                    reports: _reports,
+                    onTapLatest: _reports.isEmpty
+                        ? null
+                        : () => _review(_reports.last),
+                  ),
                 ),
                 const SizedBox(height: 28),
                 SectionHeader(
@@ -380,4 +426,148 @@ class _TrendPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _TrendPainter old) =>
       old.values != values || old.color != color;
+}
+
+/// Score per finished session — the "am I actually improving" chart. Bars
+/// rather than a line, because sessions are discrete events, not a continuum.
+class _ScoreTrend extends StatelessWidget {
+  const _ScoreTrend({required this.reports, this.onTapLatest});
+
+  final List<ExamReport> reports;
+  final VoidCallback? onTapLatest;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+
+    if (reports.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 22),
+        child: Text('还没有成绩记录，完成一组 5 题以上的练习即可', style: text.bodySmall),
+      );
+    }
+
+    final shown = reports.length > 14
+        ? reports.sublist(reports.length - 14)
+        : reports;
+    final avg = reports.fold<int>(0, (a, r) => a + r.rate) / reports.length;
+    final latest = reports.last;
+    final delta = reports.length < 2
+        ? 0
+        : latest.rate - reports[reports.length - 2].rate;
+
+    Color tint(int rate) => rate >= 70
+        ? t.success
+        : (rate >= 50 ? t.category('shuliang') : t.danger);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          children: [
+            Text(
+              '${latest.rate}',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w700,
+                height: 1,
+                letterSpacing: -1,
+                color: t.text,
+                fontFeatures: AppTheme.numeric,
+              ),
+            ),
+            Text('%', style: text.bodySmall?.copyWith(fontSize: 13)),
+            const SizedBox(width: 8),
+            if (reports.length >= 2)
+              Text(
+                delta == 0
+                    ? '与上次持平'
+                    : (delta > 0 ? '较上次 +$delta' : '较上次 $delta'),
+                style: text.bodySmall?.copyWith(
+                  color: delta > 0 ? t.success : (delta < 0 ? t.danger : t.muted),
+                ),
+              ),
+            const Spacer(),
+            Text('平均 ${avg.round()}%', style: text.bodySmall),
+          ],
+        ),
+        const SizedBox(height: 14),
+        SizedBox(
+          height: 92,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              for (var i = 0; i < shown.length; i++)
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 3),
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: i == shown.length - 1 ? onTapLatest : null,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Text(
+                            '${shown[i].rate}',
+                            style: text.bodySmall?.copyWith(
+                              fontSize: 10,
+                              color: i == shown.length - 1 ? t.text : t.muted,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Stack(
+                            alignment: Alignment.bottomCenter,
+                            children: [
+                              Container(
+                                height: 58,
+                                decoration: BoxDecoration(
+                                  color: t.name == 'dark'
+                                      ? Colors.white.withValues(alpha: 0.08)
+                                      : t.text.withValues(alpha: 0.06),
+                                  borderRadius: BorderRadius.circular(5),
+                                ),
+                              ),
+                              TweenAnimationBuilder<double>(
+                                tween: Tween(begin: 0, end: shown[i].rate / 100),
+                                duration: Duration(milliseconds: 320 + i * 40),
+                                curve: Curves.easeOutCubic,
+                                builder: (_, v, __) => Container(
+                                  height: 58 * v,
+                                  decoration: BoxDecoration(
+                                    color: tint(shown[i].rate).withValues(
+                                      alpha: i == shown.length - 1 ? 1 : 0.55,
+                                    ),
+                                    borderRadius: BorderRadius.circular(5),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Icon(
+                            shown[i].isExam
+                                ? Icons.timer_outlined
+                                : Icons.edit_outlined,
+                            size: 11,
+                            color: t.muted,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 10),
+        Text(
+          '最右为最近一次（${latest.isExam ? '模考' : '练习'} · ${latest.total} 题），点它可逐题回顾',
+          style: text.bodySmall?.copyWith(fontSize: 11.5),
+        ),
+      ],
+    );
+  }
 }
