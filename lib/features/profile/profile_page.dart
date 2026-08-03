@@ -31,6 +31,7 @@ class _ProfilePageState extends State<ProfilePage> {
   int _count = 20;
   int _marked = 0;
   int _reports = 0;
+  int _goal = 30;
   List<int> _week = const [0, 0, 0, 0, 0, 0, 0];
   String _name = '备考中';
   DateTime? _examDate;
@@ -67,6 +68,7 @@ class _ProfilePageState extends State<ProfilePage> {
       _rate = done == 0 ? 0 : (correct * 100 / done).round();
       _week = week;
       _count = prefs.getInt(Prefs.defaultCount) ?? 20;
+      _goal = prefs.getInt(Prefs.dailyGoal) ?? 30;
       _name = prefs.getString(Prefs.nickname) ?? '备考中';
       final examRaw = prefs.getString(Prefs.examDate);
       _examDate = examRaw == null ? null : DateTime.tryParse(examRaw);
@@ -204,7 +206,7 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
-          child: _WeekStrip(counts: _week),
+          child: _WeekStrip(counts: _week, goal: _goal),
         ),
         const SizedBox(height: 28),
         const _GroupLabel('学习'),
@@ -248,6 +250,23 @@ class _ProfilePageState extends State<ProfilePage> {
               ? '未设置'
               : (days >= 0 ? '还有 $days 天' : '已结束'),
           onTap: _pickExamDate,
+        ),
+        const RowDivider(),
+        _SettingRow(
+          icon: AppIcon.chart,
+          title: '每日目标',
+          value: '$_goal 题',
+          onTap: () async {
+            final picked = await showModalBottomSheet<int>(
+              context: context,
+              backgroundColor: Colors.transparent,
+              builder: (_) => _GoalSheet(current: _goal),
+            );
+            if (picked == null) return;
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setInt(Prefs.dailyGoal, picked);
+            if (mounted) setState(() => _goal = picked);
+          },
         ),
         const RowDivider(),
         _SettingRow(
@@ -325,9 +344,12 @@ class _ProfilePageState extends State<ProfilePage> {
 }
 
 class _WeekStrip extends StatelessWidget {
-  const _WeekStrip({required this.counts});
+  const _WeekStrip({required this.counts, required this.goal});
 
   final List<int> counts;
+
+  /// Days that reached the daily target get the solid brand fill.
+  final int goal;
 
   static const _weekday = ['一', '二', '三', '四', '五', '六', '日'];
 
@@ -335,7 +357,6 @@ class _WeekStrip extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tokens;
     final text = Theme.of(context).textTheme;
-    final max = counts.fold<int>(0, (m, c) => c > m ? c : m);
     final today = DateTime.now();
 
     return Row(
@@ -356,9 +377,9 @@ class _WeekStrip extends StatelessWidget {
                                 ? Colors.white.withValues(alpha: 0.06)
                                 : t.text.withValues(alpha: 0.05))
                             : t.brand.withValues(
-                                alpha: max == 0
-                                    ? 0.2
-                                    : (0.3 + 0.6 * (counts[i] / max)).clamp(0.3, 0.9),
+                                alpha: goal <= 0 || counts[i] >= goal
+                                    ? 1
+                                    : (0.3 + 0.5 * (counts[i] / goal)).clamp(0.3, 0.85),
                               ),
                         borderRadius: BorderRadius.circular(13),
                         border: i == counts.length - 1
@@ -373,7 +394,7 @@ class _WeekStrip extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
-                          color: max > 0 && counts[i] / max > 0.45
+                          color: goal > 0 && counts[i] / goal > 0.5
                               ? Colors.white
                               : t.text,
                           fontFeatures: AppTheme.numeric,
@@ -661,6 +682,50 @@ class _NameSheetState extends State<_NameSheet> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _GoalSheet extends StatelessWidget {
+  const _GoalSheet({required this.current});
+
+  final int current;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+    return _SheetShell(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('每日目标', style: text.titleMedium),
+          const SizedBox(height: 6),
+          Text('在职备考建议 20–30 题，全职冲刺 60 题以上', style: text.bodySmall),
+          for (final n in const [10, 20, 30, 50, 80, 100])
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => Navigator.of(context).pop(n),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                child: Row(
+                  children: [
+                    Text(
+                      '$n 题',
+                      style: text.titleSmall?.copyWith(
+                        color: n == current ? t.brand : t.text,
+                        fontFeatures: AppTheme.numeric,
+                      ),
+                    ),
+                    const Spacer(),
+                    if (n == current) Icon(Icons.check, size: 19, color: t.brand),
+                  ],
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

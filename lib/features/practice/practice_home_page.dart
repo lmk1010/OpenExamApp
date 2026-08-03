@@ -30,6 +30,7 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
   int _count = 20;
   String _name = '备考中';
   DateTime? _examDate;
+  int _goal = 30;
 
   @override
   void initState() {
@@ -48,6 +49,7 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
     final saved = prefs.getInt(Prefs.defaultCount) ?? _count;
     final name = prefs.getString(Prefs.nickname) ?? '备考中';
     final examRaw = prefs.getString(Prefs.examDate);
+    final goal = prefs.getInt(Prefs.dailyGoal) ?? 30;
     if (!mounted) return;
     setState(() {
       _total = total;
@@ -56,6 +58,7 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
       _wrong = wrong;
       _count = saved;
       _name = name;
+      _goal = goal;
       _examDate = examRaw == null ? null : DateTime.tryParse(examRaw);
       _loading = false;
     });
@@ -108,6 +111,19 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
     await _open(await AppDatabase.instance.fetchWrong(limit: _count));
   }
 
+  /// Daily volume target — the thing that turns "有空就刷" into a habit.
+  Future<void> _pickGoal() async {
+    final picked = await showModalBottomSheet<int>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _GoalSheet(current: _goal),
+    );
+    if (picked == null || !mounted) return;
+    setState(() => _goal = picked);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(Prefs.dailyGoal, picked);
+  }
+
   Future<void> _pickCount() async {
     final picked = await showModalBottomSheet<int>(
       context: context,
@@ -154,8 +170,10 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
             examDate: _examDate,
             total: _total,
             today: _week.last,
+            goal: _goal,
             rate: rate,
             streak: _streak,
+            onTapGoal: _pickGoal,
           ),
           const SizedBox(height: 20),
           // Feature carousel — each card is a one-tap entry, image-led.
@@ -266,16 +284,20 @@ class _Hero extends StatelessWidget {
     required this.examDate,
     required this.total,
     required this.today,
+    required this.goal,
     required this.rate,
     required this.streak,
+    required this.onTapGoal,
   });
 
   final String name;
   final DateTime? examDate;
   final int total;
   final int today;
+  final int goal;
   final int rate;
   final int streak;
+  final VoidCallback onTapGoal;
 
   int? get _daysLeft {
     if (examDate == null) return null;
@@ -313,7 +335,9 @@ class _Hero extends StatelessWidget {
                     Text('$_greeting，$name', style: text.bodySmall?.copyWith(fontSize: 13)),
                     const SizedBox(height: 8),
                     Text(
-                      today == 0 ? '今天还没开练' : '今天已练 $today 题',
+                      today >= goal
+                          ? '今日目标已完成'
+                          : (today == 0 ? '今天还没开练' : '今天已练 $today 题'),
                       style: text.displaySmall?.copyWith(fontSize: 27, letterSpacing: -1),
                     ),
                   ],
@@ -351,11 +375,7 @@ class _Hero extends StatelessWidget {
           const SizedBox(height: 18),
           Row(
             children: [
-              _StatusTile(
-                icon: AppIcon.papers,
-                value: '$total',
-                label: '题库',
-              ),
+              _GoalTile(done: today, goal: goal, onTap: onTapGoal),
               const SizedBox(width: 9),
               _StatusTile(
                 icon: AppIcon.chart,
@@ -371,6 +391,96 @@ class _Hero extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Today's target as a ring inside the status row — progress you can read at a
+/// glance, and one tap to change the target.
+class _GoalTile extends StatelessWidget {
+  const _GoalTile({required this.done, required this.goal, required this.onTap});
+
+  final int done;
+  final int goal;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final ratio = goal == 0 ? 0.0 : (done / goal).clamp(0.0, 1.0);
+    final hit = done >= goal;
+
+    return Expanded(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(13, 11, 13, 12),
+          decoration: BoxDecoration(
+            color: t.chip,
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 34,
+                height: 34,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    TweenAnimationBuilder<double>(
+                      tween: Tween(begin: 0, end: ratio),
+                      duration: const Duration(milliseconds: 600),
+                      curve: Curves.easeOutCubic,
+                      builder: (_, v, __) => SizedBox(
+                        width: 34,
+                        height: 34,
+                        child: CircularProgressIndicator(
+                          value: v == 0 ? 0.02 : v,
+                          strokeWidth: 3,
+                          strokeCap: StrokeCap.round,
+                          color: t.onChip,
+                          backgroundColor: t.onChip.withValues(alpha: 0.22),
+                        ),
+                      ),
+                    ),
+                    if (hit)
+                      Icon(Icons.check_rounded, size: 16, color: t.onChip),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '$done/$goal',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        height: 1,
+                        letterSpacing: -0.3,
+                        color: t.onChip,
+                        fontFeatures: AppTheme.numeric,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      '今日目标',
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        height: 1,
+                        color: t.onChip.withValues(alpha: 0.72),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -616,6 +726,60 @@ class _TypeRow extends StatelessWidget {
                 ),
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _GoalSheet extends StatelessWidget {
+  const _GoalSheet({required this.current});
+
+  final int current;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+    return Container(
+      decoration: BoxDecoration(
+        color: t.gradient.last,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        border: Border(top: BorderSide(color: t.glassBorder)),
+      ),
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 12),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('每日目标', style: text.titleMedium),
+            const SizedBox(height: 6),
+            Text('在职备考建议 20–30 题，全职冲刺 60 题以上', style: text.bodySmall),
+            const SizedBox(height: 6),
+            for (final n in const [10, 20, 30, 50, 80, 100])
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => Navigator.of(context).pop(n),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  child: Row(
+                    children: [
+                      Text(
+                        '$n 题',
+                        style: text.titleSmall?.copyWith(
+                          color: n == current ? t.brand : t.text,
+                          fontFeatures: AppTheme.numeric,
+                        ),
+                      ),
+                      const Spacer(),
+                      if (n == current) Icon(Icons.check, size: 19, color: t.brand),
+                    ],
+                  ),
+                ),
+              ),
           ],
         ),
       ),
