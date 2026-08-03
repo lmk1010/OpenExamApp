@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:openexam_app/core/constants/app_constants.dart';
+import 'package:openexam_app/core/ui/stroke_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Holds the selected theme mode and persists it across launches.
@@ -51,4 +52,13 @@ class ThemeController extends ChangeNotifier {
         ThemeMode.light => Icons.light_mode_outlined,
         ThemeMode.dark => Icons.dark_mode_outlined,
       };
+}
+
+extension ThemeIconX on IconData {
+  /// Maps the controller's Material glyph onto the hand-drawn set.
+  AppIcon toAppIcon() {
+    if (this == Icons.light_mode_outlined) return AppIcon.sun;
+    if (this == Icons.dark_mode_outlined) return AppIcon.moon;
+    return AppIcon.auto;
+  }
 }
