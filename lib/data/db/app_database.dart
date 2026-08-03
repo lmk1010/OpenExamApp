@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -93,6 +94,21 @@ class AppDatabase {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS marks (
         question_id TEXT PRIMARY KEY,
+        created_at TEXT NOT NULL
+      )
+    ''');
+    // Every finished session is kept so scores can be revisited later.
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS exam_reports (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        kind TEXT NOT NULL,
+        total INTEGER NOT NULL,
+        answered INTEGER NOT NULL,
+        correct INTEGER NOT NULL,
+        elapsed_ms INTEGER NOT NULL,
+        question_ids TEXT NOT NULL,
+        answers TEXT NOT NULL,
         created_at TEXT NOT NULL
       )
     ''');
@@ -270,6 +286,61 @@ class AppDatabase {
       final hit = byDay[key];
       return DailyStat(date: d, answered: hit?.n ?? 0, correct: hit?.correct ?? 0);
     });
+  }
+
+  // ----------------------------------------------------------------- reports
+
+  Future<int> saveReport({
+    required String title,
+    required String kind,
+    required List<String> questionIds,
+    required Map<String, String> answers,
+    required int correct,
+    required Duration elapsed,
+  }) async {
+    final db = await database;
+    return db.insert('exam_reports', {
+      'title': title,
+      'kind': kind,
+      'total': questionIds.length,
+      'answered': answers.length,
+      'correct': correct,
+      'elapsed_ms': elapsed.inMilliseconds,
+      'question_ids': jsonEncode(questionIds),
+      'answers': jsonEncode(answers),
+      'created_at': DateTime.now().toIso8601String(),
+    });
+  }
+
+  Future<List<ExamReport>> listReports({int limit = 60}) async {
+    final db = await database;
+    final rows = await db.query(
+      'exam_reports',
+      orderBy: 'id DESC',
+      limit: limit,
+    );
+    return rows.map(ExamReport.fromRow).toList();
+  }
+
+  Future<void> deleteReport(int id) async {
+    final db = await database;
+    await db.delete('exam_reports', where: 'id = ?', whereArgs: [id]);
+  }
+
+  /// Questions by id, in the order given — used to replay a saved report.
+  Future<List<Question>> fetchByIds(List<String> ids) async {
+    if (ids.isEmpty) return const [];
+    final db = await database;
+    final placeholders = List.filled(ids.length, '?').join(',');
+    final rows = await db.rawQuery(
+      'SELECT * FROM questions WHERE id IN ($placeholders)',
+      ids,
+    );
+    final byId = {for (final row in rows) '${row['id']}': _fromRow(row)};
+    return [
+      for (final id in ids)
+        if (byId[id] != null) byId[id]!,
+    ];
   }
 
   // ------------------------------------------------------------------ images

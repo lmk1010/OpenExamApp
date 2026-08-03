@@ -20,7 +20,17 @@ class PracticeSessionPage extends StatefulWidget {
     required this.questions,
     this.limit,
     this.title,
+    this.reviewAnswers,
+    this.startAt = 0,
   });
+
+  /// When set the session opens in review mode: the same question UI, but
+  /// answers are already filled in and locked — reading a report should look
+  /// like doing the paper, not like a list of letters.
+  final Map<String, String>? reviewAnswers;
+
+  /// Which question to open on (review mode jumps straight to a wrong one).
+  final int startAt;
 
   final List<Question> questions;
 
@@ -35,9 +45,9 @@ class PracticeSessionPage extends StatefulWidget {
 }
 
 class _PracticeSessionPageState extends State<PracticeSessionPage> {
-  final PageController _pager = PageController();
+  late final PageController _pager = PageController(initialPage: widget.startAt);
 
-  int _index = 0;
+  late int _index = widget.startAt;
   final Map<String, String> _answers = {};
   Set<String> _marked = {};
   bool _finished = false;
@@ -55,7 +65,8 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
 
   List<Question> get _questions => widget.questions;
   Question get _current => _questions[_index];
-  bool get _isExam => widget.limit != null;
+  bool get _isExam => widget.limit != null && !_isReview;
+  bool get _isReview => widget.reviewAnswers != null;
   Duration get _left =>
       widget.limit == null ? Duration.zero : widget.limit! - _elapsed;
 
@@ -63,6 +74,10 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
   void initState() {
     super.initState();
     _loadPrefs();
+    if (_isReview) {
+      _answers.addAll(widget.reviewAnswers!);
+      return;
+    }
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted || _finished) return;
       setState(() => _elapsed = DateTime.now().difference(_started));
@@ -91,7 +106,7 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
   // ---------------------------------------------------------------- answering
 
   Future<void> _select(String key) async {
-    if (_finished) return;
+    if (_finished || _isReview) return;
     final q = _current;
     if (_answers.containsKey(q.id)) return;
 
@@ -148,6 +163,23 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
       _finished = true;
     });
     HapticFeedback.mediumImpact();
+    _saveReport();
+  }
+
+  /// Sessions worth revisiting are kept; a two-question retry is not.
+  Future<void> _saveReport() async {
+    if (_isReview || _answers.isEmpty || _questions.length < 5) return;
+    final correct = _questions
+        .where((q) => _answers[q.id] == q.answer.toUpperCase())
+        .length;
+    await AppDatabase.instance.saveReport(
+      title: widget.title ?? (_isExam ? '限时模考' : '练习 ${_questions.length} 题'),
+      kind: _isExam ? 'exam' : 'practice',
+      questionIds: _questions.map((q) => q.id).toList(),
+      answers: _answers,
+      correct: correct,
+      elapsed: _elapsed,
+    );
   }
 
   /// Handing in with blanks left is almost always a slip — confirm first.
@@ -173,7 +205,7 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
   }
 
   Future<bool> _confirmExit() async {
-    if (_finished || _answers.isEmpty) return true;
+    if (_finished || _isReview || _answers.isEmpty) return true;
     final ok = await _confirm(
       title: _isExam ? '退出模考？' : '结束这组练习？',
       message: _isExam
@@ -295,13 +327,16 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
               const SizedBox(width: 10),
               // Elapsed (practice) or remaining (exam) — pace is the thing
               // 行测 candidates actually lose points to.
-              Text(
-                _isExam ? _clock(_left) : _clock(_elapsed),
-                style: text.bodySmall?.copyWith(
-                  color: _isExam && _left.inMinutes < 5 ? t.danger : t.muted,
-                  fontFeatures: AppTheme.numeric,
-                ),
-              ),
+              if (!_isReview)
+                Text(
+                  _isExam ? _clock(_left) : _clock(_elapsed),
+                  style: text.bodySmall?.copyWith(
+                    color: _isExam && _left.inMinutes < 5 ? t.danger : t.muted,
+                    fontFeatures: AppTheme.numeric,
+                  ),
+                )
+              else
+                Text('回顾', style: text.bodySmall?.copyWith(color: t.brand)),
               if (widget.title != null) ...[
                 const SizedBox(width: 10),
                 Flexible(
@@ -376,7 +411,8 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
             selected: _answers[_questions[i].id],
             isExam: _isExam,
             fontScale: _fontScale,
-            isLast: i == total - 1,
+            isLast: i == total - 1 && !_isReview,
+            isReview: _isReview,
             onSelect: _select,
             onSubmit: _submit,
           ),
@@ -394,6 +430,7 @@ class _QuestionView extends StatelessWidget {
     required this.isExam,
     required this.fontScale,
     required this.isLast,
+    required this.isReview,
     required this.onSelect,
     required this.onSubmit,
   });
@@ -403,6 +440,7 @@ class _QuestionView extends StatelessWidget {
   final bool isExam;
   final double fontScale;
   final bool isLast;
+  final bool isReview;
   final ValueChanged<String> onSelect;
   final VoidCallback onSubmit;
 
@@ -410,12 +448,20 @@ class _QuestionView extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tokens;
     final text = Theme.of(context).textTheme;
-    final revealed = selected != null && !isExam;
+    final revealed = isReview || (selected != null && !isExam);
     final accent = t.category(question.category);
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 16, AppTheme.gutter, 28),
       children: [
+        if (isReview && selected == null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Text(
+              '这道题当时没有作答',
+              style: text.bodySmall?.copyWith(color: t.danger),
+            ),
+          ),
         if (!isExam)
           Padding(
             padding: const EdgeInsets.only(bottom: 12),
@@ -762,7 +808,7 @@ class _ResultView extends StatelessWidget {
             const SizedBox(height: 20),
           ],
           if (wrong.isNotEmpty) ...[
-            SectionHeader(title: '错题回顾', caption: '${wrong.length} 题 · 点开重做'),
+            SectionHeader(title: '错题回顾', caption: '${wrong.length} 题 · 点开看原题'),
             for (var i = 0; i < wrong.length; i++) ...[
               if (i > 0) const RowDivider(indent: 0),
               AppRow(
@@ -776,9 +822,15 @@ class _ResultView extends StatelessWidget {
                   icon: categoryIcon(wrong[i].category),
                   color: t.danger,
                 ),
+                // Opens the real question view at this question, not a list row.
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (_) => PracticeSessionPage(questions: [wrong[i]]),
+                    builder: (_) => PracticeSessionPage(
+                      questions: questions,
+                      reviewAnswers: answers,
+                      startAt: questions.indexOf(wrong[i]),
+                      title: '错题回顾',
+                    ),
                   ),
                 ),
               ),
@@ -795,23 +847,31 @@ class _ResultView extends StatelessWidget {
         safeBottom: true,
         child: Row(
           children: [
-            if (wrong.isNotEmpty) ...[
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () => Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(
-                      builder: (_) => PracticeSessionPage(questions: wrong),
+            Expanded(
+              child: OutlinedButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => PracticeSessionPage(
+                      questions: questions,
+                      reviewAnswers: answers,
+                      title: '逐题回顾',
                     ),
                   ),
-                  child: Text('重做错题 ${wrong.length}'),
                 ),
+                child: const Text('逐题回顾'),
               ),
-              const SizedBox(width: 12),
-            ],
+            ),
+            const SizedBox(width: 12),
             Expanded(
               child: FilledButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('完成'),
+                onPressed: wrong.isEmpty
+                    ? () => Navigator.of(context).pop()
+                    : () => Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(
+                            builder: (_) => PracticeSessionPage(questions: wrong),
+                          ),
+                        ),
+                child: Text(wrong.isEmpty ? '完成' : '重做错题 ${wrong.length}'),
               ),
             ),
           ],

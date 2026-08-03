@@ -210,3 +210,52 @@ class DailyStat {
 
   double get accuracy => answered == 0 ? 0 : correct / answered;
 }
+
+/// A finished session, kept so the score can be revisited.
+class ExamReport {
+  const ExamReport({
+    required this.id,
+    required this.title,
+    required this.kind,
+    required this.total,
+    required this.answered,
+    required this.correct,
+    required this.elapsed,
+    required this.questionIds,
+    required this.answers,
+    required this.createdAt,
+  });
+
+  final int id;
+  final String title;
+
+  /// 'exam' for timed papers, 'practice' otherwise.
+  final String kind;
+  final int total;
+  final int answered;
+  final int correct;
+  final Duration elapsed;
+  final List<String> questionIds;
+  final Map<String, String> answers;
+  final DateTime createdAt;
+
+  int get rate => total == 0 ? 0 : (correct * 100 / total).round();
+  bool get isExam => kind == 'exam';
+
+  factory ExamReport.fromRow(Map<String, Object?> row) => ExamReport(
+        id: int.tryParse('${row['id']}') ?? 0,
+        title: '${row['title'] ?? ''}',
+        kind: '${row['kind'] ?? 'practice'}',
+        total: int.tryParse('${row['total']}') ?? 0,
+        answered: int.tryParse('${row['answered']}') ?? 0,
+        correct: int.tryParse('${row['correct']}') ?? 0,
+        elapsed: Duration(milliseconds: int.tryParse('${row['elapsed_ms']}') ?? 0),
+        questionIds: (jsonDecode('${row['question_ids'] ?? '[]'}') as List)
+            .map((e) => '$e')
+            .toList(),
+        answers: (jsonDecode('${row['answers'] ?? '{}'}') as Map)
+            .map((k, v) => MapEntry('$k', '$v')),
+        createdAt:
+            DateTime.tryParse('${row['created_at'] ?? ''}') ?? DateTime.now(),
+      );
+}
