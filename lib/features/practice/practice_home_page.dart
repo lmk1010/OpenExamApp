@@ -414,20 +414,6 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
             ),
           ),
           const SizedBox(height: 18),
-          if (_resume != null && _resume!.remaining > 0)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppTheme.gutter,
-                0,
-                AppTheme.gutter,
-                18,
-              ),
-              child: _ResumeBanner(
-                state: _resume!,
-                onContinue: _continueResume,
-                onDismiss: _dismissResume,
-              ),
-            ),
           // Feature carousel — each card is a one-tap entry, image-led.
           SizedBox(
             height: 138,
@@ -446,6 +432,19 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
                   horizontal: AppTheme.gutter,
                 ),
                 children: [
+                  // 中断的那组排在第一张：它是最该继续的一件事，但不值得
+                  // 单独占一整行。长按可以放弃。
+                  if (_resume != null && _resume!.remaining > 0) ...[
+                    _FeatureCard(
+                      title: '继续上次',
+                      meta: '${_resume!.title} · 还剩 ${_resume!.remaining} 题',
+                      glyph: AppIcon.replay,
+                      colors: [t.category('shuliang')],
+                      onTap: _continueResume,
+                      onLong: _dismissResume,
+                    ),
+                    const SizedBox(width: 11),
+                  ],
                   _FeatureCard(
                     title: '每日一练',
                     meta: _dailyProgress.answered >= _daily.length && _daily.isNotEmpty
@@ -816,31 +815,17 @@ class _Hero extends StatelessWidget {
                 ),
             ],
           ),
-          const SizedBox(height: 18),
-          Row(
-            children: [
-              _StatusTile(
-                progress: goal == 0 ? 0 : today / goal,
-                done: today >= goal,
-                value: '$today/$goal',
-                label: '今日目标',
-                onTap: onTapGoal,
-              ),
-              const SizedBox(width: 10),
-              _StatusTile(
-                icon: AppIcon.chart,
-                value: rate == 0 ? '—' : '$rate%',
-                label: '正确率',
-                onTap: onTapRate,
-              ),
-              const SizedBox(width: 10),
-              _StatusTile(
-                icon: AppIcon.timer,
-                value: '$streak 天',
-                label: '连续打卡',
-                onTap: onTapStreak,
-              ),
-            ],
+          const SizedBox(height: 14),
+          // 三块指标以前各占一张卡，吃掉一整屏的三分之一。同样的信息压成
+          // 一条：细进度条 + 一行数字，每段照样能点进去。
+          _MetricStrip(
+            today: today,
+            goal: goal,
+            rate: rate,
+            streak: streak,
+            onTapGoal: onTapGoal,
+            onTapRate: onTapRate,
+            onTapStreak: onTapStreak,
           ),
         ],
       ),
@@ -848,201 +833,90 @@ class _Hero extends StatelessWidget {
   }
 }
 
-/// Offer to pick up an interrupted session — losing half a 130-question paper
-/// to a phone call is the kind of thing that makes people quit an app.
-class _ResumeBanner extends StatelessWidget {
-  const _ResumeBanner({
-    required this.state,
-    required this.onContinue,
-    required this.onDismiss,
+/// 首页指标条：一条 3dp 的今日进度 + 一行可点的数字。
+class _MetricStrip extends StatelessWidget {
+  const _MetricStrip({
+    required this.today,
+    required this.goal,
+    required this.rate,
+    required this.streak,
+    required this.onTapGoal,
+    required this.onTapRate,
+    required this.onTapStreak,
   });
 
-  final ResumeState state;
-  final VoidCallback onContinue;
-  final VoidCallback onDismiss;
+  final int today;
+  final int goal;
+  final int rate;
+  final int streak;
+  final VoidCallback onTapGoal;
+  final VoidCallback onTapRate;
+  final VoidCallback onTapStreak;
 
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
     final text = Theme.of(context).textTheme;
 
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onContinue,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
-        decoration: GlassDecor.panel(t, radius: 18),
-        child: Row(
-          children: [
-            StrokeIcon(AppIcon.replay, size: 20, color: t.brand),
-            const SizedBox(width: 13),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '继续 ${state.title}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: text.titleSmall?.copyWith(fontSize: 15),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '还剩 ${state.remaining} 题'
-                    '${state.isExam ? ' · 模考计时会接着走' : ''}',
-                    style: text.bodySmall,
-                  ),
-                ],
-              ),
-            ),
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: onDismiss,
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: Icon(Icons.close, size: 17, color: t.muted),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// One status tile. Goal, accuracy and streak all use the same vertical
-/// stack — the goal tile used to put its ring beside the number, which left
-/// about 30dp for "12/30" and looked squashed.
-class _StatusTile extends StatelessWidget {
-  const _StatusTile({
-    required this.value,
-    required this.label,
-    this.icon,
-    this.progress,
-    this.done = false,
-    this.onTap,
-  });
-
-  final String value;
-  final String label;
-
-  /// Either a glyph or a progress ring sits at the top of the tile.
-  final AppIcon? icon;
-  final double? progress;
-  final bool done;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.tokens;
-
-    return Expanded(
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(14, 13, 12, 14),
-          decoration: BoxDecoration(
-            color: t.chip,
-            borderRadius: BorderRadius.circular(18),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    Widget item(String value, String label, VoidCallback onTap) =>
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: onTap,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              SizedBox(
-                height: 26,
-                child: progress == null
-                    ? StrokeIcon(
-                        icon!,
-                        size: 17,
-                        color: t.onChip.withValues(alpha: 0.85),
-                      )
-                    : SizedBox(
-                        width: 26,
-                        height: 26,
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            TweenAnimationBuilder<double>(
-                              tween: Tween(
-                                begin: 0,
-                                end: progress!.clamp(0.0, 1.0),
-                              ),
-                              duration: const Duration(milliseconds: 600),
-                              curve: Curves.easeOutCubic,
-                              builder: (_, v, __) => SizedBox(
-                                width: 26,
-                                height: 26,
-                                child: CircularProgressIndicator(
-                                  value: v == 0 ? 0.02 : v,
-                                  strokeWidth: 2.6,
-                                  strokeCap: StrokeCap.round,
-                                  color: t.onChip,
-                                  backgroundColor: t.onChip.withValues(
-                                    alpha: 0.24,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            if (done)
-                              Icon(
-                                Icons.check_rounded,
-                                size: 13,
-                                color: t.onChip,
-                              ),
-                          ],
-                        ),
-                      ),
-              ),
-              const SizedBox(height: 12),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: 19,
-                    fontWeight: FontWeight.w700,
-                    height: 1,
-                    letterSpacing: -0.4,
-                    color: t.onChip,
-                    fontFeatures: AppTheme.numeric,
-                  ),
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 14.5,
+                  fontWeight: FontWeight.w700,
+                  height: 1,
+                  color: t.text,
+                  fontFeatures: AppTheme.numeric,
                 ),
               ),
-              const SizedBox(height: 7),
-              Row(
-                children: [
-                  Flexible(
-                    child: Text(
-                      label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 11.5,
-                        height: 1,
-                        color: t.onChip.withValues(alpha: 0.72),
-                      ),
-                    ),
-                  ),
-                  if (onTap != null)
-                    Icon(
-                      Icons.chevron_right,
-                      size: 13,
-                      color: t.onChip.withValues(alpha: 0.5),
-                    ),
-                ],
-              ),
+              const SizedBox(width: 4),
+              Text(label, style: text.bodySmall?.copyWith(fontSize: 12)),
+              Icon(Icons.chevron_right, size: 13, color: t.muted),
             ],
           ),
+        );
+
+    Widget dot() => Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 9),
+          child: Container(
+            width: 3,
+            height: 3,
+            decoration: BoxDecoration(
+              color: t.muted.withValues(alpha: 0.5),
+              shape: BoxShape.circle,
+            ),
+          ),
+        );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Meter(
+          value: goal == 0 ? 0 : (today / goal).clamp(0.0, 1.0),
+          height: 3,
         ),
-      ),
+        const SizedBox(height: 11),
+        Row(
+          children: [
+            item('$today/$goal', '目标', onTapGoal),
+            dot(),
+            item(rate == 0 ? '—' : '$rate%', '正确率', onTapRate),
+            dot(),
+            item('$streak 天', '连续', onTapStreak),
+          ],
+        ),
+      ],
     );
   }
 }
 
-/// Flat colour block with a headline/// Flat colour block with a headline, one line of meta and a play affordance —
-/// the QQ音乐 entry-card pattern. No watermark art, no gradients fighting the text.
+/// Offer to pick up an interrupted session — losing half a 130-question paper
 class _FeatureCard extends StatelessWidget {
   const _FeatureCard({
     required this.title,
@@ -1050,6 +924,7 @@ class _FeatureCard extends StatelessWidget {
     required this.glyph,
     required this.colors,
     required this.onTap,
+    this.onLong,
   });
 
   final String title;
@@ -1057,6 +932,7 @@ class _FeatureCard extends StatelessWidget {
   final AppIcon glyph;
   final List<Color> colors;
   final VoidCallback? onTap;
+  final VoidCallback? onLong;
 
   @override
   Widget build(BuildContext context) {
@@ -1068,6 +944,7 @@ class _FeatureCard extends StatelessWidget {
       opacity: disabled ? 0.4 : 1,
       child: GestureDetector(
         onTap: onTap,
+        onLongPress: onLong,
         child: Container(
           width: 186,
           padding: const EdgeInsets.fromLTRB(18, 16, 16, 16),
