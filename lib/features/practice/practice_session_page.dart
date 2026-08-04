@@ -585,7 +585,10 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
           ),
         ),
         // Swiping between questions is how every 刷题 app works.
-        body: PageView.builder(
+        body: Row(
+          children: [
+            Expanded(
+              child: PageView.builder(
           controller: _pager,
           itemCount: total,
           onPageChanged: (i) {
@@ -613,6 +616,27 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
             onSelect: _select,
             onSubmit: _submit,
           ),
+              ),
+            ),
+            // 平板横屏：答题卡不再是弹层，直接钉在右边。整套 130 题的卷子，
+            // 每跳一题都要先拉一次弹层是折磨。
+            if (context.isExpanded) ...[
+              Container(width: 1, color: t.line.withValues(alpha: 0.5)),
+              SizedBox(
+                width: 232,
+                child: _AnswerCard(
+                  questions: _questions,
+                  answers: _answers,
+                  doubts: _doubts,
+                  current: _index,
+                  isExam: _isExam,
+                  docked: true,
+                  onPick: _goTo,
+                  onSubmit: _submit,
+                ),
+              ),
+            ],
+          ],
         ),
       ),
     );
@@ -1727,7 +1751,15 @@ class _AnswerCard extends StatelessWidget {
     required this.doubts,
     required this.current,
     required this.isExam,
+    this.docked = false,
+    this.onPick,
+    this.onSubmit,
   });
+
+  /// 钉在宽屏右侧时不画圆角顶边，点格子直接跳题而不是 pop 出一个下标。
+  final bool docked;
+  final ValueChanged<int>? onPick;
+  final VoidCallback? onSubmit;
 
   final List<Question> questions;
   final Map<String, String> answers;
@@ -1742,15 +1774,21 @@ class _AnswerCard extends StatelessWidget {
     final done = answers.length;
 
     return Container(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.72,
-      ),
-      decoration: BoxDecoration(
-        color: t.gradient.last,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        border: Border(top: BorderSide(color: t.glassBorder)),
-      ),
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+      constraints: docked
+          ? const BoxConstraints.expand()
+          : BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.72,
+            ),
+      decoration: docked
+          ? null
+          : BoxDecoration(
+              color: t.gradient.last,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              border: Border(top: BorderSide(color: t.glassBorder)),
+            ),
+      padding: docked
+          ? const EdgeInsets.fromLTRB(14, 16, 14, 16)
+          : const EdgeInsets.fromLTRB(20, 16, 20, 16),
       child: SafeArea(
         top: false,
         child: Column(
@@ -1765,15 +1803,18 @@ class _AnswerCard extends StatelessWidget {
                 const SizedBox(width: 10),
                 Text('已答 $done / ${questions.length}', style: text.bodySmall),
                 const Spacer(),
-                if (!isExam) ...[
-                  _Legend(color: t.success, label: '对'),
-                  const SizedBox(width: 10),
-                  _Legend(color: t.danger, label: '错'),
-                ] else
-                  _Legend(color: t.brand, label: '已答'),
-                if (doubts.isNotEmpty) ...[
-                  const SizedBox(width: 10),
-                  _Legend(color: t.category('shuliang'), label: '存疑'),
+                // 钉在 232dp 的侧栏里放不下图例，颜色本身够直白。
+                if (!docked) ...[
+                  if (!isExam) ...[
+                    _Legend(color: t.success, label: '对'),
+                    const SizedBox(width: 10),
+                    _Legend(color: t.danger, label: '错'),
+                  ] else
+                    _Legend(color: t.brand, label: '已答'),
+                  if (doubts.isNotEmpty) ...[
+                    const SizedBox(width: 10),
+                    _Legend(color: t.category('shuliang'), label: '存疑'),
+                  ],
                 ],
               ],
             ),
@@ -1792,7 +1833,9 @@ class _AnswerCard extends StatelessWidget {
                         doubt: doubts.contains(questions[i].id),
                         isCurrent: i == current,
                         isExam: isExam,
-                        onTap: () => Navigator.of(context).pop(i),
+                        onTap: () => docked
+                            ? onPick?.call(i)
+                            : Navigator.of(context).pop(i),
                       ),
                   ],
                 ),
@@ -1802,7 +1845,9 @@ class _AnswerCard extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: FilledButton(
-                onPressed: () => Navigator.of(context).pop(-1),
+                onPressed: () => docked
+                    ? onSubmit?.call()
+                    : Navigator.of(context).pop(-1),
                 child: Text(done == questions.length ? '交卷' : '提前交卷'),
               ),
             ),

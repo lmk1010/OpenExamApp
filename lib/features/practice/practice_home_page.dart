@@ -390,14 +390,7 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
     final byKey = {for (final s in _stats) s.category: s};
     final rate = _done == 0 ? 0 : (_correct * 100 / _done).round();
 
-    return RefreshIndicator(
-      color: t.brand,
-      backgroundColor: t.surface,
-      onRefresh: _reload,
-      child: ReadableWidth(
-        child: ListView(
-        padding: const EdgeInsets.only(bottom: 28),
-        children: [
+    final head = <Widget>[
           _TopBar(total: _total),
           _Hero(
             name: _name,
@@ -588,7 +581,8 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
               ],
             ),
           ),
-          const SizedBox(height: 26),
+    ];
+    final rest = <Widget>[
           _ListHeader(
             title: '按题型练习',
             trailing: '$_count 题 · ${_scopeLabel(_scope)}',
@@ -637,8 +631,52 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
             padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
             child: WeekBars(counts: _week),
           ),
-        ],
-      ),
+
+    ];
+
+    // 平板横屏：左边是今天要做的事（问候、指标、入口卡、打卡、计划），
+    // 右边是题型进度和一周走势。上下堆到 1200px 高的屏幕上，右半边全是空的。
+    if (context.isExpanded) {
+      return RefreshIndicator(
+        color: t.brand,
+        backgroundColor: t.surface,
+        onRefresh: _reload,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: 5,
+              child: ListView(
+                padding: const EdgeInsets.only(bottom: 28),
+                children: head,
+              ),
+            ),
+            Container(
+              width: 1,
+              margin: const EdgeInsets.symmetric(vertical: 20),
+              color: t.line.withValues(alpha: 0.5),
+            ),
+            Expanded(
+              flex: 4,
+              child: ListView(
+                padding: const EdgeInsets.only(top: 22, bottom: 28),
+                children: rest,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      color: t.brand,
+      backgroundColor: t.surface,
+      onRefresh: _reload,
+      child: ReadableWidth(
+        child: ListView(
+          padding: const EdgeInsets.only(bottom: 28),
+          children: [...head, ...rest],
+        ),
       ),
     );
   }

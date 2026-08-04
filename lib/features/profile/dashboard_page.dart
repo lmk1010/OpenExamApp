@@ -6,6 +6,7 @@ import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
 import 'package:openexam_app/core/ui/glass.dart';
+import 'package:openexam_app/core/ui/responsive.dart';
 import 'package:openexam_app/core/ui/stroke_icons.dart';
 import 'package:openexam_app/core/ui/ui_kit.dart';
 import 'package:openexam_app/data/db/app_database.dart';
@@ -162,7 +163,9 @@ class _DashboardPageState extends State<DashboardPage> {
       ),
       body: _loading
           ? const LoadingState()
-          : ListView(
+          : ReadableWidth(
+              maxWidth: context.isExpanded ? 880 : context.readableWidth,
+              child: ListView(
               padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 6, AppTheme.gutter, 30),
               children: [
                 _Reveal(
@@ -274,6 +277,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   style: text.bodySmall?.copyWith(color: t.muted),
                 ),
               ],
+            ),
             ),
     );
   }

@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
 import 'package:openexam_app/core/ui/ambient.dart';
+import 'package:openexam_app/core/ui/responsive.dart';
 import 'package:openexam_app/core/ui/ui_kit.dart';
 import 'package:openexam_app/features/achievements/achievements.dart';
 import 'package:openexam_app/features/achievements/medal.dart';
@@ -58,7 +59,16 @@ class _AchievementsPageState extends State<AchievementsPage> {
       body: _loading
           ? const LoadingState()
           : ListView(
-              padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 8, AppTheme.gutter, 30),
+              padding: EdgeInsets.fromLTRB(
+                AppTheme.gutter,
+                8,
+                AppTheme.gutter,
+                30,
+              ).add(
+                EdgeInsets.symmetric(
+                  horizontal: context.isExpanded ? 40 : 0,
+                ),
+              ),
               children: [
                 Text(
                   '已解锁 $unlocked / ${_badges.length}',
