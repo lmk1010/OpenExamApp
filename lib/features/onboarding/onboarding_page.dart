@@ -83,16 +83,14 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   _Slide(
                     kind: SceneKind.bank,
                     active: _page == 0,
-                    title: '15936 道行测真题\n全部装在这台手机里',
-                    body: '137 套历年真题卷，含 4230 张图形题配图。'
-                        '不联网、不登录、没有广告，地铁上没信号也能刷。',
+                    title: '15936 道真题\n都在这台手机里',
+                    body: '137 套历年卷，图形题的图也带着。不用登录，没网也能刷。',
                   ),
                   _Slide(
                     kind: SceneKind.review,
                     active: _page == 1,
-                    title: '答错的题\n会自己追着你',
-                    body: '错题自动进错题本，可按题型、错因、试卷复盘；'
-                        '答对后自动移出。做题时还能收藏、写笔记、标错因。',
+                    title: '错的题\n自己会记着',
+                    body: '答错的进错题本，再答对就出去。想写两句笔记、标一下错的原因，都行。',
                   ),
                   // Last slide collects the two settings instead of preaching.
                   _Setup(
@@ -130,7 +128,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                     width: double.infinity,
                     child: FilledButton(
                       onPressed: _next,
-                      child: Text(_page == 2 ? '开始刷题' : '继续'),
+                      child: Text(_page == 2 ? '开始刷题' : '下一个'),
                     ),
                   ),
                   if (_page < 2)
@@ -225,16 +223,16 @@ class _Setup extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         Text(
-          '定个节奏\n剩下的交给它',
-          style: text.displaySmall?.copyWith(fontSize: 27, height: 1.35),
+          '还有两件事',
+          style: text.displaySmall?.copyWith(fontSize: 26, height: 1.35),
         ),
         const SizedBox(height: 12),
         Text(
-          '这两项随时可以在「我的」里改。',
+          '随时能改，在「我的」里。',
           style: text.bodyMedium?.copyWith(fontSize: 15),
         ),
         const SizedBox(height: 30),
-        Text('每天练多少题', style: text.titleSmall),
+        Text('一天练几题', style: text.titleSmall),
         const SizedBox(height: 12),
         Wrap(
           spacing: 9,
@@ -269,7 +267,7 @@ class _Setup extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 30),
-        Text('考试是哪天', style: text.titleSmall),
+        Text('考试哪天', style: text.titleSmall),
         const SizedBox(height: 12),
         GestureDetector(
           behavior: HitTestBehavior.opaque,
@@ -284,7 +282,7 @@ class _Setup extends StatelessWidget {
                 Expanded(
                   child: Text(
                     examDate == null
-                        ? '选一个日期（可跳过）'
+                        ? '不填也行'
                         : '${examDate!.year}-${examDate!.month.toString().padLeft(2, '0')}'
                             '-${examDate!.day.toString().padLeft(2, '0')}'
                             '${days == null ? '' : ' · 还有 $days 天'}',
