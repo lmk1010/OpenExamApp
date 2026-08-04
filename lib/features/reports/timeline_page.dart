@@ -94,13 +94,16 @@ class _TimelinePageState extends State<TimelinePage> {
                             r.createdAt.month == day.date.month &&
                             r.createdAt.day == day.date.day)
                         .toList();
-                    return _DayBlock(
+                    return Reveal(
+                      index: i,
+                      child: _DayBlock(
                       day: day,
                       sessions: sessions,
                       goal: _goal,
                       isFirst: i == 0,
                       isLast: i == _days.length - 1,
-                      onReview: _review,
+                        onReview: _review,
+                      ),
                     );
                   },
                 ),

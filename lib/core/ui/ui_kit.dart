@@ -540,3 +540,47 @@ class _EmptyArtPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _EmptyArtPainter old) => old.kind != kind;
 }
+
+/// 入场：淡入 + 上移 18dp，按 index 递增延迟。列表整块「啪」地出现太生硬，
+/// 错开几十毫秒就有了层次。只在首屏用，滚动到下面的项不再等。
+class Reveal extends StatelessWidget {
+  const Reveal({
+    super.key,
+    required this.index,
+    required this.child,
+    this.step = 45,
+    this.max = 6,
+  });
+
+  final int index;
+  final Widget child;
+
+  /// 每一项之间的延迟。
+  final int step;
+
+  /// 超过这个序号就不再延迟，否则长列表末尾要等很久。
+  final int max;
+
+  @override
+  Widget build(BuildContext context) {
+    final delay = (index.clamp(0, max)) * step;
+    return TweenAnimationBuilder<double>(
+      key: ValueKey(index),
+      tween: Tween(begin: 0, end: 1),
+      duration: Duration(milliseconds: 380 + delay),
+      curve: Interval(
+        (delay / (380 + delay)).clamp(0.0, 0.9),
+        1,
+        curve: Curves.easeOutCubic,
+      ),
+      builder: (context, v, child) => Opacity(
+        opacity: v.clamp(0.0, 1.0),
+        child: Transform.translate(
+          offset: Offset(0, 18 * (1 - v)),
+          child: child,
+        ),
+      ),
+      child: child,
+    );
+  }
+}

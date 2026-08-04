@@ -45,6 +45,14 @@ class AppTheme {
     return base.copyWith(
       extensions: [t],
       scaffoldBackgroundColor: Colors.transparent,
+      // 默认的 Android 页面切换是从底部整屏推上来的，在这种浅色渐变背景上
+      // 显得笨重。换成淡入 + 轻微横移，跟 Ambient Glass 的层次感一致。
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: _FadeSlideTransitions(),
+          TargetPlatform.iOS: _FadeSlideTransitions(),
+        },
+      ),
       canvasColor: Colors.transparent,
       dividerColor: t.line,
       splashFactory: NoSplash.splashFactory,
@@ -115,6 +123,40 @@ class AppTheme {
         insetPadding: const EdgeInsets.fromLTRB(gutter, 0, gutter, 20),
         contentTextStyle: TextStyle(fontSize: 14, color: t.surface, height: 1.4),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)),
+      ),
+    );
+  }
+}
+
+/// 淡入 + 从右侧轻推 16dp，返回时反向。比 Material 默认的整屏上推轻，
+/// 也比纯淡入更能说明「进了一层」。
+class _FadeSlideTransitions extends PageTransitionsBuilder {
+  const _FadeSlideTransitions();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    final curved = CurvedAnimation(
+      parent: animation,
+      curve: Curves.easeOutCubic,
+      reverseCurve: Curves.easeInCubic,
+    );
+    final out = CurvedAnimation(parent: secondaryAnimation, curve: Curves.easeOut);
+    return FadeTransition(
+      opacity: curved,
+      child: AnimatedBuilder(
+        animation: Listenable.merge([curved, out]),
+        builder: (context, child) => Transform.translate(
+          // 新页从右边轻推进来；被压在下面的旧页往左让一点。
+          offset: Offset(22 * (1 - curved.value) - 14 * out.value, 0),
+          child: child,
+        ),
+        child: child,
       ),
     );
   }

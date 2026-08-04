@@ -254,10 +254,13 @@ class _SearchPageState extends State<SearchPage> {
                     padding: const EdgeInsets.only(bottom: 24),
                     itemCount: _shown.length,
                     separatorBuilder: (_, __) => const RowDivider(),
-                    itemBuilder: (context, i) => _ResultRow(
-                      question: _shown[i],
-                      query: _query,
-                      onTap: () => _practise([_shown[i]]),
+                    itemBuilder: (context, i) => Reveal(
+                      index: i,
+                      child: _ResultRow(
+                        question: _shown[i],
+                        query: _query,
+                        onTap: () => _practise([_shown[i]]),
+                      ),
                     ),
                   ),
           ),

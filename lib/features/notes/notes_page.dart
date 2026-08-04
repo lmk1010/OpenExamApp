@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
+import 'package:openexam_app/core/ui/filter_bar.dart';
+import 'package:openexam_app/core/ui/glass.dart';
 import 'package:openexam_app/core/ui/rich_content.dart';
 import 'package:openexam_app/core/ui/stroke_icons.dart';
 import 'package:openexam_app/core/ui/ui_kit.dart';
@@ -20,6 +22,24 @@ class NotesPage extends StatefulWidget {
 class _NotesPageState extends State<NotesPage> {
   bool _loading = true;
   List<({Question question, String body, DateTime at})> _items = const [];
+
+  /// 笔记攒到几十条以后，翻是翻不动的 —— 得能搜、能按题型收窄。
+  final TextEditingController _search = TextEditingController();
+  String _query = '';
+  String _category = 'all';
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
+  List<({Question question, String body, DateTime at})> get _shown =>
+      _items.where((e) {
+        if (_category != 'all' && e.question.category != _category) return false;
+        if (_query.isEmpty) return true;
+        return e.body.contains(_query) || e.question.content.contains(_query);
+      }).toList();
 
   @override
   void initState() {
@@ -73,9 +93,9 @@ class _NotesPageState extends State<NotesPage> {
               onPressed: () => Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (_) => PracticeSessionPage(
-                    questions: _items.map((e) => e.question).toList(),
+                    questions: _shown.map((e) => e.question).toList(),
                     reviewAnswers: {
-                      for (final e in _items)
+                      for (final e in _shown)
                         e.question.id: e.question.answer.toUpperCase(),
                     },
                     title: '笔记回顾',
@@ -96,108 +116,224 @@ class _NotesPageState extends State<NotesPage> {
                   art: EmptyArt.box,
                   message: '做题时点右上角的便签图标，写下方法或坑点，这里会汇总。',
                 )
-              : ListView(
-                  padding: const EdgeInsets.only(top: 6, bottom: 28),
+              : Column(
                   children: [
-                    for (var i = 0; i < _items.length; i++) ...[
-                      if (i > 0) const RowDivider(),
-                      Dismissible(
-                        key: ValueKey(_items[i].question.id),
-                        direction: DismissDirection.endToStart,
-                        onDismissed: (_) => _delete(_items[i].question),
-                        background: Container(
-                          alignment: Alignment.centerRight,
-                          padding: const EdgeInsets.only(right: AppTheme.gutter),
-                          color: t.dangerSoft,
-                          child: Text(
-                            '删除笔记',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: t.danger,
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppTheme.gutter,
+                        4,
+                        AppTheme.gutter,
+                        10,
+                      ),
+                      child: Container(
+                        height: 40,
+                        padding: const EdgeInsets.symmetric(horizontal: 13),
+                        decoration: GlassDecor.panel(t, radius: 20, raised: false),
+                        child: Row(
+                          children: [
+                            Icon(Icons.search, size: 17, color: t.muted),
+                            const SizedBox(width: 9),
+                            Expanded(
+                              child: TextField(
+                                controller: _search,
+                                onChanged: (v) =>
+                                    setState(() => _query = v.trim()),
+                                style: text.bodyMedium
+                                    ?.copyWith(color: t.text, fontSize: 14.5),
+                                decoration: InputDecoration(
+                                  isDense: true,
+                                  border: InputBorder.none,
+                                  hintText: '搜笔记内容或题干',
+                                  hintStyle:
+                                      text.bodySmall?.copyWith(fontSize: 13.5),
+                                ),
+                              ),
                             ),
-                          ),
+                            if (_query.isNotEmpty)
+                              GestureDetector(
+                                onTap: () {
+                                  _search.clear();
+                                  setState(() => _query = '');
+                                },
+                                child: Icon(Icons.close,
+                                    size: 16, color: t.muted),
+                              ),
+                          ],
                         ),
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () => _open(_items[i].question),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppTheme.gutter,
-                              vertical: 14,
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.only(top: 2),
-                                      child: QuestionThumb(
-                                        markup: _items[i].question.bodyMarkup,
-                                        icon: categoryIcon(_items[i].question.category),
-                                        color: t.category(_items[i].question.category),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 13),
-                                    Expanded(
-                                      child: Text(
-                                        _items[i].question.content,
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: text.bodyLarge?.copyWith(
-                                          fontSize: 15,
-                                          height: 1.45,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                      ),
+                    ),
+                    FilterBar(
+                      filters: [
+                        FilterSpec(
+                          key: 'category',
+                          label: '题型',
+                          value: _category,
+                          icon: AppIcon.logic,
+                          options: [
+                            FilterOption('all', '全部题型', count: _items.length),
+                            for (final c in kGongkaoCategories)
+                              if (_items.any(
+                                  (e) => e.question.category == c.key))
+                                FilterOption(
+                                  c.key,
+                                  c.label,
+                                  count: _items
+                                      .where((e) =>
+                                          e.question.category == c.key)
+                                      .length,
                                 ),
-                                const SizedBox(height: 10),
-                                // The note itself is the point of this row.
-                                Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: t.category('shuliang').withValues(alpha: 0.10),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Text(
-                                    _items[i].body,
-                                    style: text.bodyMedium?.copyWith(
-                                      color: t.text,
-                                      height: 1.55,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Row(
-                                  children: [
-                                    StrokeIcon(
-                                      categoryIcon(_items[i].question.category),
-                                      size: 13,
-                                      color: t.muted,
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      categoryLabel(_items[i].question.category),
-                                      style: text.bodySmall,
-                                    ),
-                                    Text(
-                                      ' · ${_items[i].at.month}/${_items[i].at.day}',
-                                      style: text.bodySmall,
-                                    ),
-                                  ],
-                                ),
-                              ],
+                          ],
+                        ),
+                      ],
+                      onChanged: (_, value) =>
+                          setState(() => _category = value),
+                      onReset: () => setState(() {
+                        _category = 'all';
+                        _query = '';
+                        _search.clear();
+                      }),
+                    ),
+                    if (_shown.isEmpty)
+                      const Expanded(
+                        child: EmptyState(
+                          icon: Icons.search_off,
+                          title: '没有匹配的笔记',
+                          art: EmptyArt.search,
+                          message: '换个关键词，或把题型筛选清掉。',
+                        ),
+                      )
+                    else
+                      Expanded(
+                        child: ListView.separated(
+                          padding: const EdgeInsets.only(top: 4, bottom: 28),
+                          itemCount: _shown.length,
+                          separatorBuilder: (_, __) => const RowDivider(),
+                          itemBuilder: (context, i) => Reveal(
+                            index: i,
+                            child: _NoteRow(
+                              item: _shown[i],
+                              onTap: () => _open(_shown[i].question),
+                              onDelete: () => _delete(_shown[i].question),
                             ),
                           ),
                         ),
                       ),
-                    ],
                   ],
                 ),
+    );
+  }
+}
+
+/// 一条笔记：题干两行 + 笔记正文，左滑删除。
+class _NoteRow extends StatelessWidget {
+  const _NoteRow({
+    required this.item,
+    required this.onTap,
+    required this.onDelete,
+  });
+
+  final ({Question question, String body, DateTime at}) item;
+  final VoidCallback onTap;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+
+    return Dismissible(
+      key: ValueKey(item.question.id),
+      direction: DismissDirection.endToStart,
+      onDismissed: (_) => onDelete(),
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: AppTheme.gutter),
+        color: t.dangerSoft,
+        child: Text(
+          '删除笔记',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: t.danger,
+          ),
+        ),
+      ),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppTheme.gutter,
+            vertical: 14,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: QuestionThumb(
+                      markup: item.question.bodyMarkup,
+                      icon: categoryIcon(item.question.category),
+                      color: t.category(item.question.category),
+                    ),
+                  ),
+                  const SizedBox(width: 13),
+                  Expanded(
+                    child: Text(
+                      item.question.content,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: text.bodyLarge?.copyWith(
+                        fontSize: 15,
+                        height: 1.45,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              // The note itself is the point of this row.
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: t.category('shuliang').withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  item.body,
+                  style: text.bodyMedium?.copyWith(
+                    color: t.text,
+                    height: 1.55,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  StrokeIcon(
+                    categoryIcon(item.question.category),
+                    size: 13,
+                    color: t.muted,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    categoryLabel(item.question.category),
+                    style: text.bodySmall,
+                  ),
+                  Text(
+                    ' · ${item.at.month}/${item.at.day}',
+                    style: text.bodySmall,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

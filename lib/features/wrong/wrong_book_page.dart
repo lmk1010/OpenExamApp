@@ -762,13 +762,16 @@ class _WrongBookPageState extends State<WrongBookPage> {
               physics: const NeverScrollableScrollPhysics(),
               itemCount: shown.length,
               separatorBuilder: (_, __) => const RowDivider(),
-              itemBuilder: (context, i) => _WrongRow(
+              itemBuilder: (context, i) => Reveal(
+                index: i,
+                child: _WrongRow(
                 question: shown[i],
                 reason: _reasons[shown[i].id],
                 times: _counts[shown[i].id] ?? 1,
                 onTap: () => _practise([shown[i]]),
                 onLong: () => _actions(shown[i]),
-                onRemove: () => _remove(shown[i]),
+                  onRemove: () => _remove(shown[i]),
+                ),
               ),
             ),
           ],
