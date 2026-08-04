@@ -733,15 +733,29 @@ class _QuestionView extends StatelessWidget {
 
           return Padding(
             padding: const EdgeInsets.only(bottom: 9),
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => onSelect(opt.key),
-              child: AnimatedContainer(
+            child: Pressable(
+              onTap: (isReview || selected != null)
+                  ? null
+                  : () => onSelect(opt.key),
+              builder: (pressed) => AnimatedScale(
+                scale: pressed ? 0.975 : 1,
+                duration: const Duration(milliseconds: 110),
+                curve: Curves.easeOut,
+                child: AnimatedContainer(
                 duration: const Duration(milliseconds: 180),
                 curve: Curves.easeOut,
                 width: double.infinity,
                 padding: const EdgeInsets.fromLTRB(14, 14, 15, 14),
-                decoration: decoration,
+                decoration: pressed
+                    ? BoxDecoration(
+                        color: t.brand.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: t.brand.withValues(alpha: 0.45),
+                          width: 1.2,
+                        ),
+                      )
+                    : decoration,
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -787,6 +801,7 @@ class _QuestionView extends StatelessWidget {
                         child: Icon(Icons.check_rounded, size: 18, color: t.success),
                       ),
                   ],
+                ),
                 ),
               ),
             ),

@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
 import 'package:openexam_app/core/ui/ambient.dart';
@@ -581,6 +582,52 @@ class Reveal extends StatelessWidget {
         ),
       ),
       child: child,
+    );
+  }
+}
+
+/// 按下反馈：手指按住时给出状态，抬起才触发。选项这种「按住看看、滑开取消」
+/// 的操作没有按下态，就只能靠手感赌自己点没点中。
+class Pressable extends StatefulWidget {
+  const Pressable({
+    super.key,
+    required this.builder,
+    this.onTap,
+    this.onLongPress,
+    this.haptic = true,
+  });
+
+  final Widget Function(bool pressed) builder;
+  final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
+
+  /// 按下时轻震一下，抬起不再震 —— 选中本身另有反馈。
+  final bool haptic;
+
+  @override
+  State<Pressable> createState() => _PressableState();
+}
+
+class _PressableState extends State<Pressable> {
+  bool _pressed = false;
+
+  void _set(bool v) {
+    if (_pressed == v) return;
+    setState(() => _pressed = v);
+    if (v && widget.haptic) HapticFeedback.selectionClick();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = widget.onTap != null || widget.onLongPress != null;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: enabled ? (_) => _set(true) : null,
+      onTapUp: enabled ? (_) => _set(false) : null,
+      onTapCancel: enabled ? () => _set(false) : null,
+      onTap: widget.onTap,
+      onLongPress: widget.onLongPress,
+      child: widget.builder(_pressed && enabled),
     );
   }
 }
