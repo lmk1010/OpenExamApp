@@ -78,6 +78,10 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
   /// Scratch work per question, kept for the life of the session.
   final Map<String, List<Stroke>> _scratch = {};
 
+  /// 存疑 — flagged during the run the way a real 答题卡 works: session-scoped,
+  /// visible in the card, reviewable after 交卷.
+  final Set<String> _doubts = {};
+
   List<Question> get _questions => widget.questions;
   Question get _current => _questions[_index];
   bool get _isExam => widget.limit != null && !_isReview;
@@ -308,6 +312,38 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
     await AppDatabase.instance.setNote(id, body);
   }
 
+  void _toggleDoubt() {
+    final id = _current.id;
+    setState(() {
+      _doubts.contains(id) ? _doubts.remove(id) : _doubts.add(id);
+    });
+    HapticFeedback.selectionClick();
+  }
+
+  /// Local-only 纠错: no server, but the note is kept and travels with backups.
+  Future<void> _reportIssue() async {
+    final q = _current;
+    final result = await showModalBottomSheet<({String kind, String note})>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const _FeedbackSheet(),
+    );
+    if (result == null) return;
+    await AppDatabase.instance.addFeedback(
+      questionId: q.id,
+      kind: result.kind,
+      note: result.note,
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..clearSnackBars()
+      ..showSnackBar(const SnackBar(
+        content: Text('已记下，可在「我的 → 纠错记录」里查看'),
+        duration: Duration(milliseconds: 1500),
+      ));
+  }
+
   Future<void> _openScratch() async {
     final id = _current.id;
     await showModalBottomSheet<void>(
@@ -330,6 +366,7 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
       builder: (_) => _AnswerCard(
         questions: _questions,
         answers: _answers,
+        doubts: _doubts,
         current: _index,
         isExam: _isExam,
       ),
@@ -390,7 +427,10 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
             onPressed: _leave,
           ),
           titleSpacing: 0,
-          title: Row(
+          title: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onLongPress: _reportIssue,
+            child: Row(
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [
@@ -423,8 +463,16 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
                 ),
               ],
             ],
+            ),
           ),
           actions: [
+            _BarButton(
+              icon: _doubts.contains(q.id)
+                  ? Icons.flag_rounded
+                  : Icons.outlined_flag_rounded,
+              color: _doubts.contains(q.id) ? t.category('shuliang') : t.textSoft,
+              onTap: _toggleDoubt,
+            ),
             _BarButton(
               icon: Icons.calculate_outlined,
               color: (_scratch[q.id]?.isNotEmpty ?? false) ? t.brand : t.textSoft,
@@ -908,6 +956,41 @@ class _ResultView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 22),
+          if (session._doubts.isNotEmpty) ...[
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                final flagged = questions
+                    .where((q) => session._doubts.contains(q.id))
+                    .toList();
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => PracticeSessionPage(
+                      questions: flagged,
+                      reviewAnswers: answers,
+                      title: '存疑回顾',
+                    ),
+                  ),
+                );
+              },
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 20),
+                child: Row(
+                  children: [
+                    Icon(Icons.flag_rounded, size: 17, color: t.category('shuliang')),
+                    const SizedBox(width: 9),
+                    Expanded(
+                      child: Text(
+                        '做题时标了 ${session._doubts.length} 道存疑，点开逐题看',
+                        style: text.bodyMedium?.copyWith(fontSize: 13.5),
+                      ),
+                    ),
+                    Icon(Icons.chevron_right, size: 17, color: t.muted),
+                  ],
+                ),
+              ),
+            ),
+          ],
           if (session._questionMs.isNotEmpty) ...[
             Builder(builder: (context) {
               final slow = questions
@@ -1179,6 +1262,117 @@ class _ReasonPicker extends StatelessWidget {
   }
 }
 
+/// 纠错弹层 — 类型 + 可选说明。
+class _FeedbackSheet extends StatefulWidget {
+  const _FeedbackSheet();
+
+  @override
+  State<_FeedbackSheet> createState() => _FeedbackSheetState();
+}
+
+class _FeedbackSheetState extends State<_FeedbackSheet> {
+  final _note = TextEditingController();
+  String _kind = 'answer';
+
+  @override
+  void dispose() {
+    _note.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: _SheetShell(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('这道题有问题', style: text.titleMedium),
+            const SizedBox(height: 6),
+            Text('记在本机，可在「我的」里查看，也会随备份一起导出', style: text.bodySmall),
+            const SizedBox(height: 14),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final entry in kFeedbackKinds.entries)
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => setState(() => _kind = entry.key),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+                      decoration: BoxDecoration(
+                        color: _kind == entry.key
+                            ? t.brand.withValues(alpha: 0.15)
+                            : t.glass,
+                        borderRadius: BorderRadius.circular(15),
+                        border: Border.all(
+                          color: _kind == entry.key
+                              ? t.brand.withValues(alpha: 0.5)
+                              : Colors.transparent,
+                        ),
+                      ),
+                      child: Text(
+                        entry.value,
+                        style: TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w600,
+                          height: 1,
+                          color: _kind == entry.key ? t.brand : t.textSoft,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: GlassDecor.panel(t, radius: 14, raised: false),
+              child: TextField(
+                controller: _note,
+                maxLines: 3,
+                minLines: 2,
+                style: text.bodyMedium?.copyWith(color: t.text, fontSize: 14.5),
+                decoration: const InputDecoration(
+                  isDense: true,
+                  border: InputBorder.none,
+                  hintText: '补充两句（选填）',
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('取消'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: FilledButton(
+                    onPressed: () => Navigator.of(context).pop(
+                      (kind: _kind, note: _note.text.trim()),
+                    ),
+                    child: const Text('记下'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// Reading preferences: type size and auto-advance.
 class _ReadingSheet extends StatefulWidget {
   const _ReadingSheet({
@@ -1298,12 +1492,14 @@ class _AnswerCard extends StatelessWidget {
   const _AnswerCard({
     required this.questions,
     required this.answers,
+    required this.doubts,
     required this.current,
     required this.isExam,
   });
 
   final List<Question> questions;
   final Map<String, String> answers;
+  final Set<String> doubts;
   final int current;
   final bool isExam;
 
@@ -1339,10 +1535,14 @@ class _AnswerCard extends StatelessWidget {
                 const Spacer(),
                 if (!isExam) ...[
                   _Legend(color: t.success, label: '对'),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 10),
                   _Legend(color: t.danger, label: '错'),
                 ] else
                   _Legend(color: t.brand, label: '已答'),
+                if (doubts.isNotEmpty) ...[
+                  const SizedBox(width: 10),
+                  _Legend(color: t.category('shuliang'), label: '存疑'),
+                ],
               ],
             ),
             const SizedBox(height: 16),
@@ -1357,6 +1557,7 @@ class _AnswerCard extends StatelessWidget {
                         index: i,
                         question: questions[i],
                         answer: answers[questions[i].id],
+                        doubt: doubts.contains(questions[i].id),
                         isCurrent: i == current,
                         isExam: isExam,
                         onTap: () => Navigator.of(context).pop(i),
@@ -1407,6 +1608,7 @@ class _CardChip extends StatelessWidget {
     required this.index,
     required this.question,
     required this.answer,
+    required this.doubt,
     required this.isCurrent,
     required this.isExam,
     required this.onTap,
@@ -1415,6 +1617,7 @@ class _CardChip extends StatelessWidget {
   final int index;
   final Question question;
   final String? answer;
+  final bool doubt;
   final bool isCurrent;
   final bool isExam;
   final VoidCallback onTap;
@@ -1452,7 +1655,23 @@ class _CardChip extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           border: isCurrent ? Border.all(color: t.brand, width: 1.6) : null,
         ),
-        child: Text(
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            if (doubt)
+              Positioned(
+                top: 4,
+                right: 5,
+                child: Container(
+                  width: 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: t.category('shuliang'),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+            Text(
           '${index + 1}',
           style: TextStyle(
             fontSize: 14,
@@ -1460,6 +1679,8 @@ class _CardChip extends StatelessWidget {
             color: isCurrent && !answered ? t.brand : fg,
             fontFeatures: AppTheme.numeric,
           ),
+            ),
+          ],
         ),
       ),
     );

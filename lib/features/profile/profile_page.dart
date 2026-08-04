@@ -8,6 +8,7 @@ import 'package:openexam_app/core/ui/stroke_icons.dart';
 import 'package:openexam_app/core/ui/ui_kit.dart';
 import 'package:openexam_app/data/db/app_database.dart';
 import 'package:openexam_app/features/backup/backup_page.dart';
+import 'package:openexam_app/features/feedback/feedback_page.dart';
 import 'package:openexam_app/features/profile/dashboard_page.dart';
 import 'package:openexam_app/features/import/import_page.dart';
 import 'package:openexam_app/features/marks/marked_page.dart';
@@ -36,6 +37,7 @@ class _ProfilePageState extends State<ProfilePage> {
   int _reports = 0;
   int _goal = 30;
   int _notes = 0;
+  int _feedback = 0;
   List<int> _week = const [0, 0, 0, 0, 0, 0, 0];
   String _name = '备考中';
   DateTime? _examDate;
@@ -54,6 +56,7 @@ class _ProfilePageState extends State<ProfilePage> {
     final marked = await db.countMarked();
     final reports = await db.listReports(limit: 200);
     final notes = await db.countNotes();
+    final feedback = await db.countFeedback();
     final stats = await db.categoryStats();
     final week = await db.dailyActivity();
     final prefs = await SharedPreferences.getInstance();
@@ -69,6 +72,7 @@ class _ProfilePageState extends State<ProfilePage> {
       _marked = marked;
       _reports = reports.length;
       _notes = notes;
+      _feedback = feedback;
       _rate = done == 0 ? 0 : (correct * 100 / done).round();
       _week = week;
       _count = prefs.getInt(Prefs.defaultCount) ?? 20;
@@ -313,6 +317,18 @@ class _ProfilePageState extends State<ProfilePage> {
           onTap: () async {
             await Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const ImportPage(standalone: true)),
+            );
+            _reload();
+          },
+        ),
+        const RowDivider(),
+        _SettingRow(
+          icon: AppIcon.info,
+          title: '纠错记录',
+          value: _feedback == 0 ? '暂无' : '$_feedback 条',
+          onTap: () async {
+            await Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const FeedbackPage()),
             );
             _reload();
           },

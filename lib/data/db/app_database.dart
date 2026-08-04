@@ -134,6 +134,16 @@ class AppDatabase {
     } catch (_) {
       // Column already exists.
     }
+    // 本地纠错记录：没有服务器，但至少让用户能标出来、导出带走。
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS feedback (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        question_id TEXT NOT NULL,
+        kind TEXT NOT NULL,
+        note TEXT,
+        created_at TEXT NOT NULL
+      )
+    ''');
     await db.execute('''
       CREATE TABLE IF NOT EXISTS meta (
         key TEXT PRIMARY KEY,
@@ -462,6 +472,7 @@ class AppDatabase {
       'notes': await db.query('notes'),
       'reasons': await db.query('wrong_reasons'),
       'reports': await db.query('exam_reports'),
+      'feedback': await db.query('feedback'),
     };
   }
 
@@ -490,6 +501,7 @@ class AppDatabase {
     await put('notes', 'notes');
     await put('wrong_reasons', 'reasons');
     await put('exam_reports', 'reports', wipe: true);
+    await put('feedback', 'feedback', wipe: true);
     _imageCache.clear();
     _imageCacheBytes = 0;
     return restored;
@@ -649,6 +661,53 @@ class AppDatabase {
       for (final row in rows)
         '${row['reason']}': int.tryParse('${row['n']}') ?? 0,
     };
+  }
+
+  // ---------------------------------------------------------------- feedback
+
+  Future<void> addFeedback({
+    required String questionId,
+    required String kind,
+    String note = '',
+  }) async {
+    final db = await database;
+    await db.insert('feedback', {
+      'question_id': questionId,
+      'kind': kind,
+      'note': note,
+      'created_at': DateTime.now().toIso8601String(),
+    });
+  }
+
+  Future<int> countFeedback() async {
+    final db = await database;
+    return Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM feedback')) ?? 0;
+  }
+
+  Future<List<({int id, Question question, String kind, String note, DateTime at})>>
+      listFeedback({int limit = 200}) async {
+    final db = await database;
+    final rows = await db.rawQuery('''
+      SELECT f.id AS fid, f.kind AS kind, f.note AS note, f.created_at AS at, q.*
+      FROM feedback f
+      JOIN questions q ON q.id = f.question_id
+      ORDER BY f.id DESC
+      LIMIT ?
+    ''', [limit]);
+    return rows
+        .map((r) => (
+              id: int.tryParse('${r['fid']}') ?? 0,
+              question: _fromRow(r),
+              kind: '${r['kind']}',
+              note: '${r['note'] ?? ''}',
+              at: DateTime.tryParse('${r['at']}') ?? DateTime.now(),
+            ))
+        .toList();
+  }
+
+  Future<void> deleteFeedback(int id) async {
+    final db = await database;
+    await db.delete('feedback', where: 'id = ?', whereArgs: [id]);
   }
 
   // ----------------------------------------------------------------- reports

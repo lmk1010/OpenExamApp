@@ -61,3 +61,12 @@ String wrongReasonLabel(String? key) {
 
 /// 收藏标签 — small fixed set beats free-form tags on a phone.
 const kMarkTags = <String>['易错', '公式', '技巧', '待复习'];
+
+/// 纠错类型 — 没有服务器，但把问题标出来至少能自己回头核对、也能随备份带走。
+const kFeedbackKinds = <String, String>{
+  'answer': '答案有误',
+  'analysis': '解析看不懂',
+  'typo': '题干有错字',
+  'image': '图片缺失或看不清',
+  'other': '其他问题',
+};
