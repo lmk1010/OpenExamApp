@@ -11,7 +11,9 @@ import 'package:openexam_app/core/ui/ui_kit.dart';
 import 'package:openexam_app/data/db/app_database.dart';
 import 'package:openexam_app/data/models/question.dart';
 import 'package:openexam_app/features/practice/practice_session_page.dart';
+import 'package:openexam_app/features/profile/dashboard_page.dart';
 import 'package:openexam_app/features/search/search_page.dart';
+import 'package:openexam_app/features/stats/stats_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PracticeHomePage extends StatefulWidget {
@@ -314,6 +316,12 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
             rate: rate,
             streak: _streak,
             onTapGoal: _pickGoal,
+            onTapRate: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const StatsPage()),
+            ),
+            onTapStreak: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const DashboardPage()),
+            ),
           ),
           const SizedBox(height: 18),
           if (_resume != null && _resume!.remaining > 0)
@@ -489,6 +497,8 @@ class _Hero extends StatelessWidget {
     required this.rate,
     required this.streak,
     required this.onTapGoal,
+    required this.onTapRate,
+    required this.onTapStreak,
   });
 
   final String name;
@@ -499,6 +509,8 @@ class _Hero extends StatelessWidget {
   final int rate;
   final int streak;
   final VoidCallback onTapGoal;
+  final VoidCallback onTapRate;
+  final VoidCallback onTapStreak;
 
   int? get _daysLeft {
     if (examDate == null) return null;
@@ -605,12 +617,14 @@ class _Hero extends StatelessWidget {
                 icon: AppIcon.chart,
                 value: rate == 0 ? '—' : '$rate%',
                 label: '正确率',
+                onTap: onTapRate,
               ),
               const SizedBox(width: 10),
               _StatusTile(
                 icon: AppIcon.timer,
                 value: '$streak 天',
                 label: '连续打卡',
+                onTap: onTapStreak,
               ),
             ],
           ),
@@ -783,15 +797,27 @@ class _StatusTile extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 7),
-              Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 11.5,
-                  height: 1,
-                  color: t.onChip.withValues(alpha: 0.72),
-                ),
+              Row(
+                children: [
+                  Flexible(
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        height: 1,
+                        color: t.onChip.withValues(alpha: 0.72),
+                      ),
+                    ),
+                  ),
+                  if (onTap != null)
+                    Icon(
+                      Icons.chevron_right,
+                      size: 13,
+                      color: t.onChip.withValues(alpha: 0.5),
+                    ),
+                ],
               ),
             ],
           ),

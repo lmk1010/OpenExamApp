@@ -11,6 +11,9 @@ import 'package:openexam_app/core/ui/ui_kit.dart';
 import 'package:openexam_app/data/db/app_database.dart';
 import 'package:openexam_app/data/models/question.dart';
 import 'package:openexam_app/features/practice/practice_session_page.dart';
+import 'package:openexam_app/features/reports/reports_page.dart';
+import 'package:openexam_app/features/stats/stats_page.dart';
+import 'package:openexam_app/features/wrong/wrong_book_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// 备考档案 — the one screen that answers "where do I actually stand".
@@ -97,6 +100,24 @@ class _DashboardPageState extends State<DashboardPage> {
     return _examDate!.difference(DateTime(now.year, now.month, now.day)).inDays;
   }
 
+  Future<void> _push(Widget page) async {
+    await Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
+    if (mounted) _load();
+  }
+
+  /// Tapping a module bar practises that module — the number is only useful if
+  /// it leads somewhere.
+  Future<void> _practiseModule(String category) async {
+    final questions = await AppDatabase.instance.fetchPractice(
+      category: category,
+      limit: _goal.clamp(10, 30),
+    );
+    if (!mounted || questions.isEmpty) return;
+    await _push(
+      PracticeSessionPage(questions: questions, title: categoryLabel(category)),
+    );
+  }
+
   Future<void> _practiseWeakest() async {
     final questions = await AppDatabase.instance.fetchAdaptive(limit: _goal);
     if (!mounted || questions.isEmpty) return;
@@ -148,6 +169,13 @@ class _DashboardPageState extends State<DashboardPage> {
                     wrong: _wrong,
                     goal: _goal,
                     todayDone: _days.isEmpty ? 0 : _days.last.answered,
+                    onTapAnswers: () => _push(const StatsPage()),
+                    onTapWrong: () => _push(
+                      const Scaffold(
+                        body: SafeArea(child: WrongBookPage()),
+                      ),
+                    ),
+                    onTapToday: () => _push(const ReportsPage()),
                   ),
                 ),
                 const SizedBox(height: 30),
@@ -167,6 +195,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         stat: ranked[i],
                         pace: _pace[ranked[i].category],
                         rank: i,
+                        onTap: () => _practiseModule(ranked[i].category),
                       ),
                     ),
                   const SizedBox(height: 26),
@@ -446,6 +475,9 @@ class _AccuracyBlock extends StatelessWidget {
     required this.wrong,
     required this.goal,
     required this.todayDone,
+    required this.onTapAnswers,
+    required this.onTapWrong,
+    required this.onTapToday,
   });
 
   final int rate;
@@ -454,6 +486,9 @@ class _AccuracyBlock extends StatelessWidget {
   final int wrong;
   final int goal;
   final int todayDone;
+  final VoidCallback onTapAnswers;
+  final VoidCallback onTapWrong;
+  final VoidCallback onTapToday;
 
   @override
   Widget build(BuildContext context) {
@@ -522,6 +557,7 @@ class _AccuracyBlock extends StatelessWidget {
                 color: t.brand,
                 label: '累计答题',
                 value: '$correct / $answered',
+                onTap: onTapAnswers,
               ),
               const SizedBox(height: 15),
               _Figure(
@@ -529,6 +565,7 @@ class _AccuracyBlock extends StatelessWidget {
                 color: t.danger,
                 label: '待清错题',
                 value: '$wrong',
+                onTap: onTapWrong,
               ),
               const SizedBox(height: 15),
               _Figure(
@@ -536,6 +573,7 @@ class _AccuracyBlock extends StatelessWidget {
                 color: t.success,
                 label: '今日进度',
                 value: '$todayDone / $goal',
+                onTap: onTapToday,
               ),
             ],
           ),
@@ -551,29 +589,38 @@ class _Figure extends StatelessWidget {
     required this.color,
     required this.label,
     required this.value,
+    this.onTap,
   });
 
   final AppIcon icon;
   final Color color;
   final String label;
   final String value;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
+    final t = context.tokens;
     final text = Theme.of(context).textTheme;
-    return Row(
-      children: [
-        StrokeIcon(icon, size: 17, color: color),
-        const SizedBox(width: 10),
-        Expanded(child: Text(label, style: text.bodySmall?.copyWith(fontSize: 13))),
-        Text(
-          value,
-          style: text.titleSmall?.copyWith(
-            fontSize: 15.5,
-            fontFeatures: AppTheme.numeric,
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Row(
+        children: [
+          StrokeIcon(icon, size: 17, color: color),
+          const SizedBox(width: 10),
+          Expanded(child: Text(label, style: text.bodySmall?.copyWith(fontSize: 13))),
+          Text(
+            value,
+            style: text.titleSmall?.copyWith(
+              fontSize: 15.5,
+              fontFeatures: AppTheme.numeric,
+            ),
           ),
-        ),
-      ],
+          if (onTap != null)
+            Icon(Icons.chevron_right, size: 15, color: t.muted),
+        ],
+      ),
     );
   }
 }
@@ -627,11 +674,17 @@ class _RingPainter extends CustomPainter {
 
 /// One module: name, animated accuracy bar, pace, and how much is left.
 class _ModuleBar extends StatelessWidget {
-  const _ModuleBar({required this.stat, required this.pace, required this.rank});
+  const _ModuleBar({
+    required this.stat,
+    required this.pace,
+    required this.rank,
+    required this.onTap,
+  });
 
   final CategoryStat stat;
   final double? pace;
   final int rank;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -639,7 +692,10 @@ class _ModuleBar extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     final color = t.category(stat.category);
 
-    return Padding(
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -690,6 +746,7 @@ class _ModuleBar extends StatelessWidget {
             ),
           ),
         ],
+      ),
       ),
     );
   }

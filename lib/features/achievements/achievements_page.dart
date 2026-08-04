@@ -76,11 +76,7 @@ class _AchievementsPageState extends State<AchievementsPage> {
                       for (final badge in entry.value)
                         _BadgeTile(
                           badge: badge,
-                          onTap: () => showModalBottomSheet<void>(
-                            context: context,
-                            backgroundColor: Colors.transparent,
-                            builder: (_) => _BadgeSheet(badge: badge),
-                          ),
+                          onTap: () => showBadgeCard(context, badge),
                         ),
                     ],
                   ),
@@ -263,82 +259,211 @@ class _MedalPainter extends CustomPainter {
       old.progress != progress || old.unlocked != unlocked;
 }
 
-class _BadgeSheet extends StatelessWidget {
-  const _BadgeSheet({required this.badge});
+/// Opens the badge card with a spring-scale + fade transition. A bottom sheet
+/// made an earned medal feel like a settings row; this reads like a card being
+/// dealt onto the table.
+Future<void> showBadgeCard(BuildContext context, AchievementBadge badge) {
+  HapticFeedback.lightImpact();
+  return showGeneralDialog<void>(
+    context: context,
+    barrierDismissible: true,
+    barrierLabel: badge.name,
+    barrierColor: Colors.black.withValues(alpha: 0.5),
+    transitionDuration: const Duration(milliseconds: 420),
+    pageBuilder: (_, __, ___) => _BadgeCard(badge: badge),
+    transitionBuilder: (context, anim, _, child) {
+      final curved = CurvedAnimation(parent: anim, curve: Curves.easeOutBack);
+      return Opacity(
+        opacity: anim.value.clamp(0.0, 1.0),
+        child: Transform.scale(
+          scale: 0.82 + 0.18 * curved.value,
+          child: Transform.rotate(
+            angle: (1 - curved.value) * 0.06,
+            child: child,
+          ),
+        ),
+      );
+    },
+  );
+}
+
+class _BadgeCard extends StatefulWidget {
+  const _BadgeCard({required this.badge});
 
   final AchievementBadge badge;
+
+  @override
+  State<_BadgeCard> createState() => _BadgeCardState();
+}
+
+class _BadgeCardState extends State<_BadgeCard>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _shine = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 2200),
+  )..repeat();
+
+  @override
+  void dispose() {
+    _shine.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
     final text = Theme.of(context).textTheme;
+    final badge = widget.badge;
+    final color = badge.tier.color;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: t.gradient.last,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        border: Border(top: BorderSide(color: t.glassBorder)),
-      ),
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
-      child: SafeArea(
-        top: false,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            BadgeMedal(badge: badge, size: 84),
-            const SizedBox(width: 18),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(badge.name, style: text.titleMedium),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: badge.tier.color.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(7),
-                        ),
-                        child: Text(
-                          badge.tier.label,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            height: 1,
-                            color: badge.tier.color,
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 34),
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(24, 26, 24, 20),
+            decoration: BoxDecoration(
+              color: t.gradient.last,
+              borderRadius: BorderRadius.circular(26),
+              border: Border.all(
+                color: badge.unlocked
+                    ? color.withValues(alpha: 0.4)
+                    : t.glassBorder,
+              ),
+              boxShadow: t.shadow,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Earned medals get a slow rotating halo.
+                    if (badge.unlocked)
+                      AnimatedBuilder(
+                        animation: _shine,
+                        builder: (_, __) => Transform.rotate(
+                          angle: _shine.value * 6.28,
+                          child: CustomPaint(
+                            size: const Size(132, 132),
+                            painter: _HaloPainter(color: color),
                           ),
                         ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(badge.desc, style: text.bodyMedium?.copyWith(fontSize: 14)),
-                  const SizedBox(height: 14),
-                  if (badge.unlocked)
-                    Text(
-                      badge.unlockedAt == null
-                          ? '已达成'
-                          : '${badge.unlockedAt!.month}/${badge.unlockedAt!.day} 解锁',
-                      style: text.bodySmall?.copyWith(color: t.success),
-                    )
-                  else ...[
-                    Meter(value: badge.progress, color: badge.tier.color, height: 5),
-                    const SizedBox(height: 8),
-                    Text(
-                      '${badge.value} / ${badge.target}',
-                      style: text.bodySmall,
+                    BadgeMedal(badge: badge, size: 104, animate: true),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(badge.name, style: text.displaySmall?.copyWith(fontSize: 23)),
+                    const SizedBox(width: 9),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        badge.tier.label,
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w700,
+                          height: 1,
+                          color: color,
+                        ),
+                      ),
                     ),
                   ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  badge.desc,
+                  textAlign: TextAlign.center,
+                  style: text.bodyMedium?.copyWith(fontSize: 14, height: 1.6),
+                ),
+                const SizedBox(height: 20),
+                if (badge.unlocked)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.check_circle, size: 16, color: t.success),
+                      const SizedBox(width: 7),
+                      Text(
+                        badge.unlockedAt == null
+                            ? '已达成'
+                            : '${badge.unlockedAt!.month} 月 ${badge.unlockedAt!.day} 日解锁',
+                        style: text.bodySmall?.copyWith(color: t.success),
+                      ),
+                    ],
+                  )
+                else ...[
+                  TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0, end: badge.progress),
+                    duration: const Duration(milliseconds: 800),
+                    curve: Curves.easeOutCubic,
+                    builder: (_, v, __) => ClipRRect(
+                      borderRadius: BorderRadius.circular(99),
+                      child: LinearProgressIndicator(
+                        value: v,
+                        minHeight: 6,
+                        color: color,
+                        backgroundColor: t.name == 'dark'
+                            ? Colors.white.withValues(alpha: 0.10)
+                            : t.text.withValues(alpha: 0.08),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    '${badge.value} / ${badge.target}'
+                    '${badge.target - badge.value > 0 ? ' · 还差 ${badge.target - badge.value}' : ''}',
+                    style: text.bodySmall,
+                  ),
                 ],
-              ),
+                const SizedBox(height: 18),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('关闭'),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
+}
+
+class _HaloPainter extends CustomPainter {
+  const _HaloPainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final c = size.center(Offset.zero);
+    final paint = Paint()
+      ..shader = SweepGradient(
+        colors: [
+          color.withValues(alpha: 0),
+          color.withValues(alpha: 0.35),
+          color.withValues(alpha: 0),
+        ],
+        stops: const [0.0, 0.5, 1.0],
+      ).createShader(Rect.fromCircle(center: c, radius: size.width / 2))
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 10;
+    canvas.drawCircle(c, size.width / 2 - 8, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _HaloPainter old) => false;
 }
 
 /// Celebration shown right after a session when something new is earned.

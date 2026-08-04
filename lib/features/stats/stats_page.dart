@@ -7,6 +7,7 @@ import 'package:openexam_app/core/ui/ui_kit.dart';
 import 'package:openexam_app/data/db/app_database.dart';
 import 'package:openexam_app/data/models/question.dart';
 import 'package:openexam_app/features/practice/practice_session_page.dart';
+import 'package:openexam_app/features/profile/dashboard_page.dart';
 import 'package:openexam_app/features/reports/reports_page.dart';
 
 /// 学习统计 — 30-day volume + accuracy trend and a per-category breakdown.
@@ -94,10 +95,21 @@ class _StatsPageState extends State<StatsPage> {
                   padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 10, AppTheme.gutter, 22),
                   child: Row(
                     children: [
-                      _Figure(value: '$answered', label: '近 30 天答题'),
                       _Figure(
-                        value: answered == 0 ? '—' : '${(correct * 100 / answered).round()}%',
+                        value: '$answered',
+                        label: '近 30 天答题',
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const ReportsPage()),
+                        ),
+                      ),
+                      _Figure(
+                        value: answered == 0
+                            ? '—'
+                            : '${(correct * 100 / answered).round()}%',
                         label: '平均正确率',
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const DashboardPage()),
+                        ),
                       ),
                       _Figure(value: '$activeDays', label: '有效练习天'),
                     ],
@@ -224,22 +236,34 @@ class _StatsPageState extends State<StatsPage> {
 }
 
 class _Figure extends StatelessWidget {
-  const _Figure({required this.value, required this.label});
+  const _Figure({required this.value, required this.label, this.onTap});
 
   final String value;
   final String label;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
+    final t = context.tokens;
     final text = Theme.of(context).textTheme;
     return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(value, style: text.headlineSmall?.copyWith(fontSize: 22)),
-          const SizedBox(height: 5),
-          Text(label, style: text.bodySmall?.copyWith(fontSize: 12)),
-        ],
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(value, style: text.headlineSmall?.copyWith(fontSize: 22)),
+            const SizedBox(height: 5),
+            Row(
+              children: [
+                Text(label, style: text.bodySmall?.copyWith(fontSize: 12)),
+                if (onTap != null)
+                  Icon(Icons.chevron_right, size: 13, color: t.muted),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
