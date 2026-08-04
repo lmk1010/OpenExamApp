@@ -5,14 +5,13 @@
 <h1 align="center">OpenExam App</h1>
 
 <p align="center">
-  公务员行测刷题 App · 15936 道真题装在手机里 · 不用登录，没网也能刷
+  公务员行测刷题 App
 </p>
 
 <p align="center">
   <img alt="Flutter" src="https://img.shields.io/badge/Flutter-3.32-02569B?logo=flutter&logoColor=white">
   <img alt="Dart" src="https://img.shields.io/badge/Dart-3.8-0175C2?logo=dart&logoColor=white">
   <img alt="Platform" src="https://img.shields.io/badge/platform-Android%20%7C%20iOS-lightgrey">
-  <img alt="Offline" src="https://img.shields.io/badge/离线-100%25-success">
   <img alt="License" src="https://img.shields.io/badge/license-MIT-blue">
 </p>
 
@@ -20,10 +19,11 @@
 
 ## 这是什么
 
-OpenExam 桌面端的手机端。题库由桌面端导出成一个 gzip 过的 SQLite 种子库，首次启动解包到本地，之后**全程离线**：没有账号、没有服务器、没有埋点。所有答题记录、笔记、错题、成就都只存在这台手机上，能一键导出成 JSON 备份带走。
+自己备考行测写的手机端，配套的桌面端在另一个仓库。
 
-- **15936 道真题**，137 套历年卷，4230 张图（图形推理、资料分析的图都在库里，以 BLOB 存储）
-- **五个模块**：言语理解、数量关系、判断推理、资料分析、常识判断
+15936 道真题、137 套历年卷、4230 张图（图形推理和资料分析的图都在），全部打包在安装包里。装完就能用，不用注册，不用联网。答题记录、错题、笔记、成就都存在手机上，可以导出成 JSON 拿走。
+
+覆盖言语理解、数量关系、判断推理、资料分析、常识判断五个模块。
 
 ## 截图
 
@@ -73,20 +73,19 @@ OpenExam 桌面端的手机端。题库由桌面端导出成一个 gzip 过的 S
 
 ## 设计
 
-界面语言叫 **Ambient Glass**，规范见 [docs/DESIGN.md](docs/DESIGN.md)。三条底线：
+界面规范写在 [docs/DESIGN.md](docs/DESIGN.md)，几条自己定的规矩：
 
-1. **不用 `BackdropFilter`** —— 真实高斯模糊在中端机上掉帧，玻璃质感靠渐变、描边和阴影堆出来
-2. **无边框、少卡片** —— 背景本身就是层次，能用留白分组就不画框
-3. **图标全部手绘** —— 20 个描边图标、勋章纹样、引导插画、图表都是 `CustomPainter`，没有图标字体依赖
+- 不用 `BackdropFilter`。真实高斯模糊在中端机上掉帧，玻璃质感靠渐变、描边和阴影堆出来
+- 少画卡片和边框，背景本身就是层次，能用留白分组就不画框
+- 图标全部手绘。20 个描边图标、勋章纹样、引导插画、图表都是 `CustomPainter`，没有图标字体依赖
 
 ## 技术
 
-- **框架**：Flutter 3.32 / Dart 3.8，Material 3
-- **主题**：自建 `ThemeExtension` 令牌系统，浅色 / 深色 / 跟随系统
-- **存储**：sqflite，题库以 gzip 种子库随包分发，首启在独立 isolate 里解包
-- **图片**：SQLite BLOB + `oeimg://` 协议 + 12MB LRU 内存缓存
-- **设置**：shared_preferences
-- **依赖**：只有 sqflite / path_provider / shared_preferences / file_picker，没有网络库
+Flutter 3.32 / Dart 3.8，Material 3，自建 `ThemeExtension` 令牌系统做浅色、深色和跟随系统。
+
+题库是桌面端导出的 SQLite 库，gzip 后随安装包分发，首次启动在独立 isolate 里解包到本地，之后全部走 sqflite。图片以 BLOB 存在同一个库里，用 `oeimg://` 协议引用，前面挂了个 12MB 的 LRU 内存缓存。
+
+依赖只有 sqflite、path_provider、shared_preferences、file_picker —— 没有网络库。
 
 目录结构：
 
