@@ -1,17 +1,24 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="360" height="360" fill="none">
   <defs>
-    <linearGradient id="oe" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#F08A2C"/>
-      <stop offset="0.35" stop-color="#EC4A79"/>
-      <stop offset="0.7" stop-color="#9B5DE5"/>
-      <stop offset="1" stop-color="#6366F1"/>
+    <linearGradient id="g" x1="16" y1="14" x2="84" y2="82" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F0862C"/>
+      <stop offset="0.34" stop-color="#EC4A79"/>
+      <stop offset="0.68" stop-color="#9B5DE5"/>
+      <stop offset="1" stop-color="#5B6BE8"/>
+    </linearGradient>
+    <linearGradient id="p" x1="22" y1="18" x2="78" y2="78" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFF4E7"/>
+      <stop offset="0.55" stop-color="#FFFEFC"/>
+      <stop offset="1" stop-color="#FFF8FC"/>
     </linearGradient>
   </defs>
-  <g stroke="url(#oe)" stroke-linecap="round" stroke-linejoin="round" fill="none">
-    <path d="M50 80 C40 68 24 64 11 65 L11 24 C26 23 42 28 50 40 L50 80 Z" stroke-width="7.5"/>
-    <path d="M50 80 C60 68 76 64 89 65 L89 24 C74 23 58 28 50 40 L50 80 Z" stroke-width="7.5"/>
-    <path d="M62 40 L79 36.5" stroke-width="6.2"/>
-    <path d="M62 50.5 L79 47" stroke-width="6.2"/>
-    <path d="M62 61 L79 57.5" stroke-width="6.2"/>
+  <g stroke="url(#g)" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M28 23.5 L21.5 26.4 C19.8 27.2 19 28.4 19 30 L19 70.4 C19 72.5 20.7 74.2 22.9 74.2 L43.5 74.2"/>
+    <path d="M72 23.5 L78.5 26.4 C80.2 27.2 81 28.4 81 30 L81 70.4 C81 72.5 79.3 74.2 77.1 74.2 L56.5 74.2"/>
+    <path d="M50 30.5 C44.2 21.4 37 17.2 28 17.2 L28 66.2 C37 66.2 44.6 69.6 50 76.4 Z" fill="url(#p)"/>
+    <path d="M50 30.5 C55.8 21.4 63 17.2 72 17.2 L72 66.2 C63 66.2 55.4 69.6 50 76.4 Z" fill="url(#p)"/>
+    <path d="M58 38.6 L67.6 35.9" stroke-width="4"/>
+    <path d="M58 46.6 L67.6 43.9" stroke-width="4"/>
+    <path d="M58 54.6 L67.6 51.9" stroke-width="4"/>
   </g>
 </svg>
