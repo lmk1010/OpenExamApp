@@ -152,6 +152,57 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
     _reload();
   }
 
+  /// 单模块限时练 — same question count as normal practice, but on the pace a
+  /// real 行测 leaves you: seconds per question differ a lot by module.
+  static const _paceSeconds = <String, int>{
+    'yanyu': 55,
+    'shuliang': 75,
+    'panduan': 50,
+    'ziliao': 70,
+    'changshi': 20,
+  };
+
+  Future<void> _startTimed(String category) async {
+    final questions = await AppDatabase.instance.fetchPractice(
+      category: category,
+      limit: _count,
+      shuffle: true,
+      scope: _scope,
+    );
+    if (questions.isEmpty) return;
+    final per = _paceSeconds[category] ?? 60;
+    await _open(
+      questions,
+      limit: Duration(seconds: per * questions.length),
+      title: '${categoryLabel(category)}限时练',
+    );
+  }
+
+  /// Long-pressing a module opens the three ways to run it, instead of
+  /// silently starting 背题 like it used to.
+  Future<void> _moduleMenu(String category) async {
+    final per = _paceSeconds[category] ?? 60;
+    final minutes = (per * _count / 60).round();
+    final picked = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _ModuleSheet(
+        category: category,
+        count: _count,
+        minutes: minutes,
+      ),
+    );
+    if (picked == null || !mounted) return;
+    switch (picked) {
+      case 'practice':
+        await _start(category: category);
+      case 'timed':
+        await _startTimed(category);
+      case 'recite':
+        await _startRecite(category: category);
+    }
+  }
+
   Future<void> _pickScope() async {
     final counts = await AppDatabase.instance.scopeCounts();
     if (!mounted) return;
@@ -412,12 +463,19 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
             onTapTrailing: _pickCount,
             onTapSecondary: _pickScope,
           ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 0, AppTheme.gutter, 8),
+            child: Text(
+              '长按任意题型可以选限时练或背题',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
           for (final c in kGongkaoCategories)
             _TypeRow(
               meta: c,
               stat: byKey[c.key],
               onTap: () => _start(category: c.key),
-              onLong: () => _startRecite(category: c.key),
+              onLong: () => _moduleMenu(c.key),
             ),
           const SizedBox(height: 26),
           _ListHeader(
@@ -1284,6 +1342,105 @@ class _AboutSheet extends StatelessWidget {
                 child: const Text('知道了'),
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Sheet behind a long-press on a module row.
+class _ModuleSheet extends StatelessWidget {
+  const _ModuleSheet({
+    required this.category,
+    required this.count,
+    required this.minutes,
+  });
+
+  final String category;
+  final int count;
+  final int minutes;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+    final color = t.category(category);
+    final items = <({String key, String label, String desc, AppIcon icon})>[
+      (
+        key: 'practice',
+        label: '直接练',
+        desc: '$count 题，不计时',
+        icon: AppIcon.practice,
+      ),
+      (
+        key: 'timed',
+        label: '限时练',
+        desc: '$count 题 · 约 $minutes 分钟，按考场节奏',
+        icon: AppIcon.timer,
+      ),
+      (
+        key: 'recite',
+        label: '背题',
+        desc: '不作答，直接看答案和解析',
+        icon: AppIcon.papers,
+      ),
+    ];
+
+    return SafeArea(
+      top: false,
+      child: Container(
+        margin: const EdgeInsets.all(10),
+        padding: const EdgeInsets.fromLTRB(6, 18, 6, 8),
+        decoration: GlassDecor.panel(t, radius: 26),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+              child: Row(
+                children: [
+                  StrokeIcon(categoryIcon(category), size: 20, color: color),
+                  const SizedBox(width: 10),
+                  Text(
+                    categoryLabel(category),
+                    style: text.titleSmall?.copyWith(fontSize: 16),
+                  ),
+                ],
+              ),
+            ),
+            for (final it in items)
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => Navigator.of(context).pop(it.key),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 13,
+                  ),
+                  child: Row(
+                    children: [
+                      StrokeIcon(it.icon, size: 19, color: color),
+                      const SizedBox(width: 13),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              it.label,
+                              style: text.titleSmall?.copyWith(fontSize: 15),
+                            ),
+                            const SizedBox(height: 3),
+                            Text(it.desc, style: text.bodySmall),
+                          ],
+                        ),
+                      ),
+                      Icon(Icons.chevron_right, size: 16, color: t.muted),
+                    ],
+                  ),
+                ),
+              ),
           ],
         ),
       ),
