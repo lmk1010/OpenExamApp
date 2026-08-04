@@ -415,18 +415,12 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
           ),
           const SizedBox(height: 18),
           // Feature carousel — each card is a one-tap entry, image-led.
+          // 右边缘原来加了渐隐遮罩，暗色主题下卡片被淡出成一团发黑的脏边。
+          // 靠下一张卡露出一角来说明"还能划"就够了，不需要遮罩。
           SizedBox(
             height: 138,
-            child: ShaderMask(
-              // Fades the right edge so it's obvious the row keeps going.
-              shaderCallback: (rect) => LinearGradient(
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
-                colors: const [Colors.black, Colors.black, Colors.transparent],
-                stops: const [0, 0.9, 1],
-              ).createShader(rect),
-              blendMode: BlendMode.dstIn,
-              child: ListView(
+            child: Builder(
+              builder: (context) => ListView(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppTheme.gutter,
