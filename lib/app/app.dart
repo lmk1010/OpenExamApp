@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/theme_controller.dart';
 import 'package:openexam_app/core/ui/ambient.dart';
+import 'package:openexam_app/core/constants/app_constants.dart';
+import 'package:openexam_app/features/onboarding/onboarding_page.dart';
 import 'package:openexam_app/features/shell/app_shell.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class OpenExamApp extends StatefulWidget {
   const OpenExamApp({super.key});
@@ -12,10 +15,21 @@ class OpenExamApp extends StatefulWidget {
 }
 
 class _OpenExamAppState extends State<OpenExamApp> {
+  /// null while we read the flag — showing the shell first and then swapping in
+  /// onboarding would flash the wrong screen.
+  bool? _onboarded;
+
   @override
   void initState() {
     super.initState();
     ThemeController.instance.load();
+    _readOnboarded();
+  }
+
+  Future<void> _readOnboarded() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    setState(() => _onboarded = prefs.getBool(Prefs.onboarded) ?? false);
   }
 
   @override
@@ -43,7 +57,13 @@ class _OpenExamAppState extends State<OpenExamApp> {
               child: AmbientBackground(child: child ?? const SizedBox.shrink()),
             );
           },
-          home: const AppShell(),
+          home: _onboarded == null
+              ? const SizedBox.shrink()
+              : (_onboarded!
+                  ? const AppShell()
+                  : OnboardingPage(
+                      onDone: () => setState(() => _onboarded = true),
+                    )),
         );
       },
     );

@@ -14,4 +14,5 @@ class Prefs {
   static const fontScale = 'font_scale';
   static const autoNext = 'auto_next';
   static const dailyGoal = 'daily_goal';
+  static const onboarded = 'onboarded';
 }
