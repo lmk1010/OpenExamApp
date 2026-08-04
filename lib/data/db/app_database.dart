@@ -244,6 +244,34 @@ class AppDatabase {
     };
   }
 
+  /// Ids already in the bank — the import preview reports these as 覆盖.
+  Future<int> countExisting(List<String> ids) async {
+    if (ids.isEmpty) return 0;
+    final db = await database;
+    final placeholders = List.filled(ids.length, '?').join(',');
+    return Sqflite.firstIntValue(await db.rawQuery(
+          'SELECT COUNT(*) FROM questions WHERE id IN ($placeholders)',
+          ids,
+        )) ??
+        0;
+  }
+
+  /// Figures that came with an imported zip.
+  Future<void> importImages(Map<String, Uint8List> images) async {
+    if (images.isEmpty) return;
+    final db = await database;
+    final batch = db.batch();
+    for (final entry in images.entries) {
+      batch.insert(
+        'images',
+        {'name': entry.key, 'bytes': entry.value},
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    }
+    await batch.commit(noResult: true);
+    _imageCache.clear();
+  }
+
   Future<int> importQuestions(List<Question> questions) async {
     if (questions.isEmpty) return 0;
     final db = await database;

@@ -1,8 +1,132 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
+import 'package:archive/archive.dart';
 import 'package:openexam_app/data/models/question.dart';
 
+/// What a file yielded, before anything is written to the database — the
+/// import screen shows this so nothing lands unseen.
+class ImportBundle {
+  const ImportBundle({
+    required this.questions,
+    required this.images,
+    this.warnings = const [],
+  });
+
+  final List<Question> questions;
+
+  /// Figure name (without extension) -> bytes, from a zip's images folder.
+  final Map<String, Uint8List> images;
+  final List<String> warnings;
+
+  bool get isEmpty => questions.isEmpty;
+
+  Map<String, int> get byCategory {
+    final out = <String, int>{};
+    for (final q in questions) {
+      out[q.category.isEmpty ? 'other' : q.category] =
+          (out[q.category.isEmpty ? 'other' : q.category] ?? 0) + 1;
+    }
+    return out;
+  }
+}
+
 class QuestionImporter {
+  /// Zip layout: any `*.json`/`*.csv` at any depth plus an images folder.
+  /// Image references in the questions may be plain file names — they get
+  /// rewritten to `oeimg://` so the renderer treats them like built-in figures.
+  static ImportBundle parseArchive(List<int> bytes) {
+    final archive = ZipDecoder().decodeBytes(bytes);
+    final images = <String, Uint8List>{};
+    final questions = <Question>[];
+    final warnings = <String>[];
+
+    for (final file in archive.files) {
+      if (!file.isFile) continue;
+      final name = file.name.split('/').last;
+      if (name.startsWith('.')) continue;
+      final lower = name.toLowerCase();
+      if (lower.endsWith('.png') ||
+          lower.endsWith('.jpg') ||
+          lower.endsWith('.jpeg') ||
+          lower.endsWith('.webp') ||
+          lower.endsWith('.gif')) {
+        final base = name.substring(0, name.lastIndexOf('.'));
+        images[base] = Uint8List.fromList(file.content as List<int>);
+      } else if (lower.endsWith('.json') || lower.endsWith('.csv') || lower.endsWith('.txt')) {
+        try {
+          questions.addAll(
+            parseBytes(file.content as List<int>, fileName: name),
+          );
+        } catch (e) {
+          warnings.add('$name 解析失败：$e');
+        }
+      }
+    }
+
+    // Rewrite <img src="foo.png"> to oeimg://foo when the zip carries it.
+    final fixed = questions.map((q) => _rewriteImages(q, images.keys.toSet())).toList();
+    final missing = <String>{};
+    for (final q in fixed) {
+      for (final match
+          in RegExp(r'oeimg://([A-Za-z0-9._-]+)').allMatches(q.bodyMarkup)) {
+        if (!images.containsKey(match.group(1))) missing.add(match.group(1)!);
+      }
+    }
+    if (missing.isNotEmpty) {
+      warnings.add('有 ${missing.length} 张图片在压缩包里找不到，这些题会显示"图片缺失"');
+    }
+
+    return ImportBundle(questions: fixed, images: images, warnings: warnings);
+  }
+
+  static Question _rewriteImages(Question q, Set<String> names) {
+    String fix(String markup) {
+      if (markup.isEmpty) return markup;
+      return markup.replaceAllMapped(
+        RegExp(r'src="([^"]+)"', caseSensitive: false),
+        (m) {
+          final src = m.group(1)!;
+          if (src.startsWith('oeimg://')) return m.group(0)!;
+          final file = src.split('/').last;
+          final base = file.contains('.')
+              ? file.substring(0, file.lastIndexOf('.'))
+              : file;
+          return names.contains(base) ? 'src="oeimg://$base"' : m.group(0)!;
+        },
+      );
+    }
+
+    return Question(
+      id: q.id,
+      content: q.content,
+      contentHtml: fix(q.contentHtml),
+      options: q.options
+          .map((o) => QuestionOption(key: o.key, text: o.text, html: fix(o.html)))
+          .toList(),
+      answer: q.answer,
+      category: q.category,
+      subCategory: q.subCategory,
+      analysis: q.analysis,
+      analysisHtml: fix(q.analysisHtml),
+      paperId: q.paperId,
+      paperTitle: q.paperTitle,
+      year: q.year,
+      difficulty: q.difficulty,
+      source: q.source,
+      orderNum: q.orderNum,
+    );
+  }
+
+  /// Single-file import, wrapped so callers get the same shape as a zip.
+  static ImportBundle parseFile(List<int> bytes, {required String fileName}) {
+    if (fileName.toLowerCase().endsWith('.zip')) return parseArchive(bytes);
+    return ImportBundle(
+      questions: parseBytes(bytes, fileName: fileName),
+      images: const {},
+    );
+  }
+
   static List<Question> parseBytes(List<int> bytes, {String fileName = 'import'}) {
     final text = utf8.decode(bytes, allowMalformed: true).trim();
     if (text.isEmpty) return const [];
