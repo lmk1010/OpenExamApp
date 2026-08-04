@@ -11,6 +11,7 @@ import 'package:openexam_app/features/backup/backup_page.dart';
 import 'package:openexam_app/features/import/import_page.dart';
 import 'package:openexam_app/features/marks/marked_page.dart';
 import 'package:openexam_app/features/notes/notes_page.dart';
+import 'package:openexam_app/features/onboarding/onboarding_page.dart';
 import 'package:openexam_app/features/reports/reports_page.dart';
 import 'package:openexam_app/features/stats/stats_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -350,6 +351,22 @@ class _ProfilePageState extends State<ProfilePage> {
                   '不上传服务器、不做任何埋点、没有账号体系。昵称和考试日期也只存在本机。',
             ),
           ),
+        ),
+        const RowDivider(),
+        _SettingRow(
+          icon: AppIcon.play,
+          title: '重看引导',
+          value: '3 屏',
+          onTap: () async {
+            await Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => OnboardingPage(
+                  onDone: () => Navigator.of(context).maybePop(),
+                ),
+              ),
+            );
+            _reload();
+          },
         ),
         const RowDivider(),
         _SettingRow(

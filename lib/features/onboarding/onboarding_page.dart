@@ -4,6 +4,7 @@ import 'package:openexam_app/core/constants/app_constants.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
 import 'package:openexam_app/core/ui/glass.dart';
+import 'package:openexam_app/features/onboarding/illustrations.dart';
 import 'package:openexam_app/core/ui/stroke_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -80,19 +81,22 @@ class _OnboardingPageState extends State<OnboardingPage> {
                 onPageChanged: (i) => setState(() => _page = i),
                 children: [
                   _Slide(
-                    icon: AppIcon.papers,
+                    kind: SceneKind.bank,
+                    active: _page == 0,
                     title: '15936 道行测真题\n全部装在这台手机里',
                     body: '137 套历年真题卷，含 4230 张图形题配图。'
                         '不联网、不登录、没有广告，地铁上没信号也能刷。',
                   ),
                   _Slide(
-                    icon: AppIcon.wrongBook,
+                    kind: SceneKind.review,
+                    active: _page == 1,
                     title: '答错的题\n会自己追着你',
                     body: '错题自动进错题本，可按题型、错因、试卷复盘；'
                         '答对后自动移出。做题时还能收藏、写笔记、标错因。',
                   ),
                   // Last slide collects the two settings instead of preaching.
                   _Setup(
+                    active: _page == 2,
                     goal: _goal,
                     examDate: _examDate,
                     onGoal: (v) => setState(() => _goal = v),
@@ -147,38 +151,40 @@ class _OnboardingPageState extends State<OnboardingPage> {
 }
 
 class _Slide extends StatelessWidget {
-  const _Slide({required this.icon, required this.title, required this.body});
+  const _Slide({
+    required this.kind,
+    required this.active,
+    required this.title,
+    required this.body,
+  });
 
-  final AppIcon icon;
+  final SceneKind kind;
+  final bool active;
   final String title;
   final String body;
 
   @override
   Widget build(BuildContext context) {
-    final t = context.tokens;
     final text = Theme.of(context).textTheme;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(AppTheme.gutter + 6, 40, AppTheme.gutter + 6, 20),
+      padding: const EdgeInsets.fromLTRB(AppTheme.gutter + 6, 16, AppTheme.gutter + 6, 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Spacer(),
-          Container(
-            width: 66,
-            height: 66,
-            alignment: Alignment.center,
-            decoration: GlassDecor.tinted(t, t.brand, radius: 22),
-            child: StrokeIcon(icon, size: 30, color: Colors.white, weight: 2),
+          // The illustration carries the slide; text stays short underneath.
+          Expanded(
+            flex: 5,
+            child: Center(child: OnboardingScene(kind: kind, active: active)),
           ),
-          const SizedBox(height: 28),
+          const SizedBox(height: 8),
           Text(
             title,
-            style: text.displaySmall?.copyWith(fontSize: 27, height: 1.35),
+            style: text.displaySmall?.copyWith(fontSize: 26, height: 1.35),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           Text(body, style: text.bodyMedium?.copyWith(fontSize: 15, height: 1.7)),
-          const Spacer(flex: 2),
+          const Spacer(),
         ],
       ),
     );
@@ -187,12 +193,14 @@ class _Slide extends StatelessWidget {
 
 class _Setup extends StatelessWidget {
   const _Setup({
+    required this.active,
     required this.goal,
     required this.examDate,
     required this.onGoal,
     required this.onPickDate,
   });
 
+  final bool active;
   final int goal;
   final DateTime? examDate;
   final ValueChanged<int> onGoal;
@@ -207,8 +215,15 @@ class _Setup extends StatelessWidget {
         : examDate!.difference(DateTime.now()).inDays + 1;
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(AppTheme.gutter + 6, 36, AppTheme.gutter + 6, 20),
+      padding: const EdgeInsets.fromLTRB(AppTheme.gutter + 6, 8, AppTheme.gutter + 6, 20),
       children: [
+        SizedBox(
+          height: 170,
+          child: Center(
+            child: OnboardingScene(kind: SceneKind.rhythm, active: active),
+          ),
+        ),
+        const SizedBox(height: 12),
         Text(
           '定个节奏\n剩下的交给它',
           style: text.displaySmall?.copyWith(fontSize: 27, height: 1.35),
