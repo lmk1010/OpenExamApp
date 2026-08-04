@@ -128,6 +128,12 @@ class AppDatabase {
         created_at TEXT NOT NULL
       )
     ''');
+    // Tagging a favourite ("公式""易错") is what makes it findable later.
+    try {
+      await db.execute("ALTER TABLE marks ADD COLUMN tag TEXT DEFAULT ''");
+    } catch (_) {
+      // Column already exists.
+    }
     await db.execute('''
       CREATE TABLE IF NOT EXISTS meta (
         key TEXT PRIMARY KEY,
@@ -810,12 +816,16 @@ class AppDatabase {
 
   // -------------------------------------------------------------------- marks
 
-  Future<void> toggleMark(String questionId, bool marked) async {
+  Future<void> toggleMark(String questionId, bool marked, {String? tag}) async {
     final db = await database;
     if (marked) {
       await db.insert(
         'marks',
-        {'question_id': questionId, 'created_at': DateTime.now().toIso8601String()},
+        {
+          'question_id': questionId,
+          'tag': tag ?? '',
+          'created_at': DateTime.now().toIso8601String(),
+        },
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
     } else {
@@ -854,5 +864,25 @@ class AppDatabase {
       LIMIT ?
     ''', [limit]);
     return rows.map(_fromRow).toList();
+  }
+
+  /// question id -> tag, for grouping 我的收藏.
+  Future<Map<String, String>> markTags() async {
+    final db = await database;
+    final rows = await db.query('marks', columns: ['question_id', 'tag']);
+    return {
+      for (final r in rows)
+        '${r['question_id']}': '${r['tag'] ?? ''}',
+    };
+  }
+
+  Future<void> setMarkTag(String questionId, String tag) async {
+    final db = await database;
+    await db.update(
+      'marks',
+      {'tag': tag},
+      where: 'question_id = ?',
+      whereArgs: [questionId],
+    );
   }
 }

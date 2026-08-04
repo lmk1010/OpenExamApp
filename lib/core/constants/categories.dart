@@ -58,3 +58,6 @@ String wrongReasonLabel(String? key) {
   }
   return '';
 }
+
+/// 收藏标签 — small fixed set beats free-form tags on a phone.
+const kMarkTags = <String>['易错', '公式', '技巧', '待复习'];
