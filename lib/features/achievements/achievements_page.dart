@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
-import 'package:openexam_app/core/ui/stroke_icons.dart';
 import 'package:openexam_app/core/ui/ui_kit.dart';
 import 'package:openexam_app/features/achievements/achievements.dart';
+import 'package:openexam_app/features/achievements/medal.dart';
 
 /// 成就 — every badge, grouped, with progress on the locked ones so they read
 /// as goals rather than mysteries.
@@ -134,131 +134,6 @@ class _BadgeTile extends StatelessWidget {
   }
 }
 
-/// The medal itself: a tier-coloured ring that fills with progress while
-/// locked, and glows once earned.
-class BadgeMedal extends StatelessWidget {
-  const BadgeMedal({
-    super.key,
-    required this.badge,
-    this.size = 72,
-    this.animate = false,
-  });
-
-  final AchievementBadge badge;
-  final double size;
-  final bool animate;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.tokens;
-    final color = badge.tier.color;
-
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: animate ? 0 : 1, end: 1),
-      duration: Duration(milliseconds: animate ? 700 : 1),
-      curve: Curves.easeOutBack,
-      builder: (context, scale, child) => Transform.scale(scale: scale, child: child),
-      child: SizedBox(
-        width: size,
-        height: size,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            CustomPaint(
-              size: Size(size, size),
-              painter: _MedalPainter(
-                progress: badge.progress,
-                unlocked: badge.unlocked,
-                color: color,
-                track: t.name == 'dark'
-                    ? Colors.white.withValues(alpha: 0.10)
-                    : t.text.withValues(alpha: 0.08),
-                fill: badge.unlocked
-                    ? color.withValues(alpha: 0.14)
-                    : (t.name == 'dark'
-                        ? Colors.white.withValues(alpha: 0.04)
-                        : t.text.withValues(alpha: 0.03)),
-              ),
-            ),
-            StrokeIcon(
-              badge.icon,
-              size: size * 0.34,
-              color: badge.unlocked ? color : t.muted.withValues(alpha: 0.7),
-              weight: 2,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _MedalPainter extends CustomPainter {
-  const _MedalPainter({
-    required this.progress,
-    required this.unlocked,
-    required this.color,
-    required this.track,
-    required this.fill,
-  });
-
-  final double progress;
-  final bool unlocked;
-  final Color color;
-  final Color track;
-  final Color fill;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final c = size.center(Offset.zero);
-    final r = size.width / 2 - 5;
-
-    canvas.drawCircle(c, r - 2, Paint()..color = fill);
-    canvas.drawCircle(
-      c,
-      r,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 4
-        ..color = track,
-    );
-
-    if (progress > 0) {
-      canvas.drawArc(
-        Rect.fromCircle(center: c, radius: r),
-        -math.pi / 2,
-        math.pi * 2 * progress,
-        false,
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 4
-          ..strokeCap = StrokeCap.round
-          ..color = color.withValues(alpha: unlocked ? 1 : 0.55),
-      );
-    }
-
-    // Earned medals get eight short rays, like a stamped seal.
-    if (unlocked) {
-      final ray = Paint()
-        ..strokeWidth = 2
-        ..strokeCap = StrokeCap.round
-        ..color = color.withValues(alpha: 0.55);
-      for (var i = 0; i < 8; i++) {
-        final a = i * math.pi / 4 + math.pi / 8;
-        canvas.drawLine(
-          c + Offset(math.cos(a), math.sin(a)) * (r + 3),
-          c + Offset(math.cos(a), math.sin(a)) * (r + 7),
-          ray,
-        );
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _MedalPainter old) =>
-      old.progress != progress || old.unlocked != unlocked;
-}
-
 /// Opens the badge card with a spring-scale + fade transition. A bottom sheet
 /// made an earned medal feel like a settings row; this reads like a card being
 /// dealt onto the table.
@@ -296,19 +171,7 @@ class _BadgeCard extends StatefulWidget {
   State<_BadgeCard> createState() => _BadgeCardState();
 }
 
-class _BadgeCardState extends State<_BadgeCard>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _shine = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 2200),
-  )..repeat();
-
-  @override
-  void dispose() {
-    _shine.dispose();
-    super.dispose();
-  }
-
+class _BadgeCardState extends State<_BadgeCard> {
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
@@ -336,24 +199,7 @@ class _BadgeCardState extends State<_BadgeCard>
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    // Earned medals get a slow rotating halo.
-                    if (badge.unlocked)
-                      AnimatedBuilder(
-                        animation: _shine,
-                        builder: (_, __) => Transform.rotate(
-                          angle: _shine.value * 6.28,
-                          child: CustomPaint(
-                            size: const Size(132, 132),
-                            painter: _HaloPainter(color: color),
-                          ),
-                        ),
-                      ),
-                    BadgeMedal(badge: badge, size: 104, animate: true),
-                  ],
-                ),
+                MedalStage(badge: badge, size: 104),
                 const SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -440,33 +286,6 @@ class _BadgeCardState extends State<_BadgeCard>
   }
 }
 
-class _HaloPainter extends CustomPainter {
-  const _HaloPainter({required this.color});
-
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final c = size.center(Offset.zero);
-    final paint = Paint()
-      ..shader = SweepGradient(
-        colors: [
-          color.withValues(alpha: 0),
-          color.withValues(alpha: 0.35),
-          color.withValues(alpha: 0),
-        ],
-        stops: const [0.0, 0.5, 1.0],
-      ).createShader(Rect.fromCircle(center: c, radius: size.width / 2))
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 10;
-    canvas.drawCircle(c, size.width / 2 - 8, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _HaloPainter old) => false;
-}
-
-/// Celebration shown right after a session when something new is earned.
 class BadgeUnlockedDialog extends StatelessWidget {
   const BadgeUnlockedDialog({super.key, required this.badges});
 
@@ -515,7 +334,7 @@ class BadgeUnlockedDialog extends StatelessWidget {
                       painter: _BurstPainter(progress: v, color: badge.tier.color),
                     ),
                   ),
-                  BadgeMedal(badge: badge, size: 96, animate: true),
+                  MedalStage(badge: badge, size: 96, burst: true),
                 ],
               ),
               const SizedBox(height: 18),
@@ -575,4 +394,193 @@ class _BurstPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _BurstPainter old) => old.progress != progress;
+}
+
+/// 徽章展台 — the medal plus everything moving around it: a breathing glow, a
+/// slow ray fan, orbiting sparks and a gentle float. Only earned badges get
+/// the full show; locked ones just sit there, which is the point.
+class MedalStage extends StatefulWidget {
+  const MedalStage({
+    super.key,
+    required this.badge,
+    this.size = 104,
+    this.burst = false,
+  });
+
+  final AchievementBadge badge;
+  final double size;
+
+  /// One-shot ring burst, for the moment a badge is unlocked.
+  final bool burst;
+
+  @override
+  State<MedalStage> createState() => _MedalStageState();
+}
+
+class _MedalStageState extends State<MedalStage>
+    with TickerProviderStateMixin {
+  late final AnimationController _loop = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 6000),
+  );
+  late final AnimationController _pop = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1100),
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.badge.unlocked) {
+      _loop.repeat();
+      if (widget.burst) _pop.forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _loop.dispose();
+    _pop.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final badge = widget.badge;
+    final color = badge.tier.color;
+    final box = widget.size * 1.55;
+
+    return SizedBox(
+      width: box,
+      height: box,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          if (badge.unlocked)
+            AnimatedBuilder(
+              animation: Listenable.merge([_loop, _pop]),
+              builder: (_, __) => CustomPaint(
+                size: Size(box, box),
+                painter: _StagePainter(
+                  color: color,
+                  t: _loop.value,
+                  burst: widget.burst ? Curves.easeOutCubic.transform(_pop.value) : 0,
+                ),
+              ),
+            ),
+          if (badge.unlocked)
+            AnimatedBuilder(
+              animation: _loop,
+              builder: (_, child) => Transform.translate(
+                offset: Offset(0, math.sin(_loop.value * math.pi * 2) * 3.5),
+                child: child,
+              ),
+              child: BadgeMedal(badge: badge, size: widget.size, animate: true, shine: true),
+            )
+          else
+            BadgeMedal(badge: badge, size: widget.size, animate: true),
+        ],
+      ),
+    );
+  }
+}
+
+class _StagePainter extends CustomPainter {
+  const _StagePainter({
+    required this.color,
+    required this.t,
+    required this.burst,
+  });
+
+  final Color color;
+
+  /// 0–1 looping.
+  final double t;
+
+  /// 0–1 one-shot ring.
+  final double burst;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final c = size.center(Offset.zero);
+    final r = size.width / 2;
+
+    // Breathing glow.
+    final breathe = 0.86 + 0.14 * math.sin(t * math.pi * 2);
+    canvas.drawCircle(
+      c,
+      r * 0.86 * breathe,
+      Paint()
+        ..shader = RadialGradient(
+          colors: [
+            color.withValues(alpha: 0.26),
+            color.withValues(alpha: 0.06),
+            color.withValues(alpha: 0),
+          ],
+          stops: const [0, 0.55, 1],
+        ).createShader(Rect.fromCircle(center: c, radius: r * 0.86 * breathe)),
+    );
+
+    // Ray fan, turning slowly behind the medal.
+    canvas.save();
+    canvas.translate(c.dx, c.dy);
+    canvas.rotate(t * math.pi * 2);
+    final ray = Paint()..color = color.withValues(alpha: 0.16);
+    for (var i = 0; i < 12; i++) {
+      final a = i * math.pi / 6;
+      final w = i.isEven ? 0.055 : 0.03;
+      final len = r * (i.isEven ? 0.94 : 0.80);
+      final path = Path()
+        ..moveTo(0, 0)
+        ..lineTo(math.cos(a - w) * len, math.sin(a - w) * len)
+        ..lineTo(math.cos(a + w) * len, math.sin(a + w) * len)
+        ..close();
+      canvas.drawPath(path, ray);
+    }
+    canvas.restore();
+
+    // Orbiting sparks — two rings turning opposite ways.
+    for (var i = 0; i < 7; i++) {
+      final a = t * math.pi * 2 + i * math.pi * 2 / 7;
+      final o = c + Offset(math.cos(a), math.sin(a)) * r * 0.80;
+      canvas.drawCircle(
+        o,
+        1.6 + 1.2 * math.sin(t * math.pi * 4 + i),
+        Paint()..color = color.withValues(alpha: 0.55),
+      );
+    }
+    for (var i = 0; i < 5; i++) {
+      final a = -t * math.pi * 2 + i * math.pi * 2 / 5;
+      final o = c + Offset(math.cos(a), math.sin(a)) * r * 0.66;
+      canvas.drawCircle(
+        o,
+        1.1,
+        Paint()..color = Colors.white.withValues(alpha: 0.45),
+      );
+    }
+
+    // Unlock shockwave.
+    if (burst > 0 && burst < 1) {
+      canvas.drawCircle(
+        c,
+        r * (0.4 + 0.6 * burst),
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 3 * (1 - burst)
+          ..color = color.withValues(alpha: (1 - burst) * 0.8),
+      );
+      canvas.drawCircle(
+        c,
+        r * (0.2 + 0.7 * burst),
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2 * (1 - burst)
+          ..color = Colors.white.withValues(alpha: (1 - burst) * 0.6),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _StagePainter old) =>
+      old.t != t || old.burst != burst;
 }
