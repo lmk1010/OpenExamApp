@@ -43,6 +43,7 @@ class _WrongBookPageState extends State<WrongBookPage> {
   /// Sort by how many times a question has been missed, rather than recency.
   bool _sortByCount = false;
   Map<String, int> _counts = const {};
+  List<ReviewPlan> _plans = const [];
 
   /// Reviewing by 题型 finds weak modules; reviewing by 试卷 finds the paper you
   /// bombed. Both are how 考生 actually revisit mistakes.
@@ -58,11 +59,13 @@ class _WrongBookPageState extends State<WrongBookPage> {
     final wrong = await AppDatabase.instance.fetchWrong(limit: 200);
     final reasons = await AppDatabase.instance.wrongReasons();
     final counts = await AppDatabase.instance.wrongCounts();
+    final plans = await AppDatabase.instance.reviewPlans();
     if (!mounted) return;
     setState(() {
       _wrong = wrong;
       _reasons = reasons;
       _counts = counts;
+      _plans = plans;
       _loading = false;
     });
   }
@@ -208,6 +211,60 @@ class _WrongBookPageState extends State<WrongBookPage> {
     await _practise(list.take(20).toList());
   }
 
+  /// 开一个四天计划。同一个 key 再开一次就是重新计时。
+  Future<void> _startPlan({
+    required String key,
+    required String kind,
+    required String label,
+  }) async {
+    await AppDatabase.instance
+        .startReviewPlan(key: key, kind: kind, label: label);
+    await _reload();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..clearSnackBars()
+      ..showSnackBar(SnackBar(content: Text('已开始「$label」四天计划')));
+  }
+
+  /// Runs one step of a plan: day 3 is timed, day 4 mixes in fresh questions
+  /// of the same type so you cannot pass on memory alone.
+  Future<void> _runPlan(ReviewPlan plan) async {
+    final day = plan.nextDay;
+    var pool = _wrong.where((q) {
+      if (plan.kind == 'reason') return (_reasons[q.id] ?? '_none') == plan.key;
+      return q.category == plan.key;
+    }).toList();
+    if (pool.isEmpty) pool = [..._wrong];
+    if (pool.isEmpty) return;
+    pool = pool.take(15).toList();
+
+    var questions = [...pool];
+    if (day == 4) {
+      final fresh = await AppDatabase.instance.fetchPractice(
+        category: plan.kind == 'category' ? plan.key : pool.first.category,
+        limit: 8,
+        shuffle: true,
+        scope: QuestionScope.unseen,
+      );
+      questions = [...pool, ...fresh]..shuffle();
+    }
+
+    if (!mounted) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => PracticeSessionPage(
+          questions: questions,
+          limit: day == 3
+              ? Duration(seconds: 55 * questions.length)
+              : null,
+          title: '${plan.label} · 第 $day 天',
+        ),
+      ),
+    );
+    await AppDatabase.instance.tickReviewPlan(plan.key, day);
+    await _reload();
+  }
+
   void _focus({String? category, String? reason, String? paper}) {
     setState(() {
       _category = category ?? 'all';
@@ -318,6 +375,24 @@ class _WrongBookPageState extends State<WrongBookPage> {
           ),
         ),
       ),
+      // 进行中的四天计划排在最前，因为它是有截止感的那件事。
+      for (final plan in _plans.where((p) => !p.finished))
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppTheme.gutter,
+            12,
+            AppTheme.gutter,
+            0,
+          ),
+          child: _PlanCard(
+            plan: plan,
+            onRun: () => _runPlan(plan),
+            onDrop: () async {
+              await AppDatabase.instance.dropReviewPlan(plan.key);
+              await _reload();
+            },
+          ),
+        ),
       if (untagged > 0)
         Padding(
           padding: const EdgeInsets.fromLTRB(
@@ -354,10 +429,24 @@ class _WrongBookPageState extends State<WrongBookPage> {
           color: t.category(e.key),
           icon: categoryIcon(e.key),
           onTap: () => _focus(category: e.key),
+          onLong: () => _startPlan(
+            key: e.key,
+            kind: 'category',
+            label: categoryLabel(e.key),
+          ),
         ),
 
       if (reasonCounts.isNotEmpty) ...[
         header('错在什么地方'),
+      Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppTheme.gutter,
+          0,
+          AppTheme.gutter,
+          10,
+        ),
+        child: Text('长按一类可以开四天专项计划', style: text.bodySmall),
+      ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
           child: Wrap(
@@ -370,6 +459,11 @@ class _WrongBookPageState extends State<WrongBookPage> {
                     label: r.label,
                     count: reasonCounts[r.key]!,
                     onTap: () => _focus(reason: r.key),
+                    onLong: () => _startPlan(
+                      key: r.key,
+                      kind: 'reason',
+                      label: r.label,
+                    ),
                   ),
               if (untagged > 0)
                 _ReasonChip(
@@ -934,6 +1028,7 @@ class _DistRow extends StatelessWidget {
     required this.color,
     required this.icon,
     required this.onTap,
+    this.onLong,
   });
 
   final String label;
@@ -942,6 +1037,7 @@ class _DistRow extends StatelessWidget {
   final Color color;
   final AppIcon icon;
   final VoidCallback onTap;
+  final VoidCallback? onLong;
 
   @override
   Widget build(BuildContext context) {
@@ -951,6 +1047,7 @@ class _DistRow extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
+      onLongPress: onLong,
       child: Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: AppTheme.gutter,
@@ -997,11 +1094,13 @@ class _ReasonChip extends StatelessWidget {
     required this.label,
     required this.count,
     required this.onTap,
+    this.onLong,
   });
 
   final String label;
   final int count;
   final VoidCallback onTap;
+  final VoidCallback? onLong;
 
   @override
   Widget build(BuildContext context) {
@@ -1009,6 +1108,7 @@ class _ReasonChip extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
+      onLongPress: onLong,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
@@ -1040,6 +1140,160 @@ class _ReasonChip extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// 四天计划卡：四个格子，今天该做哪一步、做完打上勾。
+class _PlanCard extends StatelessWidget {
+  const _PlanCard({
+    required this.plan,
+    required this.onRun,
+    required this.onDrop,
+  });
+
+  final ReviewPlan plan;
+  final VoidCallback onRun;
+  final VoidCallback onDrop;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+    final day = plan.nextDay;
+    final rest = plan.doneToday;
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 15, 16, 15),
+      decoration: GlassDecor.panel(t, radius: 20, raised: false),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              StrokeIcon(AppIcon.replay, size: 17, color: t.brand),
+              const SizedBox(width: 9),
+              Expanded(
+                child: Text(
+                  '${plan.label} 四天计划',
+                  style: text.titleSmall?.copyWith(fontSize: 15),
+                ),
+              ),
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: onDrop,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 10),
+                  child: StrokeIcon(AppIcon.trash, size: 16, color: t.muted),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 13),
+          Row(
+            children: [
+              for (var d = 1; d <= 4; d++) ...[
+                if (d > 1) const SizedBox(width: 7),
+                Expanded(
+                  child: _Step(
+                    index: d,
+                    done: plan.doneDays.contains(d),
+                    current: d == day && !rest,
+                  ),
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: 13),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      rest
+                          ? '今天这步做完了，明天再来'
+                          : '第 $day 天 · ${ReviewPlan.stepTitles[day - 1]}',
+                      style: text.titleSmall?.copyWith(fontSize: 14),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      rest ? '中间隔一天，记忆才吃得住' : ReviewPlan.stepHints[day - 1],
+                      style: text.bodySmall,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: onRun,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 15,
+                    vertical: 9,
+                  ),
+                  decoration: BoxDecoration(
+                    color: rest ? t.glass : t.brand,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Text(
+                    rest ? '再练一次' : '开始',
+                    style: TextStyle(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w700,
+                      height: 1,
+                      color: rest ? t.textSoft : GlassDecor.on(t.brand),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Step extends StatelessWidget {
+  const _Step({
+    required this.index,
+    required this.done,
+    required this.current,
+  });
+
+  final int index;
+  final bool done;
+  final bool current;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 220),
+      height: 32,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: done
+            ? t.brand.withValues(alpha: 0.18)
+            : current
+                ? t.brand
+                : t.glass,
+        borderRadius: BorderRadius.circular(11),
+      ),
+      child: done
+          ? Icon(Icons.check, size: 16, color: t.brand)
+          : Text(
+              '$index',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                height: 1,
+                color: current ? GlassDecor.on(t.brand) : t.muted,
+              ),
+            ),
     );
   }
 }

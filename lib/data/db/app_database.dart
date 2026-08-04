@@ -150,6 +150,18 @@ class AppDatabase {
         unlocked_at TEXT NOT NULL
       )
     ''');
+    // 四天复习计划：粉笔那套「同类错因连盯四天」——前两天放慢做对，
+    // 第三天限时加压，第四天混练验证。计划本身只是四条打卡记录。
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS review_plans (
+        key TEXT PRIMARY KEY,
+        kind TEXT NOT NULL,
+        label TEXT NOT NULL,
+        started_at TEXT NOT NULL,
+        done_days TEXT NOT NULL DEFAULT '',
+        last_done TEXT
+      )
+    ''');
     await db.execute('''
       CREATE TABLE IF NOT EXISTS meta (
         key TEXT PRIMARY KEY,
@@ -621,7 +633,7 @@ class AppDatabase {
 
   /// Everything the user created (not the bank itself) as one JSON map.
   /// The 15936 questions are already in the app, so a backup only needs the
-  /// answers, marks, tags, notes, reasons and reports.
+  /// answers, marks, tags, notes, reasons, plans and reports.
   Future<Map<String, dynamic>> exportUserData() async {
     final db = await database;
     return {
@@ -631,6 +643,7 @@ class AppDatabase {
       'marks': await db.query('marks'),
       'notes': await db.query('notes'),
       'reasons': await db.query('wrong_reasons'),
+      'plans': await db.query('review_plans'),
       'reports': await db.query('exam_reports'),
       'feedback': await db.query('feedback'),
       'badges': await db.query('badges'),
@@ -661,6 +674,7 @@ class AppDatabase {
     await put('marks', 'marks');
     await put('notes', 'notes');
     await put('wrong_reasons', 'reasons');
+    await put('review_plans', 'plans');
     await put('exam_reports', 'reports', wipe: true);
     await put('feedback', 'feedback', wipe: true);
     await put('badges', 'badges');
@@ -776,6 +790,59 @@ class AppDatabase {
       await clearResume();
       return null;
     }
+  }
+
+  // ------------------------------------------------------------ review plans
+
+  /// Starts (or restarts) a four-day plan on one 错因 or one 题型.
+  Future<void> startReviewPlan({
+    required String key,
+    required String kind,
+    required String label,
+  }) async {
+    final db = await database;
+    await db.insert(
+      'review_plans',
+      {
+        'key': key,
+        'kind': kind,
+        'label': label,
+        'started_at': DateTime.now().toIso8601String(),
+        'done_days': '',
+        'last_done': null,
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<List<ReviewPlan>> reviewPlans() async {
+    final db = await database;
+    final rows = await db.query('review_plans', orderBy: 'started_at DESC');
+    return rows.map(ReviewPlan.fromRow).toList();
+  }
+
+  /// Marks today's step done. Days already ticked are kept, so finishing the
+  /// same day twice does not skip a step.
+  Future<void> tickReviewPlan(String key, int day) async {
+    final db = await database;
+    final rows = await db.query('review_plans', where: 'key = ?', whereArgs: [key]);
+    if (rows.isEmpty) return;
+    final plan = ReviewPlan.fromRow(rows.first);
+    final days = {...plan.doneDays, day}.toList()..sort();
+    await db.update(
+      'review_plans',
+      {
+        'done_days': days.join(','),
+        'last_done': DateTime.now().toIso8601String(),
+      },
+      where: 'key = ?',
+      whereArgs: [key],
+    );
+  }
+
+  Future<void> dropReviewPlan(String key) async {
+    final db = await database;
+    await db.delete('review_plans', where: 'key = ?', whereArgs: [key]);
   }
 
   // ------------------------------------------------------------ wrong reasons

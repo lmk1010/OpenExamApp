@@ -300,3 +300,69 @@ class ResumeState {
         savedAt: DateTime.tryParse('${json['at'] ?? ''}') ?? DateTime.now(),
       );
 }
+
+/// 四天复习计划 — one 错因 or 题型 tracked across the four review steps.
+/// 粉笔的说法：前两天放慢做对，第三天限时加压，第四天混练验证。
+class ReviewPlan {
+  const ReviewPlan({
+    required this.key,
+    required this.kind,
+    required this.label,
+    required this.startedAt,
+    required this.doneDays,
+    this.lastDone,
+  });
+
+  factory ReviewPlan.fromRow(Map<String, Object?> row) => ReviewPlan(
+        key: '${row['key']}',
+        kind: '${row['kind']}',
+        label: '${row['label']}',
+        startedAt:
+            DateTime.tryParse('${row['started_at']}') ?? DateTime.now(),
+        doneDays: '${row['done_days']}'
+            .split(',')
+            .map(int.tryParse)
+            .whereType<int>()
+            .toSet(),
+        lastDone: row['last_done'] == null
+            ? null
+            : DateTime.tryParse('${row['last_done']}'),
+      );
+
+  final String key;
+
+  /// 'reason' or 'category'.
+  final String kind;
+  final String label;
+  final DateTime startedAt;
+
+  /// Which of the four steps are ticked (1–4).
+  final Set<int> doneDays;
+  final DateTime? lastDone;
+
+  bool get finished => doneDays.length >= 4;
+
+  /// The step to do next — the lowest unticked one.
+  int get nextDay {
+    for (var d = 1; d <= 4; d++) {
+      if (!doneDays.contains(d)) return d;
+    }
+    return 4;
+  }
+
+  /// One step per day: if today's step is already ticked, the plan rests.
+  bool get doneToday {
+    final at = lastDone;
+    if (at == null) return false;
+    final now = DateTime.now();
+    return at.year == now.year && at.month == now.month && at.day == now.day;
+  }
+
+  static const stepTitles = ['放慢做对', '再来一遍', '限时加压', '混练验证'];
+  static const stepHints = [
+    '不计时，把每道题的正确思路走一遍',
+    '还是不计时，重点看昨天卡住的地方',
+    '按考场配速做，逼自己在时间内定下来',
+    '掺进同类新题一起做，验证是不是真会了',
+  ];
+}
