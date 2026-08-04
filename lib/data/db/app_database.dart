@@ -842,6 +842,37 @@ class AppDatabase {
     return rows.map(_fromRow).toList();
   }
 
+  /// How many times each question has been answered wrong — a question missed
+  /// three times deserves more attention than one missed once.
+  Future<Map<String, int>> wrongCounts() async {
+    final db = await database;
+    final rows = await db.rawQuery('''
+      SELECT question_id, COUNT(*) AS n
+      FROM practice_logs
+      WHERE is_correct = 0
+      GROUP BY question_id
+    ''');
+    return {
+      for (final r in rows) '${r['question_id']}': int.tryParse('${r['n']}') ?? 0,
+    };
+  }
+
+  /// Answers per hour of day — tells the user when they actually study.
+  Future<List<int>> hourlyActivity() async {
+    final db = await database;
+    final rows = await db.rawQuery('''
+      SELECT CAST(strftime('%H', created_at) AS INTEGER) AS h, COUNT(*) AS n
+      FROM practice_logs
+      GROUP BY h
+    ''');
+    final out = List<int>.filled(24, 0);
+    for (final r in rows) {
+      final h = int.tryParse('${r['h']}') ?? 0;
+      if (h >= 0 && h < 24) out[h] = int.tryParse('${r['n']}') ?? 0;
+    }
+    return out;
+  }
+
   Future<int> countWrong() async {
     final db = await database;
     return Sqflite.firstIntValue(await db.rawQuery('''

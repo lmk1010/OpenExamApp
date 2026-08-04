@@ -8,6 +8,7 @@ import 'package:openexam_app/core/ui/stroke_icons.dart';
 import 'package:openexam_app/core/ui/ui_kit.dart';
 import 'package:openexam_app/data/db/app_database.dart';
 import 'package:openexam_app/features/backup/backup_page.dart';
+import 'package:openexam_app/features/profile/dashboard_page.dart';
 import 'package:openexam_app/features/import/import_page.dart';
 import 'package:openexam_app/features/marks/marked_page.dart';
 import 'package:openexam_app/features/notes/notes_page.dart';
@@ -29,7 +30,6 @@ class _ProfilePageState extends State<ProfilePage> {
   int _total = 0;
   int _imported = 0;
   int _answers = 0;
-  int _activeDays = 0;
   int _rate = 0;
   int _count = 20;
   int _marked = 0;
@@ -55,7 +55,6 @@ class _ProfilePageState extends State<ProfilePage> {
     final reports = await db.listReports(limit: 200);
     final notes = await db.countNotes();
     final stats = await db.categoryStats();
-    final month = await db.dailyActivity(days: 30);
     final week = await db.dailyActivity();
     final prefs = await SharedPreferences.getInstance();
 
@@ -70,7 +69,6 @@ class _ProfilePageState extends State<ProfilePage> {
       _marked = marked;
       _reports = reports.length;
       _notes = notes;
-      _activeDays = month.where((n) => n > 0).length;
       _rate = done == 0 ? 0 : (correct * 100 / done).round();
       _week = week;
       _count = prefs.getInt(Prefs.defaultCount) ?? 20;
@@ -172,7 +170,12 @@ class _ProfilePageState extends State<ProfilePage> {
         // Account row: who you are, one tap to rename.
         GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTap: _editName,
+          onTap: () async {
+            await Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const DashboardPage()),
+            );
+            _reload();
+          },
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter, vertical: 8),
             child: Row(
@@ -186,9 +189,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       Text(_name, style: text.titleSmall?.copyWith(fontSize: 16)),
                       const SizedBox(height: 4),
                       Text(
-                        _answers == 0
-                            ? '还没开始练习'
-                            : '打卡 $_activeDays 天 · 答题 $_answers · 正确率 $_rate%',
+                        _answers == 0 ? '打开看看备考档案' : '备考档案 · 答题 $_answers · 正确率 $_rate%',
                         style: text.bodySmall,
                       ),
                     ],

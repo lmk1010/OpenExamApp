@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
-import 'package:openexam_app/core/ui/glass.dart';
 import 'package:openexam_app/core/ui/rich_content.dart';
 import 'package:openexam_app/core/ui/stroke_icons.dart';
 import 'package:openexam_app/core/ui/ui_kit.dart';
@@ -28,6 +27,10 @@ class _WrongBookPageState extends State<WrongBookPage> {
   /// 'type' groups by 题型, 'paper' by 试卷, 'reason' by 错因.
   String _mode = 'type';
 
+  /// Sort by how many times a question has been missed, rather than recency.
+  bool _sortByCount = false;
+  Map<String, int> _counts = const {};
+
   /// Reviewing by 题型 finds weak modules; reviewing by 试卷 finds the paper you
   /// bombed. Both are how 考生 actually revisit mistakes.
 
@@ -41,10 +44,12 @@ class _WrongBookPageState extends State<WrongBookPage> {
     if (!_loading) setState(() => _loading = true);
     final wrong = await AppDatabase.instance.fetchWrong(limit: 200);
     final reasons = await AppDatabase.instance.wrongReasons();
+    final counts = await AppDatabase.instance.wrongCounts();
     if (!mounted) return;
     setState(() {
       _wrong = wrong;
       _reasons = reasons;
+      _counts = counts;
       _loading = false;
     });
   }
@@ -62,6 +67,48 @@ class _WrongBookPageState extends State<WrongBookPage> {
           duration: Duration(milliseconds: 1200),
         ),
       );
+  }
+
+  /// Long-press menu: everything you might want to do with a wrong question
+  /// without leaving the list.
+  Future<void> _actions(Question q) async {
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _ActionSheet(
+        question: q,
+        reason: _reasons[q.id],
+        times: _counts[q.id] ?? 1,
+      ),
+    );
+    if (action == null || !mounted) return;
+    switch (action) {
+      case 'practise':
+        await _practise([q]);
+      case 'same':
+        final list = await AppDatabase.instance.fetchPractice(
+          category: q.category,
+          limit: 10,
+        );
+        await _practise(list);
+      case 'mark':
+        await AppDatabase.instance.toggleMark(q.id, true);
+        if (!mounted) return;
+        ScaffoldMessenger.of(context)
+          ..clearSnackBars()
+          ..showSnackBar(
+            const SnackBar(
+              content: Text('已收藏'),
+              duration: Duration(milliseconds: 1100),
+            ),
+          );
+      case 'remove':
+        await _remove(q);
+      default:
+        // A reason key: tag it and refresh.
+        await AppDatabase.instance.setWrongReason(q.id, action);
+        await _reload();
+    }
   }
 
   Future<void> _practise(List<Question> questions) async {
@@ -108,13 +155,18 @@ class _WrongBookPageState extends State<WrongBookPage> {
       reasonCounts[key] = (reasonCounts[key] ?? 0) + 1;
     }
 
-    final shown = _filter == 'all'
+    final base = _filter == 'all'
         ? _wrong
         : (_mode == 'reason'
               ? _wrong
                     .where((q) => (_reasons[q.id] ?? '_none') == _filter)
                     .toList()
               : _wrong.where((q) => q.category == _filter).toList());
+    final shown = _sortByCount
+        ? ([
+            ...base,
+          ]..sort((a, b) => (_counts[b.id] ?? 0).compareTo(_counts[a.id] ?? 0)))
+        : base;
 
     return RefreshIndicator(
       color: t.brand,
@@ -149,36 +201,20 @@ class _WrongBookPageState extends State<WrongBookPage> {
                     ],
                   ),
                 ),
-                if (_wrong.isNotEmpty)
-                  GestureDetector(
+                if (_wrong.isNotEmpty) ...[
+                  // Icon-only: the list itself already says what this page is.
+                  _IconAction(
+                    icon: AppIcon.replay,
+                    tip: '重练当前筛选的题',
                     onTap: () => _practise(shown.take(20).toList()),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 11,
-                      ),
-                      decoration: GlassDecor.tinted(t, t.brand, radius: 15),
-                      child: Row(
-                        children: [
-                          StrokeIcon(
-                            AppIcon.replay,
-                            size: 16,
-                            color: GlassDecor.on(t.brand),
-                            weight: 2.1,
-                          ),
-                          const SizedBox(width: 7),
-                          Text(
-                            '开始重练',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: GlassDecor.on(t.brand),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                   ),
+                  const SizedBox(width: 4),
+                  _IconAction(
+                    icon: _sortByCount ? AppIcon.chart : AppIcon.timer,
+                    tip: _sortByCount ? '当前：错得最多在前' : '当前：最近错的在前',
+                    onTap: () => setState(() => _sortByCount = !_sortByCount),
+                  ),
+                ],
               ],
             ),
           ),
@@ -206,7 +242,7 @@ class _WrongBookPageState extends State<WrongBookPage> {
                       _filter = 'all';
                     }),
                   ),
-                  const SizedBox(width: 18),
+                  const SizedBox(width: 16),
                   _ModeTab(
                     label: '按错因',
                     selected: _mode == 'reason',
@@ -215,7 +251,7 @@ class _WrongBookPageState extends State<WrongBookPage> {
                       _filter = 'all';
                     }),
                   ),
-                  const SizedBox(width: 18),
+                  const SizedBox(width: 16),
                   _ModeTab(
                     label: '按试卷',
                     selected: _mode == 'paper',
@@ -264,7 +300,9 @@ class _WrongBookPageState extends State<WrongBookPage> {
                   _WrongRow(
                     question: papers[key]!.items[i],
                     reason: _reasons[papers[key]!.items[i].id],
+                    times: _counts[papers[key]!.items[i].id] ?? 1,
                     onTap: () => _practise([papers[key]!.items[i]]),
+                    onLong: () => _actions(papers[key]!.items[i]),
                     onRemove: () => _remove(papers[key]!.items[i]),
                   ),
                 ],
@@ -299,18 +337,182 @@ class _WrongBookPageState extends State<WrongBookPage> {
                 ),
               ),
               const SizedBox(height: 8),
-              for (var i = 0; i < shown.length; i++) ...[
-                if (i > 0) const RowDivider(),
-                _WrongRow(
+              ListView.separated(
+                shrinkWrap: true,
+                primary: false,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: shown.length,
+                separatorBuilder: (_, __) => const RowDivider(),
+                itemBuilder: (context, i) => _WrongRow(
                   question: shown[i],
                   reason: _reasons[shown[i].id],
+                  times: _counts[shown[i].id] ?? 1,
                   onTap: () => _practise([shown[i]]),
+                  onLong: () => _actions(shown[i]),
                   onRemove: () => _remove(shown[i]),
                 ),
-              ],
+              ),
             ],
           ],
         ],
+      ),
+    );
+  }
+}
+
+/// Bare icon button for the header — labelled buttons made this row heavy.
+class _IconAction extends StatelessWidget {
+  const _IconAction({
+    required this.icon,
+    required this.tip,
+    required this.onTap,
+  });
+
+  final AppIcon icon;
+  final String tip;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    return Tooltip(
+      message: tip,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: SizedBox(
+          width: 42,
+          height: 42,
+          child: Center(child: StrokeIcon(icon, size: 20, color: t.brand)),
+        ),
+      ),
+    );
+  }
+}
+
+/// Long-press menu for one wrong question.
+class _ActionSheet extends StatelessWidget {
+  const _ActionSheet({
+    required this.question,
+    required this.reason,
+    required this.times,
+  });
+
+  final Question question;
+  final String? reason;
+  final int times;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+
+    Widget row(
+      AppIcon icon,
+      String label,
+      String value, {
+      bool danger = false,
+    }) {
+      return GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => Navigator.of(context).pop(value),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          child: Row(
+            children: [
+              StrokeIcon(icon, size: 19, color: danger ? t.danger : t.textSoft),
+              const SizedBox(width: 14),
+              Text(
+                label,
+                style: text.titleSmall?.copyWith(
+                  color: danger ? t.danger : t.text,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: t.gradient.last,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        border: Border(top: BorderSide(color: t.glassBorder)),
+      ),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              question.content,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: text.bodyMedium?.copyWith(color: t.text, fontSize: 14),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              '${categoryLabel(question.category)} · 错过 $times 次'
+              '${reason == null ? '' : ' · ${wrongReasonLabel(reason)}'}',
+              style: text.bodySmall,
+            ),
+            const SizedBox(height: 10),
+            const RowDivider(indent: 0),
+            row(AppIcon.play, '重做这道题', 'practise'),
+            const RowDivider(indent: 0),
+            row(AppIcon.shuffle, '再练 10 道同类型', 'same'),
+            const RowDivider(indent: 0),
+            row(AppIcon.wrongBook, '加入收藏', 'mark'),
+            const RowDivider(indent: 0),
+            Padding(
+              padding: const EdgeInsets.only(top: 14, bottom: 8),
+              child: Text('标记错因', style: text.bodySmall),
+            ),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final r in kWrongReasons)
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => Navigator.of(context).pop(r.key),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 9,
+                      ),
+                      decoration: BoxDecoration(
+                        color: reason == r.key
+                            ? t.brand.withValues(alpha: 0.15)
+                            : t.glass,
+                        borderRadius: BorderRadius.circular(15),
+                        border: Border.all(
+                          color: reason == r.key
+                              ? t.brand.withValues(alpha: 0.5)
+                              : Colors.transparent,
+                        ),
+                      ),
+                      child: Text(
+                        r.label,
+                        style: TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w600,
+                          height: 1,
+                          color: reason == r.key ? t.brand : t.textSoft,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            const RowDivider(indent: 0),
+            row(AppIcon.trash, '移出错题本', 'remove', danger: true),
+          ],
+        ),
       ),
     );
   }
@@ -339,15 +541,15 @@ class _ModeTab extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              fontSize: 15,
+              fontSize: 13.5,
               fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
               color: selected ? t.text : t.muted,
             ),
           ),
-          const SizedBox(height: 5),
+          const SizedBox(height: 4),
           Container(
-            height: 2.5,
-            width: selected ? 20 : 0,
+            height: 2,
+            width: selected ? 16 : 0,
             decoration: BoxDecoration(
               color: t.brand,
               borderRadius: BorderRadius.circular(2),
@@ -408,12 +610,16 @@ class _WrongRow extends StatelessWidget {
   const _WrongRow({
     required this.question,
     required this.reason,
+    required this.times,
     required this.onTap,
+    required this.onLong,
     required this.onRemove,
   });
 
   final Question question;
   final String? reason;
+  final int times;
+  final VoidCallback onLong;
   final VoidCallback onTap;
   final VoidCallback onRemove;
 
@@ -450,6 +656,7 @@ class _WrongRow extends StatelessWidget {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
+        onLongPress: onLong,
         child: Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: AppTheme.gutter,
