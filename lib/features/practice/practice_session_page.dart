@@ -616,6 +616,9 @@ class _QuestionView extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 16, AppTheme.gutter, 28),
       children: [
+        // What happened last time on this exact question.
+        if (!isExam)
+          _History(questionId: question.id, answered: selected != null),
         if (isReview && selected == null)
           Padding(
             padding: const EdgeInsets.only(bottom: 12),
@@ -844,6 +847,65 @@ class _QuestionView extends StatelessWidget {
           ),
         ],
       ],
+    );
+  }
+}
+
+/// Prior attempts at this question, if any.
+class _History extends StatelessWidget {
+  const _History({required this.questionId, required this.answered});
+
+  final String questionId;
+
+  /// Before answering we only hint that it was missed; afterwards we can name
+  /// the option without spoiling anything.
+  final bool answered;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+
+    return FutureBuilder<List<({String answer, bool correct, DateTime at})>>(
+      future: AppDatabase.instance.historyFor(questionId),
+      builder: (context, snap) {
+        final all = snap.data ?? const <({String answer, bool correct, DateTime at})>[];
+        // The current attempt is already logged; drop it here.
+        final past = answered && all.isNotEmpty ? all.skip(1).toList() : all;
+        if (past.isEmpty) return const SizedBox.shrink();
+
+        final last = past.first;
+        final wrongTimes = past.where((e) => !e.correct).length;
+        final days = DateTime.now().difference(last.at).inDays;
+        final when = days == 0 ? '今天' : (days == 1 ? '昨天' : '$days 天前');
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Row(
+            children: [
+              Icon(
+                last.correct ? Icons.history_rounded : Icons.warning_amber_rounded,
+                size: 15,
+                color: last.correct ? t.muted : t.danger,
+              ),
+              const SizedBox(width: 7),
+              Expanded(
+                child: Text(
+                  answered
+                      ? '$when做过，当时选了 ${last.answer}'
+                          '${last.correct ? '（对）' : '（错）'}'
+                          '${wrongTimes > 1 ? ' · 一共错过 $wrongTimes 次' : ''}'
+                      : (last.correct ? '$when做过，当时做对了' : '$when做错过这道题'),
+                  style: text.bodySmall?.copyWith(
+                    fontSize: 12.5,
+                    color: last.correct ? t.muted : t.danger,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

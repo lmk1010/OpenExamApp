@@ -1022,6 +1022,29 @@ class AppDatabase {
     return rows.map(_fromRow).toList();
   }
 
+  /// Past attempts at one question, newest first — shown while practising so
+  /// "我上次是不是也错这儿" 有答案。
+  Future<List<({String answer, bool correct, DateTime at})>> historyFor(
+    String questionId, {
+    int limit = 5,
+  }) async {
+    final db = await database;
+    final rows = await db.query(
+      'practice_logs',
+      where: 'question_id = ?',
+      whereArgs: [questionId],
+      orderBy: 'id DESC',
+      limit: limit,
+    );
+    return rows
+        .map((r) => (
+              answer: '${r['user_answer'] ?? ''}',
+              correct: '${r['is_correct']}' == '1',
+              at: DateTime.tryParse('${r['created_at']}') ?? DateTime.now(),
+            ))
+        .toList();
+  }
+
   /// How many times each question has been answered wrong — a question missed
   /// three times deserves more attention than one missed once.
   Future<Map<String, int>> wrongCounts() async {
