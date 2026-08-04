@@ -113,6 +113,7 @@ class _ReportsPageState extends State<ReportsPage> {
               ? const EmptyState(
                   icon: Icons.assignment_outlined,
                   title: '还没有成绩报告',
+                  art: EmptyArt.chart,
                   message: '完成一组 5 题以上的练习或模考后，成绩会保存在这里。',
                 )
               : ListView(

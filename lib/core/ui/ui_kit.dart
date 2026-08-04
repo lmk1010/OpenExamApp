@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
@@ -352,23 +354,27 @@ class EmptyState extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.message,
+    this.art = EmptyArt.box,
   });
 
   final IconData icon;
   final String title;
   final String message;
 
+  /// Small drawn scene above the text — a bare grey glyph made every empty
+  /// screen look broken.
+  final EmptyArt art;
+
   @override
   Widget build(BuildContext context) {
-    final t = context.tokens;
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 46),
+        padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 40),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 30, color: t.muted),
-            const SizedBox(height: 14),
+            EmptyArtwork(kind: art),
+            const SizedBox(height: 18),
             Text(title, style: Theme.of(context).textTheme.titleSmall),
             const SizedBox(height: 6),
             Text(
@@ -381,4 +387,156 @@ class EmptyState extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Which little scene an empty state shows.
+enum EmptyArt { box, star, search, chart, done }
+
+/// Drawn empty-state art: a few shapes with a soft glow, in theme colours.
+class EmptyArtwork extends StatelessWidget {
+  const EmptyArtwork({super.key, required this.kind, this.size = 92});
+
+  final EmptyArt kind;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: const Duration(milliseconds: 600),
+      curve: Curves.easeOutBack,
+      builder: (context, v, _) => Transform.scale(
+        scale: 0.85 + 0.15 * v,
+        child: Opacity(
+          opacity: v.clamp(0.0, 1.0),
+          child: SizedBox(
+            width: size,
+            height: size,
+            child: CustomPaint(
+              painter: _EmptyArtPainter(
+                kind: kind,
+                brand: t.brand,
+                soft: t.name == 'dark'
+                    ? Colors.white.withValues(alpha: 0.10)
+                    : t.text.withValues(alpha: 0.08),
+                accent: t.category('shuliang'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _EmptyArtPainter extends CustomPainter {
+  const _EmptyArtPainter({
+    required this.kind,
+    required this.brand,
+    required this.soft,
+    required this.accent,
+  });
+
+  final EmptyArt kind;
+  final Color brand;
+  final Color soft;
+  final Color accent;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final s = size.width / 92;
+    canvas.save();
+    canvas.scale(s);
+
+    // Soft halo behind everything.
+    canvas.drawCircle(
+      const Offset(46, 46),
+      34,
+      Paint()
+        ..shader = RadialGradient(
+          colors: [brand.withValues(alpha: 0.16), brand.withValues(alpha: 0)],
+        ).createShader(Rect.fromCircle(center: const Offset(46, 46), radius: 34)),
+    );
+
+    final line = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.6
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round
+      ..color = brand.withValues(alpha: 0.85);
+    final fill = Paint()..color = soft;
+
+    switch (kind) {
+      case EmptyArt.box:
+        canvas.drawRRect(
+          RRect.fromLTRBR(24, 34, 68, 66, const Radius.circular(8)),
+          fill,
+        );
+        canvas.drawRRect(
+          RRect.fromLTRBR(24, 34, 68, 66, const Radius.circular(8)),
+          line,
+        );
+        canvas.drawLine(const Offset(24, 44), const Offset(68, 44), line);
+        canvas.drawLine(const Offset(40, 34), const Offset(40, 44), line);
+      case EmptyArt.star:
+        final path = Path();
+        for (var i = 0; i < 5; i++) {
+          final a = -1.5708 + i * 1.2566;
+          final outer = Offset(46 + 20 * _cos(a), 48 + 20 * _sin(a));
+          final b = a + 0.6283;
+          final inner = Offset(46 + 8 * _cos(b), 48 + 8 * _sin(b));
+          if (i == 0) {
+            path.moveTo(outer.dx, outer.dy);
+          } else {
+            path.lineTo(outer.dx, outer.dy);
+          }
+          path.lineTo(inner.dx, inner.dy);
+        }
+        path.close();
+        canvas.drawPath(path, fill);
+        canvas.drawPath(path, line);
+      case EmptyArt.search:
+        canvas.drawCircle(const Offset(42, 42), 16, fill);
+        canvas.drawCircle(const Offset(42, 42), 16, line);
+        canvas.drawLine(const Offset(54, 54), const Offset(66, 66), line);
+      case EmptyArt.chart:
+        canvas.drawLine(const Offset(24, 66), const Offset(70, 66), line);
+        for (var i = 0; i < 3; i++) {
+          final h = 12.0 + i * 10;
+          final rect = RRect.fromLTRBR(
+            30 + i * 14,
+            66 - h,
+            40 + i * 14,
+            66,
+            const Radius.circular(4),
+          );
+          canvas.drawRRect(rect, fill);
+          canvas.drawRRect(rect, line);
+        }
+      case EmptyArt.done:
+        canvas.drawCircle(const Offset(46, 46), 22, fill);
+        canvas.drawCircle(const Offset(46, 46), 22, line);
+        canvas.drawPath(
+          Path()
+            ..moveTo(36, 47)
+            ..lineTo(43, 54)
+            ..lineTo(58, 39),
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 3.4
+            ..strokeCap = StrokeCap.round
+            ..strokeJoin = StrokeJoin.round
+            ..color = accent,
+        );
+    }
+
+    canvas.restore();
+  }
+
+  double _sin(double v) => math.sin(v);
+  double _cos(double v) => math.cos(v);
+
+  @override
+  bool shouldRepaint(covariant _EmptyArtPainter old) => old.kind != kind;
 }

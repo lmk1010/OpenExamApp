@@ -102,6 +102,7 @@ class _MarkedPageState extends State<MarkedPage> {
               ? const EmptyState(
                   icon: Icons.star_border_rounded,
                   title: '还没有收藏',
+                  art: EmptyArt.star,
                   message: '做题时点右上角的星标，题目会收进这里。',
                 )
               : ListView(

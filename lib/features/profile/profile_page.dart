@@ -18,6 +18,7 @@ import 'package:openexam_app/features/marks/marked_page.dart';
 import 'package:openexam_app/features/notes/notes_page.dart';
 import 'package:openexam_app/features/onboarding/onboarding_page.dart';
 import 'package:openexam_app/features/reports/reports_page.dart';
+import 'package:openexam_app/features/reports/timeline_page.dart';
 import 'package:openexam_app/features/stats/stats_page.dart';
 import 'package:openexam_app/features/tips/tips_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -242,6 +243,15 @@ class _ProfilePageState extends State<ProfilePage> {
             );
             _reload();
           },
+        ),
+        const RowDivider(),
+        _SettingRow(
+          icon: AppIcon.timer,
+          title: '练习记录',
+          value: '按天',
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const TimelinePage()),
+          ),
         ),
         const RowDivider(),
         _SettingRow(

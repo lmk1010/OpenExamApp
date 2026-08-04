@@ -329,6 +329,7 @@ class _BankPageState extends State<BankPage> {
             EmptyState(
               icon: Icons.search_off,
               title: _query.isEmpty ? '还没有试卷' : '没有匹配的试卷',
+              art: EmptyArt.search,
               message: _query.isEmpty
                   ? '到「我的 → 导入题目」导入后，整套试卷会出现在这里。'
                   : '换个关键词试试，比如 2025、江苏、国考。',

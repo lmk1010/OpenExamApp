@@ -70,6 +70,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
               ? const EmptyState(
                   icon: Icons.report_gmailerrorred_outlined,
                   title: '还没有纠错记录',
+                  art: EmptyArt.box,
                   message: '做题时长按顶部的题号，可以标记答案有误、解析看不懂等问题。',
                 )
               : ListView(

@@ -310,6 +310,7 @@ class _WrongBookPageState extends State<WrongBookPage> {
             const EmptyState(
               icon: Icons.verified_outlined,
               title: '还没有错题',
+              art: EmptyArt.done,
               message: '去练习页刷一组，答错的题会自动进入这里，答对后自动移出。',
             )
           else ...[

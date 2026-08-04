@@ -247,6 +247,7 @@ class _SearchPageState extends State<SearchPage> {
                 ? const EmptyState(
                     icon: Icons.search_off,
                     title: '没有匹配的题目',
+                            art: EmptyArt.search,
                     message: '换个更短的关键词试试。',
                   )
                 : ListView.separated(
