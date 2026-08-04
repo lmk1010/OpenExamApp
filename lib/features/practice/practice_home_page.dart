@@ -42,6 +42,8 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
   int _provinceCount = 0;
   int _hardCount = 0;
   List<ReviewPlan> _plans = const [];
+  Map<String, ({int total, int correct})> _checkins = const {};
+  int _checkinStreak = 0;
 
   @override
   void initState() {
@@ -70,6 +72,8 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
         province == null ? 0 : await db.countByRegion(province);
     final hardCount = (await db.difficultyCounts())[3] ?? 0;
     final plans = await db.reviewPlans();
+    final checkins = await db.dailyCheckins(days: 14);
+    final streak = await db.dailyStreak();
     if (!mounted) return;
     setState(() {
       _total = total;
@@ -86,6 +90,8 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
       _provinceCount = provinceCount;
       _hardCount = hardCount;
       _plans = plans.where((p) => !p.finished).toList();
+      _checkins = checkins;
+      _checkinStreak = streak;
       _examDate = examRaw == null ? null : DateTime.tryParse(examRaw);
       _loading = false;
     });
@@ -263,6 +269,27 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
       return;
     }
     await _open(_daily, title: '每日一练');
+    await _checkDailyDone(DateTime.now(), _daily);
+  }
+
+  /// 做完当天的固定卷就记一次打卡。用记录而不是每次重算，是因为算一天的
+  /// 题目集合是一次全表排序，画打卡条时重算 7 次太亏。
+  Future<void> _checkDailyDone(DateTime day, List<Question> set) async {
+    if (set.isEmpty) return;
+    final progress =
+        await AppDatabase.instance.dailyProgress(set.map((q) => q.id).toList());
+    if (progress.answered < set.length) return;
+    await AppDatabase.instance
+        .markDailyDone(day, set.length, progress.correct);
+    await _reload();
+  }
+
+  /// 补做某天的固定卷。断了的那天补回来，比"从今天重新开始"更留得住人。
+  Future<void> _makeUp(DateTime day) async {
+    final set = await AppDatabase.instance.fetchDailySet(day: day, limit: 20);
+    if (set.isEmpty) return;
+    await _open(set, title: '补做 ${day.month}/${day.day}');
+    await _checkDailyDone(day, set);
   }
 
   /// Weakness-weighted set — the app decides the mix so the user doesn't have
@@ -498,6 +525,74 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
                 ),
               ),
             ),
+          // 每日一练打卡条：断了的那天能点回去补做。
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppTheme.gutter,
+              16,
+              AppTheme.gutter,
+              0,
+            ),
+            child: Row(
+              children: [
+                Text(
+                  _checkinStreak > 0 ? '连续打卡 $_checkinStreak 天' : '每日一练打卡',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: _checkinStreak > 0 ? t.brand : null,
+                      ),
+                ),
+                const Spacer(),
+                for (var i = 6; i >= 0; i--) ...[
+                  if (i < 6) const SizedBox(width: 6),
+                  Builder(builder: (context) {
+                    final day = DateTime.now().subtract(Duration(days: i));
+                    final key = AppDatabase.dayKey(day);
+                    final mark = _checkins[key];
+                    final isToday = i == 0;
+                    return GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: mark != null
+                          ? null
+                          : (isToday ? _startDaily : () => _makeUp(day)),
+                      child: Tooltip(
+                        message: mark == null
+                            ? (isToday ? '今天还没做' : '${day.month}/${day.day} 补做')
+                            : '${day.month}/${day.day} 正确 ${mark.correct}/${mark.total}',
+                        child: Container(
+                          width: 20,
+                          height: 20,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: mark != null
+                                ? t.brand
+                                : isToday
+                                    ? t.brand.withValues(alpha: 0.18)
+                                    : t.glass,
+                            borderRadius: BorderRadius.circular(7),
+                          ),
+                          child: mark != null
+                              ? Icon(
+                                  Icons.check,
+                                  size: 12,
+                                  color: GlassDecor.on(t.brand),
+                                )
+                              : Text(
+                                  '${day.day}',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                    height: 1,
+                                    color: isToday ? t.brand : t.muted,
+                                  ),
+                                ),
+                        ),
+                      ),
+                    );
+                  }),
+                ],
+              ],
+            ),
+          ),
           const SizedBox(height: 26),
           _ListHeader(
             title: '按题型练习',

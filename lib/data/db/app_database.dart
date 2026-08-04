@@ -150,6 +150,16 @@ class AppDatabase {
         unlocked_at TEXT NOT NULL
       )
     ''');
+    // 每日一练打卡：哪天做完了固定卷。直接记结果，避免为了画打卡条
+    // 反复重算每天的题目集合（那是一次全表排序）。
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS daily_checkin (
+        day TEXT PRIMARY KEY,
+        total INTEGER NOT NULL,
+        correct INTEGER NOT NULL,
+        created_at TEXT NOT NULL
+      )
+    ''');
     // 自己标的难度。没有服务器统计，也就没有「全站正确率」这种东西；
     // 但「这题对我难」本来就是个人的判断，标一次以后能筛出来重练。
     await db.execute('''
@@ -654,6 +664,7 @@ class AppDatabase {
       'reasons': await db.query('wrong_reasons'),
       'plans': await db.query('review_plans'),
       'difficulty': await db.query('difficulty'),
+      'checkins': await db.query('daily_checkin'),
       'reports': await db.query('exam_reports'),
       'feedback': await db.query('feedback'),
       'badges': await db.query('badges'),
@@ -686,6 +697,7 @@ class AppDatabase {
     await put('wrong_reasons', 'reasons');
     await put('review_plans', 'plans');
     await put('difficulty', 'difficulty');
+    await put('daily_checkin', 'checkins');
     await put('exam_reports', 'reports', wipe: true);
     await put('feedback', 'feedback', wipe: true);
     await put('badges', 'badges');
@@ -801,6 +813,61 @@ class AppDatabase {
       await clearResume();
       return null;
     }
+  }
+
+  // ------------------------------------------------------------ daily streak
+
+  static String dayKey(DateTime day) =>
+      '${day.year}-${day.month.toString().padLeft(2, '0')}-'
+      '${day.day.toString().padLeft(2, '0')}';
+
+  Future<void> markDailyDone(DateTime day, int total, int correct) async {
+    final db = await database;
+    await db.insert(
+      'daily_checkin',
+      {
+        'day': dayKey(day),
+        'total': total,
+        'correct': correct,
+        'created_at': DateTime.now().toIso8601String(),
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  /// day key -> (total, correct) for the last [days] days.
+  Future<Map<String, ({int total, int correct})>> dailyCheckins({
+    int days = 14,
+  }) async {
+    final db = await database;
+    final rows = await db.query(
+      'daily_checkin',
+      orderBy: 'day DESC',
+      limit: days,
+    );
+    return {
+      for (final row in rows)
+        '${row['day']}': (
+          total: int.tryParse('${row['total']}') ?? 0,
+          correct: int.tryParse('${row['correct']}') ?? 0,
+        ),
+    };
+  }
+
+  /// 连续打卡天数。今天还没做不算断，从昨天往前数。
+  Future<int> dailyStreak() async {
+    final marks = await dailyCheckins(days: 400);
+    if (marks.isEmpty) return 0;
+    final today = DateTime.now();
+    var streak = 0;
+    var cursor = marks.containsKey(dayKey(today))
+        ? today
+        : today.subtract(const Duration(days: 1));
+    while (marks.containsKey(dayKey(cursor))) {
+      streak++;
+      cursor = cursor.subtract(const Duration(days: 1));
+    }
+    return streak;
   }
 
   // -------------------------------------------------------------- difficulty
