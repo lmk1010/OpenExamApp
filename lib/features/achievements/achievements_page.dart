@@ -76,7 +76,8 @@ class _AchievementsPageState extends State<AchievementsPage> {
                       for (final badge in entry.value)
                         _BadgeTile(
                           badge: badge,
-                          onTap: () => showBadgeCard(context, badge),
+                          onTap: () =>
+                              showBadgeCard(context, badge, all: _badges),
                         ),
                     ],
                   ),
@@ -134,152 +135,239 @@ class _BadgeTile extends StatelessWidget {
   }
 }
 
-/// Opens the badge card with a spring-scale + fade transition. A bottom sheet
-/// made an earned medal feel like a settings row; this reads like a card being
-/// dealt onto the table.
-Future<void> showBadgeCard(BuildContext context, AchievementBadge badge) {
+/// Opens the badge on its own page. A dialog card kept the medal at thumbnail
+/// size; a badge you earned deserves the whole screen, and swiping sideways
+/// through the set is how people actually browse a collection.
+Future<void> showBadgeCard(
+  BuildContext context,
+  AchievementBadge badge, {
+  List<AchievementBadge>? all,
+}) {
   HapticFeedback.lightImpact();
-  return showGeneralDialog<void>(
-    context: context,
-    barrierDismissible: true,
-    barrierLabel: badge.name,
-    barrierColor: Colors.black.withValues(alpha: 0.5),
-    transitionDuration: const Duration(milliseconds: 420),
-    pageBuilder: (_, __, ___) => _BadgeCard(badge: badge),
-    transitionBuilder: (context, anim, _, child) {
-      final curved = CurvedAnimation(parent: anim, curve: Curves.easeOutBack);
-      return Opacity(
-        opacity: anim.value.clamp(0.0, 1.0),
-        child: Transform.scale(
-          scale: 0.82 + 0.18 * curved.value,
-          child: Transform.rotate(
-            angle: (1 - curved.value) * 0.06,
-            child: child,
-          ),
-        ),
-      );
-    },
+  final list = (all == null || all.isEmpty) ? [badge] : all;
+  final index = list.indexWhere((b) => b.id == badge.id);
+  return Navigator.of(context).push<void>(
+    PageRouteBuilder(
+      opaque: false,
+      barrierColor: Colors.black.withValues(alpha: 0.35),
+      transitionDuration: const Duration(milliseconds: 380),
+      reverseTransitionDuration: const Duration(milliseconds: 240),
+      pageBuilder: (_, __, ___) =>
+          BadgeDetailPage(badges: list, initial: index < 0 ? 0 : index),
+      transitionsBuilder: (context, anim, _, child) {
+        final curved = CurvedAnimation(parent: anim, curve: Curves.easeOutCubic);
+        return FadeTransition(
+          opacity: curved,
+          child: Transform.scale(scale: 0.94 + 0.06 * curved.value, child: child),
+        );
+      },
+    ),
   );
 }
 
-class _BadgeCard extends StatefulWidget {
-  const _BadgeCard({required this.badge});
+/// 徽章详情 — one badge per screen, swipe for the next.
+class BadgeDetailPage extends StatefulWidget {
+  const BadgeDetailPage({super.key, required this.badges, this.initial = 0});
+
+  final List<AchievementBadge> badges;
+  final int initial;
+
+  @override
+  State<BadgeDetailPage> createState() => _BadgeDetailPageState();
+}
+
+class _BadgeDetailPageState extends State<BadgeDetailPage> {
+  late final PageController _pages = PageController(initialPage: widget.initial);
+  late int _index = widget.initial;
+
+  @override
+  void dispose() {
+    _pages.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final badge = widget.badges[_index];
+    final tint = badge.unlocked ? badge.tier.color : t.muted;
+
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, size: 21),
+          onPressed: () => Navigator.of(context).maybePop(),
+        ),
+        titleSpacing: 0,
+      ),
+      body: Stack(
+        children: [
+          // The whole screen takes on the badge's colour and re-tints as you
+          // swipe — the medal is the subject, not a thumbnail on a card.
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 400),
+            decoration: BoxDecoration(
+              gradient: RadialGradient(
+                center: const Alignment(0, -0.45),
+                radius: 1.1,
+                colors: [
+                  tint.withValues(alpha: t.name == 'dark' ? 0.30 : 0.22),
+                  tint.withValues(alpha: 0),
+                ],
+              ),
+            ),
+          ),
+          PageView.builder(
+            controller: _pages,
+            itemCount: widget.badges.length,
+            onPageChanged: (i) {
+              HapticFeedback.selectionClick();
+              setState(() => _index = i);
+            },
+            itemBuilder: (context, i) => _BadgeDetail(badge: widget.badges[i]),
+          ),
+          if (widget.badges.length > 1)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 26,
+              child: _Dots(count: widget.badges.length, index: _index, color: tint),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Dots extends StatelessWidget {
+  const _Dots({required this.count, required this.index, required this.color});
+
+  final int count;
+  final int index;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    // Eighteen dots would run off the screen: show a window around the current.
+    const window = 7;
+    var start = index - window ~/ 2;
+    if (start > count - window) start = count - window;
+    if (start < 0) start = 0;
+    final end = (start + window).clamp(0, count);
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        for (var i = start; i < end; i++)
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 220),
+            margin: const EdgeInsets.symmetric(horizontal: 4),
+            width: i == index ? 18 : 6,
+            height: 6,
+            decoration: BoxDecoration(
+              color: i == index ? color : t.muted.withValues(alpha: 0.35),
+              borderRadius: BorderRadius.circular(3),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _BadgeDetail extends StatelessWidget {
+  const _BadgeDetail({required this.badge});
 
   final AchievementBadge badge;
 
   @override
-  State<_BadgeCard> createState() => _BadgeCardState();
-}
-
-class _BadgeCardState extends State<_BadgeCard> {
-  @override
   Widget build(BuildContext context) {
     final t = context.tokens;
     final text = Theme.of(context).textTheme;
-    final badge = widget.badge;
-    final color = badge.tier.color;
+    final color = badge.unlocked ? badge.tier.color : t.muted;
+    final width = MediaQuery.sizeOf(context).width;
+    final medal = (width * 0.54).clamp(150.0, 210.0);
 
-    return Center(
+    return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 34),
-        child: Material(
-          color: Colors.transparent,
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(24, 26, 24, 20),
-            decoration: BoxDecoration(
-              color: t.gradient.last,
-              borderRadius: BorderRadius.circular(26),
-              border: Border.all(
-                color: badge.unlocked
-                    ? color.withValues(alpha: 0.4)
-                    : t.glassBorder,
+        padding: const EdgeInsets.symmetric(horizontal: 28),
+        child: Column(
+          children: [
+            const Spacer(flex: 3),
+            MedalStage(key: ValueKey(badge.id), badge: badge, size: medal),
+            const Spacer(flex: 2),
+            Text(
+              badge.name,
+              textAlign: TextAlign.center,
+              style: text.displaySmall?.copyWith(
+                fontSize: 30,
+                fontWeight: FontWeight.w800,
               ),
-              boxShadow: t.shadow,
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                MedalStage(badge: badge, size: 104),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(badge.name, style: text.displaySmall?.copyWith(fontSize: 23)),
-                    const SizedBox(width: 9),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: color.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        badge.tier.label,
-                        style: TextStyle(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w700,
-                          height: 1,
-                          color: color,
-                        ),
-                      ),
-                    ),
-                  ],
+            const SizedBox(height: 12),
+            Text(
+              badge.desc,
+              textAlign: TextAlign.center,
+              style: text.bodyMedium?.copyWith(fontSize: 15, height: 1.6),
+            ),
+            const SizedBox(height: 18),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(9),
+              ),
+              child: Text(
+                '${badge.group} · ${badge.tier.label}',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  height: 1,
+                  color: color,
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  badge.desc,
-                  textAlign: TextAlign.center,
-                  style: text.bodyMedium?.copyWith(fontSize: 14, height: 1.6),
-                ),
-                const SizedBox(height: 20),
-                if (badge.unlocked)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.check_circle, size: 16, color: t.success),
-                      const SizedBox(width: 7),
-                      Text(
-                        badge.unlockedAt == null
-                            ? '已达成'
-                            : '${badge.unlockedAt!.month} 月 ${badge.unlockedAt!.day} 日解锁',
-                        style: text.bodySmall?.copyWith(color: t.success),
-                      ),
-                    ],
-                  )
-                else ...[
-                  TweenAnimationBuilder<double>(
-                    tween: Tween(begin: 0, end: badge.progress),
-                    duration: const Duration(milliseconds: 800),
-                    curve: Curves.easeOutCubic,
-                    builder: (_, v, __) => ClipRRect(
-                      borderRadius: BorderRadius.circular(99),
-                      child: LinearProgressIndicator(
-                        value: v,
-                        minHeight: 6,
-                        color: color,
-                        backgroundColor: t.name == 'dark'
-                            ? Colors.white.withValues(alpha: 0.10)
-                            : t.text.withValues(alpha: 0.08),
-                      ),
+              ),
+            ),
+            const Spacer(flex: 3),
+            if (badge.unlocked)
+              Text(
+                badge.unlockedAt == null
+                    ? '已达成'
+                    : '${badge.unlockedAt!.year} 年 '
+                        '${badge.unlockedAt!.month} 月 '
+                        '${badge.unlockedAt!.day} 日获得',
+                style: text.bodySmall,
+              )
+            else ...[
+              SizedBox(
+                width: 220,
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0, end: badge.progress),
+                  duration: const Duration(milliseconds: 900),
+                  curve: Curves.easeOutCubic,
+                  builder: (_, v, __) => ClipRRect(
+                    borderRadius: BorderRadius.circular(99),
+                    child: LinearProgressIndicator(
+                      value: v,
+                      minHeight: 6,
+                      color: color,
+                      backgroundColor: t.name == 'dark'
+                          ? Colors.white.withValues(alpha: 0.10)
+                          : t.text.withValues(alpha: 0.08),
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  Text(
-                    '${badge.value} / ${badge.target}'
-                    '${badge.target - badge.value > 0 ? ' · 还差 ${badge.target - badge.value}' : ''}',
-                    style: text.bodySmall,
-                  ),
-                ],
-                const SizedBox(height: 18),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('关闭'),
-                  ),
                 ),
-              ],
-            ),
-          ),
+              ),
+              const SizedBox(height: 11),
+              Text(
+                '${badge.value} / ${badge.target}'
+                '${badge.target - badge.value > 0 ? ' · 还差 ${badge.target - badge.value}' : ''}',
+                style: text.bodySmall,
+              ),
+            ],
+            const SizedBox(height: 52),
+          ],
         ),
       ),
     );

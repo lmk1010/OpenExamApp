@@ -128,15 +128,19 @@ class _BadgeMedalState extends State<BadgeMedal>
         // The glyph is struck into the face: a dark impression under a
         // metal-lit top layer.
         Transform.translate(
-          offset: Offset(0, size * 0.015),
+          offset: _detail
+              ? Offset(-size * 0.11, -size * 0.03)
+              : Offset(0, size * 0.015),
           child: StrokeIcon(
             badge.icon,
-            size: size * 0.3,
+            size: size * (_detail ? 0.26 : 0.3),
             color: Colors.black.withValues(alpha: badge.unlocked ? 0.55 : 0.18),
             weight: 2.4,
           ),
         ),
-        ShaderMask(
+        Transform.translate(
+          offset: _detail ? Offset(-size * 0.11, -size * 0.045) : Offset.zero,
+          child: ShaderMask(
           blendMode: BlendMode.srcIn,
           shaderCallback: (rect) => LinearGradient(
             begin: Alignment.topLeft,
@@ -147,9 +151,10 @@ class _BadgeMedalState extends State<BadgeMedal>
           ).createShader(rect),
           child: StrokeIcon(
             badge.icon,
-            size: size * 0.3,
+            size: size * (_detail ? 0.26 : 0.3),
             color: Colors.white,
             weight: 2.2,
+          ),
           ),
         ),
       ],
@@ -184,6 +189,16 @@ class _BadgeMedalState extends State<BadgeMedal>
     );
   }
 
+  bool get _detail => widget.size >= 120;
+
+  /// 20000 reads better than 20000; anything past a thousand gets shortened
+  /// the way the app does elsewhere.
+  String get _label {
+    final n = widget.badge.target;
+    if (n >= 10000) return '${(n / 10000).toStringAsFixed(n % 10000 == 0 ? 0 : 1)}万';
+    return '$n';
+  }
+
   _MedalPainter _painter(AppTokens t, double phase) => _MedalPainter(
         shape: shapeForGroup(widget.badge.group),
         metal: _metal(widget.badge.tier),
@@ -195,6 +210,9 @@ class _BadgeMedalState extends State<BadgeMedal>
         track: t.name == 'dark'
             ? Colors.white.withValues(alpha: 0.12)
             : t.text.withValues(alpha: 0.10),
+        detail: _detail,
+        label: _detail ? _label : '',
+        sub: _detail ? widget.badge.group : '',
       );
 }
 
@@ -208,6 +226,9 @@ class _MedalPainter extends CustomPainter {
     required this.phase,
     required this.dark,
     required this.track,
+    required this.detail,
+    required this.label,
+    required this.sub,
   });
 
   final MedalShape shape;
@@ -220,6 +241,12 @@ class _MedalPainter extends CustomPainter {
   final double phase;
   final bool dark;
   final Color track;
+
+  /// Big renders get the full struck-medal treatment: engraved guilloche,
+  /// rim studs, the target number and a name plate. At 72dp it is mush.
+  final bool detail;
+  final String label;
+  final String sub;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -253,6 +280,8 @@ class _MedalPainter extends CustomPainter {
                     ],
         ).createShader(Rect.fromCircle(center: c, radius: r)),
     );
+
+    if (detail) _engrave(canvas, c, r, body);
 
     if (unlocked) {
       // Bevel: a dark inner line, then the metal rim, then the highlight sweep.
@@ -319,6 +348,10 @@ class _MedalPainter extends CustomPainter {
           ),
       );
       canvas.restore();
+      if (detail) {
+        _studs(canvas, c, r, rim);
+        _numerals(canvas, c, r);
+      }
     } else {
       canvas.drawPath(
         body,
@@ -356,6 +389,98 @@ class _MedalPainter extends CustomPainter {
         );
       }
     }
+  }
+
+  /// Guilloche — the fine engine-turned lines struck into a real medal's face.
+  /// Cheap to draw, and it is what stops the face reading as flat paint.
+  void _engrave(Canvas canvas, Offset c, double r, Path body) {
+    canvas.save();
+    canvas.clipPath(body);
+    final ink = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = r * 0.012
+      ..color = unlocked
+          ? Colors.white.withValues(alpha: 0.07)
+          : track.withValues(alpha: 0.5);
+    // Concentric rings, off-centre so the light side reads thicker.
+    for (var i = 1; i <= 7; i++) {
+      canvas.drawCircle(c + Offset(-r * 0.02, -r * 0.02), r * i / 8.5, ink);
+    }
+    // Radial hairlines.
+    for (var i = 0; i < 36; i++) {
+      final a = i * math.pi / 18;
+      canvas.drawLine(
+        c + Offset(math.cos(a), math.sin(a)) * r * 0.42,
+        c + Offset(math.cos(a), math.sin(a)) * r * 0.86,
+        ink,
+      );
+    }
+    canvas.restore();
+  }
+
+  /// Small raised beads set into the rim, evenly spaced.
+  void _studs(Canvas canvas, Offset c, double r, double rim) {
+    final stud = Paint()..color = metal[0].withValues(alpha: 0.75);
+    final shade = Paint()..color = Colors.black.withValues(alpha: 0.35);
+    for (var i = 0; i < 16; i++) {
+      final a = i * math.pi / 8 + math.pi / 16;
+      final o = c + Offset(math.cos(a), math.sin(a)) * (r - rim * 0.05);
+      canvas.drawCircle(o + Offset(0, rim * 0.10), rim * 0.17, shade);
+      canvas.drawCircle(o, rim * 0.16, stud);
+    }
+  }
+
+  /// The target number, struck into the lower right of the face, with the
+  /// group name on a dark plate under it — the reference badges' anchor.
+  void _numerals(Canvas canvas, Offset c, double r) {
+    if (label.isEmpty) return;
+    final anchor = c + Offset(r * 0.30, r * 0.14);
+
+    void draw(String value, double size, Color color, Offset at, {double weight = 800}) {
+      final tp = TextPainter(
+        text: TextSpan(
+          text: value,
+          style: TextStyle(
+            fontSize: size,
+            height: 1,
+            letterSpacing: -size * 0.02,
+            fontWeight: FontWeight.values[(weight ~/ 100) - 1],
+            color: color,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      tp.paint(canvas, at - Offset(tp.width / 2, tp.height / 2));
+    }
+
+    final fs = r * 0.34;
+    draw(label, fs, Colors.black.withValues(alpha: 0.55), anchor + Offset(0, fs * 0.06));
+    draw(label, fs, metal[0], anchor);
+
+    if (sub.isEmpty) return;
+    final tp = TextPainter(
+      text: TextSpan(
+        text: sub,
+        style: TextStyle(
+          fontSize: r * 0.16,
+          height: 1,
+          letterSpacing: r * 0.02,
+          fontWeight: FontWeight.w700,
+          color: metal[0].withValues(alpha: 0.92),
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    final plate = Rect.fromCenter(
+      center: anchor + Offset(0, fs * 0.82),
+      width: tp.width + r * 0.20,
+      height: tp.height + r * 0.13,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(plate, Radius.circular(r * 0.05)),
+      Paint()..color = const Color(0xFF15171B).withValues(alpha: 0.92),
+    );
+    tp.paint(canvas, plate.center - Offset(tp.width / 2, tp.height / 2));
   }
 
   /// The coloured shape sitting behind the medal — what gives the reference
@@ -441,5 +566,7 @@ class _MedalPainter extends CustomPainter {
       old.phase != phase ||
       old.progress != progress ||
       old.unlocked != unlocked ||
+      old.detail != detail ||
+      old.label != label ||
       old.shape != shape;
 }
