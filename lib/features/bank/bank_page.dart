@@ -24,6 +24,12 @@ class _BankPageState extends State<BankPage> {
   Map<String, int> _progress = const {};
   String _query = '';
 
+  /// 'all' | 'national' | 'provincial'
+  String _kind = 'all';
+
+  /// 'all' | 'todo' | 'doing' | 'done'
+  String _status = 'all';
+
   @override
   void initState() {
     super.initState();
@@ -69,9 +75,24 @@ class _BankPageState extends State<BankPage> {
     final t = context.tokens;
     final text = Theme.of(context).textTheme;
 
-    final matched = _query.isEmpty
-        ? _papers
-        : _papers.where((p) => p.title.contains(_query) || '${p.year}'.contains(_query)).toList();
+    final matched = _papers.where((p) {
+      if (_query.isNotEmpty &&
+          !p.title.contains(_query) &&
+          !'${p.year}'.contains(_query)) {
+        return false;
+      }
+      if (_kind != 'all' && p.kind != _kind) return false;
+      final done = _progress[p.id] ?? 0;
+      switch (_status) {
+        case 'todo':
+          return done == 0;
+        case 'doing':
+          return done > 0 && done < p.count;
+        case 'done':
+          return p.count > 0 && done >= p.count;
+      }
+      return true;
+    }).toList();
 
     // Group by exam year, newest first — how 考生 actually look for a paper.
     final years = <int, List<_Paper>>{};
@@ -96,7 +117,12 @@ class _BankPageState extends State<BankPage> {
                 const SizedBox(width: 10),
                 Padding(
                   padding: const EdgeInsets.only(bottom: 3),
-                  child: Text('${_papers.length} 套真题卷', style: text.bodySmall),
+                  child: Text(
+                    matched.length == _papers.length
+                        ? '${_papers.length} 套真题卷'
+                        : '${matched.length} / ${_papers.length} 套',
+                    style: text.bodySmall,
+                  ),
                 ),
               ],
             ),
@@ -137,7 +163,65 @@ class _BankPageState extends State<BankPage> {
               ),
             ),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 34,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
+              children: [
+                _Chip(
+                  label: '全部卷',
+                  selected: _kind == 'all' && _status == 'all',
+                  onTap: () => setState(() {
+                    _kind = 'all';
+                    _status = 'all';
+                  }),
+                ),
+                const SizedBox(width: 8),
+                _Chip(
+                  label: '国考',
+                  selected: _kind == 'national',
+                  onTap: () => setState(
+                    () => _kind = _kind == 'national' ? 'all' : 'national',
+                  ),
+                ),
+                const SizedBox(width: 8),
+                _Chip(
+                  label: '省考',
+                  selected: _kind == 'provincial',
+                  onTap: () => setState(
+                    () => _kind = _kind == 'provincial' ? 'all' : 'provincial',
+                  ),
+                ),
+                const SizedBox(width: 8),
+                _Chip(
+                  label: '未开始',
+                  selected: _status == 'todo',
+                  onTap: () => setState(
+                    () => _status = _status == 'todo' ? 'all' : 'todo',
+                  ),
+                ),
+                const SizedBox(width: 8),
+                _Chip(
+                  label: '进行中',
+                  selected: _status == 'doing',
+                  onTap: () => setState(
+                    () => _status = _status == 'doing' ? 'all' : 'doing',
+                  ),
+                ),
+                const SizedBox(width: 8),
+                _Chip(
+                  label: '已做完',
+                  selected: _status == 'done',
+                  onTap: () => setState(
+                    () => _status = _status == 'done' ? 'all' : 'done',
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
           if (matched.isEmpty)
             EmptyState(
               icon: Icons.search_off,
@@ -205,9 +289,61 @@ class _Paper {
     return match?.group(1)?.trim() ?? '';
   }
 
+  /// 国考 vs 省考 — the split every 考生 filters by first.
+  String get kind {
+    if (title.contains('国家公务员') || title.contains('国考')) return 'national';
+    if (title.contains('省考') ||
+        title.contains('省公务员') ||
+        title.contains('选调') ||
+        title.contains('公务员录用考试')) {
+      return 'provincial';
+    }
+    return 'other';
+  }
+
   /// Title without the leading year, which the group header already shows.
   String get shortTitle =>
       title.replaceFirst(RegExp(r'^\d{4}年\s*'), '').trim();
+}
+
+/// Filter chip for the 题库 toolbar.
+class _Chip extends StatelessWidget {
+  const _Chip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 140),
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: selected ? t.brand : t.glass,
+          borderRadius: BorderRadius.circular(17),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            height: 1,
+            color: selected ? Colors.white : t.textSoft,
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _PaperRow extends StatelessWidget {
