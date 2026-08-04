@@ -200,6 +200,7 @@ class AppDatabase {
     String? category,
     int limit = 20,
     bool shuffle = true,
+    QuestionScope scope = QuestionScope.all,
   }) async {
     final db = await database;
     final where = <String>[];
@@ -208,12 +209,62 @@ class AppDatabase {
       where.add('category = ?');
       args.add(category);
     }
+    switch (scope) {
+      case QuestionScope.unseen:
+        where.add('id NOT IN (SELECT question_id FROM practice_logs)');
+      case QuestionScope.wrong:
+        where.add('''id IN (
+          SELECT l.question_id FROM practice_logs l
+          JOIN (SELECT question_id, MAX(id) AS last_id FROM practice_logs
+                GROUP BY question_id) last ON last.last_id = l.id
+          WHERE l.is_correct = 0
+        )''');
+      case QuestionScope.all:
+        break;
+    }
     final sql = StringBuffer('SELECT * FROM questions');
     if (where.isNotEmpty) sql.write(' WHERE ${where.join(' AND ')}');
     sql.write(shuffle ? ' ORDER BY RANDOM()' : ' ORDER BY year DESC, order_num');
     sql.write(' LIMIT ?');
     args.add(limit);
     return (await db.rawQuery(sql.toString(), args)).map(_fromRow).toList();
+  }
+
+  /// How many questions each scope currently holds, for the picker labels.
+  Future<Map<QuestionScope, int>> scopeCounts({String? category}) async {
+    final db = await database;
+    final cat = category == null || category.isEmpty || category == 'all'
+        ? null
+        : category;
+    final catWhere = cat == null ? '' : ' AND category = ?';
+    final args = cat == null ? <Object?>[] : <Object?>[cat];
+
+    final all = Sqflite.firstIntValue(await db.rawQuery(
+          'SELECT COUNT(*) FROM questions WHERE 1=1$catWhere',
+          args,
+        )) ??
+        0;
+    final unseen = Sqflite.firstIntValue(await db.rawQuery(
+          'SELECT COUNT(*) FROM questions WHERE id NOT IN '
+          '(SELECT question_id FROM practice_logs)$catWhere',
+          args,
+        )) ??
+        0;
+    final wrong = Sqflite.firstIntValue(await db.rawQuery(
+          '''SELECT COUNT(*) FROM questions WHERE id IN (
+            SELECT l.question_id FROM practice_logs l
+            JOIN (SELECT question_id, MAX(id) AS last_id FROM practice_logs
+                  GROUP BY question_id) last ON last.last_id = l.id
+            WHERE l.is_correct = 0
+          )$catWhere''',
+          args,
+        )) ??
+        0;
+    return {
+      QuestionScope.all: all,
+      QuestionScope.unseen: unseen,
+      QuestionScope.wrong: wrong,
+    };
   }
 
   Future<List<Map<String, Object?>>> listPapers({int limit = 200}) async {

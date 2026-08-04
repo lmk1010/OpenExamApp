@@ -1,5 +1,8 @@
 import 'dart:convert';
 
+/// Which slice of the bank a practice set is drawn from.
+enum QuestionScope { all, unseen, wrong }
+
 class QuestionOption {
   const QuestionOption({required this.key, required this.text, this.html = ''});
 

@@ -28,6 +28,7 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
   List<CategoryStat> _stats = const [];
   List<int> _week = const [0, 0, 0, 0, 0, 0, 0];
   int _count = 20;
+  QuestionScope _scope = QuestionScope.all;
   String _name = '备考中';
   DateTime? _examDate;
   int _goal = 30;
@@ -92,13 +93,58 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
   }
 
   Future<void> _start({String? category, int? limit}) async {
-    await _open(
-      await AppDatabase.instance.fetchPractice(
-        category: category,
-        limit: limit ?? _count,
-        shuffle: true,
+    final questions = await AppDatabase.instance.fetchPractice(
+      category: category,
+      limit: limit ?? _count,
+      shuffle: true,
+      scope: _scope,
+    );
+    if (questions.isEmpty && _scope != QuestionScope.all) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _scope == QuestionScope.unseen ? '这个范围里没有没做过的题了' : '这里还没有错题',
+          ),
+        ),
+      );
+      return;
+    }
+    await _open(questions);
+  }
+
+  /// 背题：不作答，直接翻答案和解析，用来快速过一遍。
+  Future<void> _startRecite({String? category}) async {
+    final questions = await AppDatabase.instance.fetchPractice(
+      category: category,
+      limit: _count,
+      shuffle: false,
+      scope: _scope,
+    );
+    if (!mounted || questions.isEmpty) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => PracticeSessionPage(
+          questions: questions,
+          reviewAnswers: {
+            for (final q in questions) q.id: q.answer.toUpperCase(),
+          },
+          title: '背题',
+        ),
       ),
     );
+    _reload();
+  }
+
+  Future<void> _pickScope() async {
+    final counts = await AppDatabase.instance.scopeCounts();
+    if (!mounted) return;
+    final picked = await showModalBottomSheet<QuestionScope>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _ScopeSheet(current: _scope, counts: counts),
+    );
+    if (picked != null && mounted) setState(() => _scope = picked);
   }
 
   /// Mock exam: fixed set, countdown, answers hidden until 交卷.
@@ -287,14 +333,16 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
           const SizedBox(height: 26),
           _ListHeader(
             title: '按题型练习',
-            trailing: '$_count 题',
+            trailing: '$_count 题 · ${_scopeLabel(_scope)}',
             onTapTrailing: _pickCount,
+            onTapSecondary: _pickScope,
           ),
           for (final c in kGongkaoCategories)
             _TypeRow(
               meta: c,
               stat: byKey[c.key],
               onTap: () => _start(category: c.key),
+              onLong: () => _startRecite(category: c.key),
             ),
           const SizedBox(height: 26),
           _ListHeader(
@@ -776,11 +824,19 @@ class _FeatureCard extends StatelessWidget {
 }
 
 class _ListHeader extends StatelessWidget {
-  const _ListHeader({required this.title, this.trailing, this.onTapTrailing});
+  const _ListHeader({
+    required this.title,
+    this.trailing,
+    this.onTapTrailing,
+    this.onTapSecondary,
+  });
 
   final String title;
   final String? trailing;
   final VoidCallback? onTapTrailing;
+
+  /// Long-press opens the scope picker; the row is already crowded.
+  final VoidCallback? onTapSecondary;
 
   @override
   Widget build(BuildContext context) {
@@ -800,7 +856,8 @@ class _ListHeader extends StatelessWidget {
           if (trailing != null)
             GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: onTapTrailing,
+              onTap: onTapSecondary ?? onTapTrailing,
+              onLongPress: onTapTrailing,
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Row(
@@ -826,11 +883,19 @@ class _ListHeader extends StatelessWidget {
 
 /// One line per 题型: glyph, name, inline meter, percentage. Nothing wraps.
 class _TypeRow extends StatelessWidget {
-  const _TypeRow({required this.meta, required this.stat, required this.onTap});
+  const _TypeRow({
+    required this.meta,
+    required this.stat,
+    required this.onTap,
+    required this.onLong,
+  });
 
   final CategoryMeta meta;
   final CategoryStat? stat;
   final VoidCallback onTap;
+
+  /// Long-press starts 背题 for this module.
+  final VoidCallback onLong;
 
   @override
   Widget build(BuildContext context) {
@@ -891,6 +956,85 @@ class _TypeRow extends StatelessWidget {
                 ),
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+String _scopeLabel(QuestionScope scope) => switch (scope) {
+      QuestionScope.all => '全部题',
+      QuestionScope.unseen => '没做过',
+      QuestionScope.wrong => '做错过',
+    };
+
+/// Which slice of the bank to draw from.
+class _ScopeSheet extends StatelessWidget {
+  const _ScopeSheet({required this.current, required this.counts});
+
+  final QuestionScope current;
+  final Map<QuestionScope, int> counts;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+
+    const items = [
+      (scope: QuestionScope.all, label: '全部题', desc: '从整个题库里随机抽'),
+      (scope: QuestionScope.unseen, label: '没做过的', desc: '跳过所有做过的题'),
+      (scope: QuestionScope.wrong, label: '做错过的', desc: '只抽上次答错的题'),
+    ];
+
+    return Container(
+      decoration: BoxDecoration(
+        color: t.gradient.last,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        border: Border(top: BorderSide(color: t.glassBorder)),
+      ),
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 12),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('抽题范围', style: text.titleMedium),
+            const SizedBox(height: 6),
+            Text('长按题量可以改每组题数', style: text.bodySmall),
+            const SizedBox(height: 6),
+            for (final item in items)
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => Navigator.of(context).pop(item.scope),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              item.label,
+                              style: text.titleSmall?.copyWith(
+                                color: item.scope == current ? t.brand : t.text,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(item.desc, style: text.bodySmall),
+                          ],
+                        ),
+                      ),
+                      Text('${counts[item.scope] ?? 0} 题', style: text.bodySmall),
+                      const SizedBox(width: 10),
+                      if (item.scope == current)
+                        Icon(Icons.check, size: 19, color: t.brand),
+                    ],
+                  ),
+                ),
+              ),
           ],
         ),
       ),
