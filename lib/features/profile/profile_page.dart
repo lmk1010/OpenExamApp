@@ -3,6 +3,7 @@ import 'package:openexam_app/core/constants/app_constants.dart';
 import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
+import 'package:openexam_app/core/ui/responsive.dart';
 import 'package:openexam_app/core/theme/theme_controller.dart';
 import 'package:openexam_app/core/ui/glass.dart';
 import 'package:openexam_app/core/ui/stroke_icons.dart';
@@ -165,7 +166,8 @@ class _ProfilePageState extends State<ProfilePage> {
     final days = _daysLeft;
     final weekTotal = _week.fold<int>(0, (a, b) => a + b);
 
-    return ListView(
+    return ReadableWidth(
+      child: ListView(
       padding: const EdgeInsets.only(bottom: 30),
       children: [
         // This is a page, so it opens with a page title like every other tab.
@@ -461,6 +463,7 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ),
       ],
+    ),
     );
   }
 }

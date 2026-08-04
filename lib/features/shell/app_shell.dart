@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
+import 'package:openexam_app/core/ui/ambient.dart';
+import 'package:openexam_app/core/ui/responsive.dart';
 import 'package:openexam_app/core/ui/stroke_icons.dart';
 import 'package:openexam_app/features/bank/bank_page.dart';
 import 'package:openexam_app/features/practice/practice_home_page.dart';
@@ -48,19 +50,37 @@ class _AppShellState extends State<AppShell> {
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
-    return Scaffold(
-      body: SafeArea(
-        bottom: false,
-        child: IndexedStack(
-          index: _index,
-          children: const [
-            PracticeHomePage(),
-            BankPage(),
-            WrongBookPage(),
-            ProfilePage(),
-          ],
+    final pages = const [
+      PracticeHomePage(),
+      BankPage(),
+      WrongBookPage(),
+      ProfilePage(),
+    ];
+    final body = IndexedStack(index: _index, children: pages);
+
+    // 平板和横屏：导航挪到左侧竖着放。底部导航在宽屏上要么被拉成一条几百像素
+    // 的空条，要么手够不着。
+    if (context.isWide) {
+      return Scaffold(
+        body: SafeArea(
+          bottom: false,
+          child: Row(
+            children: [
+              _NavRail(
+                tabs: _tabs,
+                index: _index,
+                extended: context.isExpanded,
+                onTap: (i) => setState(() => _index = i),
+              ),
+              Expanded(child: body),
+            ],
+          ),
         ),
-      ),
+      );
+    }
+
+    return Scaffold(
+      body: SafeArea(bottom: false, child: body),
       bottomNavigationBar: DecoratedBox(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -91,6 +111,101 @@ class _AppShellState extends State<AppShell> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// 宽屏下的侧边导航。窄的只有图标，够宽了带上文字。
+class _NavRail extends StatelessWidget {
+  const _NavRail({
+    required this.tabs,
+    required this.index,
+    required this.extended,
+    required this.onTap,
+  });
+
+  final List<({AppIcon icon, String label})> tabs;
+  final int index;
+  final bool extended;
+  final ValueChanged<int> onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    return Container(
+      width: extended ? 168 : 76,
+      padding: const EdgeInsets.symmetric(vertical: 14),
+      decoration: BoxDecoration(
+        border: Border(
+          right: BorderSide(color: t.line.withValues(alpha: 0.6)),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: extended ? 18 : 0),
+            child: Row(
+              mainAxisAlignment:
+                  extended ? MainAxisAlignment.start : MainAxisAlignment.center,
+              children: [
+                const BrandLogo(size: 26),
+                if (extended) ...[
+                  const SizedBox(width: 10),
+                  Text(
+                    'OpenExam',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 22),
+          for (var i = 0; i < tabs.length; i++)
+            Padding(
+              padding: EdgeInsets.fromLTRB(extended ? 10 : 12, 0, extended ? 10 : 12, 6),
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => onTap(i),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  height: 46,
+                  padding: EdgeInsets.symmetric(horizontal: extended ? 14 : 0),
+                  decoration: BoxDecoration(
+                    color: index == i
+                        ? t.brand.withValues(alpha: 0.14)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: extended
+                        ? MainAxisAlignment.start
+                        : MainAxisAlignment.center,
+                    children: [
+                      StrokeIcon(
+                        tabs[i].icon,
+                        size: 21,
+                        color: index == i ? t.brand : t.muted,
+                        weight: index == i ? 2.2 : 1.8,
+                      ),
+                      if (extended) ...[
+                        const SizedBox(width: 12),
+                        Text(
+                          tabs[i].label,
+                          style: TextStyle(
+                            fontSize: 14.5,
+                            fontWeight: FontWeight.w600,
+                            color: index == i ? t.brand : t.textSoft,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

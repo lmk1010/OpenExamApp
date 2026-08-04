@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
+import 'package:openexam_app/core/ui/responsive.dart';
 import 'package:openexam_app/core/constants/app_constants.dart';
 import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/ui/filter_bar.dart';
@@ -192,7 +193,8 @@ class _BankPageState extends State<BankPage> {
       color: t.brand,
       backgroundColor: t.surface,
       onRefresh: _reload,
-      child: ListView(
+      child: ReadableWidth(
+        child: ListView(
         padding: const EdgeInsets.only(bottom: 30),
         children: [
           Padding(
@@ -383,6 +385,7 @@ class _BankPageState extends State<BankPage> {
               }),
             ],
         ],
+      ),
       ),
     );
   }

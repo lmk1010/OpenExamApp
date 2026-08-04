@@ -3,6 +3,7 @@ import 'package:openexam_app/core/constants/app_constants.dart';
 import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
+import 'package:openexam_app/core/ui/responsive.dart';
 import 'package:openexam_app/core/theme/theme_controller.dart';
 import 'package:openexam_app/core/ui/ambient.dart';
 import 'package:openexam_app/core/ui/glass.dart';
@@ -393,7 +394,8 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
       color: t.brand,
       backgroundColor: t.surface,
       onRefresh: _reload,
-      child: ListView(
+      child: ReadableWidth(
+        child: ListView(
         padding: const EdgeInsets.only(bottom: 28),
         children: [
           _TopBar(total: _total),
@@ -636,6 +638,7 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
             child: WeekBars(counts: _week),
           ),
         ],
+      ),
       ),
     );
   }

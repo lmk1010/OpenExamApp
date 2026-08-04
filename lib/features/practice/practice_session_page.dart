@@ -7,6 +7,7 @@ import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
 import 'package:openexam_app/core/ui/glass.dart';
+import 'package:openexam_app/core/ui/responsive.dart';
 import 'package:openexam_app/core/ui/rich_content.dart';
 import 'package:openexam_app/core/ui/stroke_icons.dart';
 import 'package:openexam_app/core/ui/ui_kit.dart';
@@ -665,7 +666,9 @@ class _QuestionView extends StatelessWidget {
     final revealed = isReview || (selected != null && !isExam);
     final accent = t.category(question.category);
 
-    return ListView(
+    return ReadableWidth(
+      maxWidth: context.isExpanded ? 820 : context.readableWidth,
+      child: ListView(
       padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 16, AppTheme.gutter, 28),
       children: [
         // What happened last time on this exact question.
@@ -959,6 +962,7 @@ class _QuestionView extends StatelessWidget {
           ),
         ],
       ],
+      ),
     );
   }
 }
