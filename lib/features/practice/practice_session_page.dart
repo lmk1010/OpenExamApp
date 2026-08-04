@@ -77,6 +77,9 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
   /// reason is still fresh in the user's head.
   Map<String, String> _reasons = {};
   Map<String, int> _difficulty = {};
+
+  /// 排除法：每题被划掉的选项。只活在这次练习里，不入库。
+  final Map<String, Set<String>> _excluded = {};
   Map<String, String> _notes = {};
 
   /// Scratch work per question, kept for the life of the session.
@@ -311,6 +314,17 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
     });
     HapticFeedback.selectionClick();
     await AppDatabase.instance.setWrongReason(questionId, reason);
+  }
+
+  /// 长按选项 = 排除它。行测的排除法是实打实的做题动作，划掉两个再选剩下的，
+  /// 比在脑子里记着哪个不可能要稳。
+  void _toggleExclude(String questionId, String optionKey) {
+    final key = optionKey.toUpperCase();
+    setState(() {
+      final set = _excluded.putIfAbsent(questionId, () => <String>{});
+      set.contains(key) ? set.remove(key) : set.add(key);
+    });
+    HapticFeedback.mediumImpact();
   }
 
   /// 自己标难度：1 简单 / 2 一般 / 3 难。再点一次取消。
@@ -589,6 +603,8 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
             isReview: _isReview,
             reason: _reasons[_questions[i].id],
             difficulty: _difficulty[_questions[i].id],
+            excluded: _excluded[_questions[i].id] ?? const {},
+            onExclude: (key) => _toggleExclude(_questions[i].id, key),
             note: _notes[_questions[i].id],
             onReason: (r) => _setReason(_questions[i].id, r),
             onDifficulty: (l) => _setDifficulty(_questions[i].id, l),
@@ -613,6 +629,8 @@ class _QuestionView extends StatelessWidget {
     required this.isReview,
     required this.reason,
     required this.difficulty,
+    required this.excluded,
+    required this.onExclude,
     required this.note,
     required this.onReason,
     required this.onDifficulty,
@@ -629,6 +647,10 @@ class _QuestionView extends StatelessWidget {
   final bool isReview;
   final String? reason;
   final int? difficulty;
+
+  /// 被排除的选项，画成划掉的样子。
+  final Set<String> excluded;
+  final ValueChanged<String> onExclude;
   final String? note;
   final ValueChanged<String?> onReason;
   final ValueChanged<int> onDifficulty;
@@ -699,6 +721,8 @@ class _QuestionView extends StatelessWidget {
           final key = opt.key.toUpperCase();
           final chosen = selected == key;
           final isAnswer = key == question.answer.toUpperCase();
+          // 排除只在还没作答时有意义；一旦揭晓，对错配色说明一切。
+          final struck = !revealed && excluded.contains(key);
 
           Color badgeBg = t.surfaceAlt;
           Color badgeFg = t.textSoft;
@@ -734,6 +758,10 @@ class _QuestionView extends StatelessWidget {
           return Padding(
             padding: const EdgeInsets.only(bottom: 9),
             child: Pressable(
+              // 长按 = 排除，长按会吃掉这一次 onTap，所以按住不会误选。
+              onLongPress: (isReview || selected != null)
+                  ? null
+                  : () => onExclude(key),
               onTap: (isReview || selected != null)
                   ? null
                   : () => onSelect(opt.key),
@@ -755,7 +783,12 @@ class _QuestionView extends StatelessWidget {
                           width: 1.2,
                         ),
                       )
-                    : decoration,
+                    : (struck
+                        ? BoxDecoration(
+                            color: t.glass.withValues(alpha: 0.35),
+                            borderRadius: BorderRadius.circular(16),
+                          )
+                        : decoration),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -763,14 +796,23 @@ class _QuestionView extends StatelessWidget {
                       width: 24,
                       height: 24,
                       alignment: Alignment.center,
-                      decoration: BoxDecoration(color: badgeBg, shape: BoxShape.circle),
+                      decoration: BoxDecoration(
+                        color: struck ? Colors.transparent : badgeBg,
+                        shape: BoxShape.circle,
+                        border: struck
+                            ? Border.all(color: t.muted.withValues(alpha: 0.5))
+                            : null,
+                      ),
                       child: Text(
                         key,
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
                           height: 1,
-                          color: badgeFg,
+                          color: struck ? t.muted : badgeFg,
+                          decoration:
+                              struck ? TextDecoration.lineThrough : null,
+                          decorationColor: t.muted,
                         ),
                       ),
                     ),
@@ -791,7 +833,12 @@ class _QuestionView extends StatelessWidget {
                               style: text.bodyLarge?.copyWith(
                                 fontSize: 15 * fontScale,
                                 height: 1.5,
-                                color: fg,
+                                color: struck ? t.muted : fg,
+                                decoration: struck
+                                    ? TextDecoration.lineThrough
+                                    : null,
+                                decorationColor: t.muted,
+                                decorationThickness: 1.6,
                               ),
                             ),
                     ),
@@ -854,7 +901,9 @@ class _QuestionView extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(top: 6),
             child: Text(
-              isExam ? '选中即进入下一题 · 左右滑动可回看' : '左右滑动切换题目 · 点图片可放大',
+              isExam
+                  ? '选中即进入下一题 · 长按选项可排除 · 左右滑动可回看'
+                  : '长按选项可排除 · 左右滑动切换题目 · 点图片可放大',
               style: text.bodySmall?.copyWith(fontSize: 12),
             ),
           ),

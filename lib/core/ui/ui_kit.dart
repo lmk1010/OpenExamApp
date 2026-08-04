@@ -595,11 +595,16 @@ class Pressable extends StatefulWidget {
     this.onTap,
     this.onLongPress,
     this.haptic = true,
+    this.holdToCancel = false,
   });
 
   final Widget Function(bool pressed) builder;
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
+
+  /// 按住不放就当作放弃：抬手不触发 onTap。用在「点下去就没法反悔」的地方
+  /// —— 选项一旦选中就算作答，按住看半天不该被判成已选。
+  final bool holdToCancel;
 
   /// 按下时轻震一下，抬起不再震 —— 选中本身另有反馈。
   final bool haptic;
@@ -620,13 +625,23 @@ class _PressableState extends State<Pressable> {
   @override
   Widget build(BuildContext context) {
     final enabled = widget.onTap != null || widget.onLongPress != null;
+    // 给了 onLongPress 的手势里，长按会吃掉这一次 onTap —— holdToCancel 就是
+    // 借这一点：按住只是看看，松手什么也不发生。
+    final onLongPress = widget.onLongPress ??
+        (widget.holdToCancel && widget.onTap != null
+            ? () {
+                if (mounted) setState(() => _pressed = false);
+              }
+            : null);
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTapDown: enabled ? (_) => _set(true) : null,
       onTapUp: enabled ? (_) => _set(false) : null,
       onTapCancel: enabled ? () => _set(false) : null,
+      onLongPressStart: onLongPress == null ? null : (_) {},
+      onLongPressEnd: onLongPress == null ? null : (_) => _set(false),
       onTap: widget.onTap,
-      onLongPress: widget.onLongPress,
+      onLongPress: onLongPress,
       child: widget.builder(_pressed && enabled),
     );
   }
