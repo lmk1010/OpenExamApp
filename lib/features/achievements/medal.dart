@@ -2,8 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
-import 'package:openexam_app/core/ui/stroke_icons.dart';
 import 'package:openexam_app/features/achievements/achievements.dart';
+import 'package:openexam_app/features/achievements/badge_glyph.dart';
 
 /// 徽章造型 — every group gets its own silhouette so a wall of medals reads as
 /// a collection rather than eighteen copies of the same circle.
@@ -125,38 +125,6 @@ class _BadgeMedalState extends State<BadgeMedal>
               painter: _painter(t, _spin!.value),
             ),
           ),
-        // The glyph is struck into the face: a dark impression under a
-        // metal-lit top layer.
-        Transform.translate(
-          offset: _detail
-              ? Offset(-size * 0.11, -size * 0.03)
-              : Offset(0, size * 0.015),
-          child: StrokeIcon(
-            badge.icon,
-            size: size * (_detail ? 0.26 : 0.3),
-            color: Colors.black.withValues(alpha: badge.unlocked ? 0.55 : 0.18),
-            weight: 2.4,
-          ),
-        ),
-        Transform.translate(
-          offset: _detail ? Offset(-size * 0.11, -size * 0.045) : Offset.zero,
-          child: ShaderMask(
-          blendMode: BlendMode.srcIn,
-          shaderCallback: (rect) => LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: badge.unlocked
-                ? [_metal(badge.tier)[0], _metal(badge.tier)[4]]
-                : [t.muted, t.muted],
-          ).createShader(rect),
-          child: StrokeIcon(
-            badge.icon,
-            size: size * (_detail ? 0.26 : 0.3),
-            color: Colors.white,
-            weight: 2.2,
-          ),
-          ),
-        ),
       ],
     );
 
@@ -210,6 +178,8 @@ class _BadgeMedalState extends State<BadgeMedal>
         track: t.name == 'dark'
             ? Colors.white.withValues(alpha: 0.12)
             : t.text.withValues(alpha: 0.10),
+        glyph: glyphForGroup(widget.badge.group),
+        muted: t.muted.withValues(alpha: 0.55),
         detail: _detail,
         label: _detail ? _label : '',
         sub: _detail ? widget.badge.group : '',
@@ -229,6 +199,8 @@ class _MedalPainter extends CustomPainter {
     required this.detail,
     required this.label,
     required this.sub,
+    required this.glyph,
+    required this.muted,
   });
 
   final MedalShape shape;
@@ -247,6 +219,10 @@ class _MedalPainter extends CustomPainter {
   final bool detail;
   final String label;
   final String sub;
+  final BadgeGlyph glyph;
+
+  /// Emblem colour on a locked medal.
+  final Color muted;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -254,7 +230,7 @@ class _MedalPainter extends CustomPainter {
     final s = size.width;
     // Room for the backing plate corners and the progress ring.
     final r = s * 0.36;
-    final rim = s * 0.075;
+    final rim = s * 0.066;
 
     _plate(canvas, c, s);
 
@@ -352,6 +328,15 @@ class _MedalPainter extends CustomPainter {
         _studs(canvas, c, r, rim);
         _numerals(canvas, c, r);
       }
+      paintBadgeGlyph(
+        canvas,
+        glyph,
+        detail ? c + Offset(-r * 0.34, -r * 0.06) : c,
+        r * (detail ? 0.38 : 0.46),
+        metal: metal,
+        unlocked: true,
+        flat: muted,
+      );
     } else {
       canvas.drawPath(
         body,
@@ -371,6 +356,15 @@ class _MedalPainter extends CustomPainter {
           ..style = PaintingStyle.stroke
           ..strokeWidth = s * 0.038
           ..color = track,
+      );
+      paintBadgeGlyph(
+        canvas,
+        glyph,
+        c,
+        r * 0.46,
+        metal: metal,
+        unlocked: false,
+        flat: muted,
       );
       if (progress > 0) {
         canvas.drawArc(
@@ -423,8 +417,8 @@ class _MedalPainter extends CustomPainter {
     for (var i = 0; i < 16; i++) {
       final a = i * math.pi / 8 + math.pi / 16;
       final o = c + Offset(math.cos(a), math.sin(a)) * (r - rim * 0.05);
-      canvas.drawCircle(o + Offset(0, rim * 0.10), rim * 0.17, shade);
-      canvas.drawCircle(o, rim * 0.16, stud);
+      canvas.drawCircle(o + Offset(0, rim * 0.09), rim * 0.14, shade);
+      canvas.drawCircle(o, rim * 0.13, stud);
     }
   }
 
@@ -432,7 +426,8 @@ class _MedalPainter extends CustomPainter {
   /// group name on a dark plate under it — the reference badges' anchor.
   void _numerals(Canvas canvas, Offset c, double r) {
     if (label.isEmpty) return;
-    final anchor = c + Offset(r * 0.30, r * 0.14);
+    // Face is split in two: glyph on the left, numerals stacked on the right.
+    final anchor = c + Offset(r * 0.34, -r * 0.10);
 
     void draw(String value, double size, Color color, Offset at, {double weight = 800}) {
       final tp = TextPainter(
@@ -451,7 +446,7 @@ class _MedalPainter extends CustomPainter {
       tp.paint(canvas, at - Offset(tp.width / 2, tp.height / 2));
     }
 
-    final fs = r * 0.34;
+    final fs = r * 0.30;
     draw(label, fs, Colors.black.withValues(alpha: 0.55), anchor + Offset(0, fs * 0.06));
     draw(label, fs, metal[0], anchor);
 
@@ -460,9 +455,9 @@ class _MedalPainter extends CustomPainter {
       text: TextSpan(
         text: sub,
         style: TextStyle(
-          fontSize: r * 0.16,
+          fontSize: r * 0.145,
           height: 1,
-          letterSpacing: r * 0.02,
+          letterSpacing: r * 0.022,
           fontWeight: FontWeight.w700,
           color: metal[0].withValues(alpha: 0.92),
         ),
@@ -470,9 +465,9 @@ class _MedalPainter extends CustomPainter {
       textDirection: TextDirection.ltr,
     )..layout();
     final plate = Rect.fromCenter(
-      center: anchor + Offset(0, fs * 0.82),
-      width: tp.width + r * 0.20,
-      height: tp.height + r * 0.13,
+      center: anchor + Offset(0, fs * 0.95),
+      width: tp.width + r * 0.18,
+      height: tp.height + r * 0.12,
     );
     canvas.drawRRect(
       RRect.fromRectAndRadius(plate, Radius.circular(r * 0.05)),
@@ -565,6 +560,7 @@ class _MedalPainter extends CustomPainter {
       old.progress != progress ||
       old.unlocked != unlocked ||
       old.detail != detail ||
+      old.glyph != glyph ||
       old.label != label ||
       old.shape != shape;
 }
