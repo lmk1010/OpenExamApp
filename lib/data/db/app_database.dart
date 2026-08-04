@@ -519,6 +519,47 @@ class AppDatabase {
     });
   }
 
+  /// 今日一练 — the same questions all day, so closing the app and coming back
+  /// continues the set instead of shuffling a new one. Deterministic from the
+  /// date, no storage needed.
+  Future<List<Question>> fetchDailySet({
+    required DateTime day,
+    int limit = 20,
+  }) async {
+    final db = await database;
+    final seed = day.year * 10000 + day.month * 100 + day.day;
+    final a = 1103515245 + (seed % 7919);
+    final b = seed % 104729;
+    final rows = await db.rawQuery(
+      'SELECT * FROM questions ORDER BY ((rowid * ? + ?) % 100003) LIMIT ?',
+      [a, b, limit],
+    );
+    return rows.map(_fromRow).toList();
+  }
+
+  /// How far today's set has been taken: answered and correct among its ids.
+  Future<({int answered, int correct})> dailyProgress(List<String> ids) async {
+    if (ids.isEmpty) return (answered: 0, correct: 0);
+    final db = await database;
+    final placeholders = List.filled(ids.length, '?').join(',');
+    final rows = await db.rawQuery('''
+      SELECT COUNT(*) AS n,
+             SUM(CASE WHEN l.is_correct = 1 THEN 1 ELSE 0 END) AS correct
+      FROM (
+        SELECT question_id, MAX(id) AS last_id
+        FROM practice_logs
+        WHERE question_id IN ($placeholders)
+        GROUP BY question_id
+      ) last
+      JOIN practice_logs l ON l.id = last.last_id
+    ''', ids);
+    if (rows.isEmpty) return (answered: 0, correct: 0);
+    return (
+      answered: int.tryParse('${rows.first['n']}') ?? 0,
+      correct: int.tryParse('${rows.first['correct'] ?? 0}') ?? 0,
+    );
+  }
+
   /// Weakness-weighted set: modules you are worst at get the biggest share,
   /// and inside each module previously-wrong questions come first, then
   /// unseen ones. This is what "刷题要刷弱项" means in practice.

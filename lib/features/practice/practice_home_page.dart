@@ -34,6 +34,8 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
   int _goal = 30;
   ResumeState? _resume;
   String? _province;
+  List<Question> _daily = const [];
+  ({int answered, int correct}) _dailyProgress = (answered: 0, correct: 0);
   int _provinceCount = 0;
 
   @override
@@ -55,6 +57,9 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
     final examRaw = prefs.getString(Prefs.examDate);
     final goal = prefs.getInt(Prefs.dailyGoal) ?? 30;
     final resume = await db.loadResume();
+    final daily = await db.fetchDailySet(day: DateTime.now(), limit: 20);
+    final dailyProgress =
+        await db.dailyProgress(daily.map((q) => q.id).toList());
     final province = prefs.getString(Prefs.province);
     final provinceCount =
         province == null ? 0 : await db.countByRegion(province);
@@ -69,6 +74,8 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
       _goal = goal;
       _resume = resume;
       _province = province;
+      _daily = daily;
+      _dailyProgress = dailyProgress;
       _provinceCount = provinceCount;
       _examDate = examRaw == null ? null : DateTime.tryParse(examRaw);
       _loading = false;
@@ -161,6 +168,36 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
       shuffle: true,
     );
     await _open(questions, limit: const Duration(minutes: 45), title: '限时模考');
+  }
+
+  /// Today's fixed set. Finished sets reopen in review mode rather than being
+  /// re-answered, so the number on the card stays honest.
+  Future<void> _startDaily() async {
+    if (_daily.isEmpty) {
+      await _start();
+      return;
+    }
+    final done = _dailyProgress.answered >= _daily.length;
+    if (done) {
+      final answers = <String, String>{};
+      for (final q in _daily) {
+        final history = await AppDatabase.instance.historyFor(q.id, limit: 1);
+        if (history.isNotEmpty) answers[q.id] = history.first.answer;
+      }
+      if (!mounted) return;
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => PracticeSessionPage(
+            questions: _daily,
+            reviewAnswers: answers,
+            title: '今日一练回顾',
+          ),
+        ),
+      );
+      _reload();
+      return;
+    }
+    await _open(_daily, title: '每日一练');
   }
 
   /// Weakness-weighted set — the app decides the mix so the user doesn't have
@@ -313,10 +350,14 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
                 children: [
                   _FeatureCard(
                     title: '每日一练',
-                    meta: '$_count 题 · 随机抽题',
+                    meta: _dailyProgress.answered >= _daily.length && _daily.isNotEmpty
+                        ? '今天做完了 · 正确 ${_dailyProgress.correct}/${_daily.length}'
+                        : (_dailyProgress.answered > 0
+                            ? '继续 · ${_dailyProgress.answered}/${_daily.length}'
+                            : '${_daily.length} 题 · 今天的固定卷'),
                     glyph: AppIcon.shuffle,
                     colors: [t.brand],
-                    onTap: () => _start(),
+                    onTap: _startDaily,
                   ),
                   const SizedBox(width: 11),
                   if (_province != null && _provinceCount > 0) ...[
