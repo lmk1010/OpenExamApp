@@ -9,12 +9,33 @@ import 'package:openexam_app/features/wrong/wrong_book_page.dart';
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
 
+  /// 让别的页面能把用户送到某个 tab（比如首页的计划提醒 → 错题本）。
+  /// 底部导航是这个 app 唯一的一级结构，push 一个没有导航栏的副本会更乱。
+  static final ValueNotifier<int> jumpTo = ValueNotifier<int>(0);
+
   @override
   State<AppShell> createState() => _AppShellState();
 }
 
 class _AppShellState extends State<AppShell> {
   int _index = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    AppShell.jumpTo.addListener(_onJump);
+  }
+
+  @override
+  void dispose() {
+    AppShell.jumpTo.removeListener(_onJump);
+    super.dispose();
+  }
+
+  void _onJump() {
+    if (!mounted) return;
+    setState(() => _index = AppShell.jumpTo.value);
+  }
 
   // The four things a 考公 user actually does: 练一组、按卷刷、清错题、管数据。
   static const _tabs = [

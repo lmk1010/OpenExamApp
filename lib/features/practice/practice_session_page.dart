@@ -825,6 +825,7 @@ class _QuestionView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
+          _PastAttempts(questionId: question.id, answer: question.answer),
           _DifficultyPicker(level: difficulty, onPick: onDifficulty),
         ] else if (selected == null)
           Padding(
@@ -1914,6 +1915,72 @@ class _DifficultyPicker extends StatelessWidget {
           ),
         ],
       ],
+    );
+  }
+}
+
+/// 本题历史作答：这道题以前做过没有、上次选的什么。反复错同一道题却
+/// 毫无察觉，是错题本最常见的失效方式。
+class _PastAttempts extends StatelessWidget {
+  const _PastAttempts({required this.questionId, required this.answer});
+
+  final String questionId;
+  final String answer;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+
+    return FutureBuilder<List<({String answer, bool correct, DateTime at})>>(
+      future: AppDatabase.instance.historyFor(questionId, limit: 6),
+      builder: (context, snap) {
+        final all = snap.data ?? const [];
+        // 最新一次就是刚刚这次，看的是它之前的。
+        final past = all.length > 1 ? all.sublist(1) : const [];
+        if (past.isEmpty) return const SizedBox.shrink();
+        final wrong = past.where((e) => !e.correct).length;
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: Row(
+            children: [
+              StrokeIcon(AppIcon.replay, size: 14, color: t.muted),
+              const SizedBox(width: 7),
+              Expanded(
+                child: Text(
+                  '${past.length} 次做过'
+                  '${wrong > 0 ? ' · 错过 $wrong 次' : ' · 全对'}'
+                  ' · 上次 ${past.first.at.month}/${past.first.at.day}',
+                  style: text.bodySmall?.copyWith(fontSize: 12.5),
+                ),
+              ),
+              for (final e in past.take(5)) ...[
+                const SizedBox(width: 5),
+                Container(
+                  width: 18,
+                  height: 18,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: (e.correct ? t.success : t.danger)
+                        .withValues(alpha: 0.16),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    e.answer.isEmpty ? '—' : e.answer,
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w700,
+                      height: 1,
+                      color: e.correct ? t.success : t.danger,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
     );
   }
 }

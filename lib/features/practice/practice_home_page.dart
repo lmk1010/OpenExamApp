@@ -11,6 +11,7 @@ import 'package:openexam_app/core/ui/ui_kit.dart';
 import 'package:openexam_app/data/db/app_database.dart';
 import 'package:openexam_app/data/models/question.dart';
 import 'package:openexam_app/features/practice/practice_session_page.dart';
+import 'package:openexam_app/features/shell/app_shell.dart';
 import 'package:openexam_app/features/profile/dashboard_page.dart';
 import 'package:openexam_app/features/search/search_page.dart';
 import 'package:openexam_app/features/stats/stats_page.dart';
@@ -40,6 +41,7 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
   ({int answered, int correct}) _dailyProgress = (answered: 0, correct: 0);
   int _provinceCount = 0;
   int _hardCount = 0;
+  List<ReviewPlan> _plans = const [];
 
   @override
   void initState() {
@@ -67,6 +69,7 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
     final provinceCount =
         province == null ? 0 : await db.countByRegion(province);
     final hardCount = (await db.difficultyCounts())[3] ?? 0;
+    final plans = await db.reviewPlans();
     if (!mounted) return;
     setState(() {
       _total = total;
@@ -82,6 +85,7 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
       _dailyProgress = dailyProgress;
       _provinceCount = provinceCount;
       _hardCount = hardCount;
+      _plans = plans.where((p) => !p.finished).toList();
       _examDate = examRaw == null ? null : DateTime.tryParse(examRaw);
       _loading = false;
     });
@@ -464,6 +468,36 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
               ),
             ),
           ),
+          // 有在跑的四天计划就提醒一句，否则开了计划也会忘。
+          for (final plan in _plans)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppTheme.gutter,
+                18,
+                AppTheme.gutter,
+                0,
+              ),
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => AppShell.jumpTo.value = 2,
+                child: Row(
+                  children: [
+                    StrokeIcon(AppIcon.replay, size: 16, color: t.brand),
+                    const SizedBox(width: 9),
+                    Expanded(
+                      child: Text(
+                        plan.doneToday
+                            ? '「${plan.label}」计划今天已完成，明天继续'
+                            : '「${plan.label}」计划第 ${plan.nextDay} 天还没做 · '
+                                '${ReviewPlan.stepTitles[plan.nextDay - 1]}',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ),
+                    Icon(Icons.chevron_right, size: 15, color: t.muted),
+                  ],
+                ),
+              ),
+            ),
           const SizedBox(height: 26),
           _ListHeader(
             title: '按题型练习',
