@@ -87,6 +87,11 @@ class GlassDecor {
     );
   }
 
+  /// Readable foreground for text sitting on [color]. Dark-theme category
+  /// colours are light enough that white text on them fails contrast.
+  static Color on(Color color) =>
+      color.computeLuminance() > 0.55 ? const Color(0xFF14161C) : Colors.white;
+
   /// Specular highlight laid over a tinted tile — the "wet glass" top-left curve.
   static Widget sheen({double radius = 20, double opacity = 0.22}) {
     return Positioned.fill(

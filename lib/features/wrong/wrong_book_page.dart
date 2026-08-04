@@ -163,16 +163,16 @@ class _WrongBookPageState extends State<WrongBookPage> {
                           StrokeIcon(
                             AppIcon.replay,
                             size: 16,
-                            color: Colors.white,
+                            color: GlassDecor.on(t.brand),
                             weight: 2.1,
                           ),
                           const SizedBox(width: 7),
-                          const Text(
+                          Text(
                             '开始重练',
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
-                              color: Colors.white,
+                              color: GlassDecor.on(t.brand),
                             ),
                           ),
                         ],

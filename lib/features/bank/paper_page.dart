@@ -233,7 +233,9 @@ class _Action extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
-    final on = enabled ? (primary ? Colors.white : t.text) : t.muted;
+    final on = enabled
+        ? (primary ? GlassDecor.on(t.brand) : t.text)
+        : t.muted;
 
     return Expanded(
       child: Opacity(
@@ -266,9 +268,7 @@ class _Action extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 11.5,
                     height: 1,
-                    color: primary
-                        ? Colors.white.withValues(alpha: 0.8)
-                        : t.muted,
+                    color: primary ? on.withValues(alpha: 0.78) : t.muted,
                     fontFeatures: AppTheme.numeric,
                   ),
                 ),

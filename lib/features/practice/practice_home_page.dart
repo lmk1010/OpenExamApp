@@ -681,6 +681,7 @@ class _FeatureCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final disabled = onTap == null;
     final base = colors.first;
+    final on = GlassDecor.on(base);
 
     return Opacity(
       opacity: disabled ? 0.4 : 1,
@@ -696,16 +697,16 @@ class _FeatureCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              StrokeIcon(glyph, size: 22, color: Colors.white.withValues(alpha: 0.9)),
+              StrokeIcon(glyph, size: 22, color: on.withValues(alpha: 0.9)),
               const Spacer(),
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
                   letterSpacing: -0.5,
                   height: 1.1,
-                  color: Colors.white,
+                  color: on,
                 ),
               ),
               const SizedBox(height: 6),
@@ -719,7 +720,7 @@ class _FeatureCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 12.5,
                         height: 1.3,
-                        color: Colors.white.withValues(alpha: 0.8),
+                        color: on.withValues(alpha: 0.82),
                         fontFeatures: AppTheme.numeric,
                       ),
                     ),
@@ -729,7 +730,7 @@ class _FeatureCard extends StatelessWidget {
                     height: 30,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: on,
                       shape: BoxShape.circle,
                     ),
                     child: Icon(Icons.play_arrow_rounded, size: 19, color: base),
