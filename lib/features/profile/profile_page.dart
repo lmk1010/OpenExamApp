@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:openexam_app/core/constants/app_constants.dart';
+import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
 import 'package:openexam_app/core/theme/theme_controller.dart';
@@ -7,6 +8,8 @@ import 'package:openexam_app/core/ui/glass.dart';
 import 'package:openexam_app/core/ui/stroke_icons.dart';
 import 'package:openexam_app/core/ui/ui_kit.dart';
 import 'package:openexam_app/data/db/app_database.dart';
+import 'package:openexam_app/features/achievements/achievements.dart';
+import 'package:openexam_app/features/achievements/achievements_page.dart';
 import 'package:openexam_app/features/backup/backup_page.dart';
 import 'package:openexam_app/features/feedback/feedback_page.dart';
 import 'package:openexam_app/features/profile/dashboard_page.dart';
@@ -38,6 +41,9 @@ class _ProfilePageState extends State<ProfilePage> {
   int _goal = 30;
   int _notes = 0;
   int _feedback = 0;
+  int _badges = 0;
+  int _badgeTotal = 0;
+  String? _province;
   List<int> _week = const [0, 0, 0, 0, 0, 0, 0];
   String _name = '备考中';
   DateTime? _examDate;
@@ -57,6 +63,7 @@ class _ProfilePageState extends State<ProfilePage> {
     final reports = await db.listReports(limit: 200);
     final notes = await db.countNotes();
     final feedback = await db.countFeedback();
+    final badges = await Achievements.evaluate();
     final stats = await db.categoryStats();
     final week = await db.dailyActivity();
     final prefs = await SharedPreferences.getInstance();
@@ -73,10 +80,13 @@ class _ProfilePageState extends State<ProfilePage> {
       _reports = reports.length;
       _notes = notes;
       _feedback = feedback;
+      _badges = badges.where((b) => b.unlocked).length;
+      _badgeTotal = badges.length;
       _rate = done == 0 ? 0 : (correct * 100 / done).round();
       _week = week;
       _count = prefs.getInt(Prefs.defaultCount) ?? 20;
       _goal = prefs.getInt(Prefs.dailyGoal) ?? 30;
+      _province = prefs.getString(Prefs.province);
       _name = prefs.getString(Prefs.nickname) ?? '备考中';
       final examRaw = prefs.getString(Prefs.examDate);
       _examDate = examRaw == null ? null : DateTime.tryParse(examRaw);
@@ -222,6 +232,18 @@ class _ProfilePageState extends State<ProfilePage> {
         const SizedBox(height: 28),
         const _GroupLabel('学习'),
         _SettingRow(
+          icon: AppIcon.chart,
+          title: '成就',
+          value: '$_badges / $_badgeTotal',
+          onTap: () async {
+            await Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const AchievementsPage()),
+            );
+            _reload();
+          },
+        ),
+        const RowDivider(),
+        _SettingRow(
           icon: AppIcon.papers,
           title: '成绩报告',
           value: _reports == 0 ? '暂无' : '$_reports 份',
@@ -263,6 +285,23 @@ class _ProfilePageState extends State<ProfilePage> {
               MaterialPageRoute(builder: (_) => const MarkedPage()),
             );
             _reload();
+          },
+        ),
+        const RowDivider(),
+        _SettingRow(
+          icon: AppIcon.globe,
+          title: '报考地区',
+          value: _province ?? '未设置',
+          onTap: () async {
+            final picked = await showModalBottomSheet<String>(
+              context: context,
+              backgroundColor: Colors.transparent,
+              builder: (_) => _ProvinceSheet(current: _province),
+            );
+            if (picked == null) return;
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setString(Prefs.province, picked);
+            if (mounted) setState(() => _province = picked);
           },
         ),
         const RowDivider(),
@@ -783,6 +822,75 @@ class _NameSheetState extends State<_NameSheet> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Region picker — drives the 本省真题 card and the 题库 default filter.
+class _ProvinceSheet extends StatelessWidget {
+  const _ProvinceSheet({required this.current});
+
+  final String? current;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+    return _SheetShell(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('报考地区', style: text.titleMedium),
+          const SizedBox(height: 6),
+          Text('用来优先推荐对应的真题卷', style: text.bodySmall),
+          const SizedBox(height: 14),
+          ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.45,
+            ),
+            child: SingleChildScrollView(
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final p in kProvinces)
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => Navigator.of(context).pop(p),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 9,
+                        ),
+                        decoration: BoxDecoration(
+                          color: p == current
+                              ? t.brand.withValues(alpha: 0.15)
+                              : t.glass,
+                          borderRadius: BorderRadius.circular(15),
+                          border: Border.all(
+                            color: p == current
+                                ? t.brand.withValues(alpha: 0.5)
+                                : Colors.transparent,
+                          ),
+                        ),
+                        child: Text(
+                          p,
+                          style: TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w600,
+                            height: 1,
+                            color: p == current ? t.brand : t.textSoft,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

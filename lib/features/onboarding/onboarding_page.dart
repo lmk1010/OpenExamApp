@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:openexam_app/core/constants/app_constants.dart';
+import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
 import 'package:openexam_app/core/ui/glass.dart';
@@ -24,6 +25,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
   int _page = 0;
   int _goal = 30;
   DateTime? _examDate;
+  String? _province;
 
   @override
   void dispose() {
@@ -34,6 +36,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
   Future<void> _finish() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(Prefs.dailyGoal, _goal);
+    if (_province != null) await prefs.setString(Prefs.province, _province!);
     if (_examDate != null) {
       await prefs.setString(Prefs.examDate, _examDate!.toIso8601String());
     }
@@ -97,7 +100,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
                     active: _page == 2,
                     goal: _goal,
                     examDate: _examDate,
+                    province: _province,
                     onGoal: (v) => setState(() => _goal = v),
+                    onProvince: (v) => setState(() => _province = v),
                     onPickDate: _pickDate,
                   ),
                 ],
@@ -194,14 +199,18 @@ class _Setup extends StatelessWidget {
     required this.active,
     required this.goal,
     required this.examDate,
+    required this.province,
     required this.onGoal,
+    required this.onProvince,
     required this.onPickDate,
   });
 
   final bool active;
   final int goal;
   final DateTime? examDate;
+  final String? province;
   final ValueChanged<int> onGoal;
+  final ValueChanged<String> onProvince;
   final VoidCallback onPickDate;
 
   @override
@@ -223,7 +232,7 @@ class _Setup extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         Text(
-          '还有两件事',
+          '还有三件事',
           style: text.displaySmall?.copyWith(fontSize: 26, height: 1.35),
         ),
         const SizedBox(height: 12),
@@ -265,6 +274,48 @@ class _Setup extends StatelessWidget {
                 ),
               ),
           ],
+        ),
+        const SizedBox(height: 30),
+        Text('考哪儿', style: text.titleSmall),
+        const SizedBox(height: 6),
+        Text('选了之后，题库会优先推你要考的那套卷', style: text.bodySmall),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 38,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: [
+              for (final p in kProvinces)
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      onProvince(p);
+                      HapticFeedback.selectionClick();
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 140),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: province == p ? t.brand : t.glass,
+                        borderRadius: BorderRadius.circular(19),
+                      ),
+                      child: Text(
+                        p,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          height: 1,
+                          color: province == p ? Colors.white : t.textSoft,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
         const SizedBox(height: 30),
         Text('考试哪天', style: text.titleSmall),

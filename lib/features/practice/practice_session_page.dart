@@ -12,6 +12,8 @@ import 'package:openexam_app/core/ui/stroke_icons.dart';
 import 'package:openexam_app/core/ui/ui_kit.dart';
 import 'package:openexam_app/data/db/app_database.dart';
 import 'package:openexam_app/data/models/question.dart';
+import 'package:openexam_app/features/achievements/achievements.dart';
+import 'package:openexam_app/features/achievements/achievements_page.dart';
 import 'package:openexam_app/features/practice/scratch_pad.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -192,6 +194,16 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
     HapticFeedback.mediumImpact();
     _saveReport();
     AppDatabase.instance.clearResume();
+    _celebrate();
+  }
+
+  /// Checks for newly earned badges once the session is over.
+  Future<void> _celebrate() async {
+    final fresh = await Achievements.claimNew();
+    if (!mounted || fresh.isEmpty) return;
+    await Future<void>.delayed(const Duration(milliseconds: 600));
+    if (!mounted) return;
+    await BadgeUnlockedDialog.show(context, fresh);
   }
 
   /// Keeps an up-to-date copy of the session so an accidental exit, a phone

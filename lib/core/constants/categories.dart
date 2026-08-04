@@ -70,3 +70,13 @@ const kFeedbackKinds = <String, String>{
   'image': '图片缺失或看不清',
   'other': '其他问题',
 };
+
+/// 报考地区 — matched against paper titles, so the list follows what the bank
+/// actually contains rather than a full administrative list.
+const kProvinces = <String>[
+  '国考',
+  '北京', '上海', '广东', '江苏', '浙江', '山东', '河南', '河北', '四川', '湖北',
+  '湖南', '安徽', '福建', '江西', '陕西', '山西', '辽宁', '吉林', '黑龙江',
+  '云南', '贵州', '广西', '天津', '重庆', '内蒙古', '新疆', '甘肃', '海南',
+  '宁夏', '青海', '西藏',
+];

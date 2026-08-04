@@ -145,6 +145,12 @@ class AppDatabase {
       )
     ''');
     await db.execute('''
+      CREATE TABLE IF NOT EXISTS badges (
+        id TEXT PRIMARY KEY,
+        unlocked_at TEXT NOT NULL
+      )
+    ''');
+    await db.execute('''
       CREATE TABLE IF NOT EXISTS meta (
         key TEXT PRIMARY KEY,
         value TEXT NOT NULL
@@ -287,6 +293,47 @@ class AppDatabase {
       ORDER BY year DESC, paper_title
       LIMIT ?
     ''', [limit]);
+  }
+
+  /// Papers whose title mentions a region (or 国考), newest first.
+  Future<List<Map<String, Object?>>> listPapersByRegion(
+    String region, {
+    int limit = 60,
+  }) async {
+    final db = await database;
+    final like = region == '国考' ? '%国家公务员%' : '%$region%';
+    return db.rawQuery('''
+      SELECT paper_id, paper_title, year, source, COUNT(*) AS question_count
+      FROM questions
+      WHERE paper_title LIKE ?
+      GROUP BY paper_id, paper_title, year, source
+      ORDER BY year DESC
+      LIMIT ?
+    ''', [like, limit]);
+  }
+
+  /// Random questions drawn only from a region's papers — 本省真题练习.
+  Future<List<Question>> fetchByRegion(
+    String region, {
+    int limit = 20,
+  }) async {
+    final db = await database;
+    final like = region == '国考' ? '%国家公务员%' : '%$region%';
+    final rows = await db.rawQuery(
+      'SELECT * FROM questions WHERE paper_title LIKE ? ORDER BY RANDOM() LIMIT ?',
+      [like, limit],
+    );
+    return rows.map(_fromRow).toList();
+  }
+
+  Future<int> countByRegion(String region) async {
+    final db = await database;
+    final like = region == '国考' ? '%国家公务员%' : '%$region%';
+    return Sqflite.firstIntValue(await db.rawQuery(
+          'SELECT COUNT(*) FROM questions WHERE paper_title LIKE ?',
+          [like],
+        )) ??
+        0;
   }
 
   /// Distinct questions answered per paper, for the 题库 progress meters.
@@ -473,6 +520,7 @@ class AppDatabase {
       'reasons': await db.query('wrong_reasons'),
       'reports': await db.query('exam_reports'),
       'feedback': await db.query('feedback'),
+      'badges': await db.query('badges'),
     };
   }
 
@@ -502,6 +550,7 @@ class AppDatabase {
     await put('wrong_reasons', 'reasons');
     await put('exam_reports', 'reports', wipe: true);
     await put('feedback', 'feedback', wipe: true);
+    await put('badges', 'badges');
     _imageCache.clear();
     _imageCacheBytes = 0;
     return restored;
@@ -661,6 +710,27 @@ class AppDatabase {
       for (final row in rows)
         '${row['reason']}': int.tryParse('${row['n']}') ?? 0,
     };
+  }
+
+  // ------------------------------------------------------------------ badges
+
+  Future<Map<String, DateTime>> unlockedBadges() async {
+    final db = await database;
+    final rows = await db.query('badges');
+    return {
+      for (final r in rows)
+        '${r['id']}':
+            DateTime.tryParse('${r['unlocked_at']}') ?? DateTime.now(),
+    };
+  }
+
+  Future<void> unlockBadge(String id) async {
+    final db = await database;
+    await db.insert(
+      'badges',
+      {'id': id, 'unlocked_at': DateTime.now().toIso8601String()},
+      conflictAlgorithm: ConflictAlgorithm.ignore,
+    );
   }
 
   // ---------------------------------------------------------------- feedback

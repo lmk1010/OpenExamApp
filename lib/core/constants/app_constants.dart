@@ -15,4 +15,5 @@ class Prefs {
   static const autoNext = 'auto_next';
   static const dailyGoal = 'daily_goal';
   static const onboarded = 'onboarded';
+  static const province = 'province';
 }

@@ -33,6 +33,8 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
   DateTime? _examDate;
   int _goal = 30;
   ResumeState? _resume;
+  String? _province;
+  int _provinceCount = 0;
 
   @override
   void initState() {
@@ -53,6 +55,9 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
     final examRaw = prefs.getString(Prefs.examDate);
     final goal = prefs.getInt(Prefs.dailyGoal) ?? 30;
     final resume = await db.loadResume();
+    final province = prefs.getString(Prefs.province);
+    final provinceCount =
+        province == null ? 0 : await db.countByRegion(province);
     if (!mounted) return;
     setState(() {
       _total = total;
@@ -63,6 +68,8 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
       _name = name;
       _goal = goal;
       _resume = resume;
+      _province = province;
+      _provinceCount = provinceCount;
       _examDate = examRaw == null ? null : DateTime.tryParse(examRaw);
       _loading = false;
     });
@@ -161,6 +168,15 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
   Future<void> _startAdaptive() async {
     final questions = await AppDatabase.instance.fetchAdaptive(limit: _count);
     await _open(questions, title: '弱项强化');
+  }
+
+  /// Questions drawn only from the province the user is sitting for.
+  Future<void> _startRegion() async {
+    final region = _province;
+    if (region == null) return;
+    final questions =
+        await AppDatabase.instance.fetchByRegion(region, limit: _count);
+    await _open(questions, title: '$region真题');
   }
 
   Future<void> _startWrong() async {
@@ -303,6 +319,16 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
                     onTap: () => _start(),
                   ),
                   const SizedBox(width: 11),
+                  if (_province != null && _provinceCount > 0) ...[
+                    _FeatureCard(
+                      title: '$_province真题',
+                      meta: '$_provinceCount 题 · 你要考的卷',
+                      glyph: AppIcon.papers,
+                      colors: [t.category('yanyu')],
+                      onTap: _startRegion,
+                    ),
+                    const SizedBox(width: 11),
+                  ],
                   _FeatureCard(
                     title: '弱项强化',
                     meta: _done < 20 ? '先练一组再解锁' : '按薄弱模块配比',
