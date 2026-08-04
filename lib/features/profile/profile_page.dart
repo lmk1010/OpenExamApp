@@ -389,6 +389,8 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 }
 
+/// Seven day cells tinted by volume. Days with nothing show a dot rather than
+/// an empty box — a row of blank squares reads as broken, not as idle.
 class _WeekStrip extends StatelessWidget {
   const _WeekStrip({required this.counts, required this.goal});
 
@@ -404,6 +406,32 @@ class _WeekStrip extends StatelessWidget {
     final t = context.tokens;
     final text = Theme.of(context).textTheme;
     final today = DateTime.now();
+    final total = counts.fold<int>(0, (a, b) => a + b);
+
+    // Nothing all week: one honest line instead of seven blanks.
+    if (total == 0) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        decoration: BoxDecoration(
+          color: t.name == 'dark'
+              ? Colors.white.withValues(alpha: 0.05)
+              : t.text.withValues(alpha: 0.04),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            StrokeIcon(AppIcon.practice, size: 18, color: t.muted),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                '这周还没开练，刷一组就有记录了',
+                style: text.bodySmall?.copyWith(fontSize: 13),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     return Row(
       children: [
@@ -420,12 +448,13 @@ class _WeekStrip extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: counts[i] == 0
                             ? (t.name == 'dark'
-                                ? Colors.white.withValues(alpha: 0.06)
-                                : t.text.withValues(alpha: 0.05))
+                                ? Colors.white.withValues(alpha: 0.05)
+                                : t.text.withValues(alpha: 0.04))
                             : t.brand.withValues(
                                 alpha: goal <= 0 || counts[i] >= goal
                                     ? 1
-                                    : (0.3 + 0.5 * (counts[i] / goal)).clamp(0.3, 0.85),
+                                    : (0.3 + 0.5 * (counts[i] / goal))
+                                        .clamp(0.3, 0.85),
                               ),
                         borderRadius: BorderRadius.circular(13),
                         border: i == counts.length - 1
@@ -435,17 +464,26 @@ class _WeekStrip extends StatelessWidget {
                               )
                             : null,
                       ),
-                      child: Text(
-                        counts[i] == 0 ? '' : '${counts[i]}',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: goal > 0 && counts[i] / goal > 0.5
-                              ? Colors.white
-                              : t.text,
-                          fontFeatures: AppTheme.numeric,
-                        ),
-                      ),
+                      child: counts[i] == 0
+                          ? Container(
+                              width: 5,
+                              height: 5,
+                              decoration: BoxDecoration(
+                                color: t.muted.withValues(alpha: 0.5),
+                                shape: BoxShape.circle,
+                              ),
+                            )
+                          : Text(
+                              '${counts[i]}',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: goal > 0 && counts[i] / goal > 0.5
+                                    ? Colors.white
+                                    : t.text,
+                                fontFeatures: AppTheme.numeric,
+                              ),
+                            ),
                     ),
                   ),
                   const SizedBox(height: 7),

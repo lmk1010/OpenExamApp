@@ -74,9 +74,9 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
   }) async {
     if (!mounted) return;
     if (questions.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('这里还没有题')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('这里还没有题')));
       return;
     }
     await Navigator.of(context).push(
@@ -92,22 +92,22 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
   }
 
   Future<void> _start({String? category, int? limit}) async {
-    await _open(await AppDatabase.instance.fetchPractice(
-      category: category,
-      limit: limit ?? _count,
-      shuffle: true,
-    ));
+    await _open(
+      await AppDatabase.instance.fetchPractice(
+        category: category,
+        limit: limit ?? _count,
+        shuffle: true,
+      ),
+    );
   }
 
   /// Mock exam: fixed set, countdown, answers hidden until 交卷.
   Future<void> _startMock() async {
-    final questions =
-        await AppDatabase.instance.fetchPractice(limit: 50, shuffle: true);
-    await _open(
-      questions,
-      limit: const Duration(minutes: 45),
-      title: '限时模考',
+    final questions = await AppDatabase.instance.fetchPractice(
+      limit: 50,
+      shuffle: true,
     );
+    await _open(questions, limit: const Duration(minutes: 45), title: '限时模考');
   }
 
   /// Weakness-weighted set — the app decides the mix so the user doesn't have
@@ -219,7 +219,12 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
           const SizedBox(height: 18),
           if (_resume != null && _resume!.remaining > 0)
             Padding(
-              padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 0, AppTheme.gutter, 18),
+              padding: const EdgeInsets.fromLTRB(
+                AppTheme.gutter,
+                0,
+                AppTheme.gutter,
+                18,
+              ),
               child: _ResumeBanner(
                 state: _resume!,
                 onContinue: _continueResume,
@@ -229,42 +234,54 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
           // Feature carousel — each card is a one-tap entry, image-led.
           SizedBox(
             height: 138,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
-              children: [
-                _FeatureCard(
-                  title: '每日一练',
-                  meta: '$_count 题 · 随机抽题',
-                  glyph: AppIcon.shuffle,
-                  colors: [t.brand],
-                  onTap: () => _start(),
+            child: ShaderMask(
+              // Fades the right edge so it's obvious the row keeps going.
+              shaderCallback: (rect) => LinearGradient(
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+                colors: const [Colors.black, Colors.black, Colors.transparent],
+                stops: const [0, 0.9, 1],
+              ).createShader(rect),
+              blendMode: BlendMode.dstIn,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppTheme.gutter,
                 ),
-                const SizedBox(width: 11),
-                _FeatureCard(
-                  title: '弱项强化',
-                  meta: _done < 20 ? '先练一组再解锁' : '按薄弱模块配比',
-                  glyph: AppIcon.chart,
-                  colors: [t.category('panduan')],
-                  onTap: _done < 20 ? null : _startAdaptive,
-                ),
-                const SizedBox(width: 11),
-                _FeatureCard(
-                  title: '错题重练',
-                  meta: _wrong == 0 ? '暂无错题' : '$_wrong 题待清',
-                  glyph: AppIcon.replay,
-                  colors: [t.category('changshi')],
-                  onTap: _wrong == 0 ? null : _startWrong,
-                ),
-                const SizedBox(width: 11),
-                _FeatureCard(
-                  title: '限时模考',
-                  meta: '50 题 · 45 分钟',
-                  glyph: AppIcon.timer,
-                  colors: [t.category('ziliao')],
-                  onTap: _startMock,
-                ),
-              ],
+                children: [
+                  _FeatureCard(
+                    title: '每日一练',
+                    meta: '$_count 题 · 随机抽题',
+                    glyph: AppIcon.shuffle,
+                    colors: [t.brand],
+                    onTap: () => _start(),
+                  ),
+                  const SizedBox(width: 11),
+                  _FeatureCard(
+                    title: '弱项强化',
+                    meta: _done < 20 ? '先练一组再解锁' : '按薄弱模块配比',
+                    glyph: AppIcon.chart,
+                    colors: [t.category('panduan')],
+                    onTap: _done < 20 ? null : _startAdaptive,
+                  ),
+                  const SizedBox(width: 11),
+                  _FeatureCard(
+                    title: '错题重练',
+                    meta: _wrong == 0 ? '暂无错题' : '$_wrong 题待清',
+                    glyph: AppIcon.replay,
+                    colors: [t.category('changshi')],
+                    onTap: _wrong == 0 ? null : _startWrong,
+                  ),
+                  const SizedBox(width: 11),
+                  _FeatureCard(
+                    title: '限时模考',
+                    meta: '50 题 · 45 分钟',
+                    glyph: AppIcon.timer,
+                    colors: [t.category('ziliao')],
+                    onTap: _startMock,
+                  ),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 26),
@@ -280,7 +297,10 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
               onTap: () => _start(category: c.key),
             ),
           const SizedBox(height: 26),
-          _ListHeader(title: '近 7 天', trailing: _done == 0 ? null : '正确率 $rate%'),
+          _ListHeader(
+            title: '近 7 天',
+            trailing: _done == 0 ? null : '正确率 $rate%',
+          ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
             child: WeekBars(counts: _week),
@@ -300,21 +320,29 @@ class _TopBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 12, AppTheme.gutter - 8, 0),
+      padding: const EdgeInsets.fromLTRB(
+        AppTheme.gutter,
+        12,
+        AppTheme.gutter - 8,
+        0,
+      ),
       child: Row(
         children: [
           const BrandLogo(size: 26),
           const SizedBox(width: 9),
           Text(
             'OpenExam',
-            style: text.titleMedium?.copyWith(fontSize: 16.5, letterSpacing: -0.4),
+            style: text.titleMedium?.copyWith(
+              fontSize: 16.5,
+              letterSpacing: -0.4,
+            ),
           ),
           const Spacer(),
           PlainIconButton(
             icon: Icons.search,
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const SearchPage()),
-            ),
+            onTap: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const SearchPage())),
           ),
           PlainIconButton(
             icon: ThemeController.instance.icon,
@@ -379,7 +407,12 @@ class _Hero extends StatelessWidget {
     final days = _daysLeft;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 10, AppTheme.gutter, 0),
+      padding: const EdgeInsets.fromLTRB(
+        AppTheme.gutter,
+        10,
+        AppTheme.gutter,
+        0,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -390,13 +423,19 @@ class _Hero extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('$_greeting，$name', style: text.bodySmall?.copyWith(fontSize: 13)),
+                    Text(
+                      '$_greeting，$name',
+                      style: text.bodySmall?.copyWith(fontSize: 13),
+                    ),
                     const SizedBox(height: 8),
                     Text(
                       today >= goal
                           ? '今日目标已完成'
                           : (today == 0 ? '今天还没开练' : '今天已练 $today 题'),
-                      style: text.displaySmall?.copyWith(fontSize: 27, letterSpacing: -1),
+                      style: text.displaySmall?.copyWith(
+                        fontSize: 27,
+                        letterSpacing: -1,
+                      ),
                     ),
                   ],
                 ),
@@ -421,11 +460,17 @@ class _Hero extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 3),
-                        Text('天', style: text.bodySmall?.copyWith(color: t.brand)),
+                        Text(
+                          '天',
+                          style: text.bodySmall?.copyWith(color: t.brand),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 5),
-                    Text('距考试', style: text.bodySmall?.copyWith(fontSize: 11.5)),
+                    Text(
+                      '距考试',
+                      style: text.bodySmall?.copyWith(fontSize: 11.5),
+                    ),
                   ],
                 ),
             ],
@@ -576,7 +621,10 @@ class _StatusTile extends StatelessWidget {
                           alignment: Alignment.center,
                           children: [
                             TweenAnimationBuilder<double>(
-                              tween: Tween(begin: 0, end: progress!.clamp(0.0, 1.0)),
+                              tween: Tween(
+                                begin: 0,
+                                end: progress!.clamp(0.0, 1.0),
+                              ),
                               duration: const Duration(milliseconds: 600),
                               curve: Curves.easeOutCubic,
                               builder: (_, v, __) => SizedBox(
@@ -587,12 +635,18 @@ class _StatusTile extends StatelessWidget {
                                   strokeWidth: 2.6,
                                   strokeCap: StrokeCap.round,
                                   color: t.onChip,
-                                  backgroundColor: t.onChip.withValues(alpha: 0.24),
+                                  backgroundColor: t.onChip.withValues(
+                                    alpha: 0.24,
+                                  ),
                                 ),
                               ),
                             ),
                             if (done)
-                              Icon(Icons.check_rounded, size: 13, color: t.onChip),
+                              Icon(
+                                Icons.check_rounded,
+                                size: 13,
+                                color: t.onChip,
+                              ),
                           ],
                         ),
                       ),
@@ -660,7 +714,7 @@ class _FeatureCard extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          width: 208,
+          width: 186,
           padding: const EdgeInsets.fromLTRB(18, 16, 16, 16),
           decoration: BoxDecoration(
             color: base,
@@ -705,7 +759,11 @@ class _FeatureCard extends StatelessWidget {
                       color: on,
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(Icons.play_arrow_rounded, size: 19, color: base),
+                    child: Icon(
+                      Icons.play_arrow_rounded,
+                      size: 19,
+                      color: base,
+                    ),
                   ),
                 ],
               ),
@@ -729,7 +787,12 @@ class _ListHeader extends StatelessWidget {
     final t = context.tokens;
     final text = Theme.of(context).textTheme;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 0, AppTheme.gutter, 8),
+      padding: const EdgeInsets.fromLTRB(
+        AppTheme.gutter,
+        0,
+        AppTheme.gutter,
+        8,
+      ),
       child: Row(
         children: [
           Text(title, style: text.titleMedium?.copyWith(fontSize: 17)),
@@ -777,13 +840,18 @@ class _TypeRow extends StatelessWidget {
     final total = stat?.total ?? 0;
     final done = stat?.done ?? 0;
     final started = done > 0;
-    final pct = total == 0 ? 0 : (done * 100 / total);
+    // Accuracy, not completion: "4126 题做了 5 道 = 0.1%" reads like a score
+    // and isn't one.
+    final accuracy = stat == null ? 0 : (stat!.accuracy * 100).round();
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter, vertical: 15),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppTheme.gutter,
+          vertical: 15,
+        ),
         child: Row(
           children: [
             StrokeIcon(meta.icon, size: 21, color: color),
@@ -796,14 +864,18 @@ class _TypeRow extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            Expanded(child: Meter(value: total == 0 ? 0 : done / total, color: color, height: 4)),
+            Expanded(
+              child: Meter(
+                value: total == 0 ? 0 : done / total,
+                color: color,
+                height: 4,
+              ),
+            ),
             const SizedBox(width: 12),
             SizedBox(
               width: 66,
               child: Text(
-                started
-                    ? '$done/$total'
-                    : '$total 题',
+                started ? '$done/$total' : '$total 题',
                 textAlign: TextAlign.right,
                 style: text.bodySmall,
               ),
@@ -811,7 +883,7 @@ class _TypeRow extends StatelessWidget {
             SizedBox(
               width: 44,
               child: Text(
-                started ? '${pct < 1 ? pct.toStringAsFixed(1) : pct.round()}%' : '',
+                started ? '$accuracy%' : '',
                 textAlign: TextAlign.right,
                 style: text.labelMedium?.copyWith(
                   color: color,
@@ -868,7 +940,8 @@ class _GoalSheet extends StatelessWidget {
                         ),
                       ),
                       const Spacer(),
-                      if (n == current) Icon(Icons.check, size: 19, color: t.brand),
+                      if (n == current)
+                        Icon(Icons.check, size: 19, color: t.brand),
                     ],
                   ),
                 ),
@@ -920,7 +993,8 @@ class _CountSheet extends StatelessWidget {
                         ),
                       ),
                       const Spacer(),
-                      if (n == current) Icon(Icons.check, size: 19, color: t.brand),
+                      if (n == current)
+                        Icon(Icons.check, size: 19, color: t.brand),
                     ],
                   ),
                 ),
