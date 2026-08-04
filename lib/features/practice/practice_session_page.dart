@@ -15,6 +15,7 @@ import 'package:openexam_app/data/models/question.dart';
 import 'package:openexam_app/features/achievements/achievements.dart';
 import 'package:openexam_app/features/achievements/achievements_page.dart';
 import 'package:openexam_app/features/practice/scratch_pad.dart';
+import 'package:openexam_app/features/tips/tips_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PracticeSessionPage extends StatefulWidget {
@@ -628,20 +629,35 @@ class _QuestionView extends StatelessWidget {
             ),
           ),
         if (!isExam)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Row(
-              children: [
-                StrokeIcon(categoryIcon(question.category), size: 15, color: accent),
-                const SizedBox(width: 6),
-                Text(
-                  categoryLabel(question.category),
-                  style: text.bodySmall?.copyWith(color: accent),
-                ),
-                if (question.year > 0) ...[
-                  Text(' · ${question.year} 年', style: text.bodySmall),
+          // Tapping the type opens that module's method cards — the moment you
+          // need them is the moment you're stuck on one of its questions.
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => TipsPage(category: question.category),
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Row(
+                children: [
+                  StrokeIcon(categoryIcon(question.category), size: 15, color: accent),
+                  const SizedBox(width: 6),
+                  Text(
+                    categoryLabel(question.category),
+                    style: text.bodySmall?.copyWith(color: accent),
+                  ),
+                  if (question.year > 0)
+                    Text(' · ${question.year} 年', style: text.bodySmall),
+                  const SizedBox(width: 6),
+                  Icon(Icons.lightbulb_outline, size: 13, color: t.muted),
+                  Text(
+                    ' 技巧',
+                    style: text.bodySmall?.copyWith(fontSize: 11.5),
+                  ),
                 ],
-              ],
+              ),
             ),
           ),
         RichContent(

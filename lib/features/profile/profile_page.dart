@@ -19,6 +19,7 @@ import 'package:openexam_app/features/notes/notes_page.dart';
 import 'package:openexam_app/features/onboarding/onboarding_page.dart';
 import 'package:openexam_app/features/reports/reports_page.dart';
 import 'package:openexam_app/features/stats/stats_page.dart';
+import 'package:openexam_app/features/tips/tips_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// 我的 — data, appearance, question-bank management and privacy in one place.
@@ -261,6 +262,15 @@ class _ProfilePageState extends State<ProfilePage> {
           value: _answers == 0 ? '暂无数据' : '正确率 $_rate%',
           onTap: () => Navigator.of(context).push(
             MaterialPageRoute(builder: (_) => const StatsPage()),
+          ),
+        ),
+        const RowDivider(),
+        _SettingRow(
+          icon: AppIcon.logic,
+          title: '解题技巧',
+          value: '五个模块',
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const TipsPage()),
           ),
         ),
         const RowDivider(),

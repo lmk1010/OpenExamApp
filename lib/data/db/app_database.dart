@@ -336,6 +336,26 @@ class AppDatabase {
         0;
   }
 
+  /// Papers touched most recently, newest first — 「继续上次那套」.
+  Future<List<({String id, DateTime at})>> recentPapers({int limit = 3}) async {
+    final db = await database;
+    final rows = await db.rawQuery('''
+      SELECT q.paper_id AS id, MAX(l.created_at) AS at
+      FROM practice_logs l
+      JOIN questions q ON q.id = l.question_id
+      WHERE q.paper_id IS NOT NULL AND q.paper_id != ''
+      GROUP BY q.paper_id
+      ORDER BY at DESC
+      LIMIT ?
+    ''', [limit]);
+    return rows
+        .map((r) => (
+              id: '${r['id']}',
+              at: DateTime.tryParse('${r['at']}') ?? DateTime.now(),
+            ))
+        .toList();
+  }
+
   /// Distinct questions answered per paper, for the 题库 progress meters.
   Future<Map<String, int>> paperProgress() async {
     final db = await database;

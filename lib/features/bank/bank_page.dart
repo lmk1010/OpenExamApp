@@ -28,6 +28,7 @@ class _BankPageState extends State<BankPage> {
   Map<String, int> _progress = const {};
   String _query = '';
   bool _regionApplied = false;
+  List<({String id, DateTime at})> _recent = const [];
 
   /// Region key: 'all', '国考' or a province name.
   String _region = 'all';
@@ -57,11 +58,13 @@ class _BankPageState extends State<BankPage> {
     if (!_loading) setState(() => _loading = true);
     final rows = await AppDatabase.instance.listPapers(limit: 400);
     final progress = await AppDatabase.instance.paperProgress();
+    final recent = await AppDatabase.instance.recentPapers();
     final prefs = await SharedPreferences.getInstance();
     if (!mounted) return;
     setState(() {
       _papers = rows.map(_Paper.fromRow).toList();
       _progress = progress;
+      _recent = recent;
       // Default to the region the user is sitting for; they can widen it.
       if (_region == 'all' && !_regionApplied) {
         final mine = prefs.getString(Prefs.province);
@@ -247,6 +250,25 @@ class _BankPageState extends State<BankPage> {
               ),
             ),
           ),
+          // Whatever you were last working through comes first — that is almost
+          // always what you came back for.
+          if (_recent.isNotEmpty && _query.isEmpty) ...[
+            const SizedBox(height: 14),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(AppTheme.gutter, 0, AppTheme.gutter, 8),
+              child: SectionHeader(title: '继续上次', caption: '最近做过的卷'),
+            ),
+            for (final r in _recent)
+              if (_papers.any((p) => p.id == r.id))
+                _PaperRow(
+                  paper: _papers.firstWhere((p) => p.id == r.id),
+                  done: _progress[r.id] ?? 0,
+                  onTap: () =>
+                      _openPaper(_papers.firstWhere((p) => p.id == r.id)),
+                ),
+            const SizedBox(height: 6),
+            const RowDivider(indent: 0),
+          ],
           const SizedBox(height: 12),
           FilterBar(
             filters: [
