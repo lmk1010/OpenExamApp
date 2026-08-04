@@ -281,7 +281,7 @@ class _MedalPainter extends CustomPainter {
         ).createShader(Rect.fromCircle(center: c, radius: r)),
     );
 
-    if (detail) _engrave(canvas, c, r, body);
+    if (detail && unlocked) _engrave(canvas, c, r, body);
 
     if (unlocked) {
       // Bevel: a dark inner line, then the metal rim, then the highlight sweep.
@@ -399,9 +399,7 @@ class _MedalPainter extends CustomPainter {
     final ink = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = r * 0.012
-      ..color = unlocked
-          ? Colors.white.withValues(alpha: 0.07)
-          : track.withValues(alpha: 0.5);
+      ..color = Colors.white.withValues(alpha: 0.06);
     // Concentric rings, off-centre so the light side reads thicker.
     for (var i = 1; i <= 7; i++) {
       canvas.drawCircle(c + Offset(-r * 0.02, -r * 0.02), r * i / 8.5, ink);

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
+import 'package:openexam_app/core/ui/ambient.dart';
 import 'package:openexam_app/core/ui/ui_kit.dart';
 import 'package:openexam_app/features/achievements/achievements.dart';
 import 'package:openexam_app/features/achievements/medal.dart';
@@ -148,8 +149,6 @@ Future<void> showBadgeCard(
   final index = list.indexWhere((b) => b.id == badge.id);
   return Navigator.of(context).push<void>(
     PageRouteBuilder(
-      opaque: false,
-      barrierColor: Colors.black.withValues(alpha: 0.35),
       transitionDuration: const Duration(milliseconds: 380),
       reverseTransitionDuration: const Duration(milliseconds: 240),
       pageBuilder: (_, __, ___) =>
@@ -192,7 +191,10 @@ class _BadgeDetailPageState extends State<BadgeDetailPage> {
     final badge = widget.badges[_index];
     final tint = badge.unlocked ? badge.tier.color : t.muted;
 
-    return Scaffold(
+    // Scaffolds are transparent app-wide, so this page paints its own backdrop
+    // — without it the grid underneath showed straight through.
+    return AmbientBackground(
+      child: Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -236,6 +238,7 @@ class _BadgeDetailPageState extends State<BadgeDetailPage> {
               child: _Dots(count: widget.badges.length, index: _index, color: tint),
             ),
         ],
+      ),
       ),
     );
   }
