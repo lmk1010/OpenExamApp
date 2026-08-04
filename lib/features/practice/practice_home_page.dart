@@ -433,18 +433,24 @@ class _Hero extends StatelessWidget {
           const SizedBox(height: 18),
           Row(
             children: [
-              _GoalTile(done: today, goal: goal, onTap: onTapGoal),
-              const SizedBox(width: 9),
+              _StatusTile(
+                progress: goal == 0 ? 0 : today / goal,
+                done: today >= goal,
+                value: '$today/$goal',
+                label: '今日目标',
+                onTap: onTapGoal,
+              ),
+              const SizedBox(width: 10),
               _StatusTile(
                 icon: AppIcon.chart,
                 value: rate == 0 ? '—' : '$rate%',
                 label: '正确率',
               ),
-              const SizedBox(width: 9),
+              const SizedBox(width: 10),
               _StatusTile(
                 icon: AppIcon.timer,
-                value: '$streak',
-                label: '连续天',
+                value: '$streak 天',
+                label: '连续打卡',
               ),
             ],
           ),
@@ -516,86 +522,106 @@ class _ResumeBanner extends StatelessWidget {
   }
 }
 
-/// Today's target as a ring inside the status row — progress you can read at a
-/// glance, and one tap to change the target.
-class _GoalTile extends StatelessWidget {
-  const _GoalTile({required this.done, required this.goal, required this.onTap});
+/// One status tile. Goal, accuracy and streak all use the same vertical
+/// stack — the goal tile used to put its ring beside the number, which left
+/// about 30dp for "12/30" and looked squashed.
+class _StatusTile extends StatelessWidget {
+  const _StatusTile({
+    required this.value,
+    required this.label,
+    this.icon,
+    this.progress,
+    this.done = false,
+    this.onTap,
+  });
 
-  final int done;
-  final int goal;
-  final VoidCallback onTap;
+  final String value;
+  final String label;
+
+  /// Either a glyph or a progress ring sits at the top of the tile.
+  final AppIcon? icon;
+  final double? progress;
+  final bool done;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
-    final ratio = goal == 0 ? 0.0 : (done / goal).clamp(0.0, 1.0);
-    final hit = done >= goal;
 
     return Expanded(
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.fromLTRB(13, 11, 13, 12),
+          padding: const EdgeInsets.fromLTRB(14, 13, 12, 14),
           decoration: BoxDecoration(
             color: t.chip,
             borderRadius: BorderRadius.circular(18),
           ),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(
-                width: 34,
-                height: 34,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    TweenAnimationBuilder<double>(
-                      tween: Tween(begin: 0, end: ratio),
-                      duration: const Duration(milliseconds: 600),
-                      curve: Curves.easeOutCubic,
-                      builder: (_, v, __) => SizedBox(
-                        width: 34,
-                        height: 34,
-                        child: CircularProgressIndicator(
-                          value: v == 0 ? 0.02 : v,
-                          strokeWidth: 3,
-                          strokeCap: StrokeCap.round,
-                          color: t.onChip,
-                          backgroundColor: t.onChip.withValues(alpha: 0.22),
+                height: 26,
+                child: progress == null
+                    ? StrokeIcon(
+                        icon!,
+                        size: 17,
+                        color: t.onChip.withValues(alpha: 0.85),
+                      )
+                    : SizedBox(
+                        width: 26,
+                        height: 26,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            TweenAnimationBuilder<double>(
+                              tween: Tween(begin: 0, end: progress!.clamp(0.0, 1.0)),
+                              duration: const Duration(milliseconds: 600),
+                              curve: Curves.easeOutCubic,
+                              builder: (_, v, __) => SizedBox(
+                                width: 26,
+                                height: 26,
+                                child: CircularProgressIndicator(
+                                  value: v == 0 ? 0.02 : v,
+                                  strokeWidth: 2.6,
+                                  strokeCap: StrokeCap.round,
+                                  color: t.onChip,
+                                  backgroundColor: t.onChip.withValues(alpha: 0.24),
+                                ),
+                              ),
+                            ),
+                            if (done)
+                              Icon(Icons.check_rounded, size: 13, color: t.onChip),
+                          ],
                         ),
                       ),
-                    ),
-                    if (hit)
-                      Icon(Icons.check_rounded, size: 16, color: t.onChip),
-                  ],
+              ),
+              const SizedBox(height: 12),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 19,
+                    fontWeight: FontWeight.w700,
+                    height: 1,
+                    letterSpacing: -0.4,
+                    color: t.onChip,
+                    fontFeatures: AppTheme.numeric,
+                  ),
                 ),
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '$done/$goal',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        height: 1,
-                        letterSpacing: -0.3,
-                        color: t.onChip,
-                        fontFeatures: AppTheme.numeric,
-                      ),
-                    ),
-                    const SizedBox(height: 5),
-                    Text(
-                      '今日目标',
-                      style: TextStyle(
-                        fontSize: 11.5,
-                        height: 1,
-                        color: t.onChip.withValues(alpha: 0.72),
-                      ),
-                    ),
-                  ],
+              const SizedBox(height: 7),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 11.5,
+                  height: 1,
+                  color: t.onChip.withValues(alpha: 0.72),
                 ),
               ),
             ],
@@ -606,61 +632,7 @@ class _GoalTile extends StatelessWidget {
   }
 }
 
-/// Tonal glass tile over the sky — the 米家 status-chip pattern.
-class _StatusTile extends StatelessWidget {
-  const _StatusTile({
-    required this.icon,
-    required this.value,
-    required this.label,
-  });
-
-  final AppIcon icon;
-  final String value;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.tokens;
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(13, 11, 13, 12),
-        decoration: BoxDecoration(
-          color: t.chip,
-          borderRadius: BorderRadius.circular(18),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            StrokeIcon(icon, size: 16, color: t.onChip.withValues(alpha: 0.85)),
-            const SizedBox(height: 10),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 19,
-                fontWeight: FontWeight.w700,
-                height: 1,
-                letterSpacing: -0.4,
-                color: t.onChip,
-                fontFeatures: AppTheme.numeric,
-              ),
-            ),
-            const SizedBox(height: 5),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11.5,
-                height: 1,
-                color: t.onChip.withValues(alpha: 0.72),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Flat colour block with a headline, one line of meta and a play affordance —
+/// Flat colour block with a headline/// Flat colour block with a headline, one line of meta and a play affordance —
 /// the QQ音乐 entry-card pattern. No watermark art, no gradients fighting the text.
 class _FeatureCard extends StatelessWidget {
   const _FeatureCard({
