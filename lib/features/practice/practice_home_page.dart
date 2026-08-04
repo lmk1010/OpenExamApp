@@ -39,6 +39,7 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
   List<Question> _daily = const [];
   ({int answered, int correct}) _dailyProgress = (answered: 0, correct: 0);
   int _provinceCount = 0;
+  int _hardCount = 0;
 
   @override
   void initState() {
@@ -65,6 +66,7 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
     final province = prefs.getString(Prefs.province);
     final provinceCount =
         province == null ? 0 : await db.countByRegion(province);
+    final hardCount = (await db.difficultyCounts())[3] ?? 0;
     if (!mounted) return;
     setState(() {
       _total = total;
@@ -79,6 +81,7 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
       _daily = daily;
       _dailyProgress = dailyProgress;
       _provinceCount = provinceCount;
+      _hardCount = hardCount;
       _examDate = examRaw == null ? null : DateTime.tryParse(examRaw);
       _loading = false;
     });
@@ -150,6 +153,11 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
       ),
     );
     _reload();
+  }
+
+  Future<void> _startHard() async {
+    final questions = await AppDatabase.instance.fetchByDifficulty(3, limit: 30);
+    await _open(questions, title: '标难的题');
   }
 
   /// 单模块限时练 — same question count as normal practice, but on the pace a
@@ -465,9 +473,28 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 0, AppTheme.gutter, 8),
-            child: Text(
-              '长按任意题型可以选限时练或背题',
-              style: Theme.of(context).textTheme.bodySmall,
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    '长按任意题型可以选限时练或背题',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ),
+                // 自己标过「难」的题，攒够了就该单独拉出来练。
+                if (_hardCount > 0)
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: _startHard,
+                    child: Text(
+                      '标难的 $_hardCount 题 ›',
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodySmall
+                          ?.copyWith(color: t.brand),
+                    ),
+                  ),
+              ],
             ),
           ),
           for (final c in kGongkaoCategories)

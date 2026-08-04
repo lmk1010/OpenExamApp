@@ -150,6 +150,15 @@ class AppDatabase {
         unlocked_at TEXT NOT NULL
       )
     ''');
+    // 自己标的难度。没有服务器统计，也就没有「全站正确率」这种东西；
+    // 但「这题对我难」本来就是个人的判断，标一次以后能筛出来重练。
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS difficulty (
+        question_id TEXT PRIMARY KEY,
+        level INTEGER NOT NULL,
+        updated_at TEXT NOT NULL
+      )
+    ''');
     // 四天复习计划：粉笔那套「同类错因连盯四天」——前两天放慢做对，
     // 第三天限时加压，第四天混练验证。计划本身只是四条打卡记录。
     await db.execute('''
@@ -644,6 +653,7 @@ class AppDatabase {
       'notes': await db.query('notes'),
       'reasons': await db.query('wrong_reasons'),
       'plans': await db.query('review_plans'),
+      'difficulty': await db.query('difficulty'),
       'reports': await db.query('exam_reports'),
       'feedback': await db.query('feedback'),
       'badges': await db.query('badges'),
@@ -675,6 +685,7 @@ class AppDatabase {
     await put('notes', 'notes');
     await put('wrong_reasons', 'reasons');
     await put('review_plans', 'plans');
+    await put('difficulty', 'difficulty');
     await put('exam_reports', 'reports', wipe: true);
     await put('feedback', 'feedback', wipe: true);
     await put('badges', 'badges');
@@ -790,6 +801,60 @@ class AppDatabase {
       await clearResume();
       return null;
     }
+  }
+
+  // -------------------------------------------------------------- difficulty
+
+  /// level: 1 简单 / 2 一般 / 3 难；null 取消标记。
+  Future<void> setDifficulty(String questionId, int? level) async {
+    final db = await database;
+    if (level == null) {
+      await db.delete('difficulty', where: 'question_id = ?', whereArgs: [questionId]);
+      return;
+    }
+    await db.insert(
+      'difficulty',
+      {
+        'question_id': questionId,
+        'level': level,
+        'updated_at': DateTime.now().toIso8601String(),
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<Map<String, int>> difficulties() async {
+    final db = await database;
+    final rows = await db.query('difficulty');
+    return {
+      for (final row in rows)
+        '${row['question_id']}': int.tryParse('${row['level']}') ?? 2,
+    };
+  }
+
+  /// Questions the user has flagged at [level], newest tag first.
+  Future<List<Question>> fetchByDifficulty(int level, {int limit = 50}) async {
+    final db = await database;
+    final rows = await db.rawQuery('''
+      SELECT q.* FROM questions q
+      JOIN difficulty d ON d.question_id = q.id
+      WHERE d.level = ?
+      ORDER BY d.updated_at DESC
+      LIMIT ?
+    ''', [level, limit]);
+    return rows.map(_fromRow).toList();
+  }
+
+  Future<Map<int, int>> difficultyCounts() async {
+    final db = await database;
+    final rows = await db.rawQuery(
+      'SELECT level, COUNT(*) AS n FROM difficulty GROUP BY level',
+    );
+    return {
+      for (final row in rows)
+        (int.tryParse('${row['level']}') ?? 2):
+            (int.tryParse('${row['n']}') ?? 0),
+    };
   }
 
   // ------------------------------------------------------------ review plans

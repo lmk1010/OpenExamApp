@@ -35,6 +35,7 @@ class _WrongBookPageState extends State<WrongBookPage> {
   String _category = 'all';
   String _reasonFilter = 'all';
   String _paper = 'all';
+  String _level = 'all';
 
   /// 概览优先：打开就是密密麻麻的错题列表，没人愿意复盘。先看分布、
   /// 挑一类练，需要逐题翻的时候再切到列表。
@@ -44,6 +45,7 @@ class _WrongBookPageState extends State<WrongBookPage> {
   bool _sortByCount = false;
   Map<String, int> _counts = const {};
   List<ReviewPlan> _plans = const [];
+  Map<String, int> _difficulty = const {};
 
   /// Reviewing by 题型 finds weak modules; reviewing by 试卷 finds the paper you
   /// bombed. Both are how 考生 actually revisit mistakes.
@@ -60,12 +62,14 @@ class _WrongBookPageState extends State<WrongBookPage> {
     final reasons = await AppDatabase.instance.wrongReasons();
     final counts = await AppDatabase.instance.wrongCounts();
     final plans = await AppDatabase.instance.reviewPlans();
+    final difficulty = await AppDatabase.instance.difficulties();
     if (!mounted) return;
     setState(() {
       _wrong = wrong;
       _reasons = reasons;
       _counts = counts;
       _plans = plans;
+      _difficulty = difficulty;
       _loading = false;
     });
   }
@@ -554,6 +558,10 @@ class _WrongBookPageState extends State<WrongBookPage> {
       if (_paper != 'all' && (q.paperId.isEmpty ? '_' : q.paperId) != _paper) {
         return false;
       }
+      if (_level != 'all' &&
+          '${_difficulty[q.id] ?? 0}' != _level) {
+        return false;
+      }
       return true;
     }).toList();
     final shown = _sortByCount
@@ -684,6 +692,23 @@ class _WrongBookPageState extends State<WrongBookPage> {
                   ],
                 ),
                 FilterSpec(
+                  key: 'level',
+                  label: '难度',
+                  value: _level,
+                  icon: AppIcon.chart,
+                  options: [
+                    FilterOption('all', '全部难度', count: _wrong.length),
+                    for (final lv in const [3, 2, 1, 0])
+                      FilterOption(
+                        '$lv',
+                        const {3: '我标了难', 2: '一般', 1: '简单', 0: '没标过'}[lv]!,
+                        count: _wrong
+                            .where((q) => (_difficulty[q.id] ?? 0) == lv)
+                            .length,
+                      ),
+                  ],
+                ),
+                FilterSpec(
                   key: 'sort',
                   label: '排序',
                   value: _sortByCount ? 'count' : 'all',
@@ -702,6 +727,8 @@ class _WrongBookPageState extends State<WrongBookPage> {
                     _reasonFilter = value;
                   case 'paper':
                     _paper = value;
+                  case 'level':
+                    _level = value;
                   case 'sort':
                     _sortByCount = value == 'count';
                 }
@@ -710,6 +737,7 @@ class _WrongBookPageState extends State<WrongBookPage> {
                 _category = 'all';
                 _reasonFilter = 'all';
                 _paper = 'all';
+                _level = 'all';
                 _sortByCount = false;
               }),
             ),

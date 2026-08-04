@@ -76,6 +76,7 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
   /// question id -> 错因. Tagging right after answering is the only moment the
   /// reason is still fresh in the user's head.
   Map<String, String> _reasons = {};
+  Map<String, int> _difficulty = {};
   Map<String, String> _notes = {};
 
   /// Scratch work per question, kept for the life of the session.
@@ -121,10 +122,12 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
     final marked = await AppDatabase.instance.markedIds();
     final reasons = await AppDatabase.instance.wrongReasons();
     final notes = await AppDatabase.instance.notes();
+    final difficulty = await AppDatabase.instance.difficulties();
     if (!mounted) return;
     setState(() {
       _marked = marked;
       _reasons = reasons;
+      _difficulty = difficulty;
       _notes = notes;
       _fontScale = prefs.getDouble(Prefs.fontScale) ?? 1;
       _autoNext = prefs.getBool(Prefs.autoNext) ?? true;
@@ -308,6 +311,18 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
     });
     HapticFeedback.selectionClick();
     await AppDatabase.instance.setWrongReason(questionId, reason);
+  }
+
+  /// 自己标难度：1 简单 / 2 一般 / 3 难。再点一次取消。
+  Future<void> _setDifficulty(String questionId, int level) async {
+    final next = _difficulty[questionId] == level ? null : level;
+    setState(() {
+      next == null
+          ? _difficulty.remove(questionId)
+          : _difficulty[questionId] = next;
+    });
+    HapticFeedback.selectionClick();
+    await AppDatabase.instance.setDifficulty(questionId, next);
   }
 
   Future<void> _editNote() async {
@@ -565,8 +580,10 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
             isLast: i == total - 1 && !_isReview,
             isReview: _isReview,
             reason: _reasons[_questions[i].id],
+            difficulty: _difficulty[_questions[i].id],
             note: _notes[_questions[i].id],
             onReason: (r) => _setReason(_questions[i].id, r),
+            onDifficulty: (l) => _setDifficulty(_questions[i].id, l),
             onEditNote: _editNote,
             onSelect: _select,
             onSubmit: _submit,
@@ -587,8 +604,10 @@ class _QuestionView extends StatelessWidget {
     required this.isLast,
     required this.isReview,
     required this.reason,
+    required this.difficulty,
     required this.note,
     required this.onReason,
+    required this.onDifficulty,
     required this.onEditNote,
     required this.onSelect,
     required this.onSubmit,
@@ -601,8 +620,10 @@ class _QuestionView extends StatelessWidget {
   final bool isLast;
   final bool isReview;
   final String? reason;
+  final int? difficulty;
   final String? note;
   final ValueChanged<String?> onReason;
+  final ValueChanged<int> onDifficulty;
   final VoidCallback onEditNote;
   final ValueChanged<String> onSelect;
   final VoidCallback onSubmit;
@@ -803,6 +824,8 @@ class _QuestionView extends StatelessWidget {
               ],
             ),
           ),
+          const SizedBox(height: 10),
+          _DifficultyPicker(level: difficulty, onPick: onDifficulty),
         ] else if (selected == null)
           Padding(
             padding: const EdgeInsets.only(top: 6),
@@ -1841,6 +1864,56 @@ class _SheetShell extends StatelessWidget {
       ),
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
       child: SafeArea(top: false, child: child),
+    );
+  }
+}
+
+/// 难度自评：做完一题顺手标一下，以后能单独把「难」的挑出来重练。
+class _DifficultyPicker extends StatelessWidget {
+  const _DifficultyPicker({required this.level, required this.onPick});
+
+  final int? level;
+  final ValueChanged<int> onPick;
+
+  static const _labels = ['简单', '一般', '难'];
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+    final colors = [t.success, t.category('shuliang'), t.danger];
+
+    return Row(
+      children: [
+        Text('这题对我', style: text.bodySmall),
+        const SizedBox(width: 10),
+        for (var i = 0; i < 3; i++) ...[
+          if (i > 0) const SizedBox(width: 7),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => onPick(i + 1),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 160),
+              padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 7),
+              decoration: BoxDecoration(
+                color: level == i + 1
+                    ? colors[i].withValues(alpha: 0.16)
+                    : t.glass,
+                borderRadius: BorderRadius.circular(13),
+              ),
+              child: Text(
+                _labels[i],
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  height: 1,
+                  color: level == i + 1 ? colors[i] : t.muted,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ],
     );
   }
 }
