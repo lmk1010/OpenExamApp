@@ -130,7 +130,14 @@ class _BankPageState extends State<BankPage> {
     ];
   }
 
+  /// 宽屏分栏时选中的卷；窄屏为空，照旧 push 新页。
+  _Paper? _selected;
+
   Future<void> _openPaper(_Paper paper) async {
+    if (context.isExpanded) {
+      setState(() => _selected = paper);
+      return;
+    }
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => PaperPage(
@@ -189,11 +196,12 @@ class _BankPageState extends State<BankPage> {
     }
     final sortedYears = years.keys.toList()..sort((a, b) => b.compareTo(a));
 
-    return RefreshIndicator(
+    final list = RefreshIndicator(
       color: t.brand,
       backgroundColor: t.surface,
       onRefresh: _reload,
       child: ReadableWidth(
+        maxWidth: context.isExpanded ? double.infinity : null,
         child: ListView(
         padding: const EdgeInsets.only(bottom: 30),
         children: [
@@ -387,6 +395,35 @@ class _BankPageState extends State<BankPage> {
         ],
       ),
       ),
+    );
+
+    // 平板横屏：左边卷列表，右边直接是选中那张卷的详情。列表本来就是用来
+    // 挑卷的，挑完还要跳走再跳回来，在这么宽的屏幕上没道理。
+    if (!context.isExpanded) return list;
+    final picked = _selected ??
+        (_papers.isNotEmpty ? _papers.first : null);
+    return Row(
+      children: [
+        SizedBox(width: 380, child: list),
+        Container(width: 1, color: context.tokens.line.withValues(alpha: 0.5)),
+        Expanded(
+          child: picked == null
+              ? const EmptyState(
+                  icon: Icons.description_outlined,
+                  title: '选一张卷',
+                  art: EmptyArt.box,
+                  message: '左边挑一张，这里会显示它的模块分布和练习入口。',
+                )
+              : PaperPage(
+                  key: ValueKey(picked.id),
+                  paperId: picked.id,
+                  title: picked.shortTitle,
+                  year: picked.year,
+                  total: picked.count,
+                  embedded: true,
+                ),
+        ),
+      ],
     );
   }
 }

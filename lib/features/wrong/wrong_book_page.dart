@@ -495,6 +495,7 @@ class _WrongBookPageState extends State<WrongBookPage> {
       ],
 
       const SizedBox(height: 26),
+      if (!context.isExpanded)
       Padding(
         padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
         child: GestureDetector(
@@ -571,6 +572,103 @@ class _WrongBookPageState extends State<WrongBookPage> {
           ]..sort((a, b) => (_counts[b.id] ?? 0).compareTo(_counts[a.id] ?? 0)))
         : base;
 
+    // 平板横屏：概览钉在左边，右边是筛选后的题目列表。点左边的模块或错因
+    // 直接换右边的内容，不用来回切视图。
+    if (context.isExpanded && _wrong.isNotEmpty) {
+      return Row(
+        children: [
+          SizedBox(
+            width: 400,
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(0, 18, 0, 30),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppTheme.gutter,
+                    0,
+                    AppTheme.gutter,
+                    16,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '错题本',
+                        style: text.displaySmall?.copyWith(fontSize: 26),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        '${_wrong.length} 题待消灭',
+                        style: text.bodySmall?.copyWith(fontSize: 13),
+                      ),
+                    ],
+                  ),
+                ),
+                ..._overview(context, counts, reasonCounts, papers, paperKeys),
+              ],
+            ),
+          ),
+          Container(width: 1, color: t.line.withValues(alpha: 0.5)),
+          Expanded(
+            child: RefreshIndicator(
+              color: t.brand,
+              backgroundColor: t.surface,
+              onRefresh: _reload,
+              child: ListView(
+                padding: const EdgeInsets.only(top: 18, bottom: 30),
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppTheme.gutter,
+                      0,
+                      AppTheme.gutter,
+                      10,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            shown.length == _wrong.length
+                                ? '全部错题'
+                                : '筛出 ${shown.length} 题',
+                            style: text.titleSmall,
+                          ),
+                        ),
+                        _IconAction(
+                          icon: AppIcon.replay,
+                          tip: '重练当前筛选的题',
+                          onTap: () => _practise(shown.take(20).toList()),
+                        ),
+                        _IconAction(
+                          icon: AppIcon.download,
+                          tip: '导出当前列表为 Markdown',
+                          onTap: () => _export(shown),
+                        ),
+                      ],
+                    ),
+                  ),
+                  for (var i = 0; i < shown.length; i++) ...[
+                    if (i > 0) const RowDivider(),
+                    Reveal(
+                      index: i,
+                      child: _WrongRow(
+                        question: shown[i],
+                        reason: _reasons[shown[i].id],
+                        times: _counts[shown[i].id] ?? 1,
+                        onTap: () => _practise([shown[i]]),
+                        onLong: () => _actions(shown[i]),
+                        onRemove: () => _remove(shown[i]),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
     return RefreshIndicator(
       color: t.brand,
       backgroundColor: t.surface,
@@ -639,7 +737,7 @@ class _WrongBookPageState extends State<WrongBookPage> {
               art: EmptyArt.done,
               message: '去练习页刷一组，答错的题会自动进入这里，答对后自动移出。',
             )
-          else if (!_listMode)
+          else if (!_listMode && !context.isExpanded)
             ..._overview(context, counts, reasonCounts, papers, paperKeys)
           else ...[
             FilterBar(

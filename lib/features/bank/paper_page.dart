@@ -19,12 +19,16 @@ class PaperPage extends StatefulWidget {
     required this.title,
     required this.year,
     required this.total,
+    this.embedded = false,
   });
+
+  /// 嵌在宽屏分栏右侧时不画自己的顶栏 —— 左边的列表还在，没有「返回」可言。
 
   final String paperId;
   final String title;
   final int year;
   final int total;
+  final bool embedded;
 
   @override
   State<PaperPage> createState() => _PaperPageState();
@@ -86,11 +90,13 @@ class _PaperPageState extends State<PaperPage> {
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-
     final done = _stats.fold<int>(0, (s, e) => s + e.done);
     final correct = _stats.fold<int>(0, (s, e) => s + e.correct);
     final rate = done == 0 ? 0 : (correct * 100 / done).round();
+
+    if (widget.embedded) {
+      return _loading ? const LoadingState() : _content(context, done, correct, rate);
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -103,7 +109,13 @@ class _PaperPageState extends State<PaperPage> {
       ),
       body: _loading
           ? const LoadingState()
-          : ListView(
+          : _content(context, done, correct, rate),
+    );
+  }
+
+  Widget _content(BuildContext context, int done, int correct, int rate) {
+    final text = Theme.of(context).textTheme;
+    return ListView(
               padding: const EdgeInsets.only(bottom: 30),
               children: [
                 Padding(
@@ -208,8 +220,7 @@ class _PaperPageState extends State<PaperPage> {
                   ),
                 ),
               ],
-            ),
-    );
+            );
   }
 }
 

@@ -666,11 +666,7 @@ class _QuestionView extends StatelessWidget {
     final revealed = isReview || (selected != null && !isExam);
     final accent = t.category(question.category);
 
-    return ReadableWidth(
-      maxWidth: context.isExpanded ? 820 : context.readableWidth,
-      child: ListView(
-      padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 16, AppTheme.gutter, 28),
-      children: [
+    final head = <Widget>[
         // What happened last time on this exact question.
         if (!isExam)
           _History(questionId: question.id, answered: selected != null),
@@ -719,7 +715,9 @@ class _QuestionView extends StatelessWidget {
           style: text.bodyLarge?.copyWith(fontSize: 16 * fontScale, height: 1.75),
           maxImageHeight: 360,
         ),
-        const SizedBox(height: 22),
+    ];
+
+    final rest = <Widget>[
         ...question.options.map((opt) {
           final key = opt.key.toUpperCase();
           final chosen = selected == key;
@@ -961,7 +959,51 @@ class _QuestionView extends StatelessWidget {
             child: FilledButton(onPressed: onSubmit, child: const Text('交卷')),
           ),
         ],
-      ],
+    ];
+
+    // 宽屏两栏：题干和材料在左，选项、解析、笔记在右。资料分析一道题的材料
+    // 能有半屏长，左右分栏后不用来回滚。窄屏还是从上到下一条。
+    final twoPane = MediaQuery.sizeOf(context).width >= 900;
+    if (twoPane) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 14, AppTheme.gutter, 20),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: 6,
+              child: ListView(
+                padding: const EdgeInsets.only(right: 20, bottom: 12),
+                children: head,
+              ),
+            ),
+            Container(width: 1, color: t.line.withValues(alpha: 0.5)),
+            Expanded(
+              flex: 5,
+              child: ListView(
+                padding: const EdgeInsets.only(left: 20, bottom: 12),
+                children: rest,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ReadableWidth(
+      maxWidth: context.readableWidth,
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(
+          AppTheme.gutter,
+          16,
+          AppTheme.gutter,
+          28,
+        ),
+        children: [
+          ...head,
+          const SizedBox(height: 22),
+          ...rest,
+        ],
       ),
     );
   }
