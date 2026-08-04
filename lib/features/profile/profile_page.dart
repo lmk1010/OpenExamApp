@@ -157,6 +157,20 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  /// 宽屏右栏当前显示的页面。窄屏恒为空，走正常 push。
+  Widget? _detail;
+
+  /// 窄屏 push，宽屏换右栏。
+  void _open(Widget page) {
+    if (context.isExpanded) {
+      setState(() => _detail = page);
+      return;
+    }
+    Navigator.of(context)
+        .push(MaterialPageRoute(builder: (_) => page))
+        .then((_) => _reload());
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_loading) return const LoadingState();
@@ -166,8 +180,7 @@ class _ProfilePageState extends State<ProfilePage> {
     final days = _daysLeft;
     final weekTotal = _week.fold<int>(0, (a, b) => a + b);
 
-    return ReadableWidth(
-      child: ListView(
+    final list = ListView(
       padding: const EdgeInsets.only(bottom: 30),
       children: [
         // This is a page, so it opens with a page title like every other tab.
@@ -188,12 +201,7 @@ class _ProfilePageState extends State<ProfilePage> {
         // Account row: who you are, one tap to rename.
         GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTap: () async {
-            await Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const DashboardPage()),
-            );
-            _reload();
-          },
+          onTap: () => _open(const DashboardPage()),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter, vertical: 8),
             child: Row(
@@ -239,75 +247,56 @@ class _ProfilePageState extends State<ProfilePage> {
           icon: AppIcon.chart,
           title: '成就',
           value: '$_badges / $_badgeTotal',
-          onTap: () async {
-            await Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const AchievementsPage()),
-            );
-            _reload();
-          },
+          onTap: () => _open(const AchievementsPage()),
+          active: _detail is AchievementsPage,
         ),
         const RowDivider(),
         _SettingRow(
           icon: AppIcon.timer,
           title: '练习记录',
           value: '按天',
-          onTap: () => Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const TimelinePage()),
-          ),
+          onTap: () => _open(const TimelinePage()),
+          active: _detail is TimelinePage,
         ),
         const RowDivider(),
         _SettingRow(
           icon: AppIcon.papers,
           title: '成绩报告',
           value: _reports == 0 ? '暂无' : '$_reports 份',
-          onTap: () async {
-            await Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const ReportsPage()),
-            );
-            _reload();
-          },
+          onTap: () => _open(const ReportsPage()),
+          active: _detail is ReportsPage,
         ),
         const RowDivider(),
         _SettingRow(
           icon: AppIcon.chart,
           title: '学习统计',
           value: _answers == 0 ? '暂无数据' : '正确率 $_rate%',
-          onTap: () => Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const StatsPage()),
-          ),
+          onTap: () => _open(const StatsPage()),
+          active: _detail is StatsPage,
         ),
         const RowDivider(),
         _SettingRow(
           icon: AppIcon.logic,
           title: '解题技巧',
           value: '五个模块',
-          onTap: () => Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const TipsPage()),
-          ),
+          onTap: () => _open(const TipsPage()),
+          active: _detail is TipsPage,
         ),
         const RowDivider(),
         _SettingRow(
           icon: AppIcon.speech,
           title: '我的笔记',
           value: _notes == 0 ? '暂无' : '$_notes 条',
-          onTap: () async {
-            await Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const NotesPage()),
-            );
-            _reload();
-          },
+          onTap: () => _open(const NotesPage()),
+          active: _detail is NotesPage,
         ),
         const RowDivider(),
         _SettingRow(
           icon: AppIcon.wrongBook,
           title: '我的收藏',
           value: _marked == 0 ? '暂无' : '$_marked 题',
-          onTap: () async {
-            await Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const MarkedPage()),
-            );
-            _reload();
-          },
+          onTap: () => _open(const MarkedPage()),
+          active: _detail is MarkedPage,
         ),
         const RowDivider(),
         _SettingRow(
@@ -375,36 +364,24 @@ class _ProfilePageState extends State<ProfilePage> {
           icon: AppIcon.download,
           title: '导入题目',
           value: _imported == 0 ? '未导入' : '已导入 $_imported 题',
-          onTap: () async {
-            await Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const ImportPage(standalone: true)),
-            );
-            _reload();
-          },
+          onTap: () => _open(const ImportPage(standalone: true)),
+          active: _detail is ImportPage,
         ),
         const RowDivider(),
         _SettingRow(
           icon: AppIcon.info,
           title: '纠错记录',
           value: _feedback == 0 ? '暂无' : '$_feedback 条',
-          onTap: () async {
-            await Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const FeedbackPage()),
-            );
-            _reload();
-          },
+          onTap: () => _open(const FeedbackPage()),
+          active: _detail is FeedbackPage,
         ),
         const RowDivider(),
         _SettingRow(
           icon: AppIcon.privacy,
           title: '备份与恢复',
           value: '本地文件',
-          onTap: () async {
-            await Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const BackupPage()),
-            );
-            _reload();
-          },
+          onTap: () => _open(const BackupPage()),
+          active: _detail is BackupPage,
         ),
         const RowDivider(),
         _SettingRow(
@@ -463,7 +440,19 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ),
       ],
-    ),
+    );
+
+    // 平板横屏：左边列表，右边直接把选中的那一页渲染出来。一列设置项孤零零
+    // 挂在 1200px 宽的屏幕上，右边空着，谁看都别扭。
+    if (!context.isExpanded) {
+      return ReadableWidth(child: list);
+    }
+    return Row(
+      children: [
+        SizedBox(width: 380, child: list),
+        Container(width: 1, color: context.tokens.line.withValues(alpha: 0.5)),
+        Expanded(child: _detail ?? const DashboardPage()),
+      ],
     );
   }
 }
@@ -657,6 +646,7 @@ class _SettingRow extends StatelessWidget {
     required this.value,
     required this.onTap,
     this.danger = false,
+    this.active = false,
   });
 
   final AppIcon icon;
@@ -665,15 +655,23 @@ class _SettingRow extends StatelessWidget {
   final VoidCallback onTap;
   final bool danger;
 
+  /// 宽屏主从视图里，右栏正在显示的那一项要标出来。
+  final bool active;
+
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
     final text = Theme.of(context).textTheme;
-    final tint = danger ? t.danger : t.textSoft;
+    final tint = danger
+        ? t.danger
+        : active
+            ? t.brand
+            : t.textSoft;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
-      child: Padding(
+      child: Container(
+        color: active ? t.brand.withValues(alpha: 0.10) : null,
         padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter, vertical: 15),
         child: Row(
           children: [

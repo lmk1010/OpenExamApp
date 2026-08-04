@@ -428,6 +428,40 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
     if (mounted) setState(() {});
   }
 
+  /// 外接键盘：← → 翻题，A–E 或 1–5 选选项，空格下一题，Esc 退出。
+  /// 平板配键盘保护套刷题时，手不用离开键盘。
+  KeyEventResult _onKey(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent) return KeyEventResult.ignored;
+    final key = event.logicalKey;
+
+    if (key == LogicalKeyboardKey.arrowLeft) {
+      if (_index > 0) _goTo(_index - 1);
+      return KeyEventResult.handled;
+    }
+    if (key == LogicalKeyboardKey.arrowRight || key == LogicalKeyboardKey.space) {
+      if (_index < _questions.length - 1) _goTo(_index + 1);
+      return KeyEventResult.handled;
+    }
+    if (key == LogicalKeyboardKey.escape) {
+      _leave();
+      return KeyEventResult.handled;
+    }
+
+    final label = event.logicalKey.keyLabel.toUpperCase();
+    final options = _current.options.map((o) => o.key.toUpperCase()).toList();
+    if (options.contains(label)) {
+      _select(label);
+      return KeyEventResult.handled;
+    }
+    // 1–5 映射到第几个选项，键盘上比找字母快。
+    final digit = int.tryParse(label);
+    if (digit != null && digit >= 1 && digit <= options.length) {
+      _select(options[digit - 1]);
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
+  }
+
   Future<void> _openAnswerCard() async {
     final target = await showModalBottomSheet<int>(
       context: context,
@@ -490,7 +524,10 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
         if (didPop) return;
         await _leave();
       },
-      child: Scaffold(
+      child: Focus(
+        autofocus: true,
+        onKeyEvent: _onKey,
+        child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.close, size: 21),
@@ -638,6 +675,7 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
             ],
           ],
         ),
+      ),
       ),
     );
   }

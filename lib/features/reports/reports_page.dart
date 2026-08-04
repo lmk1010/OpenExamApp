@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
+import 'package:openexam_app/core/ui/responsive.dart';
 import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/ui/stroke_icons.dart';
 import 'package:openexam_app/core/ui/ui_kit.dart';
@@ -107,7 +108,9 @@ class _ReportsPageState extends State<ReportsPage> {
         titleSpacing: 0,
         title: const Text('成绩报告'),
       ),
-      body: _loading
+      body: ReadableWidth(
+        maxWidth: context.isExpanded ? 820 : context.readableWidth,
+        child: _loading
           ? const LoadingState()
           : _reports.isEmpty
               ? const EmptyState(
@@ -155,6 +158,7 @@ class _ReportsPageState extends State<ReportsPage> {
                     ),
                   ],
                 ),
+      ),
     );
   }
 }
