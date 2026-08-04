@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:openexam_app/core/ui/ambient.dart';
 import 'package:flutter/services.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
 
@@ -147,6 +148,10 @@ class _FadeSlideTransitions extends PageTransitionsBuilder {
       reverseCurve: Curves.easeInCubic,
     );
     final out = CurvedAnimation(parent: secondaryAnimation, curve: Curves.easeOut);
+    // Scaffolds are transparent app-wide (the ambient backdrop is painted once
+    // at the root), so a pushed page used to let the page underneath show
+    // through for the whole transition — two layers of text at once. Every
+    // route gets its own backdrop here instead.
     return FadeTransition(
       opacity: curved,
       child: AnimatedBuilder(
@@ -156,7 +161,7 @@ class _FadeSlideTransitions extends PageTransitionsBuilder {
           offset: Offset(22 * (1 - curved.value) - 14 * out.value, 0),
           child: child,
         ),
-        child: child,
+        child: AmbientBackground(child: child),
       ),
     );
   }

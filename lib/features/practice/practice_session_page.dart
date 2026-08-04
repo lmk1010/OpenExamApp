@@ -325,6 +325,33 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
     await AppDatabase.instance.setDifficulty(questionId, next);
   }
 
+  /// 更多：草稿纸、笔记、字号、收藏、报错。做题时用得着但不必一直占着顶栏。
+  Future<void> _openTools() async {
+    final q = _current;
+    final picked = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _ToolSheet(
+        hasNote: _notes.containsKey(q.id),
+        hasScratch: _scratch[q.id]?.isNotEmpty ?? false,
+        marked: _marked.contains(q.id),
+      ),
+    );
+    if (picked == null || !mounted) return;
+    switch (picked) {
+      case 'scratch':
+        await _openScratch();
+      case 'note':
+        await _editNote();
+      case 'font':
+        await _openReadingSettings();
+      case 'mark':
+        await _toggleMark();
+      case 'report':
+        await _reportIssue();
+    }
+  }
+
   Future<void> _editNote() async {
     final id = _current.id;
     final body = await showModalBottomSheet<String>(
@@ -459,71 +486,51 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
             behavior: HitTestBehavior.opaque,
             onLongPress: _reportIssue,
             child: Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Text(
-                '${_index + 1}',
-                style: text.titleMedium?.copyWith(fontFeatures: AppTheme.numeric),
-              ),
-              Text(' / $total', style: text.bodySmall),
-              const SizedBox(width: 10),
-              // Elapsed (practice) or remaining (exam) — pace is the thing
-              // 行测 candidates actually lose points to.
-              if (!_isReview)
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              mainAxisSize: MainAxisSize.min,
+              children: [
                 Text(
-                  _isExam ? _clock(_left) : _clock(_elapsed),
-                  style: text.bodySmall?.copyWith(
-                    color: _isExam && _left.inMinutes < 5 ? t.danger : t.muted,
-                    fontFeatures: AppTheme.numeric,
-                  ),
-                )
-              else
-                Text('回顾', style: text.bodySmall?.copyWith(color: t.brand)),
-              if (widget.title != null) ...[
-                const SizedBox(width: 10),
-                Flexible(
-                  child: Text(
-                    widget.title!,
-                    overflow: TextOverflow.ellipsis,
-                    style: text.bodySmall,
-                  ),
+                  '${_index + 1}',
+                  style:
+                      text.titleMedium?.copyWith(fontFeatures: AppTheme.numeric),
                 ),
+                Text(' / $total', style: text.bodySmall),
+                const SizedBox(width: 9),
+                // Elapsed (practice) or remaining (exam) — pace is the thing
+                // candidates actually lose points to.
+                if (!_isReview)
+                  Text(
+                    _isExam ? _clock(_left) : _clock(_elapsed),
+                    style: text.bodySmall?.copyWith(
+                      color: _isExam && _left.inMinutes < 5 ? t.danger : t.muted,
+                      fontFeatures: AppTheme.numeric,
+                    ),
+                  )
+                else
+                  Text('回顾', style: text.bodySmall?.copyWith(color: t.brand)),
               ],
-            ],
             ),
           ),
           actions: [
+            // 顶栏塞六个图标会跟题号计时撞在一起（363dp 宽的机器上直接重叠）。
+            // 留最常用的存疑，其余收进「更多」。
             _BarButton(
               icon: _doubts.contains(q.id)
                   ? Icons.flag_rounded
                   : Icons.outlined_flag_rounded,
-              color: _doubts.contains(q.id) ? t.category('shuliang') : t.textSoft,
+              color:
+                  _doubts.contains(q.id) ? t.category('shuliang') : t.textSoft,
               onTap: _toggleDoubt,
             ),
             _BarButton(
-              icon: Icons.calculate_outlined,
-              color: (_scratch[q.id]?.isNotEmpty ?? false) ? t.brand : t.textSoft,
-              onTap: _openScratch,
-            ),
-            _BarButton(
-              icon: _notes.containsKey(q.id)
-                  ? Icons.sticky_note_2
-                  : Icons.sticky_note_2_outlined,
-              color: _notes.containsKey(q.id) ? t.brand : t.textSoft,
-              onTap: _editNote,
-            ),
-            _BarButton(
-              icon: Icons.text_fields_rounded,
-              color: t.textSoft,
-              onTap: _openReadingSettings,
-            ),
-            _BarButton(
-              icon: _marked.contains(q.id)
-                  ? Icons.star_rounded
-                  : Icons.star_border_rounded,
-              color: _marked.contains(q.id) ? const Color(0xFFE9A400) : t.muted,
-              onTap: _toggleMark,
+              icon: Icons.more_horiz_rounded,
+              color: (_notes.containsKey(q.id) ||
+                      _marked.contains(q.id) ||
+                      (_scratch[q.id]?.isNotEmpty ?? false))
+                  ? t.brand
+                  : t.textSoft,
+              onTap: _openTools,
             ),
             // Answer card doubles as the progress readout, so it carries the count.
             GestureDetector(
@@ -531,7 +538,8 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
               onTap: _openAnswerCard,
               child: Container(
                 height: 30,
-                margin: const EdgeInsets.only(right: AppTheme.gutter - 6, left: 2),
+                margin:
+                    const EdgeInsets.only(right: AppTheme.gutter - 6, left: 2),
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
@@ -1981,6 +1989,109 @@ class _PastAttempts extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+/// 做题页的「更多」面板。
+class _ToolSheet extends StatelessWidget {
+  const _ToolSheet({
+    required this.hasNote,
+    required this.hasScratch,
+    required this.marked,
+  });
+
+  final bool hasNote;
+  final bool hasScratch;
+  final bool marked;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+
+    final items = <({String key, IconData icon, String label, String hint, bool on})>[
+      (
+        key: 'scratch',
+        icon: Icons.calculate_outlined,
+        label: '草稿纸与计算器',
+        hint: hasScratch ? '这题已有草稿' : '资料分析可以直接算',
+        on: hasScratch,
+      ),
+      (
+        key: 'note',
+        icon: Icons.sticky_note_2_outlined,
+        label: '写笔记',
+        hint: hasNote ? '这题已有笔记' : '记方法和坑点，回顾时会显示',
+        on: hasNote,
+      ),
+      (
+        key: 'font',
+        icon: Icons.text_fields_rounded,
+        label: '阅读设置',
+        hint: '字号与自动下一题',
+        on: false,
+      ),
+      (
+        key: 'mark',
+        icon: marked ? Icons.star_rounded : Icons.star_border_rounded,
+        label: marked ? '取消收藏' : '收藏这题',
+        hint: '收藏的题在「我的 → 我的收藏」',
+        on: marked,
+      ),
+      (
+        key: 'report',
+        icon: Icons.report_gmailerrorred_outlined,
+        label: '这题有问题',
+        hint: '答案有误、解析看不懂都可以标',
+        on: false,
+      ),
+    ];
+
+    return SafeArea(
+      top: false,
+      child: Container(
+        margin: const EdgeInsets.all(10),
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        decoration: GlassDecor.panel(t, radius: 26),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final it in items)
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => Navigator.of(context).pop(it.key),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 18, vertical: 13),
+                  child: Row(
+                    children: [
+                      Icon(
+                        it.icon,
+                        size: 20,
+                        color: it.on ? t.brand : t.textSoft,
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              it.label,
+                              style: text.titleSmall?.copyWith(fontSize: 15),
+                            ),
+                            const SizedBox(height: 3),
+                            Text(it.hint, style: text.bodySmall),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }
