@@ -12,6 +12,7 @@ import 'package:openexam_app/core/ui/stroke_icons.dart';
 import 'package:openexam_app/core/ui/ui_kit.dart';
 import 'package:openexam_app/data/db/app_database.dart';
 import 'package:openexam_app/data/models/question.dart';
+import 'package:openexam_app/features/practice/scratch_pad.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PracticeSessionPage extends StatefulWidget {
@@ -73,6 +74,9 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
   /// reason is still fresh in the user's head.
   Map<String, String> _reasons = {};
   Map<String, String> _notes = {};
+
+  /// Scratch work per question, kept for the life of the session.
+  final Map<String, List<Stroke>> _scratch = {};
 
   List<Question> get _questions => widget.questions;
   Question get _current => _questions[_index];
@@ -304,6 +308,20 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
     await AppDatabase.instance.setNote(id, body);
   }
 
+  Future<void> _openScratch() async {
+    final id = _current.id;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => ScratchPad(
+        strokes: _scratch[id] ?? const [],
+        onChanged: (v) => _scratch[id] = v,
+      ),
+    );
+    if (mounted) setState(() {});
+  }
+
   Future<void> _openAnswerCard() async {
     final target = await showModalBottomSheet<int>(
       context: context,
@@ -407,6 +425,11 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
             ],
           ),
           actions: [
+            _BarButton(
+              icon: Icons.calculate_outlined,
+              color: (_scratch[q.id]?.isNotEmpty ?? false) ? t.brand : t.textSoft,
+              onTap: _openScratch,
+            ),
             _BarButton(
               icon: _notes.containsKey(q.id)
                   ? Icons.sticky_note_2
