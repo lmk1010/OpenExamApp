@@ -23,6 +23,7 @@ class _StatsPageState extends State<StatsPage> {
   List<CategoryStat> _stats = const [];
   List<ExamReport> _reports = const [];
   Map<String, int> _reasons = const {};
+  List<DailyStat> _weeks = const [];
 
   @override
   void initState() {
@@ -35,6 +36,7 @@ class _StatsPageState extends State<StatsPage> {
     final stats = await AppDatabase.instance.categoryStats();
     final reports = await AppDatabase.instance.listReports(limit: 40);
     final reasons = await AppDatabase.instance.wrongReasonCounts();
+    final weeks = await AppDatabase.instance.weeklyStats(weeks: 8);
     if (!mounted) return;
     setState(() {
       _days = days;
@@ -42,6 +44,7 @@ class _StatsPageState extends State<StatsPage> {
       // Oldest first so the trend reads left-to-right like every other chart.
       _reports = reports.reversed.toList();
       _reasons = reasons;
+      _weeks = weeks;
       _loading = false;
     });
   }
@@ -105,6 +108,14 @@ class _StatsPageState extends State<StatsPage> {
                   padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
                   child: _VolumeChart(days: _days, max: best),
                 ),
+                if (_weeks.any((w) => w.answered > 0)) ...[
+                  const SizedBox(height: 28),
+                  const SectionHeader(title: '每周走势', caption: '题量与正确率，近 8 周'),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
+                    child: _WeeklyChart(weeks: _weeks),
+                  ),
+                ],
                 const SizedBox(height: 28),
                 const SectionHeader(title: '正确率趋势', caption: '只统计练过的日子'),
                 Padding(
@@ -646,4 +657,189 @@ class _ReasonBreakdown extends StatelessWidget {
       ],
     );
   }
+}
+
+/// Weekly volume as bars with the accuracy line drawn over them — the two
+/// numbers only mean something together (200 题 at 40% is not progress).
+class _WeeklyChart extends StatelessWidget {
+  const _WeeklyChart({required this.weeks});
+
+  final List<DailyStat> weeks;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+    final max = weeks.fold<int>(0, (m, w) => w.answered > m ? w.answered : m);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          height: 128,
+          child: LayoutBuilder(
+            builder: (context, box) => Stack(
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    for (var i = 0; i < weeks.length; i++)
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 5),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Text(
+                                weeks[i].answered == 0 ? '' : '${weeks[i].answered}',
+                                style: text.bodySmall?.copyWith(fontSize: 10.5),
+                              ),
+                              const SizedBox(height: 4),
+                              TweenAnimationBuilder<double>(
+                                tween: Tween(
+                                  begin: 0,
+                                  end: max == 0 ? 0 : weeks[i].answered / max,
+                                ),
+                                duration: Duration(milliseconds: 380 + i * 50),
+                                curve: Curves.easeOutCubic,
+                                builder: (_, v, __) => Container(
+                                  height: 86 * v,
+                                  decoration: BoxDecoration(
+                                    color: i == weeks.length - 1
+                                        ? t.brand.withValues(alpha: 0.9)
+                                        : t.brand.withValues(alpha: 0.34),
+                                    borderRadius: const BorderRadius.vertical(
+                                      top: Radius.circular(5),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                // Accuracy overlay: only across weeks that have answers.
+                Positioned.fill(
+                  bottom: 0,
+                  child: IgnorePointer(
+                    child: TweenAnimationBuilder<double>(
+                      tween: Tween(begin: 0, end: 1),
+                      duration: const Duration(milliseconds: 800),
+                      curve: Curves.easeOutCubic,
+                      builder: (_, v, __) => CustomPaint(
+                        painter: _AccuracyOverlay(
+                          weeks: weeks,
+                          progress: v,
+                          color: t.category('shuliang'),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            for (var i = 0; i < weeks.length; i++)
+              Expanded(
+                child: Text(
+                  '${weeks[i].date.month}/${weeks[i].date.day}',
+                  textAlign: TextAlign.center,
+                  style: text.bodySmall?.copyWith(
+                    fontSize: 10,
+                    color: i == weeks.length - 1 ? t.brand : t.muted,
+                  ),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(
+                color: t.brand.withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(3),
+              ),
+            ),
+            const SizedBox(width: 6),
+            Text('题量', style: text.bodySmall?.copyWith(fontSize: 11)),
+            const SizedBox(width: 16),
+            Container(
+              width: 14,
+              height: 3,
+              decoration: BoxDecoration(
+                color: t.category('shuliang'),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(width: 6),
+            Text('正确率', style: text.bodySmall?.copyWith(fontSize: 11)),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _AccuracyOverlay extends CustomPainter {
+  const _AccuracyOverlay({
+    required this.weeks,
+    required this.progress,
+    required this.color,
+  });
+
+  final List<DailyStat> weeks;
+  final double progress;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final points = <Offset>[];
+    final step = size.width / weeks.length;
+    for (var i = 0; i < weeks.length; i++) {
+      if (weeks[i].answered == 0) continue;
+      final x = step * i + step / 2;
+      // Chart area is the top 86px of the 128px box, minus the count label.
+      final y = 18 + (86 * (1 - weeks[i].accuracy.clamp(0.0, 1.0)));
+      points.add(Offset(x, y));
+    }
+    if (points.length < 2) {
+      for (final p in points) {
+        canvas.drawCircle(p, 3.5, Paint()..color = color);
+      }
+      return;
+    }
+
+    final visible = (points.length * progress).ceil().clamp(2, points.length);
+    final shown = points.sublist(0, visible);
+    final path = Path()..moveTo(shown.first.dx, shown.first.dy);
+    for (final p in shown.skip(1)) {
+      path.lineTo(p.dx, p.dy);
+    }
+    canvas.drawPath(
+      path,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.4
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round
+        ..color = color,
+    );
+    for (final p in shown) {
+      canvas.drawCircle(p, 3.5, Paint()..color = color);
+      canvas.drawCircle(p, 1.6, Paint()..color = Colors.white);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _AccuracyOverlay old) =>
+      old.progress != progress || old.weeks != weeks;
 }

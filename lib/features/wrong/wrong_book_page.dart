@@ -1,4 +1,9 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
@@ -114,6 +119,82 @@ class _WrongBookPageState extends State<WrongBookPage> {
     }
   }
 
+  /// Exports the current view as Markdown — printable, greppable, and easy to
+  /// paste into notes. Offline app, so the file goes wherever the user says.
+  Future<void> _export(List<Question> questions) async {
+    if (questions.isEmpty) return;
+    final notes = await AppDatabase.instance.notes();
+    final buffer = StringBuffer()
+      ..writeln('# 错题本')
+      ..writeln()
+      ..writeln('导出时间：${DateTime.now().toString().substring(0, 16)}')
+      ..writeln('共 ${questions.length} 题')
+      ..writeln();
+
+    for (var i = 0; i < questions.length; i++) {
+      final q = questions[i];
+      buffer
+        ..writeln('## ${i + 1}. ${categoryLabel(q.category)}'
+            '${q.year > 0 ? ' · ${q.year} 年' : ''}')
+        ..writeln()
+        ..writeln(q.content);
+      if (q.hasImage) buffer.writeln('（本题含图，导出文件不含图片）');
+      buffer.writeln();
+      for (final o in q.options) {
+        buffer.writeln('- ${o.key}. ${o.text.isEmpty ? '（图片选项）' : o.text}');
+      }
+      buffer
+        ..writeln()
+        ..writeln('**正确答案：${q.answer.toUpperCase()}**');
+      final reason = _reasons[q.id];
+      if (reason != null) buffer.writeln('**错因：${wrongReasonLabel(reason)}**');
+      final times = _counts[q.id] ?? 1;
+      if (times > 1) buffer.writeln('**错过 $times 次**');
+      if (q.analysis.isNotEmpty) {
+        buffer
+          ..writeln()
+          ..writeln('解析：${q.analysis}');
+      }
+      final note = notes[q.id];
+      if (note != null && note.isNotEmpty) {
+        buffer
+          ..writeln()
+          ..writeln('我的笔记：$note');
+      }
+      buffer
+        ..writeln()
+        ..writeln('---')
+        ..writeln();
+    }
+
+    final now = DateTime.now();
+    final name = 'openexam-错题-'
+        '${now.month.toString().padLeft(2, '0')}'
+        '${now.day.toString().padLeft(2, '0')}.md';
+    try {
+      final path = await FilePicker.platform.saveFile(
+        fileName: name,
+        bytes: utf8.encode(buffer.toString()),
+      );
+      if (!mounted) return;
+      if (path == null) {
+        final dir = await getApplicationDocumentsDirectory();
+        await File('${dir.path}/$name').writeAsString(buffer.toString());
+      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..clearSnackBars()
+        ..showSnackBar(SnackBar(
+          content: Text(path == null ? '已保存到 App 文档目录：$name' : '已导出 $name'),
+        ));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('导出失败：$e')),
+      );
+    }
+  }
+
   Future<void> _practise(List<Question> questions) async {
     if (questions.isEmpty) return;
     await Navigator.of(context).push(
@@ -217,9 +298,9 @@ class _WrongBookPageState extends State<WrongBookPage> {
                   ),
                   const SizedBox(width: 4),
                   _IconAction(
-                    icon: _sortByCount ? AppIcon.chart : AppIcon.timer,
-                    tip: _sortByCount ? '当前：错得最多在前' : '当前：最近错的在前',
-                    onTap: () => setState(() => _sortByCount = !_sortByCount),
+                    icon: AppIcon.download,
+                    tip: '导出当前列表为 Markdown',
+                    onTap: () => _export(shown),
                   ),
                 ],
               ],

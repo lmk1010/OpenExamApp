@@ -434,6 +434,58 @@ class AppDatabase {
     return rows.map(_fromRow).toList();
   }
 
+  /// Per-week answered/correct counts, oldest first — the daily chart is too
+  /// noisy to show whether a month of work went anywhere.
+  Future<List<DailyStat>> weeklyStats({int weeks = 8}) async {
+    final db = await database;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    // Week starts on Monday.
+    final thisMonday = today.subtract(Duration(days: today.weekday - 1));
+    final start = thisMonday.subtract(Duration(days: 7 * (weeks - 1)));
+
+    final rows = await db.rawQuery(
+      '''
+      SELECT date(created_at) AS day,
+             COUNT(*) AS n,
+             SUM(CASE WHEN is_correct = 1 THEN 1 ELSE 0 END) AS correct
+      FROM practice_logs
+      WHERE created_at >= ?
+      GROUP BY day
+      ''',
+      [start.toIso8601String()],
+    );
+
+    final buckets = List<DailyStat>.generate(
+      weeks,
+      (i) => DailyStat(
+        date: start.add(Duration(days: 7 * i)),
+        answered: 0,
+        correct: 0,
+      ),
+    );
+    final counts = List<int>.filled(weeks, 0);
+    final corrects = List<int>.filled(weeks, 0);
+
+    for (final row in rows) {
+      final day = DateTime.tryParse('${row['day']}');
+      if (day == null) continue;
+      final index = day.difference(start).inDays ~/ 7;
+      if (index < 0 || index >= weeks) continue;
+      counts[index] += int.tryParse('${row['n']}') ?? 0;
+      corrects[index] += int.tryParse('${row['correct']}') ?? 0;
+    }
+
+    return [
+      for (var i = 0; i < weeks; i++)
+        DailyStat(
+          date: buckets[i].date,
+          answered: counts[i],
+          correct: corrects[i],
+        ),
+    ];
+  }
+
   /// Per-day answered/correct counts for the trend chart, oldest first.
   Future<List<DailyStat>> dailyStats({int days = 30}) async {
     final db = await database;
