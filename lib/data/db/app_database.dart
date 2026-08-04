@@ -367,6 +367,53 @@ class AppDatabase {
     return picked;
   }
 
+  // ------------------------------------------------------------------ backup
+
+  /// Everything the user created (not the bank itself) as one JSON map.
+  /// The 15936 questions are already in the app, so a backup only needs the
+  /// answers, marks, tags, notes, reasons and reports.
+  Future<Map<String, dynamic>> exportUserData() async {
+    final db = await database;
+    return {
+      'version': 1,
+      'exportedAt': DateTime.now().toIso8601String(),
+      'logs': await db.query('practice_logs'),
+      'marks': await db.query('marks'),
+      'notes': await db.query('notes'),
+      'reasons': await db.query('wrong_reasons'),
+      'reports': await db.query('exam_reports'),
+    };
+  }
+
+  /// Restores a backup. Existing rows with the same key are replaced; practice
+  /// logs are wiped first so a restore is a restore, not a merge.
+  Future<int> importUserData(Map<String, dynamic> data) async {
+    final db = await database;
+    var restored = 0;
+
+    Future<void> put(String table, String key, {bool wipe = false}) async {
+      final rows = (data[key] as List?) ?? const [];
+      if (wipe && rows.isNotEmpty) await db.delete(table);
+      final batch = db.batch();
+      for (final row in rows) {
+        if (row is! Map) continue;
+        final map = Map<String, Object?>.from(row);
+        map.remove('id');
+        batch.insert(table, map, conflictAlgorithm: ConflictAlgorithm.replace);
+        restored++;
+      }
+      await batch.commit(noResult: true);
+    }
+
+    await put('practice_logs', 'logs', wipe: true);
+    await put('marks', 'marks');
+    await put('notes', 'notes');
+    await put('wrong_reasons', 'reasons');
+    await put('exam_reports', 'reports', wipe: true);
+    _imageCache.clear();
+    return restored;
+  }
+
   // ------------------------------------------------------------------- notes
 
   Future<void> setNote(String questionId, String body) async {

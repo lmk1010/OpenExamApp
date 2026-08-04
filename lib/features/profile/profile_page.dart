@@ -7,6 +7,7 @@ import 'package:openexam_app/core/ui/glass.dart';
 import 'package:openexam_app/core/ui/stroke_icons.dart';
 import 'package:openexam_app/core/ui/ui_kit.dart';
 import 'package:openexam_app/data/db/app_database.dart';
+import 'package:openexam_app/features/backup/backup_page.dart';
 import 'package:openexam_app/features/import/import_page.dart';
 import 'package:openexam_app/features/marks/marked_page.dart';
 import 'package:openexam_app/features/notes/notes_page.dart';
@@ -310,6 +311,18 @@ class _ProfilePageState extends State<ProfilePage> {
           onTap: () async {
             await Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const ImportPage(standalone: true)),
+            );
+            _reload();
+          },
+        ),
+        const RowDivider(),
+        _SettingRow(
+          icon: AppIcon.privacy,
+          title: '备份与恢复',
+          value: '本地文件',
+          onTap: () async {
+            await Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const BackupPage()),
             );
             _reload();
           },
