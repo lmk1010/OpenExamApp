@@ -231,28 +231,52 @@ class _BankPageState extends State<BankPage> {
                   : '换个关键词试试，比如 2025、江苏、国考。',
             )
           else
-            for (final year in sortedYears) ...[
-              Padding(
-                padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 10, AppTheme.gutter, 8),
-                child: Row(
-                  children: [
-                    Text(
-                      year == 0 ? '未标注年份' : '$year 年',
-                      style: text.titleMedium?.copyWith(fontSize: 16),
+            // Flattened to (header | row) entries and built lazily: 137 papers
+            // across 12 year groups is enough to feel the difference.
+            ...[
+              Builder(builder: (context) {
+                final rows = <Widget>[];
+                for (final year in sortedYears) {
+                  rows.add(
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppTheme.gutter,
+                        10,
+                        AppTheme.gutter,
+                        8,
+                      ),
+                      child: Row(
+                        children: [
+                          Text(
+                            year == 0 ? '未标注年份' : '$year 年',
+                            style: text.titleMedium?.copyWith(fontSize: 16),
+                          ),
+                          const SizedBox(width: 8),
+                          Text('${years[year]!.length} 套', style: text.bodySmall),
+                        ],
+                      ),
                     ),
-                    const SizedBox(width: 8),
-                    Text('${years[year]!.length} 套', style: text.bodySmall),
-                  ],
-                ),
-              ),
-              for (var i = 0; i < years[year]!.length; i++) ...[
-                if (i > 0) const RowDivider(),
-                _PaperRow(
-                  paper: years[year]![i],
-                  done: _progress[years[year]![i].id] ?? 0,
-                  onTap: () => _openPaper(years[year]![i]),
-                ),
-              ],
+                  );
+                  for (var i = 0; i < years[year]!.length; i++) {
+                    if (i > 0) rows.add(const RowDivider());
+                    final paper = years[year]![i];
+                    rows.add(
+                      _PaperRow(
+                        paper: paper,
+                        done: _progress[paper.id] ?? 0,
+                        onTap: () => _openPaper(paper),
+                      ),
+                    );
+                  }
+                }
+                return ListView.builder(
+                  shrinkWrap: true,
+                  primary: false,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: rows.length,
+                  itemBuilder: (context, i) => rows[i],
+                );
+              }),
             ],
         ],
       ),

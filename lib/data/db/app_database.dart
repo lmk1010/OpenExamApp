@@ -270,6 +270,7 @@ class AppDatabase {
     }
     await batch.commit(noResult: true);
     _imageCache.clear();
+    _imageCacheBytes = 0;
   }
 
   Future<int> importQuestions(List<Question> questions) async {
@@ -439,6 +440,7 @@ class AppDatabase {
     await put('wrong_reasons', 'reasons');
     await put('exam_reports', 'reports', wipe: true);
     _imageCache.clear();
+    _imageCacheBytes = 0;
     return restored;
   }
 
@@ -655,11 +657,23 @@ class AppDatabase {
 
   // ------------------------------------------------------------------ images
 
+  /// LRU keyed by figure name. Insertion order is the recency order, so the
+  /// oldest entry is simply the first key.
   final Map<String, Uint8List?> _imageCache = {};
+  int _imageCacheBytes = 0;
+
+  /// Roughly 12 MB of figures — a whole 130-question paper's worth — beyond
+  /// which older ones are dropped instead of growing without bound.
+  static const _imageCacheBudget = 12 * 1024 * 1024;
 
   /// Figure bytes for an `oeimg://name` reference, cached in memory.
   Future<Uint8List?> image(String name) async {
-    if (_imageCache.containsKey(name)) return _imageCache[name];
+    if (_imageCache.containsKey(name)) {
+      // Touch: re-insert so this entry becomes the most recent.
+      final hit = _imageCache.remove(name);
+      _imageCache[name] = hit;
+      return hit;
+    }
     final db = await database;
     final rows = await db.query(
       'images',
@@ -669,8 +683,12 @@ class AppDatabase {
       limit: 1,
     );
     final bytes = rows.isEmpty ? null : rows.first['bytes'] as Uint8List?;
-    if (_imageCache.length > 120) _imageCache.clear();
     _imageCache[name] = bytes;
+    _imageCacheBytes += bytes?.lengthInBytes ?? 0;
+    while (_imageCacheBytes > _imageCacheBudget && _imageCache.length > 1) {
+      final oldest = _imageCache.keys.first;
+      _imageCacheBytes -= _imageCache.remove(oldest)?.lengthInBytes ?? 0;
+    }
     return bytes;
   }
 
