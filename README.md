@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/logo.png" width="96" alt="OpenExam">
+  <img src="docs/logo.svg" width="104" alt="OpenExam">
 </p>
 
 <h1 align="center">OpenExam App</h1>
@@ -13,6 +13,7 @@
   <img alt="Dart" src="https://img.shields.io/badge/Dart-3.8-0175C2?logo=dart&logoColor=white">
   <img alt="Platform" src="https://img.shields.io/badge/platform-Android%20%7C%20iOS-lightgrey">
   <img alt="Offline" src="https://img.shields.io/badge/离线-100%25-success">
+  <img alt="License" src="https://img.shields.io/badge/license-MIT-blue">
 </p>
 
 ---
@@ -26,13 +27,23 @@ OpenExam 桌面端的手机端。题库由桌面端导出成一个 gzip 过的 S
 
 ## 截图
 
-| 练习首页 | 错题本 | 学习统计 |
-|---|---|---|
-| <img src="docs/screenshots/home.jpg" width="240"> | <img src="docs/screenshots/wrong-book.jpg" width="240"> | <img src="docs/screenshots/stats.jpg" width="240"> |
+<p align="center">
+  <img src="docs/screenshots/home.jpg" width="30%">
+  <img src="docs/screenshots/wrong-book.jpg" width="30%">
+  <img src="docs/screenshots/stats.jpg" width="30%">
+</p>
+<p align="center">
+  <sub>练习首页 · 错题本 · 学习统计</sub>
+</p>
 
-| 我的 | 成就徽章 | 引导 |
-|---|---|---|
-| <img src="docs/screenshots/profile.jpg" width="240"> | <img src="docs/screenshots/badge.jpg" width="240"> | <img src="docs/screenshots/onboarding-1.jpg" width="240"> |
+<p align="center">
+  <img src="docs/screenshots/profile.jpg" width="30%">
+  <img src="docs/screenshots/badge.jpg" width="30%">
+  <img src="docs/screenshots/onboarding-1.jpg" width="30%">
+</p>
+<p align="center">
+  <sub>我的 · 成就徽章 · 引导</sub>
+</p>
 
 ## 主要功能
 
@@ -70,14 +81,12 @@ OpenExam 桌面端的手机端。题库由桌面端导出成一个 gzip 过的 S
 
 ## 技术
 
-| | |
-|---|---|
-| 框架 | Flutter 3.32 / Dart 3.8，Material 3 |
-| 主题 | 自建 `ThemeExtension` 令牌系统，浅色 / 深色 / 跟随系统 |
-| 存储 | sqflite，题库以 gzip 种子库随包分发，首启在独立 isolate 里解包 |
-| 图片 | SQLite BLOB + `oeimg://` 协议 + 12MB LRU 内存缓存 |
-| 设置 | shared_preferences |
-| 依赖 | 只有 sqflite / path_provider / shared_preferences / file_picker，没有网络库 |
+- **框架**：Flutter 3.32 / Dart 3.8，Material 3
+- **主题**：自建 `ThemeExtension` 令牌系统，浅色 / 深色 / 跟随系统
+- **存储**：sqflite，题库以 gzip 种子库随包分发，首启在独立 isolate 里解包
+- **图片**：SQLite BLOB + `oeimg://` 协议 + 12MB LRU 内存缓存
+- **设置**：shared_preferences
+- **依赖**：只有 sqflite / path_provider / shared_preferences / file_picker，没有网络库
 
 目录结构：
 
@@ -104,4 +113,4 @@ flutter build appbundle --release
 
 ## 许可
 
-题目内容来自公开真题，仅供个人备考使用。
+代码以 [MIT](LICENSE) 协议开源。题目内容来自公开真题，仅供个人备考使用。
