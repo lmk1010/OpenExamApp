@@ -11,6 +11,7 @@ import 'package:openexam_app/core/ui/ui_kit.dart';
 import 'package:openexam_app/data/db/app_database.dart';
 import 'package:openexam_app/data/models/question.dart';
 import 'package:openexam_app/features/practice/practice_session_page.dart';
+import 'package:openexam_app/features/shell/app_shell.dart';
 import 'package:openexam_app/features/reports/reports_page.dart';
 import 'package:openexam_app/features/stats/stats_page.dart';
 import 'package:openexam_app/features/wrong/wrong_book_page.dart';
@@ -27,6 +28,8 @@ class DashboardPage extends StatefulWidget {
 
 class _DashboardPageState extends State<DashboardPage> {
   bool _loading = true;
+  Map<String, ({int done, int correct})> _thisWeek = const {};
+  Map<String, ({int done, int correct})> _lastWeek = const {};
 
   String _name = '备考中';
   DateTime? _examDate;
@@ -61,6 +64,16 @@ class _DashboardPageState extends State<DashboardPage> {
     final hours = await db.hourlyActivity();
     final answers = await db.countAnswers();
     final wrong = await db.countWrong();
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final thisWeek = await db.categoryAccuracyBetween(
+      today.subtract(const Duration(days: 6)),
+      today.add(const Duration(days: 1)),
+    );
+    final lastWeek = await db.categoryAccuracyBetween(
+      today.subtract(const Duration(days: 13)),
+      today.subtract(const Duration(days: 6)),
+    );
 
     var streak = 0;
     for (var i = days.length - 1; i >= 0; i--) {
@@ -82,6 +95,8 @@ class _DashboardPageState extends State<DashboardPage> {
       _hours = hours;
       _answers = answers;
       _wrong = wrong;
+      _thisWeek = thisWeek;
+      _lastWeek = lastWeek;
       _correct = stats.fold<int>(0, (a, s) => a + s.correct);
       _streak = streak;
       _activeDays = days.where((d) => d.answered > 0).length;
@@ -238,7 +253,11 @@ class _DashboardPageState extends State<DashboardPage> {
                     delay: 540 + i * 70,
                     child: _AdviceCard(
                       advice: _advice(ranked)[i],
-                      onAct: _advice(ranked)[i].actionable ? _practiseWeakest : null,
+                      onAct: switch (_advice(ranked)[i]) {
+                        final a when a.onAct != null => () => a.onAct!(context),
+                        final a when a.actionable => _practiseWeakest,
+                        _ => null,
+                      },
                     ),
                   ),
                 if (_answers == 0)
@@ -302,7 +321,50 @@ class _DashboardPageState extends State<DashboardPage> {
           'misread' => '${topReason.value} 道栽在审题。做题时把限定词和单位圈出来。',
           _ => '${topReason.value} 道是时间不够。先按模块限时练，再上整卷。',
         },
+        actionLabel: '去错题本按错因过一遍',
+        onAct: (context) async {
+          AppShell.jumpTo.value = 2;
+          Navigator.of(context).popUntil((r) => r.isFirst);
+        },
       ));
+    }
+
+    // 最近 7 天 vs 前 7 天：累计正确率会把最近的变化稀释掉，看不出退步。
+    final moved = <({String key, int now, int before, int done})>[];
+    for (final entry in _thisWeek.entries) {
+      final before = _lastWeek[entry.key];
+      if (before == null || before.done < 5 || entry.value.done < 5) continue;
+      moved.add((
+        key: entry.key,
+        now: (entry.value.correct * 100 / entry.value.done).round(),
+        before: (before.correct * 100 / before.done).round(),
+        done: entry.value.done,
+      ));
+    }
+    moved.sort((a, b) => (a.now - a.before).compareTo(b.now - b.before));
+    if (moved.isNotEmpty) {
+      final worst = moved.first;
+      final best = moved.last;
+      if (worst.now - worst.before <= -8) {
+        out.add(_Advice(
+          icon: categoryIcon(worst.key),
+          title: '${categoryLabel(worst.key)}这周退了 ${worst.before - worst.now} 个点',
+          body: '上一周 ${worst.before}%，最近 7 天 ${worst.now}%（${worst.done} 题）。'
+              '先别加量，去错题本按这个模块过一遍，看是同一类题反复错还是手生了。',
+          actionLabel: '看这个模块的错题',
+          onAct: (context) async {
+            AppShell.jumpTo.value = 2;
+            Navigator.of(context).popUntil((r) => r.isFirst);
+          },
+        ));
+      } else if (best.now - best.before >= 8) {
+        out.add(_Advice(
+          icon: categoryIcon(best.key),
+          title: '${categoryLabel(best.key)}这周涨了 ${best.now - best.before} 个点',
+          body: '上一周 ${best.before}%，最近 7 天 ${best.now}%（${best.done} 题）。'
+              '这块的练法是对的，可以开始压时间了。',
+        ));
+      }
     }
 
     final slow = _pace.entries
@@ -317,6 +379,24 @@ class _DashboardPageState extends State<DashboardPage> {
         title: '${categoryLabel(slow.key)}花的时间偏长',
         body: '平均每题 ${slow.value.round()} 秒。行测里超过 90 秒的题在考场上应该先跳过，'
             '练的时候也要按这个标准掐表。',
+        actionLabel: '限时练这个模块',
+        onAct: (context) async {
+          final questions = await AppDatabase.instance.fetchPractice(
+            category: slow.key,
+            limit: 15,
+            shuffle: true,
+          );
+          if (!context.mounted || questions.isEmpty) return;
+          await Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => PracticeSessionPage(
+                questions: questions,
+                limit: Duration(seconds: 55 * questions.length),
+                title: '${categoryLabel(slow.key)}限时练',
+              ),
+            ),
+          );
+        },
       ));
     }
 
@@ -1040,12 +1120,18 @@ class _Advice {
     required this.title,
     required this.body,
     this.actionable = false,
+    this.actionLabel,
+    this.onAct,
   });
 
   final AppIcon icon;
   final String title;
   final String body;
   final bool actionable;
+
+  /// 每条建议带自己的出口，比统统跳「弱项强化」有用。
+  final String? actionLabel;
+  final Future<void> Function(BuildContext context)? onAct;
 }
 
 class _AdviceCard extends StatelessWidget {
@@ -1091,7 +1177,7 @@ class _AdviceCard extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            '现在就练',
+                            advice.actionLabel ?? '现在就练',
                             style: text.labelMedium?.copyWith(color: t.brand),
                           ),
                           Icon(Icons.chevron_right, size: 16, color: t.brand),

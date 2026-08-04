@@ -1218,6 +1218,31 @@ class AppDatabase {
     };
   }
 
+  /// 某段时间内每个模块的答题量与正确率。用来做「这周 vs 上周」的对比 ——
+  /// 只看累计正确率的话，最近的进步或退步会被历史数据稀释掉。
+  Future<Map<String, ({int done, int correct})>> categoryAccuracyBetween(
+    DateTime from,
+    DateTime to,
+  ) async {
+    final db = await database;
+    final rows = await db.rawQuery('''
+      SELECT q.category AS category,
+             COUNT(*) AS done,
+             SUM(CASE WHEN l.is_correct = 1 THEN 1 ELSE 0 END) AS correct
+      FROM practice_logs l
+      JOIN questions q ON q.id = l.question_id
+      WHERE l.created_at >= ? AND l.created_at < ?
+      GROUP BY q.category
+    ''', [from.toIso8601String(), to.toIso8601String()]);
+    return {
+      for (final row in rows)
+        '${row['category']}': (
+          done: int.tryParse('${row['done']}') ?? 0,
+          correct: int.tryParse('${row['correct']}') ?? 0,
+        ),
+    };
+  }
+
   /// Everything the 试卷详情 page needs: per-category totals and progress.
   Future<List<CategoryStat>> paperCategoryStats(String paperId) async {
     final db = await database;
