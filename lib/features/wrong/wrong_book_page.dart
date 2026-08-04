@@ -8,6 +8,7 @@ import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
 import 'package:openexam_app/core/ui/filter_bar.dart';
+import 'package:openexam_app/core/ui/glass.dart';
 import 'package:openexam_app/core/ui/rich_content.dart';
 import 'package:openexam_app/core/ui/stroke_icons.dart';
 import 'package:openexam_app/core/ui/ui_kit.dart';
@@ -34,6 +35,10 @@ class _WrongBookPageState extends State<WrongBookPage> {
   String _category = 'all';
   String _reasonFilter = 'all';
   String _paper = 'all';
+
+  /// 概览优先：打开就是密密麻麻的错题列表，没人愿意复盘。先看分布、
+  /// 挑一类练，需要逐题翻的时候再切到列表。
+  bool _listMode = false;
 
   /// Sort by how many times a question has been missed, rather than recency.
   bool _sortByCount = false;
@@ -195,6 +200,23 @@ class _WrongBookPageState extends State<WrongBookPage> {
     }
   }
 
+  /// 今日复盘：错次数多的排前面，取一组练。粉笔那套「同类错因连盯几天」的
+  /// 前提是每天真的有一组能直接开练的题。
+  Future<void> _reviewToday() async {
+    final list = [..._wrong]
+      ..sort((a, b) => (_counts[b.id] ?? 1).compareTo(_counts[a.id] ?? 1));
+    await _practise(list.take(20).toList());
+  }
+
+  void _focus({String? category, String? reason, String? paper}) {
+    setState(() {
+      _category = category ?? 'all';
+      _reasonFilter = reason ?? 'all';
+      _paper = paper ?? 'all';
+      _listMode = true;
+    });
+  }
+
   Future<void> _practise(List<Question> questions) async {
     if (questions.isEmpty) return;
     await Navigator.of(context).push(
@@ -203,6 +225,196 @@ class _WrongBookPageState extends State<WrongBookPage> {
       ),
     );
     _reload();
+  }
+
+
+  /// 概览：先回答「我错在哪、今天该练什么」，再谈逐题翻。
+  List<Widget> _overview(
+    BuildContext context,
+    Map<String, int> counts,
+    Map<String, int> reasonCounts,
+    Map<String, ({String title, int year, List<Question> items})> papers,
+    List<String> paperKeys,
+  ) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+    final worst = counts.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    final untagged = reasonCounts['_none'] ?? 0;
+    final repeat = _counts.values.where((v) => v > 1).length;
+    final max = worst.isEmpty ? 1 : worst.first.value;
+
+    Widget header(String title, {String? action, VoidCallback? onAction}) =>
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppTheme.gutter,
+            22,
+            AppTheme.gutter,
+            12,
+          ),
+          child: Row(
+            children: [
+              Expanded(child: Text(title, style: text.titleSmall)),
+              if (action != null)
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: onAction,
+                  child: Text(
+                    action,
+                    style: text.bodySmall?.copyWith(color: t.brand),
+                  ),
+                ),
+            ],
+          ),
+        );
+
+    return [
+      // 今日复盘 — one tap into the questions that cost the most marks.
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: _reviewToday,
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(18, 17, 16, 17),
+            decoration: GlassDecor.tinted(t, t.brand, radius: 22),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '今日复盘',
+                        style: text.titleSmall?.copyWith(fontSize: 16),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        repeat > 0
+                            ? '先啃错过两次以上的 $repeat 题，其余按最近排'
+                            : '挑 ${_wrong.length > 20 ? 20 : _wrong.length} 题重做一遍，做对就自动移出',
+                        style: text.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Container(
+                  width: 42,
+                  height: 42,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: t.brand,
+                    shape: BoxShape.circle,
+                  ),
+                  child: StrokeIcon(
+                    AppIcon.play,
+                    size: 20,
+                    color: GlassDecor.on(t.brand),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      if (untagged > 0)
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppTheme.gutter,
+            12,
+            AppTheme.gutter,
+            0,
+          ),
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => _focus(reason: '_none'),
+            child: Row(
+              children: [
+                StrokeIcon(AppIcon.info, size: 16, color: t.muted),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '$untagged 题还没标错因，标了才知道是粗心还是不会',
+                    style: text.bodySmall,
+                  ),
+                ),
+                Icon(Icons.chevron_right, size: 15, color: t.muted),
+              ],
+            ),
+          ),
+        ),
+
+      header('错在哪个模块', action: '全部 ›', onAction: () => _focus()),
+      for (final e in worst)
+        _DistRow(
+          label: categoryLabel(e.key),
+          count: e.value,
+          ratio: e.value / max,
+          color: t.category(e.key),
+          icon: categoryIcon(e.key),
+          onTap: () => _focus(category: e.key),
+        ),
+
+      if (reasonCounts.isNotEmpty) ...[
+        header('错在什么地方'),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
+          child: Wrap(
+            spacing: 9,
+            runSpacing: 9,
+            children: [
+              for (final r in kWrongReasons)
+                if ((reasonCounts[r.key] ?? 0) > 0)
+                  _ReasonChip(
+                    label: r.label,
+                    count: reasonCounts[r.key]!,
+                    onTap: () => _focus(reason: r.key),
+                  ),
+              if (untagged > 0)
+                _ReasonChip(
+                  label: '未标错因',
+                  count: untagged,
+                  onTap: () => _focus(reason: '_none'),
+                ),
+            ],
+          ),
+        ),
+      ],
+
+      if (paperKeys.length > 1) ...[
+        header('错得最多的卷'),
+        for (final key in paperKeys.take(4))
+          _DistRow(
+            label: papers[key]!.title,
+            count: papers[key]!.items.length,
+            ratio: papers[key]!.items.length / papers[paperKeys.first]!.items.length,
+            color: t.brand,
+            icon: AppIcon.papers,
+            onTap: () => _focus(paper: key),
+          ),
+      ],
+
+      const SizedBox(height: 26),
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => setState(() => _listMode = true),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                '逐题查看全部 ${_wrong.length} 题',
+                style: text.bodySmall?.copyWith(color: t.brand),
+              ),
+              const SizedBox(width: 4),
+              Icon(Icons.chevron_right, size: 15, color: t.brand),
+            ],
+          ),
+        ),
+      ),
+    ];
   }
 
   @override
@@ -283,13 +495,23 @@ class _WrongBookPageState extends State<WrongBookPage> {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        _wrong.isEmpty ? '答错的题会自动收进来' : '${_wrong.length} 题待消灭',
+                        _wrong.isEmpty
+                            ? '答错的题会自动收进来'
+                            : _listMode
+                                ? '${_wrong.length} 题 · 长按可标错因'
+                                : '${_wrong.length} 题待消灭',
                         style: text.bodySmall?.copyWith(fontSize: 13),
                       ),
                     ],
                   ),
                 ),
                 if (_wrong.isNotEmpty) ...[
+                  if (_listMode)
+                    _IconAction(
+                      icon: AppIcon.chart,
+                      tip: '回到概览',
+                      onTap: () => setState(() => _listMode = false),
+                    ),
                   // Icon-only: the list itself already says what this page is.
                   _IconAction(
                     icon: AppIcon.replay,
@@ -313,6 +535,8 @@ class _WrongBookPageState extends State<WrongBookPage> {
               art: EmptyArt.done,
               message: '去练习页刷一组，答错的题会自动进入这里，答对后自动移出。',
             )
+          else if (!_listMode)
+            ..._overview(context, counts, reasonCounts, papers, paperKeys)
           else ...[
             FilterBar(
               filters: [
@@ -695,6 +919,125 @@ class _WrongRow extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// One bar in the 错题分布 lists — label, count, and how it compares.
+class _DistRow extends StatelessWidget {
+  const _DistRow({
+    required this.label,
+    required this.count,
+    required this.ratio,
+    required this.color,
+    required this.icon,
+    required this.onTap,
+  });
+
+  final String label;
+  final int count;
+  final double ratio;
+  final Color color;
+  final AppIcon icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppTheme.gutter,
+          vertical: 10,
+        ),
+        child: Row(
+          children: [
+            StrokeIcon(icon, size: 18, color: color),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: text.titleSmall?.copyWith(fontSize: 14.5),
+                        ),
+                      ),
+                      Text('$count 题', style: text.bodySmall),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Meter(value: ratio.clamp(0.0, 1.0), height: 4, color: color),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            Icon(Icons.chevron_right, size: 15, color: t.muted),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 错因 chip on the overview.
+class _ReasonChip extends StatelessWidget {
+  const _ReasonChip({
+    required this.label,
+    required this.count,
+    required this.onTap,
+  });
+
+  final String label;
+  final int count;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: t.glass,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w600,
+                height: 1,
+                color: t.textSoft,
+              ),
+            ),
+            const SizedBox(width: 7),
+            Text(
+              '$count',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                height: 1,
+                color: t.brand,
+              ),
+            ),
+          ],
         ),
       ),
     );
