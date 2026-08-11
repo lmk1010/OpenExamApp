@@ -15,6 +15,14 @@
   <img alt="License" src="https://img.shields.io/badge/license-MIT-blue">
 </p>
 
+<p align="center">
+  <a href="https://openexam.cc"><strong>官网 / 下载 → openexam.cc</strong></a>
+  ·
+  <a href="https://openexam.cc/download">安装包</a>
+  ·
+  <a href="https://github.com/lmk1010/OpenExam">桌面端仓库</a>
+</p>
+
 ---
 
 ## 这是什么
