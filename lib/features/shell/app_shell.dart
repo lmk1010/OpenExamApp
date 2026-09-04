@@ -166,23 +166,26 @@ class _AppShellState extends State<AppShell> {
       // 内容延伸到底栏后面，渐变底栏才是沉浸式而不是一块实底。
       extendBody: true,
       body: SafeArea(bottom: false, child: body),
-      bottomNavigationBar: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              t.gradient.last.withValues(alpha: 0),
-              t.gradient.last.withValues(alpha: 0.88),
-              t.gradient.last,
-            ],
-            stops: const [0, 0.35, 1],
-          ),
-        ),
-        child: SafeArea(
-          top: false,
-          child: SizedBox(
-            height: 56,
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: Padding(
+          // 不贴屏幕边，悬浮起来 —— 通栏实底会把内容硬切成两段
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+          child: Container(
+            padding: const EdgeInsets.all(7),
+            decoration: BoxDecoration(
+              color: t.surface,
+              borderRadius: BorderRadius.circular(99),
+              boxShadow: [
+                BoxShadow(
+                  color: t.name == 'dark'
+                      ? Colors.black.withValues(alpha: 0.42)
+                      : const Color(0xFF16465A).withValues(alpha: 0.14),
+                  blurRadius: 28,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
             child: Row(
               children: [
                 for (var i = 0; i < tabs.length; i++)
@@ -335,6 +338,10 @@ class _NavRail extends StatelessWidget {
   }
 }
 
+/// 底栏的一格。
+///
+/// 选中态不是变个颜色 —— 那在 23px 的图标上太弱。选中的展开成一枚
+/// 「图标 + 文字」横排的黄色药丸，没选中的只留图标：形状本身就不一样。
 class _TabItem extends StatelessWidget {
   const _TabItem({
     required this.icon,
@@ -351,31 +358,51 @@ class _TabItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
-    final color = selected ? t.brand : t.muted;
+
+    if (selected) {
+      return GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
+          padding: const EdgeInsets.symmetric(horizontal: 17, vertical: 11),
+          decoration: BoxDecoration(
+            color: t.accent,
+            borderRadius: BorderRadius.circular(99),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              StrokeIcon(icon, size: 20, color: t.onAccent, weight: 2),
+              const SizedBox(width: 7),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w700,
+                  color: t.onAccent,
+                  height: 1,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Expanded(
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            StrokeIcon(
-              icon,
-              size: 23,
-              color: color,
-              weight: selected ? 2.2 : 1.8,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                color: color,
-                height: 1,
-              ),
-            ),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 11),
+          // heightFactor 必须给。Row 传给孩子的纵向约束是整屏高度且是 loose，
+          // 默认的 Center 会撑满 —— 整条底栏就被拉成一个全屏的圆角块。
+          child: Center(
+            heightFactor: 1,
+            child: StrokeIcon(icon, size: 21, color: t.muted, weight: 1.9),
+          ),
         ),
       ),
     );

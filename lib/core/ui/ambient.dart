@@ -4,6 +4,11 @@ import 'package:openexam_app/core/ui/brand_mark.dart';
 
 /// Full-screen ambient backdrop: a vertical wash plus two soft light blobs.
 /// Pure gradients — no BackdropFilter anywhere, so scrolling stays cheap.
+/// 页面底色。
+///
+/// 原本是一层竖向渐变加三团高饱和光斑。内容是一张张实体白卡，
+/// 背景越安静卡越跳得出来 —— 光斑在卡底下窜，整页看着就糊。
+/// 现在只留一道从上到下几乎察觉不到的过渡，卡片自己撑层次。
 class AmbientBackground extends StatelessWidget {
   const AmbientBackground({super.key, required this.child});
 
@@ -26,19 +31,7 @@ class AmbientBackground extends StatelessWidget {
             ),
           ),
         ),
-        // 光斑压得很淡：内容是一张张实体卡，背景越安静，卡越跳得出来。
-        // 之前三团高饱和光斑在卡底下窜，整页看着糊。
-        Positioned(
-          top: -160,
-          right: -130,
-          child: _Blob(color: t.glow.withValues(alpha: 0.35), size: 340),
-        ),
-        Positioned(
-          top: 120,
-          left: -170,
-          child: _Blob(color: t.brand.withValues(alpha: 0.08), size: 300),
-        ),
-        // Cute-theme corner companion — real mascot, not a colour blob.
+        // 可爱主题的角落吉祥物是那两套皮肤的卖点，留着
         if (t.name == 'guga' || t.name == 'spark')
           Positioned(
             right: -4,
@@ -60,27 +53,6 @@ class AmbientBackground extends StatelessWidget {
           ),
         Positioned.fill(child: child),
       ],
-    );
-  }
-}
-
-class _Blob extends StatelessWidget {
-  const _Blob({required this.color, required this.size});
-
-  final Color color;
-  final double size;
-
-  @override
-  Widget build(BuildContext context) {
-    return IgnorePointer(
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: RadialGradient(colors: [color, color.withValues(alpha: 0)]),
-        ),
-      ),
     );
   }
 }

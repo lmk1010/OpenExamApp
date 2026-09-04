@@ -275,7 +275,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
     shadow: [
       BoxShadow(color: Color(0x73000000), blurRadius: 24, offset: Offset(0, 10)),
     ],
-    gradient: [Color(0xFF161E2E), Color(0xFF12161F), Color(0xFF0E1116)],
+    gradient: [Color(0xFF141821), Color(0xFF11151C), Color(0xFF0F1116)],
     glow: Color(0x3D5C9DFF),
     glass: Color(0x14FFFFFF),
     glassStrong: Color(0x1FFFFFFF),
