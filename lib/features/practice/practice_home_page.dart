@@ -15,8 +15,8 @@ import 'package:openexam_app/features/plan/data/study_plan_store.dart';
 import 'package:openexam_app/features/plan/domain/models/study_task.dart';
 import 'package:openexam_app/features/plan/presentation/pages/study_plan_page.dart';
 import 'package:openexam_app/features/plan/presentation/widgets/study_task_editor_sheet.dart';
-import 'package:openexam_app/features/plan/presentation/widgets/today_plan_section.dart';
 import 'package:openexam_app/features/practice/practice_session_page.dart';
+import 'package:openexam_app/features/practice/shore_home.dart';
 import 'package:openexam_app/features/essay/presentation/essay_page.dart';
 import 'package:openexam_app/features/shell/app_shell.dart';
 import 'package:openexam_app/features/search/search_page.dart';
@@ -569,6 +569,36 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
                     );
                   },
                 ),
+                const SizedBox(height: 16),
+                // 练法的两个参数放在这里，首页不为它们留位置
+                Row(
+                  children: [
+                    _SheetLink(
+                      label: '每组 $_count 题',
+                      onTap: () {
+                        Navigator.of(sheetContext).pop();
+                        _pickCount();
+                      },
+                    ),
+                    const SizedBox(width: 18),
+                    _SheetLink(
+                      label: _scopeLabel(_scope),
+                      onTap: () {
+                        Navigator.of(sheetContext).pop();
+                        _pickScope();
+                      },
+                    ),
+                    const Spacer(),
+                    _SheetLink(
+                      label: '共 $_total 题',
+                      onTap: () => showModalBottomSheet<void>(
+                        context: sheetContext,
+                        backgroundColor: Colors.transparent,
+                        builder: (_) => const _AboutSheet(),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -809,141 +839,97 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
 
     final t = context.tokens;
     final byKey = {for (final s in _stats) s.category: s};
-
-    final bottomPad = MediaQuery.paddingOf(context).bottom +
-        (context.isWide ? 16 : 170);
-
-    // 首屏只回答一句话：现在该做什么。
-    // 焦点卡把「问候 + 今日数字 + 快捷入口 + 打卡条」四块压成一块，
-    // 其余次要练法收进「更多练法」，不再平铺占屏。
     final tasks = _todayPlan?.tasks ?? const <StudyTask>[];
-    final nextTask = tasks
-        .where((task) => !_todayPlanDone.contains(task.id))
-        .cast<StudyTask?>()
-        .firstWhere((_) => true, orElse: () => null);
-    final planDone = tasks.where((t) => _todayPlanDone.contains(t.id)).length;
+
+    final bottomPad =
+        MediaQuery.paddingOf(context).bottom + (context.isWide ? 16 : 158);
+
+    final now = DateTime.now();
+    final daysLeft = _examDate == null
+        ? null
+        : DateTime(_examDate!.year, _examDate!.month, _examDate!.day)
+            .difference(DateTime(now.year, now.month, now.day))
+            .inDays;
 
     final head = <Widget>[
-          _TopBar(total: _total),
-          FadeInUp(
-            child: _FocusCard(
-            doneToday: _week.last,
-            goal: _goal,
-            streak: _streak,
-            nextTask: nextTask,
-            planTotal: tasks.length,
-            planDone: planDone,
-            onStart: () {
-              if (nextTask != null) {
-                _runStudyTask(nextTask);
-              } else {
-                _startDaily();
-              }
-            },
-            onMore: _openMorePractice,
-              onTapGoal: _pickGoal,
-              examDate: _examDate,
-            ),
+      const SizedBox(height: ShoreGap.top),
+      ShoreHeader(
+        kicker: '${now.month} 月 ${now.day} 日 · ${_weekdayCn(now)}',
+        title: _greeting(now),
+        actions: [
+          ShoreRoundButton(
+            icon: Icon(Icons.search, size: 19, color: t.textSoft),
+            onTap: () => Navigator.of(context)
+                .push(MaterialPageRoute(builder: (_) => const SearchPage())),
           ),
-          FadeInUp(
-            delay: const Duration(milliseconds: 40),
-            child: _FocusMeta(
-              done: _week.last,
-              goal: _goal,
-              streak: _streak,
-              examDate: _examDate,
-              onTap: _pickGoal,
-            ),
+          ShoreRoundButton(
+            icon: Icon(ThemeController.instance.icon,
+                size: 19, color: t.textSoft),
+            onTap: () => ThemeController.instance.cycle(),
           ),
-          // 在跑的四天计划：一行提醒，不再单开一块
-          for (final plan in _plans)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppTheme.gutter,
-                14,
-                AppTheme.gutter,
-                0,
-              ),
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => AppShell.jumpTo.value = AppShell.wrongBookTab,
-                child: Row(
-                  children: [
-                    StrokeIcon(AppIcon.replay, size: 15, color: t.brand),
-                    const SizedBox(width: 9),
-                    Expanded(
-                      child: Text(
-                        plan.doneToday
-                            ? '「${plan.label}」今天已完成'
-                            : '「${plan.label}」第 ${plan.nextDay} 天还没做',
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ),
-                    Icon(Icons.chevron_right, size: 15, color: t.muted),
-                  ],
-                ),
-              ),
-            ),
-          FadeInUp(
-            delay: const Duration(milliseconds: 70),
-            child: TodayPlanSection(
-            plan: _todayPlan,
+        ],
+      ),
+      const SizedBox(height: ShoreGap.titleToBody),
+      VoyageCard(
+        done: _week.last,
+        goal: _goal,
+        streak: _streak,
+        daysLeft: (daysLeft != null && daysLeft >= 0) ? daysLeft : null,
+        onTap: _pickGoal,
+      ),
+      const SizedBox(height: ShoreGap.section),
+      if (tasks.isEmpty)
+        _ShoreSection(
+          title: '今日航线',
+          action: '安排',
+          onAction: _openStudyPlan,
+          child: _EmptyRoute(onTap: _openStudyPlan),
+        )
+      else
+        _ShoreSection(
+          title: '今日航线',
+          action: tasks.length > 4 ? '全部 ${tasks.length}' : '调整',
+          onAction: _openStudyPlan,
+          child: RouteList(
+            tasks: tasks,
             doneIds: _todayPlanDone,
-            onToggle: _toggleStudyTask,
             onRun: _runStudyTask,
-            onOpen: _openStudyTask,
             onLongPress: _longPressStudyTask,
-            onManage: _openStudyPlan,
-            onEnable: _openStudyPlan,
-            ),
           ),
-    ];
-    final rest = <Widget>[
-          _ListHeader(
-            title: '按题型练习',
-            trailing: '$_count 题 · ${_scopeLabel(_scope)}',
-            onTapTrailing: _pickCount,
-            onTapSecondary: _pickScope,
-          ),
-          const SizedBox(height: 2),
-          FadeInUp(
-            delay: const Duration(milliseconds: 140),
-            child: _TypeGrid(
-              stats: byKey,
-              onTap: _openCategory,
-              onLong: _moduleMenu,
-            ),
-          ),
-          if (_hardCount > 0)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppTheme.gutter,
-                14,
-                AppTheme.gutter,
-                0,
-              ),
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: _startHard,
-                child: Row(
-                  children: [
-                    StrokeIcon(AppIcon.timer, size: 15, color: t.brand),
-                    const SizedBox(width: 9),
-                    Expanded(
-                      child: Text(
-                        '自己标难的 $_hardCount 题',
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ),
-                    Icon(Icons.chevron_right, size: 15, color: t.muted),
-                  ],
-                ),
-              ),
-            ),
-          const SizedBox(height: 12),
+        ),
+      // 在跑的四天计划：一行提醒，不单开一块
+      for (final plan in _plans)
+        _HintRow(
+          icon: AppIcon.replay,
+          text: plan.doneToday
+              ? '「${plan.label}」今天已完成'
+              : '「${plan.label}」第 ${plan.nextDay} 天还没做',
+          onTap: () => AppShell.jumpTo.value = AppShell.wrongBookTab,
+        ),
     ];
 
-    // 平板横屏：左边问候 + 入口卡 + 今日安排；右边题型与近 7 天。
+    final rest = <Widget>[
+      const SizedBox(height: ShoreGap.section),
+      _ShoreSection(
+        title: '五座岛',
+        action: '更多练法',
+        onAction: _openMorePractice,
+        child: IsleStrip(
+          stats: byKey,
+          onTap: _openCategory,
+          onLong: _moduleMenu,
+        ),
+      ),
+      if (_hardCount > 0)
+        _HintRow(
+          icon: AppIcon.timer,
+          text: '自己标难的 $_hardCount 题',
+          onTap: _startHard,
+        ),
+      const SizedBox(height: 12),
+    ];
+
+    // 平板横屏：左边航程与航线，右边五座岛。
     if (context.isExpanded) {
       return RefreshIndicator(
         color: t.brand,
@@ -959,15 +945,10 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
                 children: head,
               ),
             ),
-            Container(
-              width: 1,
-              margin: const EdgeInsets.symmetric(vertical: 20),
-              color: t.line.withValues(alpha: 0.5),
-            ),
             Expanded(
               flex: 4,
               child: ListView(
-                padding: EdgeInsets.only(top: 22, bottom: bottomPad),
+                padding: EdgeInsets.only(top: ShoreGap.top, bottom: bottomPad),
                 children: rest,
               ),
             ),
@@ -988,62 +969,180 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
       ),
     );
   }
+
+  String _greeting(DateTime now) {
+    if (_week.last >= _goal) return '今天划完了';
+    if (now.hour < 11) return '早，该出发了';
+    if (now.hour < 18) return '继续划';
+    return '收个尾再靠岸';
+  }
 }
 
-class _TopBar extends StatelessWidget {
-  const _TopBar({required this.total});
+String _weekdayCn(DateTime d) =>
+    const ['周一', '周二', '周三', '周四', '周五', '周六', '周日'][d.weekday - 1];
 
-  final int total;
+/// 区块头：标题在左，一个可点的次动作在右。
+/// 右边只放一个词，放两个就会跟标题抢。
+class _ShoreSection extends StatelessWidget {
+  const _ShoreSection({
+    required this.title,
+    required this.child,
+    this.action,
+    this.onAction,
+  });
+
+  final String title;
+  final Widget child;
+  final String? action;
+  final VoidCallback? onAction;
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
+    final t = context.tokens;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: ShoreGap.page),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text(
+                title,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontSize: 17, letterSpacing: -0.3),
+              ),
+              const Spacer(),
+              if (action != null)
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: onAction,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Text(
+                      action!,
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: t.brand,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: ShoreGap.headToList),
+        child,
+      ],
+    );
+  }
+}
+
+/// 没排航线时的占位。空态给一句话和一个动作，不给一张空卡。
+class _EmptyRoute extends StatelessWidget {
+  const _EmptyRoute({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppTheme.gutter,
-        12,
-        AppTheme.gutter,
-        0,
+      padding: const EdgeInsets.symmetric(horizontal: ShoreGap.page),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+          decoration: BoxDecoration(
+            color: t.accentSoft,
+            borderRadius: BorderRadius.circular(22),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '还没排今天的航线',
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleSmall
+                          ?.copyWith(fontSize: 15.5),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '模板可以改，删掉不做的就行',
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodySmall
+                          ?.copyWith(fontSize: 12.5, color: const Color(0xFF96792F)),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
+                decoration: BoxDecoration(
+                  color: t.accent,
+                  borderRadius: BorderRadius.circular(99),
+                ),
+                child: Text(
+                  '去安排',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: t.onAccent,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
-      child: SizedBox(
-        height: 36,
+    );
+  }
+}
+
+/// 一行次要提醒。够用的信息不值得一张卡。
+class _HintRow extends StatelessWidget {
+  const _HintRow({required this.icon, required this.text, this.onTap});
+
+  final AppIcon icon;
+  final String text;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(ShoreGap.page, 14, ShoreGap.page, 0),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // 与下方「按题型练习」同一左缘，不再被 Logo 顶开。
-            Text(
-              '练习',
-              style: text.titleMedium?.copyWith(
-                fontSize: 17,
-                letterSpacing: -0.3,
-                height: 1,
-              ),
+            StrokeIcon(icon, size: 15, color: t.brand),
+            const SizedBox(width: 9),
+            Expanded(
+              child: Text(text, style: Theme.of(context).textTheme.bodySmall),
             ),
-            const Spacer(),
-            PlainIconButton(
-              icon: Icons.search,
-              onTap: () => Navigator.of(
-                context,
-              ).push(MaterialPageRoute(builder: (_) => const SearchPage())),
-            ),
-            PlainIconButton(
-              icon: ThemeController.instance.icon,
-              onTap: () => ThemeController.instance.cycle(),
-            ),
-            PlainIconButton(
-              icon: Icons.info_outline,
-              onTap: () => showModalBottomSheet<void>(
-                context: context,
-                backgroundColor: Colors.transparent,
-                builder: (_) => const _AboutSheet(),
-              ),
-            ),
+            Icon(Icons.chevron_right, size: 15, color: t.muted),
           ],
         ),
       ),
     );
   }
 }
+
+
 String _scopeLabel(QuestionScope scope) => switch (scope) {
       QuestionScope.all => '全部题',
       QuestionScope.unseen => '没做过',
@@ -1146,73 +1245,6 @@ class _FeatureCard extends StatelessWidget {
   }
 }
 
-class _ListHeader extends StatelessWidget {
-  const _ListHeader({
-    required this.title,
-    this.trailing,
-    this.onTapTrailing,
-    this.onTapSecondary,
-  });
-
-  final String title;
-  final String? trailing;
-  final VoidCallback? onTapTrailing;
-
-  /// Long-press opens the scope picker; the row is already crowded.
-  final VoidCallback? onTapSecondary;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.tokens;
-    final text = Theme.of(context).textTheme;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppTheme.gutter,
-        0,
-        AppTheme.gutter,
-        8,
-      ),
-      child: SizedBox(
-        height: 36,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              title,
-              style: text.titleMedium?.copyWith(
-                fontSize: 17,
-                height: 1,
-                fontWeight: FontWeight.w700,
-                letterSpacing: -0.2,
-              ),
-            ),
-            const Spacer(),
-            if (trailing != null)
-              GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: onTapSecondary ?? onTapTrailing,
-                onLongPress: onTapTrailing,
-                child: Row(
-                  children: [
-                    Text(
-                      trailing!,
-                      style: text.labelMedium?.copyWith(
-                        color: onTapTrailing == null ? t.muted : t.brand,
-                        height: 1,
-                        fontFeatures: AppTheme.numeric,
-                      ),
-                    ),
-                    if (onTapTrailing != null)
-                      Icon(Icons.expand_more, size: 16, color: t.brand),
-                  ],
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 class _ScopeSheet extends StatelessWidget {
   const _ScopeSheet({required this.current, required this.counts});
 
@@ -1499,24 +1531,20 @@ class _CategoryBrowseSheetState extends State<_CategoryBrowseSheet> {
                   onTap: () => Navigator.of(context).pop(
                     _CategoryPick(item.$1, subCategory: sub),
                   ),
+                  // 题型色只做标记，不做按钮。按钮一律是那一个动作色，
+                  // 否则每开一个题型，"开始"就换一种颜色。
                   child: Container(
-                    height: 36,
+                    height: 38,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: item.$1 == 'practice'
-                          ? color.withValues(alpha: 0.16)
-                          : t.glass,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: item.$1 == 'practice'
-                            ? color.withValues(alpha: 0.4)
-                            : t.glassBorder,
-                      ),
+                      color: item.$1 == 'practice' ? t.accent : t.surfaceAlt,
+                      borderRadius: BorderRadius.circular(99),
                     ),
                     child: Text(
                       item.$2,
                       style: text.labelMedium?.copyWith(
-                        color: item.$1 == 'practice' ? color : t.textSoft,
+                        fontWeight: FontWeight.w700,
+                        color: item.$1 == 'practice' ? t.onAccent : t.textSoft,
                       ),
                     ),
                   ),
@@ -1779,451 +1807,30 @@ class _ModuleSheet extends StatelessWidget {
 
 /// 今日主卡 —— 首屏的视觉锚点。
 ///
-/// 一整块渐变卡 + 右侧插画，文字压在左边。整屏就这一块是"重"的，
-/// 其余内容都比它轻，视线自然先落在这里，再往下扫。
-class _FocusCard extends StatelessWidget {
-  const _FocusCard({
-    required this.doneToday,
-    required this.goal,
-    required this.streak,
-    required this.nextTask,
-    required this.planTotal,
-    required this.planDone,
-    required this.onStart,
-    required this.onMore,
-    required this.onTapGoal,
-    required this.examDate,
-  });
-
-  final int doneToday;
-  final int goal;
-  final int streak;
-  final StudyTask? nextTask;
-  final int planTotal;
-  final int planDone;
-
-  final VoidCallback onStart;
-  final VoidCallback onMore;
-  final VoidCallback onTapGoal;
-  final DateTime? examDate;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.tokens;
-    final text = Theme.of(context).textTheme;
-    final dark = t.name == 'dark';
-    final allDone = planTotal > 0 && planDone >= planTotal;
-
-    // 标题直接就是那件事本身；件数、进度这些统计退到卡外面那行小字里
-    final headline = allDone
-        ? '今天做完了'
-        : nextTask?.title ?? (doneToday > 0 ? '继续练' : '开始今天的第一组');
-
-    final subline = allDone
-        ? '$doneToday 题 · 明天见'
-        : [
-            if (nextTask?.count != null) '${nextTask!.count} 题',
-            if (nextTask?.minutes != null) '约 ${nextTask!.minutes} 分钟',
-            if (planTotal > 0) '今天第 ${planDone + 1} 件 / 共 $planTotal',
-          ].join(' · ');
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 12, AppTheme.gutter, 0),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: dark
-                  ? Colors.black.withValues(alpha: 0.38)
-                  : const Color(0xFF1B2540).withValues(alpha: 0.07),
-              blurRadius: dark ? 32 : 30,
-              offset: const Offset(0, 12),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: Stack(
-          children: [
-            // 底：实体卡面 + 品牌色渐变
-            Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: t.surface,
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: dark
-                        ? [
-                            t.brand.withValues(alpha: 0.34),
-                            t.brand.withValues(alpha: 0.10),
-                          ]
-                        : [
-                            t.brand.withValues(alpha: 0.20),
-                            t.brand.withValues(alpha: 0.05),
-                          ],
-                  ),
-                ),
-              ),
-            ),
-            // 插画退到右下角，只做氛围。进度环在它上面，不能被盖住。
-            // 插画完整落在右上那片留白里，跟卡面渐变是一体的
-            Positioned(
-              right: -10,
-              top: 4,
-              width: 116,
-              height: 116,
-              child: Opacity(
-                opacity: dark ? 0.62 : 0.85,
-                child: Image.asset(
-                  allDone ? 'assets/art/empty_done.png' : 'assets/art/hero_desk.png',
-                  fit: BoxFit.contain,
-                  filterQuality: FilterQuality.high,
-                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 22, 20, 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    allDone ? '今天' : '接下来',
-                    style: text.bodySmall?.copyWith(
-                      color: t.brand,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  // 这一屏只有一个主角：现在该做的那件事。
-                  // 之前主卡里塞了件数、下一件、进度环、两个按钮，
-                  // 累的时候打开看到五样东西，等于还得先做一次选择。
-                  Padding(
-                    padding: const EdgeInsets.only(right: 96),
-                    child: Text(
-                    headline,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: text.headlineMedium?.copyWith(
-                      color: t.text,
-                      fontWeight: FontWeight.w700,
-                      height: 1.2,
-                      letterSpacing: -0.6,
-                    ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    subline,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: text.bodySmall?.copyWith(color: t.textSoft),
-                  ),
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    width: double.infinity,
-                    child: _StartButton(
-                      label: allDone ? '再练一组' : '开始练习',
-                      onTap: onStart,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        ),
-      ),
-    );
-  }
-}
 
 /// 主卡下面那一行统计。
 ///
-/// 进度环、倒计时、完成件数都不是"现在要做的事"，摆在主卡里会跟主按钮
-/// 抢注意力。压成一行小字，想看的时候看得到，不想看时不碍事。
-class _FocusMeta extends StatelessWidget {
-  const _FocusMeta({
-    required this.done,
-    required this.goal,
-    required this.streak,
-    required this.examDate,
-    required this.onTap,
-  });
 
-  final int done;
-  final int goal;
-  final int streak;
-  final DateTime? examDate;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.tokens;
-    final text = Theme.of(context).textTheme;
-    final ratio = goal <= 0 ? 0.0 : (done / goal).clamp(0.0, 1.0);
-
-    final now = DateTime.now();
-    final daysLeft = examDate == null
-        ? null
-        : DateTime(examDate!.year, examDate!.month, examDate!.day)
-            .difference(DateTime(now.year, now.month, now.day))
-            .inDays;
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(AppTheme.gutter + 4, 12, AppTheme.gutter + 4, 0),
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: Row(
-          children: [
-            SizedBox(
-              width: 15,
-              height: 15,
-              child: CircularProgressIndicator(
-                value: ratio,
-                strokeWidth: 2.5,
-                strokeCap: StrokeCap.round,
-                backgroundColor: t.text.withValues(alpha: 0.10),
-                valueColor: AlwaysStoppedAnimation(t.brand),
-              ),
-            ),
-            const SizedBox(width: 9),
-            Text(
-              '今天 $done / $goal 题',
-              style: text.bodySmall?.copyWith(fontFeatures: AppTheme.numeric),
-            ),
-            if (streak > 0) ...[
-              Text('  ·  ', style: text.bodySmall),
-              Text('连续 $streak 天', style: text.bodySmall),
-            ],
-            const Spacer(),
-            if (daysLeft != null)
-              Text(
-                daysLeft > 0 ? '距考试 $daysLeft 天' : '考试就在今天',
-                style: text.bodySmall?.copyWith(
-                  color: t.brand,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _StartButton extends StatelessWidget {
-  const _StartButton({required this.label, required this.onTap});
+/// 面板里的文字按钮。比一整行 ListTile 轻，也不抢主动作。
+class _SheetLink extends StatelessWidget {
+  const _SheetLink({required this.label, required this.onTap});
 
   final String label;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final t = context.tokens;
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
-        decoration: BoxDecoration(
-          color: t.brand,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: t.brand.withValues(alpha: 0.30),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              label,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.3,
-              ),
-            ),
-            const SizedBox(width: 7),
-            const Icon(Icons.arrow_forward_rounded, size: 18, color: Colors.white),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _TypeGrid extends StatelessWidget {
-  const _TypeGrid({
-    required this.stats,
-    required this.onTap,
-    required this.onLong,
-  });
-
-  final Map<String, CategoryStat> stats;
-  final void Function(String category) onTap;
-  final void Function(String category) onLong;
-
-  static const _art = {
-    'yanyu': 'assets/art/cat_yanyu.png',
-    'shuliang': 'assets/art/cat_shuliang.png',
-    'panduan': 'assets/art/cat_panduan.png',
-    'ziliao': 'assets/art/cat_ziliao.png',
-    'changshi': 'assets/art/cat_changshi.png',
-  };
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
-      child: LayoutBuilder(
-        builder: (context, box) {
-          const gap = 11.0;
-          final cols = box.maxWidth >= 560 ? 3 : 2;
-          final width = (box.maxWidth - gap * (cols - 1)) / cols;
-          return Wrap(
-            spacing: gap,
-            runSpacing: gap,
-            children: [
-              for (final c in kGongkaoCategories)
-                SizedBox(
-                  width: width,
-                  child: _TypeTile(
-                    meta: c,
-                    stat: stats[c.key],
-                    art: _art[c.key],
-                    onTap: () => onTap(c.key),
-                    onLong: () => onLong(c.key),
-                  ),
-                ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _TypeTile extends StatelessWidget {
-  const _TypeTile({
-    required this.meta,
-    required this.stat,
-    required this.art,
-    required this.onTap,
-    required this.onLong,
-  });
-
-  final CategoryMeta meta;
-  final CategoryStat? stat;
-  final String? art;
-  final VoidCallback onTap;
-  final VoidCallback onLong;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.tokens;
-    final text = Theme.of(context).textTheme;
-    final color = t.category(meta.key);
-    final dark = t.name == 'dark';
-    final done = stat?.done ?? 0;
-
-    return PressableCard(
-      onTap: onTap,
-      onLongPress: onLong,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(18),
-          boxShadow: [
-            BoxShadow(
-              color: dark
-                  ? Colors.black.withValues(alpha: 0.34)
-                  : const Color(0xFF1B2540).withValues(alpha: 0.06),
-              blurRadius: dark ? 26 : 24,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(18),
-          child: SizedBox(
-            height: 104,
-            child: Stack(
-              children: [
-                // 卡片底：一层淡淡的题型色渐变，从左上的实色过渡到右边留白，
-                // 插画就落在那片留白上，跟卡面是一体的，不是贴上去的小图。
-                Positioned.fill(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: t.surface,
-                      gradient: LinearGradient(
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                        colors: [
-                          color.withValues(alpha: dark ? 0.16 : 0.10),
-                          color.withValues(alpha: dark ? 0.05 : 0.03),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                // 插画完整、清晰地占住右侧那块，不再是角落里的半透明水印
-                if (art != null)
-                  Positioned(
-                    right: -2,
-                    top: 10,
-                    bottom: 6,
-                    width: 72,
-                    child: Image.asset(
-                      art!,
-                      fit: BoxFit.contain,
-                      filterQuality: FilterQuality.high,
-                      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                    ),
-                  ),
-                // 文字压在左侧，跟插画不重叠
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 78, 0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        meta.label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: text.titleSmall?.copyWith(
-                          color: t.text,
-                          fontSize: 15.5,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: -0.2,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        done > 0 ? '做过 $done 题' : '${stat?.total ?? 0} 题',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: text.bodySmall?.copyWith(
-                          fontSize: 12,
-                          // muted 压在浅色卡面上几乎读不出来
-                          color: t.textSoft,
-                          fontWeight: FontWeight.w500,
-                          fontFeatures: AppTheme.numeric,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12.5,
+            fontWeight: FontWeight.w600,
+            color: context.tokens.brand,
           ),
         ),
       ),

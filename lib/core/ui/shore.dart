@@ -126,8 +126,10 @@ class _RoutePainter extends CustomPainter {
     }
 
     final done = value >= 0.999;
-    if (!done && travelled > 2) {
-      final tan = metric.getTangentForOffset(travelled);
+    if (!done) {
+      // 一题没做时船停在起点。之前从 travelled > 2 才画，
+      // 于是「今天还没开始」那一屏只剩一座孤零零的灯塔。
+      final tan = metric.getTangentForOffset(math.max(travelled, 0));
       // 船要坐在航线上，所以 y 取切点而不是画布底边；-3 让船底压住线
       if (tan != null) _boat(canvas, tan.position.translate(0, -3));
     }
@@ -264,9 +266,13 @@ class _RingPainter extends CustomPainter {
         _ropes(canvas, rope);
         canvas.drawCircle(c, 4.4, Paint()..color = active..isAntiAlias = true);
       case LifeRingState.done:
-        canvas.drawCircle(c, 10, Paint()..color = done..isAntiAlias = true);
-        // 绑绳留半透明，完成了也还看得出是救生圈
-        _ropes(canvas, rope.withValues(alpha: 0.55));
+        // 空心不是实心：做完的那行该退下去。实心绿圆在一列灰圈里
+        // 是最抢眼的一块颜色，等于把"已经不用管"标成了重点。
+        canvas.drawCircle(
+          c, 10, Paint()..color = done.withValues(alpha: 0.10)..isAntiAlias = true,
+        );
+        _rim(canvas, c, done.withValues(alpha: 0.55), 2.4);
+        _ropes(canvas, rope);
         canvas.drawPath(
           Path()..moveTo(9, 13.4)..lineTo(11.7, 16.1)..lineTo(17.2, 10),
           Paint()
@@ -274,7 +280,7 @@ class _RingPainter extends CustomPainter {
             ..strokeWidth = 2.3
             ..strokeCap = StrokeCap.round
             ..strokeJoin = StrokeJoin.round
-            ..color = rope
+            ..color = done
             ..isAntiAlias = true,
         );
       case LifeRingState.wrong:

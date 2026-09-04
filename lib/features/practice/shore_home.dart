@@ -1,0 +1,557 @@
+import 'package:flutter/material.dart';
+import 'package:openexam_app/core/constants/categories.dart';
+import 'package:openexam_app/core/theme/app_theme.dart';
+import 'package:openexam_app/core/theme/app_tokens.dart';
+import 'package:openexam_app/core/ui/shore.dart';
+import 'package:openexam_app/core/ui/shore_art.dart';
+import 'package:openexam_app/data/models/question.dart';
+import 'package:openexam_app/features/plan/domain/models/study_task.dart';
+
+/// 首页三段：航程卡 → 今日航线 → 五座岛。
+///
+/// 一句话原则：每块只留 2–3 条信息。之前航程卡塞了灯塔天数、离岸天数、
+/// 12/30、正确率、进度条、一句话共六条 —— 拥挤不是间距不够，是塞太多。
+
+/// 页面统一的间距节奏。区块间距是卡内的两倍多，「组」的边界才立得住。
+class ShoreGap {
+  const ShoreGap._();
+  static const page = 20.0;
+  static const top = 34.0;
+  static const titleToBody = 22.0;
+  static const section = 30.0;
+  static const headToList = 12.0;
+}
+
+// ─────────────────────────────────────────── 顶部标题
+
+/// 小字在上、大标题在下。反过来的话标题和下面的卡之间就断开了。
+class ShoreHeader extends StatelessWidget {
+  const ShoreHeader({
+    super.key,
+    required this.kicker,
+    required this.title,
+    this.actions = const [],
+  });
+
+  final String kicker;
+  final String title;
+  final List<Widget> actions;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: ShoreGap.page),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  kicker,
+                  style: text.bodySmall?.copyWith(
+                    fontSize: 11.5,
+                    color: t.muted,
+                    letterSpacing: 0.6,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  title,
+                  style: text.displaySmall?.copyWith(
+                    fontSize: 26,
+                    height: 1.15,
+                    letterSpacing: -0.7,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          for (final a in actions) ...[const SizedBox(width: 10), a],
+        ],
+      ),
+    );
+  }
+}
+
+/// 顶部那两枚白色圆钮。
+class ShoreRoundButton extends StatelessWidget {
+  const ShoreRoundButton({super.key, required this.icon, this.onTap});
+
+  final Widget icon;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        width: 40,
+        height: 40,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: t.surface,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF16465A).withValues(alpha: 0.06),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: icon,
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────── 航程卡
+
+/// 插画独占上半，数字落在下半白底。把数字压在插画上，图和字互相干扰。
+class VoyageCard extends StatelessWidget {
+  const VoyageCard({
+    super.key,
+    required this.done,
+    required this.goal,
+    required this.streak,
+    this.daysLeft,
+    this.onTap,
+  });
+
+  final int done;
+  final int goal;
+  final int streak;
+  final int? daysLeft;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+    final left = (goal - done).clamp(0, goal);
+    final ratio = goal <= 0 ? 0.0 : (done / goal).clamp(0.0, 1.0);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: ShoreGap.page),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Container(
+          decoration: BoxDecoration(
+            color: t.surface,
+            borderRadius: BorderRadius.circular(26),
+            boxShadow: t.shadow,
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            children: [
+              Stack(
+                children: [
+                  Image.asset(
+                    ShoreArt.voyage,
+                    height: 150,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    // 素材的主体在下方三分之一，居中裁只会裁到一片空天
+                    alignment: const Alignment(0, 0.55),
+                    filterQuality: FilterQuality.medium,
+                    errorBuilder: (_, __, ___) =>
+                        Container(height: 150, color: t.brandSoft),
+                  ),
+                  // 插画没入水里，不是被一条直线切断
+                  const Positioned(
+                    left: 0, right: 0, bottom: -1, child: Waterline(),
+                  ),
+                  if (streak > 0)
+                    Positioned(
+                      left: 12,
+                      top: 12,
+                      child: _Pill(
+                        icon: const _LighthouseGlyph(),
+                        label: '灯塔亮了 $streak 天',
+                      ),
+                    ),
+                  if (daysLeft != null)
+                    Positioned(
+                      right: 12,
+                      top: 12,
+                      child: _Pill(label: '离岸 $daysLeft 天'),
+                    ),
+                ],
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        Text(
+                          '$done',
+                          style: text.displaySmall?.copyWith(
+                            fontSize: 46,
+                            height: 1,
+                            letterSpacing: -1.5,
+                            fontFeatures: AppTheme.numeric,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '/ $goal',
+                          style: text.titleSmall?.copyWith(
+                            fontSize: 15,
+                            color: t.muted,
+                            fontFeatures: AppTheme.numeric,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    RouteBar(value: ratio),
+                    const SizedBox(height: 4),
+                    Text(
+                      left == 0 ? '今天划完了' : '今天还要划 $left 题',
+                      style: text.bodySmall?.copyWith(fontSize: 13),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Pill extends StatelessWidget {
+  const _Pill({required this.label, this.icon});
+
+  final String label;
+  final Widget? icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
+      decoration: BoxDecoration(
+        color: t.surface.withValues(alpha: 0.93),
+        borderRadius: BorderRadius.circular(99),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[icon!, const SizedBox(width: 5)],
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w600,
+              color: icon == null ? t.text : const Color(0xFFB8730F),
+              fontFeatures: AppTheme.numeric,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LighthouseGlyph extends StatelessWidget {
+  const _LighthouseGlyph();
+
+  @override
+  Widget build(BuildContext context) => const SizedBox(
+        width: 13,
+        height: 13,
+        child: CustomPaint(painter: _LighthousePainter()),
+      );
+}
+
+class _LighthousePainter extends CustomPainter {
+  const _LighthousePainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final s = size.width / 24;
+    canvas.scale(s);
+    final p = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.1
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round
+      ..color = const Color(0xFFE08A1E)
+      ..isAntiAlias = true;
+    canvas.drawPath(
+      Path()
+        ..moveTo(9.5, 21)..lineTo(14.5, 21)
+        ..moveTo(10, 21)..lineTo(11, 8)..lineTo(13, 8)..lineTo(14, 21)
+        ..moveTo(10.4, 8)..lineTo(13.6, 8)..lineTo(13.3, 5)..lineTo(10.7, 5)..close()
+        ..moveTo(6, 6.5)..lineTo(9, 8)
+        ..moveTo(18, 6.5)..lineTo(15, 8),
+      p,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_LighthousePainter old) => false;
+}
+
+// ─────────────────────────────────────────── 今日航线
+
+/// 一行只有名字和题数。当前那条整块黄底，是这张卡里唯一的重点。
+class RouteList extends StatelessWidget {
+  const RouteList({
+    super.key,
+    required this.tasks,
+    required this.doneIds,
+    required this.onRun,
+    this.onLongPress,
+  });
+
+  final List<StudyTask> tasks;
+  final Set<String> doneIds;
+  final void Function(StudyTask) onRun;
+  final void Function(StudyTask)? onLongPress;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    if (tasks.isEmpty) return const SizedBox.shrink();
+
+    // 第一条没做完的就是「当前」
+    final currentId = tasks
+        .where((x) => !doneIds.contains(x.id))
+        .map((x) => x.id)
+        .firstOrNull;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: ShoreGap.page),
+      child: Container(
+        decoration: BoxDecoration(
+          color: t.surface,
+          borderRadius: BorderRadius.circular(22),
+          boxShadow: t.shadow,
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          children: [
+            for (final task in tasks.take(4))
+              _RouteRow(
+                task: task,
+                state: doneIds.contains(task.id)
+                    ? LifeRingState.done
+                    : (task.id == currentId
+                        ? LifeRingState.active
+                        : LifeRingState.todo),
+                onRun: () => onRun(task),
+                onLongPress:
+                    onLongPress == null ? null : () => onLongPress!(task),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RouteRow extends StatelessWidget {
+  const _RouteRow({
+    required this.task,
+    required this.state,
+    required this.onRun,
+    this.onLongPress,
+  });
+
+  final StudyTask task;
+  final LifeRingState state;
+  final VoidCallback onRun;
+  final VoidCallback? onLongPress;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+    final current = state == LifeRingState.active;
+    final done = state == LifeRingState.done;
+
+    final meta = task.count != null
+        ? '${task.count} 题'
+        : (task.minutes != null ? '${task.minutes} 分钟' : '');
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onRun,
+      onLongPress: onLongPress,
+      child: Container(
+        color: current ? t.accentSoft : null,
+        padding: EdgeInsets.fromLTRB(16, current ? 14 : 13, 16, current ? 14 : 13),
+        child: Row(
+          children: [
+            LifeRing(state: state),
+            const SizedBox(width: 13),
+            Expanded(
+              child: Text(
+                task.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: text.titleSmall?.copyWith(
+                  fontSize: current ? 15 : 14.5,
+                  fontWeight: current ? FontWeight.w700 : FontWeight.w500,
+                  color: done ? t.muted : t.text,
+                ),
+              ),
+            ),
+            if (current)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 9),
+                decoration: BoxDecoration(
+                  color: t.accent,
+                  borderRadius: BorderRadius.circular(99),
+                ),
+                child: Text(
+                  '开始',
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w700,
+                    color: t.onAccent,
+                  ),
+                ),
+              )
+            else if (meta.isNotEmpty)
+              Text(
+                meta,
+                style: text.bodySmall?.copyWith(
+                  color: done ? t.muted : t.textSoft,
+                  fontFeatures: AppTheme.numeric,
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────── 五座岛
+
+/// 图在上、字在白底。亮色插画上压白字读不清，压深字又跟天空糊在一起。
+class IsleStrip extends StatelessWidget {
+  const IsleStrip({
+    super.key,
+    required this.stats,
+    required this.onTap,
+    this.onLong,
+  });
+
+  final Map<String, CategoryStat> stats;
+  final void Function(String category) onTap;
+  final void Function(String category)? onLong;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 148,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: ShoreGap.page),
+        itemCount: kGongkaoCategories.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 12),
+        itemBuilder: (_, i) {
+          final c = kGongkaoCategories[i];
+          return _IsleCard(
+            meta: c,
+            stat: stats[c.key],
+            onTap: () => onTap(c.key),
+            onLong: onLong == null ? null : () => onLong!(c.key),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _IsleCard extends StatelessWidget {
+  const _IsleCard({
+    required this.meta,
+    required this.stat,
+    required this.onTap,
+    this.onLong,
+  });
+
+  final CategoryMeta meta;
+  final CategoryStat? stat;
+  final VoidCallback onTap;
+  final VoidCallback? onLong;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+    final art = ShoreArt.isle(meta.key);
+    final s = stat;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      onLongPress: onLong,
+      child: Container(
+        width: 130,
+        decoration: BoxDecoration(
+          color: t.surface,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: t.shadow,
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (art != null)
+              Image.asset(
+                art,
+                height: 92,
+                width: 130,
+                fit: BoxFit.cover,
+                filterQuality: FilterQuality.medium,
+                errorBuilder: (_, __, ___) => Container(
+                  height: 92,
+                  width: 130,
+                  color: t.category(meta.key).withValues(alpha: 0.14),
+                ),
+              ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 11, 12, 13),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    meta.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: text.titleSmall?.copyWith(fontSize: 14),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    s == null ? '未开航' : '${s.done} / ${s.total}',
+                    style: text.bodySmall?.copyWith(
+                      fontSize: 11,
+                      fontFeatures: AppTheme.numeric,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

@@ -28,5 +28,5 @@ flutter:
   assets:
     - assets/seed/openexam_seed.db.gz
     - assets/themes/
-    - assets/art/
+    - assets/shore/
     - assets/brand/

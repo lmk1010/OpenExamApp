@@ -56,6 +56,15 @@ STYLE_ICON = (
 )
 
 # 两种构图：主视觉要在上方留白给文字；岛卡尺寸小，主体必须占满才认得出。
+# 空态插画：比图标大、比场景插画简。落在卡片中央，尺寸约 120px。
+STYLE_EMPTY = (
+    "{compose}"
+    "一幅极简的小插画，居中构图，透明背景。"
+    "色域锁定：海蓝 #2E6FD9、浅青 #7FCFE4、暖黄 #FFC94A 与白色，不用别的颜色。"
+    "扁平矢量风格，干净的色块与简洁曲线，圆润饱满，无写实笔触无阴影无渐变噪点。"
+    "画面安静、留白多，只画一个主体。无文字无字母无数字。"
+)
+
 COMPOSE_HERO = "构图锁定：主体位于画面下方三分之一，上方三分之二留空给文字。"
 COMPOSE_TILE = "构图锁定：主体居中并占满画面大部分，四周只留一点点余量，主体要足够大足够清晰。"
 
@@ -98,6 +107,26 @@ SCENES = {
     "ico_tips":    "一个航海用的黄铜罗盘",
     "ico_fix":     "一支笔在纸上打勾修改",
     "day_start": "晴天的海面上一个人划着小木船出发，远处是一座亮黄色的灯塔，天上飘着蓬松的白云，海鸥在飞",
+    # ── 空态插画：每屏没东西时的那张图 ──
+    "empty_box":    "一只空的木箱，箱盖敞开着，箱口飘出一小片浅青的光",
+    "empty_star":   "一颗孤零零的五角星，下面一道淡淡的弧线",
+    "empty_search": "一枚放大镜，镜片里什么也没有，只有一小片浅青",
+    "empty_chart":  "三根高低不齐的柱子，最高那根顶上停着一只小鸟",
+    "empty_done":   "一个圆圈里一个大对勾，圈外两道小小的放射线",
+    "empty_essay":  "一张空白的稿纸，右下角搁着一支笔",
+    "empty_vocab":  "一本合起来的字典，书脊上一条黄色书签带垂下来",
+    "empty_note":   "一张便签纸，左上角别着一枚图钉",
+    "empty_wrong":  "一个圆圈里一个叉，旁边一小片浅青的水花",
+    "empty_bank":   "一摞三本书，最上面那本斜着放",
+    "empty_paper":  "一张对折的试卷，卷角微微翘起",
+
+    # ── 考试类型图标：题库页每种考试的标记 ──
+    "ico_exam_nat":   "一枚圆形印章，章面是一颗五角星",
+    "ico_exam_joint": "三个圆环互相扣在一起",
+    "ico_exam_inst":  "一座带台阶和三根柱子的小楼",
+    "ico_exam_prov":  "一枚地图定位针，针头是圆的",
+    "ico_exam_other": "一个方框里三条长短不一的横线",
+
     "day_arrive": "晴天的沙岸边停着一叶小船，沙丘上立着一面亮黄色的旗子迎风飘，天空明亮有大片白云",
 }
 
@@ -111,14 +140,18 @@ def gen(name: str, subject: str, key: str, force: bool) -> str:
         "prompt": f"{subject}。" + (
             STYLE_BADGE if name.startswith("badge") else
             STYLE_ICON if name.startswith("ico_") else
+            STYLE_EMPTY if name.startswith("empty_") else
             STYLE_DAY if name.startswith("day") else STYLE_NIGHT
         ).format(
-            compose="" if name.startswith("badge") or name.startswith("ico_")
+            compose="" if name.startswith(("badge", "ico_", "empty_"))
             else COMPOSE_TILE if any(k in name for k in TILE)
             else COMPOSE_HERO
         ),
         "n": 1,
         "size": "1024x1024",
+        # 徽章、图标、空态都要落在卡片上，白底会切出一块方形
+        **({"background": "transparent"}
+           if name.startswith(("badge", "ico_", "empty_")) else {}),
     }).encode()
     req = urllib.request.Request(
         os.environ.get("OPENEXAM_IMAGE_BASE", "https://988665.xyz/v1").rstrip("/") + "/images/generations",

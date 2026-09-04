@@ -546,13 +546,13 @@ class _Paper {
 
   /// 这张卷属于哪一类考试 —— 决定列表里显示哪个图标。
   String get typeArt {
-    if (region == '国考') return 'assets/art/ic_exam_nat.png';
-    if (region == '联考') return 'assets/art/ic_exam_joint.png';
-    if (region == '事业') return 'assets/art/ic_exam_inst.png';
+    if (region == '国考') return 'assets/shore/ico_exam_nat.png';
+    if (region == '联考') return 'assets/shore/ico_exam_joint.png';
+    if (region == '事业') return 'assets/shore/ico_exam_inst.png';
     if (region == '其他' || region == '选调') {
-      return 'assets/art/ic_exam_other.png';
+      return 'assets/shore/ico_exam_other.png';
     }
-    return 'assets/art/ic_exam_prov.png';
+    return 'assets/shore/ico_exam_prov.png';
   }
 
   /// Title without the leading year, which the group header already shows.

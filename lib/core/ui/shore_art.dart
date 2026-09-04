@@ -1,0 +1,85 @@
+/// 「上岸」素材的路径表。
+///
+/// 散在各页里写字符串迟早会拼错，而且改名要全局搜 —— 集中在这里。
+/// 生成脚本在 design/gen_scenes.py，三套风格锁死在里面：
+/// 场景走 STYLE_DAY，徽章走 STYLE_BADGE，入口图标走 STYLE_ICON。
+class ShoreArt {
+  const ShoreArt._();
+
+  static const _dir = 'assets/shore';
+
+  // ── 场景（620px jpg）──
+  /// 首页航程卡：晴天海面划船，远处白灯塔。
+  static const voyage = '$_dir/day_voyage.jpg';
+
+  /// 引导页：出发。
+  static const start = '$_dir/day_start.jpg';
+
+  /// 今日靠岸 / 我的：船靠岸，沙丘上一面旗。
+  static const arrive = '$_dir/day_arrive.jpg';
+
+  /// 空态：无人的海面。
+  static const calm = '$_dir/day_calm.jpg';
+
+  static const essay = '$_dir/day_essay.jpg';
+  static const chart = '$_dir/day_chart.jpg';
+  static const badgeScene = '$_dir/day_badge.jpg';
+  static const log = '$_dir/day_log.jpg';
+
+  /// 五座岛，按题型 id 取。
+  static const _isles = <String, String>{
+    'yanyu': '$_dir/day_yanyu.jpg',
+    'shuliang': '$_dir/day_shuliang.jpg',
+    'panduan': '$_dir/day_panduan.jpg',
+    'ziliao': '$_dir/day_ziliao.jpg',
+    'changshi': '$_dir/day_changshi.jpg',
+  };
+
+  static String? isle(String? category) => _isles[category];
+
+  // ── 成就徽章（320px png，六枚各画各的）──
+  static const badgeFirst = '$_dir/badge_first.png';
+  static const badgeWeek = '$_dir/badge_week.png';
+  static const badgeKilo = '$_dir/badge_kilo.png';
+  static const badgePerfect = '$_dir/badge_perfect.png';
+  static const badgeDawn = '$_dir/badge_dawn.png';
+  static const badgeShore = '$_dir/badge_shore.png';
+
+  /// 空态插画。每屏没东西的时候露的就是这张。
+  static const emptyBox = '$_dir/empty_box.png';
+  static const emptyStar = '$_dir/empty_star.png';
+  static const emptySearch = '$_dir/empty_search.png';
+  static const emptyChart = '$_dir/empty_chart.png';
+  static const emptyDone = '$_dir/empty_done.png';
+  static const emptyEssay = '$_dir/empty_essay.png';
+  static const emptyVocab = '$_dir/empty_vocab.png';
+  static const emptyNote = '$_dir/empty_note.png';
+  static const emptyWrong = '$_dir/empty_wrong.png';
+  static const emptyBank = '$_dir/empty_bank.png';
+  static const emptyPaper = '$_dir/empty_paper.png';
+
+  /// 成就分组 → 徽章素材。每组各画各的，不是同一个图形换颜色。
+  static const _groups = <String, String>{
+    '题量': badgeKilo,
+    '坚持': badgeWeek,
+    '精度': badgePerfect,
+    '考场': badgeFirst,
+    '攻坚': badgeShore,
+  };
+
+  static String badgeForGroup(String group) => _groups[group] ?? badgeDawn;
+
+  static const badges = <String>[
+    badgeFirst, badgeWeek, badgeKilo, badgePerfect, badgeDawn, badgeShore,
+  ];
+
+  // ── 「我的」入口图标（320px png）──
+  static const icoAchieve = '$_dir/ico_achieve.png';
+  static const icoHistory = '$_dir/ico_history.png';
+  static const icoNote = '$_dir/ico_note.png';
+  static const icoMark = '$_dir/ico_mark.png';
+  static const icoReport = '$_dir/ico_report.png';
+  static const icoStats = '$_dir/ico_stats.png';
+  static const icoTips = '$_dir/ico_tips.png';
+  static const icoFix = '$_dir/ico_fix.png';
+}

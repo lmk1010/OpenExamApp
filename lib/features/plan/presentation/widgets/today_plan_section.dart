@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
+import 'package:openexam_app/core/ui/shore_art.dart';
 import 'package:openexam_app/core/ui/ambient.dart';
 import 'package:openexam_app/core/ui/stroke_icons.dart';
 import 'package:openexam_app/core/ui/ui_kit.dart';
@@ -157,39 +158,32 @@ class TodayPlanSection extends StatelessWidget {
 /// 每种任务对应的图标和颜色 —— 一列纯文字扫不动，图标才是锚点。
 ({AppIcon icon, Color color, String? art}) _taskGlyph(StudyTask task, AppTokens t) {
   // 有题型就用题型的插画和配色，跟下面的题型卡是同一套视觉
-  const catArt = {
-    'yanyu': 'assets/art/cat_yanyu.png',
-    'shuliang': 'assets/art/cat_shuliang.png',
-    'panduan': 'assets/art/cat_panduan.png',
-    'ziliao': 'assets/art/cat_ziliao.png',
-    'changshi': 'assets/art/cat_changshi.png',
-  };
   if (task.category != null) {
     for (final c in kGongkaoCategories) {
       if (c.key == task.category) {
         return (
           icon: c.icon,
           color: t.category(c.key),
-          art: catArt[c.key],
+          art: ShoreArt.isle(c.key),
         );
       }
     }
   }
   return switch (task.action) {
     StudyAction.daily =>
-      (icon: AppIcon.shuffle, color: t.brand, art: 'assets/art/ic_target.png'),
+      (icon: AppIcon.shuffle, color: t.brand, art: ShoreArt.chart),
     StudyAction.mock =>
-      (icon: AppIcon.timer, color: t.brand, art: 'assets/art/ic_history.png'),
+      (icon: AppIcon.timer, color: t.brand, art: ShoreArt.log),
     StudyAction.wrong =>
-      (icon: AppIcon.replay, color: t.danger, art: 'assets/art/empty_wrong.png'),
+      (icon: AppIcon.replay, color: t.danger, art: ShoreArt.emptyWrong),
     StudyAction.openWrongBook =>
-      (icon: AppIcon.wrongBook, color: t.danger, art: 'assets/art/empty_wrong.png'),
+      (icon: AppIcon.wrongBook, color: t.danger, art: ShoreArt.emptyWrong),
     StudyAction.adaptive =>
-      (icon: AppIcon.auto, color: t.brand, art: 'assets/art/ic_stats.png'),
+      (icon: AppIcon.auto, color: t.brand, art: ShoreArt.icoStats),
     StudyAction.note =>
-      (icon: AppIcon.papers, color: t.success, art: 'assets/art/empty_essay.png'),
+      (icon: AppIcon.papers, color: t.success, art: ShoreArt.essay),
     StudyAction.practice =>
-      (icon: AppIcon.practice, color: t.brand, art: 'assets/art/ic_plan.png'),
+      (icon: AppIcon.practice, color: t.brand, art: ShoreArt.voyage),
   };
 }
 

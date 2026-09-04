@@ -712,7 +712,9 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
         autofocus: true,
         onKeyEvent: _onKey,
         child: Scaffold(
+        backgroundColor: t.surface,
         appBar: AppBar(
+          backgroundColor: t.surface,
           leading: IconButton(
             icon: const Icon(Icons.close, size: 21),
             onPressed: _postReview
@@ -801,19 +803,20 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: t.brand.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(10),
+                  color: t.accentSoft,
+                  borderRadius: BorderRadius.circular(99),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.grid_view_rounded, size: 14, color: t.brand),
+                    Icon(Icons.grid_view_rounded,
+                        size: 14, color: const Color(0xFFB8730F)),
                     const SizedBox(width: 6),
                     Text(
                       '${_answers.length}/$total',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 12.5,
                         fontWeight: FontWeight.w700,
-                        color: t.brand,
+                        color: Color(0xFFB8730F),
                         fontFeatures: AppTheme.numeric,
                       ),
                     ),
@@ -824,7 +827,11 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
           ],
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(3),
-            child: Meter(value: (_index + 1) / total, height: 3),
+            child: Meter(
+              value: (_index + 1) / total,
+              height: 4,
+              color: t.accent,
+            ),
           ),
         ),
         body: _buildBody(reviewMode: reviewMode),
@@ -1183,18 +1190,25 @@ class _QuestionView extends StatelessWidget {
           // 排除只在还没作答时有意义；一旦揭晓，对错配色说明一切。
           final struck = !revealed && excluded.contains(key);
 
+          // 未选中的选项是白底细线，不是灰块 —— 四个灰块并排，
+          // 一屏就只剩灰，选中的那个反而不突出。
           Color badgeBg = t.surfaceAlt;
           Color badgeFg = t.textSoft;
           Color fg = t.text;
-          BoxDecoration decoration = GlassDecor.panel(t, radius: 16, raised: false);
+          BoxDecoration decoration = BoxDecoration(
+            color: t.surface,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: t.lineSoft, width: 1.5),
+          );
 
           if (isExam && chosen) {
-            badgeBg = t.brand;
-            badgeFg = Colors.white;
-            fg = t.brand;
+            badgeBg = t.accent;
+            badgeFg = t.onAccent;
+            fg = t.text;
             decoration = BoxDecoration(
-              color: t.brand.withValues(alpha: 0.14),
-              borderRadius: BorderRadius.circular(16),
+              color: t.accentSoft,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: t.accent, width: 1.5),
             );
           } else if (revealed && isAnswer) {
             badgeBg = t.success;
@@ -1202,7 +1216,8 @@ class _QuestionView extends StatelessWidget {
             fg = t.success;
             decoration = BoxDecoration(
               color: t.successSoft,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: t.success.withValues(alpha: 0.45), width: 1.5),
             );
           } else if (revealed && chosen) {
             badgeBg = t.danger;
@@ -1210,7 +1225,8 @@ class _QuestionView extends StatelessWidget {
             fg = t.danger;
             decoration = BoxDecoration(
               color: t.dangerSoft,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: t.danger.withValues(alpha: 0.40), width: 1.5),
             );
           }
 
@@ -1232,28 +1248,26 @@ class _QuestionView extends StatelessWidget {
                 duration: const Duration(milliseconds: 180),
                 curve: Curves.easeOut,
                 width: double.infinity,
-                padding: const EdgeInsets.fromLTRB(14, 14, 15, 14),
+                padding: const EdgeInsets.fromLTRB(17, 16, 17, 16),
                 decoration: pressed
                     ? BoxDecoration(
-                        color: t.brand.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: t.brand.withValues(alpha: 0.45),
-                          width: 1.2,
-                        ),
+                        color: t.accentSoft,
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: t.accent, width: 1.5),
                       )
                     : (struck
                         ? BoxDecoration(
-                            color: t.glass.withValues(alpha: 0.35),
-                            borderRadius: BorderRadius.circular(16),
+                            color: t.surface,
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(color: t.lineSoft, width: 1.5),
                           )
                         : decoration),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      width: 24,
-                      height: 24,
+                      width: 27,
+                      height: 27,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
                         color: struck ? Colors.transparent : badgeBg,
@@ -1265,7 +1279,7 @@ class _QuestionView extends StatelessWidget {
                       child: Text(
                         key,
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 13,
                           fontWeight: FontWeight.w700,
                           height: 1,
                           color: struck ? t.muted : badgeFg,
@@ -1275,7 +1289,7 @@ class _QuestionView extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 11),
+                    const SizedBox(width: 14),
                     Expanded(
                       child: opt.hasImage
                           ? RichContent(

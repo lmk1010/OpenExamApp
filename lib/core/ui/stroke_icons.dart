@@ -30,6 +30,16 @@ enum AppIcon {
   privacy,
   trash,
   info,
+  // 设置行用的一组：跟上面同一套 24 网格、同一个描边宽度
+  region, // 报考地区
+  calendar, // 考试日期
+  target, // 每日目标
+  stack, // 每组题量
+  import, // 导入题目
+  health, // 题库体检
+  backup, // 备份
+  spark, // AI
+  search,
 }
 
 class StrokeIcon extends StatelessWidget {
@@ -375,6 +385,152 @@ class _IconPainter extends CustomPainter {
         );
         canvas.drawLine(const Offset(11, 10), const Offset(11.3, 17), stroke);
         canvas.drawLine(const Offset(13, 10), const Offset(12.7, 17), stroke);
+
+
+      case AppIcon.region:
+        canvas.drawPath(
+          Path()
+            ..moveTo(12, 21)
+            ..cubicTo(16.7, 16.6, 19, 13.2, 19, 10)
+            ..cubicTo(19, 6.1, 15.9, 3, 12, 3)
+            ..cubicTo(8.1, 3, 5, 6.1, 5, 10)
+            ..cubicTo(5, 13.2, 7.3, 16.6, 12, 21)
+            ..close(),
+          stroke,
+        );
+        canvas.drawCircle(const Offset(12, 9.8), 2.6, stroke);
+
+      case AppIcon.calendar:
+        canvas.drawRRect(
+          RRect.fromLTRBR(4, 5, 20, 20, const Radius.circular(3.2)),
+          stroke,
+        );
+        canvas.drawLine(const Offset(8, 3), const Offset(8, 7), stroke);
+        canvas.drawLine(const Offset(16, 3), const Offset(16, 7), stroke);
+        canvas.drawLine(const Offset(4, 10), const Offset(20, 10), stroke);
+
+      case AppIcon.target:
+        canvas.drawCircle(const Offset(12, 12), 8.4, stroke);
+        canvas.drawCircle(const Offset(12, 12), 4.4, stroke);
+        canvas.drawCircle(const Offset(12, 12), 1.2, fill);
+
+      case AppIcon.stack:
+        canvas.drawPath(
+          Path()
+            ..moveTo(12, 3.5)
+            ..lineTo(20.5, 7.6)
+            ..lineTo(12, 11.7)
+            ..lineTo(3.5, 7.6)
+            ..close(),
+          stroke,
+        );
+        canvas.drawPath(
+          Path()
+            ..moveTo(3.5, 12)
+            ..lineTo(12, 16.1)
+            ..lineTo(20.5, 12),
+          stroke,
+        );
+        canvas.drawPath(
+          Path()
+            ..moveTo(3.5, 16.4)
+            ..lineTo(12, 20.5)
+            ..lineTo(20.5, 16.4),
+          stroke,
+        );
+
+      case AppIcon.import:
+        canvas.drawPath(
+          Path()
+            ..moveTo(4, 15)
+            ..lineTo(4, 19)
+            ..cubicTo(4, 20.1, 4.9, 21, 6, 21)
+            ..lineTo(18, 21)
+            ..cubicTo(19.1, 21, 20, 20.1, 20, 19)
+            ..lineTo(20, 15),
+          stroke,
+        );
+        canvas.drawLine(const Offset(12, 3), const Offset(12, 15.5), stroke);
+        canvas.drawPath(
+          Path()
+            ..moveTo(7.8, 11.3)
+            ..lineTo(12, 15.5)
+            ..lineTo(16.2, 11.3),
+          stroke,
+        );
+
+      case AppIcon.health:
+        canvas.drawCircle(const Offset(12, 12), 8.4, stroke);
+        canvas.drawPath(
+          Path()
+            ..moveTo(4.6, 12.6)
+            ..lineTo(8.6, 12.6)
+            ..lineTo(10.4, 8.6)
+            ..lineTo(13.4, 16)
+            ..lineTo(15.2, 12.6)
+            ..lineTo(19.4, 12.6),
+          stroke,
+        );
+
+      case AppIcon.backup:
+        canvas.drawOval(
+          Rect.fromCenter(center: const Offset(12, 6.4), width: 14, height: 5.6),
+          stroke,
+        );
+        canvas.drawPath(
+          Path()
+            ..moveTo(5, 6.4)
+            ..lineTo(5, 17.6)
+            ..moveTo(19, 6.4)
+            ..lineTo(19, 17.6),
+          stroke,
+        );
+        canvas.drawPath(
+          Path()
+            ..moveTo(5, 12)
+            ..cubicTo(5, 13.6, 8.1, 14.8, 12, 14.8)
+            ..cubicTo(15.9, 14.8, 19, 13.6, 19, 12),
+          stroke,
+        );
+        canvas.drawPath(
+          Path()
+            ..moveTo(5, 17.6)
+            ..cubicTo(5, 19.2, 8.1, 20.4, 12, 20.4)
+            ..cubicTo(15.9, 20.4, 19, 19.2, 19, 17.6),
+          stroke,
+        );
+
+      case AppIcon.spark:
+        canvas.drawPath(
+          Path()
+            ..moveTo(10, 3)
+            ..lineTo(11.7, 8.3)
+            ..lineTo(17, 10)
+            ..lineTo(11.7, 11.7)
+            ..lineTo(10, 17)
+            ..lineTo(8.3, 11.7)
+            ..lineTo(3, 10)
+            ..lineTo(8.3, 8.3)
+            ..close(),
+          stroke,
+        );
+        canvas.drawPath(
+          Path()
+            ..moveTo(17.5, 14)
+            ..lineTo(18.4, 16.6)
+            ..lineTo(21, 17.5)
+            ..lineTo(18.4, 18.4)
+            ..lineTo(17.5, 21)
+            ..lineTo(16.6, 18.4)
+            ..lineTo(14, 17.5)
+            ..lineTo(16.6, 16.6)
+            ..close(),
+          stroke,
+        );
+
+      case AppIcon.search:
+        canvas.drawCircle(const Offset(11, 11), 7, stroke);
+        canvas.drawLine(const Offset(16.2, 16.2), const Offset(20.5, 20.5), stroke);
 
       case AppIcon.info:
         canvas.drawCircle(const Offset(12, 12), 8.4, stroke);

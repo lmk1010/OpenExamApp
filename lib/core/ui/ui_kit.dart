@@ -461,17 +461,17 @@ enum EmptyArt { box, star, search, chart, done, essay, vocab, note, wrong, bank,
 
 /// 每种空态对应的插画资源。classic 主题用这套，guga / spark 用各自的吉祥物。
 const _emptyArtAsset = <EmptyArt, String>{
-  EmptyArt.box: 'assets/art/empty_box.png',
-  EmptyArt.star: 'assets/art/empty_star.png',
-  EmptyArt.search: 'assets/art/empty_search.png',
-  EmptyArt.chart: 'assets/art/empty_chart.png',
-  EmptyArt.done: 'assets/art/empty_done.png',
-  EmptyArt.essay: 'assets/art/empty_essay.png',
-  EmptyArt.vocab: 'assets/art/empty_vocab.png',
-  EmptyArt.note: 'assets/art/empty_note.png',
-  EmptyArt.wrong: 'assets/art/empty_wrong.png',
-  EmptyArt.bank: 'assets/art/empty_bank.png',
-  EmptyArt.paper: 'assets/art/empty_paper.png',
+  EmptyArt.box: 'assets/shore/empty_box.png',
+  EmptyArt.star: 'assets/shore/empty_star.png',
+  EmptyArt.search: 'assets/shore/empty_search.png',
+  EmptyArt.chart: 'assets/shore/empty_chart.png',
+  EmptyArt.done: 'assets/shore/empty_done.png',
+  EmptyArt.essay: 'assets/shore/empty_essay.png',
+  EmptyArt.vocab: 'assets/shore/empty_vocab.png',
+  EmptyArt.note: 'assets/shore/empty_note.png',
+  EmptyArt.wrong: 'assets/shore/empty_wrong.png',
+  EmptyArt.bank: 'assets/shore/empty_bank.png',
+  EmptyArt.paper: 'assets/shore/empty_paper.png',
 };
 
 /// Drawn empty-state art: a few shapes with a soft glow, in theme colours.
