@@ -40,9 +40,7 @@ class FilterSpec {
       options.firstWhere((o) => o.value == value, orElse: () => FilterOption('all', label)).label;
 }
 
-/// Horizontal row of dropdown-style filters. Tapping one opens a sheet with the
-/// full option list and per-option counts — far easier than guessing which chip
-/// combination is available, which is what the old chip row forced.
+/// Compact horizontal filter chips — always one scrollable row.
 class FilterBar extends StatelessWidget {
   const FilterBar({
     super.key,
@@ -61,10 +59,15 @@ class FilterBar extends StatelessWidget {
     final anyActive = filters.any((f) => f.active);
 
     return SizedBox(
-      height: 36,
+      height: 32,
       child: ListView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
+        padding: const EdgeInsets.fromLTRB(
+          AppTheme.gutter,
+          0,
+          AppTheme.gutter + 24,
+          0,
+        ),
         children: [
           for (final filter in filters) ...[
             _FilterButton(
@@ -79,22 +82,28 @@ class FilterBar extends StatelessWidget {
                 if (picked != null) onChanged(filter.key, picked);
               },
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
           ],
           if (anyActive && onReset != null)
             GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: onReset,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
+                height: 32,
+                padding: const EdgeInsets.symmetric(horizontal: 10),
                 alignment: Alignment.center,
                 child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.close, size: 14, color: t.muted),
-                    const SizedBox(width: 5),
+                    Icon(Icons.close, size: 13, color: t.muted),
+                    const SizedBox(width: 4),
                     Text(
                       '清除',
-                      style: TextStyle(fontSize: 13, color: t.muted, height: 1),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: t.muted,
+                        height: 1,
+                      ),
                     ),
                   ],
                 ),
@@ -120,41 +129,42 @@ class _FilterButton extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 140),
-        padding: const EdgeInsets.symmetric(horizontal: 13),
+      child: Container(
+        height: 32,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: active ? t.brand.withValues(alpha: 0.14) : t.glass,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: active ? t.brand.withValues(alpha: 0.5) : Colors.transparent,
           ),
         ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             if (spec.icon != null) ...[
               StrokeIcon(
                 spec.icon!,
-                size: 14,
+                size: 13,
                 weight: 2,
                 color: active ? t.brand : t.muted,
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: 5),
             ],
             Text(
               active ? spec.display : spec.label,
               style: TextStyle(
-                fontSize: 13,
+                fontSize: 12.5,
                 fontWeight: FontWeight.w600,
                 height: 1,
                 color: active ? t.brand : t.textSoft,
               ),
             ),
-            const SizedBox(width: 4),
+            const SizedBox(width: 2),
             Icon(
               Icons.expand_more_rounded,
-              size: 15,
+              size: 14,
               color: active ? t.brand : t.muted,
             ),
           ],

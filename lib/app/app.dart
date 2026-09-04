@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
+import 'package:openexam_app/core/theme/app_tokens.dart';
 import 'package:openexam_app/core/theme/theme_controller.dart';
 import 'package:openexam_app/core/ui/ambient.dart';
 import 'package:openexam_app/core/constants/app_constants.dart';
@@ -40,9 +42,15 @@ class _OpenExamAppState extends State<OpenExamApp> {
         return MaterialApp(
           title: 'OpenExam',
           debugShowCheckedModeBanner: false,
-          theme: AppTheme.light(),
-          darkTheme: AppTheme.dark(),
-          themeMode: ThemeController.instance.mode,
+          theme: AppTheme.fromTokens(
+            ThemeController.instance.tokensFor(Brightness.light),
+            Brightness.light,
+          ),
+          darkTheme: AppTheme.fromTokens(
+            ThemeController.instance.tokensFor(Brightness.dark),
+            Brightness.dark,
+          ),
+          themeMode: ThemeController.instance.effectiveMode,
           // System font scaling is honoured, but capped: on phones with display
           // zoom turned up the layout would otherwise overflow.
           builder: (context, child) {
@@ -50,11 +58,17 @@ class _OpenExamAppState extends State<OpenExamApp> {
               minScaleFactor: 0.9,
               maxScaleFactor: 1.1,
             );
-            return MediaQuery(
-              data: MediaQuery.of(context).copyWith(textScaler: scale),
-              // One ambient backdrop behind every route, so frosted panels
-              // always have something to blur.
-              child: AmbientBackground(child: child ?? const SizedBox.shrink()),
+            final brightness = Theme.of(context).brightness;
+            final tokens = Theme.of(context).extension<AppTokens>() ??
+                ThemeController.instance.tokensFor(brightness);
+            return AnnotatedRegion<SystemUiOverlayStyle>(
+              value: AppTheme.overlayFor(tokens, brightness),
+              child: MediaQuery(
+                data: MediaQuery.of(context).copyWith(textScaler: scale),
+                // One ambient backdrop behind every route, so frosted panels
+                // always have something to blur.
+                child: AmbientBackground(child: child ?? const SizedBox.shrink()),
+              ),
             );
           },
           home: _onboarded == null

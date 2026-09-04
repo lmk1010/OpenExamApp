@@ -160,6 +160,16 @@ class AppDatabase {
         created_at TEXT NOT NULL
       )
     ''');
+    // Hot paths: historyFor / wrong book / paper progress all hit practice_logs.
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_logs_qid ON practice_logs(question_id)',
+    );
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_logs_created ON practice_logs(created_at)',
+    );
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_reports_created ON exam_reports(created_at)',
+    );
     // 自己标的难度。没有服务器统计，也就没有「全站正确率」这种东西；
     // 但「这题对我难」本来就是个人的判断，标一次以后能筛出来重练。
     await db.execute('''
@@ -187,6 +197,68 @@ class AppDatabase {
         value TEXT NOT NULL
       )
     ''');
+    // 申论题。种子库里一道都没有 —— 行测才有真题，申论得自己录或拍照识别。
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS essay_prompts (
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        essay_type TEXT NOT NULL DEFAULT 'guina',
+        province TEXT,
+        year INTEGER,
+        material TEXT NOT NULL DEFAULT '',
+        requirement TEXT NOT NULL DEFAULT '',
+        word_limit INTEGER,
+        minutes INTEGER,
+        reference_answer TEXT,
+        scoring_points TEXT,
+        created_at TEXT NOT NULL
+      )
+    ''');
+    // 一道题可以反复练，每次作答连同 AI 批改结果单独存一条。
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS essay_attempts (
+        id TEXT PRIMARY KEY,
+        prompt_id TEXT NOT NULL,
+        answer TEXT NOT NULL DEFAULT '',
+        word_count INTEGER NOT NULL DEFAULT 0,
+        seconds INTEGER NOT NULL DEFAULT 0,
+        score REAL,
+        max_score REAL,
+        review TEXT,
+        created_at TEXT NOT NULL
+      )
+    ''');
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_essay_attempts_prompt ON essay_attempts(prompt_id)',
+    );
+    await _applyDataPatches(db);
+  }
+
+  /// Fixes already-installed DBs when the bundled seed cannot be re-unpacked.
+  Future<void> _applyDataPatches(Database db) async {
+    final rows = await db.query('meta', where: 'key = ?', whereArgs: ['data_patch']);
+    final current = int.tryParse('${rows.isEmpty ? 0 : rows.first['value']}') ?? 0;
+    if (current >= 1) return;
+
+    // Patch 1: three 2023 判断题 had answer corrupted to "}" (解析结论为 C).
+    await db.update(
+      'questions',
+      {'answer': 'C'},
+      where: 'id IN (?, ?, ?, ?, ?, ?)',
+      whereArgs: const [
+        'paper_oe_19486_q100',
+        'paper_oe_19488_q91',
+        'paper_oe_19501_q100',
+        'paper_saduck_19486_q100',
+        'paper_saduck_19488_q91',
+        'paper_saduck_19501_q100',
+      ],
+    );
+    await db.insert(
+      'meta',
+      {'key': 'data_patch', 'value': '1'},
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
 
   // ---------------------------------------------------------------- questions
@@ -245,6 +317,7 @@ class AppDatabase {
 
   Future<List<Question>> fetchPractice({
     String? category,
+    String? subCategory,
     int limit = 20,
     bool shuffle = true,
     QuestionScope scope = QuestionScope.all,
@@ -255,6 +328,10 @@ class AppDatabase {
     if (category != null && category.isNotEmpty && category != 'all') {
       where.add('category = ?');
       args.add(category);
+    }
+    if (subCategory != null && subCategory.isNotEmpty) {
+      where.add('sub_category = ?');
+      args.add(subCategory);
     }
     switch (scope) {
       case QuestionScope.unseen:
@@ -271,10 +348,34 @@ class AppDatabase {
     }
     final sql = StringBuffer('SELECT * FROM questions');
     if (where.isNotEmpty) sql.write(' WHERE ${where.join(' AND ')}');
-    sql.write(shuffle ? ' ORDER BY RANDOM()' : ' ORDER BY year DESC, order_num');
+    // 刷题优先近年：同年内再随机。老卷（year 小）排后面，LIMIT 自然落到新题。
+    sql.write(
+      shuffle
+          ? ' ORDER BY year DESC, RANDOM()'
+          : ' ORDER BY year DESC, order_num',
+    );
     sql.write(' LIMIT ?');
     args.add(limit);
     return (await db.rawQuery(sql.toString(), args)).map(_fromRow).toList();
+  }
+
+  /// Sub-types under a 行测 module, ordered by question count.
+  Future<List<({String key, int count})>> listSubCategories(String category) async {
+    final db = await database;
+    final rows = await db.rawQuery(
+      '''
+      SELECT sub_category AS key, COUNT(*) AS n
+      FROM questions
+      WHERE category = ? AND sub_category IS NOT NULL AND TRIM(sub_category) != ''
+      GROUP BY sub_category
+      ORDER BY n DESC, sub_category ASC
+      ''',
+      [category],
+    );
+    return [
+      for (final row in rows)
+        (key: '${row['key']}', count: (row['n'] as int?) ?? 0),
+    ];
   }
 
   /// How many questions each scope currently holds, for the picker labels.
@@ -1116,14 +1217,32 @@ class AppDatabase {
     });
   }
 
-  Future<List<ExamReport>> listReports({int limit = 60}) async {
+  Future<List<ExamReport>> listReports({int limit = 60, String? paperId}) async {
     final db = await database;
     final rows = await db.query(
       'exam_reports',
       orderBy: 'id DESC',
-      limit: limit,
+      limit: paperId == null ? limit : 300,
     );
-    return rows.map(ExamReport.fromRow).toList();
+    final reports = rows.map(ExamReport.fromRow).toList();
+    if (paperId == null || paperId.isEmpty) {
+      return reports.take(limit).toList();
+    }
+    final idRows = await db.rawQuery(
+      'SELECT id FROM questions WHERE paper_id = ?',
+      [paperId],
+    );
+    final idSet = {for (final r in idRows) '${r['id']}'};
+    if (idSet.isEmpty) return const [];
+    return reports
+        .where((r) {
+          if (r.questionIds.isEmpty) return false;
+          final hit = r.questionIds.where(idSet.contains).length;
+          // 半数以上题目属于该卷，当作本卷历史（整卷模考 / 模块练都算）。
+          return hit >= (r.questionIds.length / 2).ceil();
+        })
+        .take(limit)
+        .toList();
   }
 
   Future<void> deleteReport(int id) async {
@@ -1313,6 +1432,30 @@ class AppDatabase {
       ORDER BY q.order_num ASC
     ''', [paperId]);
     return rows.map(_fromRow).toList();
+  }
+
+  /// Count only — paper detail chips don't need full rows.
+  Future<int> countWrongByPaper(String paperId) async {
+    final db = await database;
+    return Sqflite.firstIntValue(await db.rawQuery('''
+          SELECT COUNT(*) FROM questions q
+          JOIN (
+            SELECT question_id, MAX(id) AS last_id FROM practice_logs GROUP BY question_id
+          ) last ON last.question_id = q.id
+          JOIN practice_logs l ON l.id = last.last_id
+          WHERE l.is_correct = 0 AND q.paper_id = ?
+        ''', [paperId])) ??
+        0;
+  }
+
+  Future<int> countUnansweredByPaper(String paperId) async {
+    final db = await database;
+    return Sqflite.firstIntValue(await db.rawQuery('''
+          SELECT COUNT(*) FROM questions
+          WHERE paper_id = ?
+            AND id NOT IN (SELECT question_id FROM practice_logs)
+        ''', [paperId])) ??
+        0;
   }
 
   /// Wrong-answer counts per paper, for grouping 错题本 by 试卷.
@@ -1549,4 +1692,222 @@ class AppDatabase {
       whereArgs: [questionId],
     );
   }
+
+  // ------------------------------------------------------------- bank health
+
+  /// Structural audit for the bundled bank — coverage + dirty rows.
+  /// Not a claim that answers match official keys; that needs human spot-check.
+  Future<BankHealthReport> bankHealth() async {
+    final db = await database;
+    final totals = await db.rawQuery('''
+      SELECT
+        COUNT(*) AS questions,
+        COUNT(DISTINCT paper_id) AS papers,
+        MIN(CASE WHEN year > 0 THEN year END) AS year_min,
+        MAX(year) AS year_max,
+        SUM(CASE WHEN answer IS NULL OR TRIM(answer) = '' THEN 1 ELSE 0 END) AS no_answer,
+        SUM(CASE WHEN analysis IS NULL OR TRIM(analysis) = '' THEN 1 ELSE 0 END) AS no_analysis,
+        SUM(CASE WHEN length(TRIM(content)) < 8 THEN 1 ELSE 0 END) AS short_content,
+        SUM(CASE WHEN has_image = 1 THEN 1 ELSE 0 END) AS with_image
+      FROM questions
+    ''');
+    final t = totals.first;
+    final byCat = await db.rawQuery(
+      'SELECT category, COUNT(*) AS n FROM questions GROUP BY category ORDER BY n DESC',
+    );
+    final byYear = await db.rawQuery(
+      'SELECT year, COUNT(DISTINCT paper_id) AS papers, COUNT(*) AS questions '
+      'FROM questions WHERE year > 0 GROUP BY year ORDER BY year DESC',
+    );
+    final papers = await db.rawQuery(
+      'SELECT paper_id, paper_title, year, COUNT(*) AS n '
+      'FROM questions GROUP BY paper_id, paper_title, year '
+      'ORDER BY year DESC, paper_title',
+    );
+    final dirtyRows = await db.rawQuery('''
+      SELECT id, paper_title, year, category, answer,
+             substr(content, 1, 80) AS preview
+      FROM questions
+      WHERE answer IS NULL OR TRIM(answer) = ''
+         OR TRIM(answer) = '}'
+         OR (
+           length(TRIM(answer)) <= 3
+           AND UPPER(TRIM(answer)) NOT IN (
+             'A','B','C','D','E',
+             'AB','AC','AD','AE','BC','BD','BE','CD','CE','DE',
+             'ABC','ABD','ABE','ACD','ACE','ADE','BCD','BCE','BDE','CDE',
+             'ABCD','ABCE','ABDE','ACDE','BCDE','ABCDE'
+           )
+         )
+      ORDER BY year DESC, paper_title
+      LIMIT 50
+    ''');
+    final feedback = Sqflite.firstIntValue(
+          await db.rawQuery('SELECT COUNT(*) FROM feedback'),
+        ) ??
+        0;
+    final patchRows =
+        await db.query('meta', where: 'key = ?', whereArgs: ['data_patch']);
+    final seedRows =
+        await db.query('meta', where: 'key = ?', whereArgs: ['seed_version']);
+
+    return BankHealthReport(
+      questions: int.tryParse('${t['questions']}') ?? 0,
+      papers: int.tryParse('${t['papers']}') ?? 0,
+      yearMin: int.tryParse('${t['year_min']}') ?? 0,
+      yearMax: int.tryParse('${t['year_max']}') ?? 0,
+      noAnswer: int.tryParse('${t['no_answer']}') ?? 0,
+      noAnalysis: int.tryParse('${t['no_analysis']}') ?? 0,
+      shortContent: int.tryParse('${t['short_content']}') ?? 0,
+      withImage: int.tryParse('${t['with_image']}') ?? 0,
+      feedback: feedback,
+      dataPatch: int.tryParse(
+            '${patchRows.isEmpty ? 0 : patchRows.first['value']}',
+          ) ??
+          0,
+      seedVersion: int.tryParse(
+            '${seedRows.isEmpty ? 0 : seedRows.first['value']}',
+          ) ??
+          0,
+      byCategory: {
+        for (final r in byCat)
+          '${r['category'] ?? ''}': int.tryParse('${r['n']}') ?? 0,
+      },
+      byYear: [
+        for (final r in byYear)
+          (
+            year: int.tryParse('${r['year']}') ?? 0,
+            papers: int.tryParse('${r['papers']}') ?? 0,
+            questions: int.tryParse('${r['questions']}') ?? 0,
+          ),
+      ],
+      coverage: _coverageFromPapers(papers),
+      dirty: [
+        for (final r in dirtyRows)
+          BankDirtyItem(
+            id: '${r['id']}',
+            paperTitle: '${r['paper_title'] ?? ''}',
+            year: int.tryParse('${r['year']}') ?? 0,
+            category: '${r['category'] ?? ''}',
+            answer: '${r['answer'] ?? ''}',
+            preview: '${r['preview'] ?? ''}',
+          ),
+      ],
+    );
+  }
+
+  List<BankCoverageCell> _coverageFromPapers(List<Map<String, Object?>> papers) {
+    final cells = <String, BankCoverageCell>{};
+    for (final r in papers) {
+      final title = '${r['paper_title'] ?? ''}';
+      final year = int.tryParse('${r['year']}') ?? 0;
+      final n = int.tryParse('${r['n']}') ?? 0;
+      final region = _regionFromTitle(title);
+      final key = '$region|$year';
+      final prev = cells[key];
+      cells[key] = BankCoverageCell(
+        region: region,
+        year: year,
+        papers: (prev?.papers ?? 0) + 1,
+        questions: (prev?.questions ?? 0) + n,
+      );
+    }
+    final list = cells.values.toList()
+      ..sort((a, b) {
+        final c = b.questions.compareTo(a.questions);
+        if (c != 0) return c;
+        return a.region.compareTo(b.region);
+      });
+    return list;
+  }
+
+  String _regionFromTitle(String title) {
+    if (title.contains('国家公务员') || title.contains('国考')) return '国考';
+    for (final p in const [
+      '北京', '上海', '广东', '江苏', '浙江', '山东', '河南', '河北', '四川', '湖北',
+      '湖南', '安徽', '福建', '江西', '陕西', '山西', '辽宁', '吉林', '黑龙江',
+      '云南', '贵州', '广西', '天津', '重庆', '内蒙古', '新疆', '甘肃', '海南',
+      '宁夏', '青海', '西藏',
+    ]) {
+      if (title.contains(p)) return p;
+    }
+    return '其他';
+  }
+
+  Future<Question?> questionById(String id) async {
+    final db = await database;
+    final rows = await db.query('questions', where: 'id = ?', whereArgs: [id]);
+    if (rows.isEmpty) return null;
+    return _fromRow(rows.first);
+  }
+}
+
+class BankHealthReport {
+  const BankHealthReport({
+    required this.questions,
+    required this.papers,
+    required this.yearMin,
+    required this.yearMax,
+    required this.noAnswer,
+    required this.noAnalysis,
+    required this.shortContent,
+    required this.withImage,
+    required this.feedback,
+    required this.dataPatch,
+    required this.seedVersion,
+    required this.byCategory,
+    required this.byYear,
+    required this.coverage,
+    required this.dirty,
+  });
+
+  final int questions;
+  final int papers;
+  final int yearMin;
+  final int yearMax;
+  final int noAnswer;
+  final int noAnalysis;
+  final int shortContent;
+  final int withImage;
+  final int feedback;
+  final int dataPatch;
+  final int seedVersion;
+  final Map<String, int> byCategory;
+  final List<({int year, int papers, int questions})> byYear;
+  final List<BankCoverageCell> coverage;
+  final List<BankDirtyItem> dirty;
+
+  int get dirtyCount => dirty.length + noAnswer + noAnalysis;
+}
+
+class BankCoverageCell {
+  const BankCoverageCell({
+    required this.region,
+    required this.year,
+    required this.papers,
+    required this.questions,
+  });
+
+  final String region;
+  final int year;
+  final int papers;
+  final int questions;
+}
+
+class BankDirtyItem {
+  const BankDirtyItem({
+    required this.id,
+    required this.paperTitle,
+    required this.year,
+    required this.category,
+    required this.answer,
+    required this.preview,
+  });
+
+  final String id;
+  final String paperTitle;
+  final int year;
+  final String category;
+  final String answer;
+  final String preview;
 }

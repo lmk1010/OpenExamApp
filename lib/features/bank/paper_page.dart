@@ -8,6 +8,7 @@ import 'package:openexam_app/core/ui/ui_kit.dart';
 import 'package:openexam_app/data/db/app_database.dart';
 import 'package:openexam_app/data/models/question.dart';
 import 'package:openexam_app/features/practice/practice_session_page.dart';
+import 'package:openexam_app/features/reports/reports_page.dart';
 
 /// 试卷详情 — the fix for the "专项题库是一锅大杂烩" complaint: inside one real
 /// paper you can see the module split and practise a module, the blanks, or the
@@ -49,17 +50,13 @@ class _PaperPageState extends State<PaperPage> {
   Future<void> _load() async {
     final db = AppDatabase.instance;
     final stats = await db.paperCategoryStats(widget.paperId);
-    final wrong = await db.fetchWrongByPaper(widget.paperId);
-    final blank = await db.fetchByPaperCategory(
-      widget.paperId,
-      null,
-      onlyUnanswered: true,
-    );
+    final wrong = await db.countWrongByPaper(widget.paperId);
+    final unanswered = await db.countUnansweredByPaper(widget.paperId);
     if (!mounted) return;
     setState(() {
       _stats = stats;
-      _wrong = wrong.length;
-      _unanswered = blank.length;
+      _wrong = wrong;
+      _unanswered = unanswered;
       _loading = false;
     });
   }
@@ -88,6 +85,29 @@ class _PaperPageState extends State<PaperPage> {
     _load();
   }
 
+  /// 整卷/模块速览：答案已填、整卷滚动，不用先做一遍。
+  Future<void> _browse(List<Question> questions, {String? title}) async {
+    if (!mounted) return;
+    if (questions.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('这里没有题目')),
+      );
+      return;
+    }
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => PracticeSessionPage(
+          questions: questions,
+          preferScroll: true,
+          reviewAnswers: {
+            for (final q in questions) q.id: q.answer.trim().toUpperCase(),
+          },
+          title: title ?? '速览 · ${widget.title}',
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final done = _stats.fold<int>(0, (s, e) => s + e.done);
@@ -106,6 +126,19 @@ class _PaperPageState extends State<PaperPage> {
         ),
         titleSpacing: 0,
         title: const Text('试卷'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => ReportsPage(
+                  paperId: widget.paperId,
+                  pageTitle: '本卷历史',
+                ),
+              ),
+            ),
+            child: const Text('历史'),
+          ),
+        ],
       ),
       body: _loading
           ? const LoadingState()
@@ -119,13 +152,54 @@ class _PaperPageState extends State<PaperPage> {
               padding: const EdgeInsets.only(bottom: 30),
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 6, AppTheme.gutter, 18),
+                  padding: const EdgeInsets.fromLTRB(
+                    AppTheme.gutter,
+                    18,
+                    AppTheme.gutter,
+                    14,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        widget.title,
-                        style: text.displaySmall?.copyWith(fontSize: 23, height: 1.3),
+                      SizedBox(
+                        height: 36,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                widget.title,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: text.displaySmall?.copyWith(
+                                  fontSize: 26,
+                                  height: 1,
+                                ),
+                              ),
+                            ),
+                            if (widget.embedded)
+                              GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: () => Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => ReportsPage(
+                                      paperId: widget.paperId,
+                                      pageTitle: '本卷历史',
+                                    ),
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.only(left: 8),
+                                  child: Text(
+                                    '历史',
+                                    style: text.labelMedium?.copyWith(
+                                      color: context.tokens.brand,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 9),
                       Text(
@@ -139,54 +213,74 @@ class _PaperPageState extends State<PaperPage> {
                     ],
                   ),
                 ),
-                // Three ways into the paper, in the order a 考生 uses them.
+                // Four ways into the paper: timed run, continue, wrongs, browse.
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
-                  child: Row(
+                  child: Column(
                     children: [
-                      _Action(
-                        icon: AppIcon.timer,
-                        label: '整卷模考',
-                        meta: '120 分钟',
-                        primary: true,
-                        onTap: () async {
-                          final all =
-                              await AppDatabase.instance.fetchByPaper(widget.paperId);
-                          await _run(all, limit: const Duration(minutes: 120));
-                        },
+                      Row(
+                        children: [
+                          _Action(
+                            icon: AppIcon.timer,
+                            label: '整卷模考',
+                            meta: '120 分钟',
+                            primary: true,
+                            onTap: () async {
+                              final all = await AppDatabase.instance
+                                  .fetchByPaper(widget.paperId);
+                              await _run(all, limit: const Duration(minutes: 120));
+                            },
+                          ),
+                          const SizedBox(width: 10),
+                          _Action(
+                            icon: AppIcon.practice,
+                            label: '继续未做',
+                            meta: _unanswered == 0 ? '已做完' : '$_unanswered 题',
+                            enabled: _unanswered > 0,
+                            onTap: () async {
+                              final blank =
+                                  await AppDatabase.instance.fetchByPaperCategory(
+                                widget.paperId,
+                                null,
+                                onlyUnanswered: true,
+                              );
+                              await _run(blank);
+                            },
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 10),
-                      _Action(
-                        icon: AppIcon.practice,
-                        label: '继续未做',
-                        meta: _unanswered == 0 ? '已做完' : '$_unanswered 题',
-                        enabled: _unanswered > 0,
-                        onTap: () async {
-                          final blank = await AppDatabase.instance.fetchByPaperCategory(
-                            widget.paperId,
-                            null,
-                            onlyUnanswered: true,
-                          );
-                          await _run(blank);
-                        },
-                      ),
-                      const SizedBox(width: 10),
-                      _Action(
-                        icon: AppIcon.wrongBook,
-                        label: '本卷错题',
-                        meta: _wrong == 0 ? '暂无' : '$_wrong 题',
-                        enabled: _wrong > 0,
-                        onTap: () async {
-                          final wrong =
-                              await AppDatabase.instance.fetchWrongByPaper(widget.paperId);
-                          await _run(wrong);
-                        },
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          _Action(
+                            icon: AppIcon.wrongBook,
+                            label: '本卷错题',
+                            meta: _wrong == 0 ? '暂无' : '$_wrong 题',
+                            enabled: _wrong > 0,
+                            onTap: () async {
+                              final wrong = await AppDatabase.instance
+                                  .fetchWrongByPaper(widget.paperId);
+                              await _run(wrong);
+                            },
+                          ),
+                          const SizedBox(width: 10),
+                          _Action(
+                            icon: AppIcon.papers,
+                            label: '速览答案',
+                            meta: '整卷解析',
+                            onTap: () async {
+                              final all = await AppDatabase.instance
+                                  .fetchByPaper(widget.paperId);
+                              await _browse(all);
+                            },
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 28),
-                const SectionHeader(title: '模块构成', caption: '点一行只练这一模块'),
+                const SectionHeader(title: '模块构成', caption: '点一行只练这一模块 · 长按速览'),
                 for (var i = 0; i < _stats.length; i++) ...[
                   if (i > 0) const RowDivider(),
                   _ModuleRow(
@@ -199,6 +293,16 @@ class _PaperPageState extends State<PaperPage> {
                       await _run(
                         list,
                         title: '${categoryLabel(_stats[i].category)} · ${widget.year} 年',
+                      );
+                    },
+                    onLongPress: () async {
+                      final list = await AppDatabase.instance.fetchByPaperCategory(
+                        widget.paperId,
+                        _stats[i].category,
+                      );
+                      await _browse(
+                        list,
+                        title: '速览 · ${categoryLabel(_stats[i].category)}',
                       );
                     },
                   ),
@@ -293,10 +397,15 @@ class _Action extends StatelessWidget {
 }
 
 class _ModuleRow extends StatelessWidget {
-  const _ModuleRow({required this.stat, required this.onTap});
+  const _ModuleRow({
+    required this.stat,
+    required this.onTap,
+    this.onLongPress,
+  });
 
   final CategoryStat stat;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
 
   @override
   Widget build(BuildContext context) {
@@ -308,6 +417,7 @@ class _ModuleRow extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
+      onLongPress: onLongPress,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter, vertical: 15),
         child: Row(

@@ -9,17 +9,23 @@ import 'package:openexam_app/core/ui/glass.dart';
 import 'package:openexam_app/core/ui/stroke_icons.dart';
 import 'package:openexam_app/core/ui/ui_kit.dart';
 import 'package:openexam_app/data/db/app_database.dart';
+import 'package:openexam_app/data/models/question.dart';
 import 'package:openexam_app/features/achievements/achievements.dart';
+import 'package:openexam_app/core/ai/ai_settings.dart';
+import 'package:openexam_app/features/ai/ai_settings_page.dart';
 import 'package:openexam_app/features/achievements/achievements_page.dart';
 import 'package:openexam_app/features/backup/backup_page.dart';
+import 'package:openexam_app/features/bank/bank_health_page.dart';
 import 'package:openexam_app/features/feedback/feedback_page.dart';
 import 'package:openexam_app/features/profile/dashboard_page.dart';
 import 'package:openexam_app/features/import/import_page.dart';
 import 'package:openexam_app/features/marks/marked_page.dart';
 import 'package:openexam_app/features/notes/notes_page.dart';
 import 'package:openexam_app/features/onboarding/onboarding_page.dart';
+import 'package:openexam_app/features/plan/presentation/pages/study_plan_page.dart';
 import 'package:openexam_app/features/reports/reports_page.dart';
 import 'package:openexam_app/features/reports/timeline_page.dart';
+import 'package:openexam_app/features/shell/app_shell.dart';
 import 'package:openexam_app/features/stats/stats_page.dart';
 import 'package:openexam_app/features/tips/tips_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -33,6 +39,15 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  /// 「AI 设置」那行显示已配置/未配置。
+  bool _aiConfigured = false;
+
+  Future<void> _refreshAiState() async {
+    final settings = await AiSettingsStore.load();
+    if (!mounted) return;
+    setState(() => _aiConfigured = settings.isConfigured);
+  }
+
   bool _loading = true;
   int _total = 0;
   int _imported = 0;
@@ -55,20 +70,34 @@ class _ProfilePageState extends State<ProfilePage> {
   void initState() {
     super.initState();
     _reload();
+    _refreshAiState();
   }
 
   Future<void> _reload() async {
+    // 十个查询彼此不依赖，并发发出去，别排队等
     final db = AppDatabase.instance;
-    final total = await db.countAll();
-    final imported = await db.countImported();
-    final answers = await db.countAnswers();
-    final marked = await db.countMarked();
-    final reports = await db.listReports(limit: 200);
-    final notes = await db.countNotes();
-    final feedback = await db.countFeedback();
-    final badges = await Achievements.evaluate();
-    final stats = await db.categoryStats();
-    final week = await db.dailyActivity();
+    final results = await Future.wait([
+      db.countAll(),
+      db.countImported(),
+      db.countAnswers(),
+      db.countMarked(),
+      db.listReports(limit: 200),
+      db.countNotes(),
+      db.countFeedback(),
+      Achievements.evaluate(),
+      db.categoryStats(),
+      db.dailyActivity(),
+    ]);
+    final total = results[0] as int;
+    final imported = results[1] as int;
+    final answers = results[2] as int;
+    final marked = results[3] as int;
+    final reports = results[4] as List;
+    final notes = results[5] as int;
+    final feedback = results[6] as int;
+    final badges = results[7] as List<AchievementBadge>;
+    final stats = results[8] as List<CategoryStat>;
+    final week = results[9] as List<int>;
     final prefs = await SharedPreferences.getInstance();
 
     final done = stats.fold<int>(0, (s, e) => s + e.done);
@@ -181,128 +210,193 @@ class _ProfilePageState extends State<ProfilePage> {
     final weekTotal = _week.fold<int>(0, (a, b) => a + b);
 
     final list = ListView(
-      padding: const EdgeInsets.only(bottom: 30),
+      padding: const EdgeInsets.only(bottom: 140),
       children: [
         // This is a page, so it opens with a page title like every other tab.
+        const PageTitleBar(title: '我的'),
+        // 顶部大卡：身份 + 三个真正会看的数字。
+        // 原来这里是一行小头像加一行灰字，再跟一整屏清一色的设置行，
+        // 空间浪费得厉害，也没有主次。
         Padding(
-          padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 18, AppTheme.gutter, 18),
+          padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 2, AppTheme.gutter, 0),
+          child: PressableCard(
+            scale: 0.985,
+            onTap: () => _open(const DashboardPage()),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: t.name == 'dark'
+                              ? [
+                                  t.brand.withValues(alpha: 0.32),
+                                  t.brand.withValues(alpha: 0.09),
+                                ]
+                              : [
+                                  t.brand.withValues(alpha: 0.18),
+                                  t.brand.withValues(alpha: 0.05),
+                                ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    right: -22,
+                    bottom: -24,
+                    width: 118,
+                    height: 118,
+                    child: Opacity(
+                      opacity: t.name == 'dark' ? 0.20 : 0.24,
+                      child: Image.asset(
+                        'assets/art/hero_plan.png',
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            _Avatar(name: _name, onTap: _editName),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _name,
+                                    style: text.titleLarge?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      color: t.text,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 3),
+                                  Text(
+                                    days == null
+                                        ? '还没设考试日期'
+                                        : (days > 0 ? '距考试 $days 天' : '考试就在今天'),
+                                    style: text.bodySmall,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Icon(Icons.chevron_right, size: 18, color: t.muted),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        Row(
+                          children: [
+                            _BigStat(value: '$_answers', label: '总答题'),
+                            _BigStat(
+                              value: _answers == 0 ? '—' : '$_rate%',
+                              label: '正确率',
+                            ),
+                            _BigStat(value: '$weekTotal', label: '本周'),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+
+        // 八个常用入口装进一块卡。
+        // 之前它们八个各自浮在背景上，格与格之间空一大截，
+        // 跟上面的大卡、下面的列表行凑不成一套语言，整页就散了。
+        const SizedBox(height: 14),
+        SectionCard(
+          padding: const EdgeInsets.symmetric(vertical: 6),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('我的', style: text.displaySmall?.copyWith(fontSize: 26)),
-              const SizedBox(height: 7),
-              Text(
-                '本地备考 · $_total 题在库',
-                style: text.bodySmall?.copyWith(fontSize: 13),
+              Row(
+                children: [
+                  _QuickTile(
+                    art: 'assets/art/ic_achieve.png',
+                    label: '成就',
+                    badge: _badges == 0 ? null : '$_badges/$_badgeTotal',
+                    onTap: () => _open(const AchievementsPage()),
+                  ),
+                  _QuickTile(
+                    art: 'assets/art/ic_history.png',
+                    label: '记录',
+                    onTap: () => _open(const TimelinePage()),
+                  ),
+                  _QuickTile(
+                    art: 'assets/art/ic_note.png',
+                    label: '笔记',
+                    badge: _notes == 0 ? null : '$_notes',
+                    onTap: () => _open(const NotesPage()),
+                  ),
+                  _QuickTile(
+                    art: 'assets/art/ic_bookmark.png',
+                    label: '收藏',
+                    badge: _marked == 0 ? null : '$_marked',
+                    onTap: () => _open(const MarkedPage()),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  _QuickTile(
+                    art: 'assets/art/ic_report.png',
+                    label: '报告',
+                    badge: _reports == 0 ? null : '$_reports',
+                    onTap: () => _open(const ReportsPage()),
+                  ),
+                  _QuickTile(
+                    art: 'assets/art/ic_stats.png',
+                    label: '统计',
+                    onTap: () => _open(const StatsPage()),
+                  ),
+                  _QuickTile(
+                    art: 'assets/art/ic_tips.png',
+                    label: '技巧',
+                    onTap: () => _open(const TipsPage()),
+                  ),
+                  _QuickTile(
+                    art: 'assets/art/ic_fix.png',
+                    label: '纠错',
+                    badge: _feedback == 0 ? null : '$_feedback',
+                    onTap: () => _open(const FeedbackPage()),
+                  ),
+                ],
               ),
             ],
           ),
         ),
-        // Account row: who you are, one tap to rename.
-        GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () => _open(const DashboardPage()),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter, vertical: 8),
-            child: Row(
-              children: [
-                _Avatar(name: _name, onTap: _editName),
-                const SizedBox(width: 13),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(_name, style: text.titleSmall?.copyWith(fontSize: 16)),
-                      const SizedBox(height: 4),
-                      Text(
-                        _answers == 0 ? '打开看看备考档案' : '备考档案 · 答题 $_answers · 正确率 $_rate%',
-                        style: text.bodySmall,
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(Icons.chevron_right, size: 17, color: t.muted),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 22),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 0, AppTheme.gutter, 12),
-          child: Row(
-            children: [
-              Text('本周练习', style: text.titleSmall),
-              const Spacer(),
-              Text(weekTotal == 0 ? '还没开练' : '$weekTotal 题', style: text.bodySmall),
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
-          child: _WeekStrip(counts: _week, goal: _goal),
-        ),
-        const SizedBox(height: 28),
-        const _GroupLabel('学习'),
+
+        // ── 备考 ───────────────────────────────────────────────
+        SectionCard(
+          title: '备考',
+          child: Column(children: [
         _SettingRow(
-          icon: AppIcon.chart,
-          title: '成就',
-          value: '$_badges / $_badgeTotal',
-          onTap: () => _open(const AchievementsPage()),
-          active: _detail is AchievementsPage,
+          art: 'assets/art/ic_plan.png',
+          title: '复习计划',
+          onTap: () {
+            final planTab = AppShell.planTab;
+            if (planTab != null) {
+              AppShell.jumpTo.value = planTab;
+              return;
+            }
+            _open(StudyPlanPage(onRunTask: (_) async {}));
+          },
         ),
-        const RowDivider(),
         _SettingRow(
-          icon: AppIcon.timer,
-          title: '练习记录',
-          value: '按天',
-          onTap: () => _open(const TimelinePage()),
-          active: _detail is TimelinePage,
-        ),
-        const RowDivider(),
-        _SettingRow(
-          icon: AppIcon.papers,
-          title: '成绩报告',
-          value: _reports == 0 ? '暂无' : '$_reports 份',
-          onTap: () => _open(const ReportsPage()),
-          active: _detail is ReportsPage,
-        ),
-        const RowDivider(),
-        _SettingRow(
-          icon: AppIcon.chart,
-          title: '学习统计',
-          value: _answers == 0 ? '暂无数据' : '正确率 $_rate%',
-          onTap: () => _open(const StatsPage()),
-          active: _detail is StatsPage,
-        ),
-        const RowDivider(),
-        _SettingRow(
-          icon: AppIcon.logic,
-          title: '解题技巧',
-          value: '五个模块',
-          onTap: () => _open(const TipsPage()),
-          active: _detail is TipsPage,
-        ),
-        const RowDivider(),
-        _SettingRow(
-          icon: AppIcon.speech,
-          title: '我的笔记',
-          value: _notes == 0 ? '暂无' : '$_notes 条',
-          onTap: () => _open(const NotesPage()),
-          active: _detail is NotesPage,
-        ),
-        const RowDivider(),
-        _SettingRow(
-          icon: AppIcon.wrongBook,
-          title: '我的收藏',
-          value: _marked == 0 ? '暂无' : '$_marked 题',
-          onTap: () => _open(const MarkedPage()),
-          active: _detail is MarkedPage,
-        ),
-        const RowDivider(),
-        _SettingRow(
-          icon: AppIcon.globe,
+          art: 'assets/art/ic_region.png',
           title: '报考地区',
-          value: _province ?? '未设置',
+          value: _province,
           onTap: () async {
             final picked = await showModalBottomSheet<String>(
               context: context,
@@ -315,18 +409,14 @@ class _ProfilePageState extends State<ProfilePage> {
             if (mounted) setState(() => _province = picked);
           },
         ),
-        const RowDivider(),
         _SettingRow(
-          icon: AppIcon.timer,
+          art: 'assets/art/ic_calendar.png',
           title: '考试日期',
-          value: days == null
-              ? '未设置'
-              : (days >= 0 ? '还有 $days 天' : '已结束'),
+          value: days == null ? null : (days > 0 ? '还有 $days 天' : '就在今天'),
           onTap: _pickExamDate,
         ),
-        const RowDivider(),
         _SettingRow(
-          icon: AppIcon.chart,
+          art: 'assets/art/ic_target.png',
           title: '每日目标',
           value: '$_goal 题',
           onTap: () async {
@@ -341,10 +431,9 @@ class _ProfilePageState extends State<ProfilePage> {
             if (mounted) setState(() => _goal = picked);
           },
         ),
-        const RowDivider(),
         _SettingRow(
-          icon: AppIcon.numbers,
-          title: '默认每组题量',
+          art: 'assets/art/ic_stack.png',
+          title: '每组题量',
           value: '$_count 题',
           onTap: () async {
             final picked = await showModalBottomSheet<int>(
@@ -355,63 +444,90 @@ class _ProfilePageState extends State<ProfilePage> {
             if (picked != null) await _setCount(picked);
           },
         ),
-        const SizedBox(height: 28),
-        const _GroupLabel('外观'),
-        _ThemeRow(),
-        const SizedBox(height: 28),
-        const _GroupLabel('题库'),
+
+          ]),
+        ),
+
+        // ── 题库 ───────────────────────────────────────────────
+        SectionCard(
+          title: '题库',
+          child: Column(children: [
         _SettingRow(
-          icon: AppIcon.download,
+          art: 'assets/art/ic_import.png',
           title: '导入题目',
-          value: _imported == 0 ? '未导入' : '已导入 $_imported 题',
-          onTap: () => _open(const ImportPage(standalone: true)),
+          value: _imported == 0 ? null : '$_imported 题',
+          onTap: () => _open(const ImportPage()),
           active: _detail is ImportPage,
         ),
-        const RowDivider(),
         _SettingRow(
-          icon: AppIcon.info,
-          title: '纠错记录',
-          value: _feedback == 0 ? '暂无' : '$_feedback 条',
-          onTap: () => _open(const FeedbackPage()),
-          active: _detail is FeedbackPage,
+          art: 'assets/art/ic_health.png',
+          title: '题库体检',
+          onTap: () => _open(const BankHealthPage()),
+          active: _detail is BankHealthPage,
         ),
-        const RowDivider(),
         _SettingRow(
-          icon: AppIcon.privacy,
+          art: 'assets/art/ic_backup.png',
           title: '备份与恢复',
-          value: '本地文件',
           onTap: () => _open(const BackupPage()),
           active: _detail is BackupPage,
         ),
-        const RowDivider(),
-        _SettingRow(
-          icon: AppIcon.trash,
-          title: '清除练习记录',
-          value: _answers == 0 ? '暂无记录' : '$_answers 条',
-          danger: true,
-          onTap: _confirmClear,
+
+          ]),
         ),
-        const SizedBox(height: 28),
-        const _GroupLabel('隐私与关于'),
+
+        // ── 应用 ───────────────────────────────────────────────
+        SectionCard(
+          title: '应用',
+          child: Column(children: [
+            _ThemeRow(),
         _SettingRow(
-          icon: AppIcon.privacy,
+          art: 'assets/art/ic_ai.png',
+          title: 'AI 设置',
+          value: _aiConfigured ? '已配置' : null,
+          onTap: () async {
+            await Navigator.of(context)
+                .push(MaterialPageRoute(builder: (_) => const AiSettingsPage()));
+            _refreshAiState();
+          },
+        ),
+        _SettingRow(
+          art: 'assets/art/ic_privacy.png',
           title: '数据与隐私',
-          value: '全部本地',
           onTap: () => showModalBottomSheet<void>(
             context: context,
             backgroundColor: Colors.transparent,
             builder: (_) => const _InfoSheet(
               title: '数据与隐私',
-              body: '这个 App 不联网。题库、答题记录、统计与错题本都存在本机的 SQLite 数据库里，'
-                  '不上传服务器、不做任何埋点、没有账号体系。昵称和考试日期也只存在本机。',
+              body: '题库、答题记录、统计与错题本都存在本机的 SQLite 数据库里，'
+                  '不上传服务器、不做任何埋点、没有账号体系。\n\n'
+                  '唯一会联网的是 AI 功能（申论批改、拍照识题）：只有你主动触发时才发请求，'
+                  '直接发往你自己填的服务商，API Key 存在本机。不配置就完全离线。',
             ),
           ),
         ),
-        const RowDivider(),
         _SettingRow(
-          icon: AppIcon.play,
+          art: 'assets/art/ic_about.png',
+          title: '关于',
+          value: 'v1.0.1',
+          onTap: () => showModalBottomSheet<void>(
+            context: context,
+            backgroundColor: Colors.transparent,
+            builder: (_) => _InfoSheet(
+              title: '关于 OpenExam · $_total 题在库',
+              body: '本地优先的公务员行测刷题工具，与 OpenExam 桌面端同源。\n\n'
+                  '商业题库请自行合法导入，App 不会爬取第三方付费内容。',
+            ),
+          ),
+        ),
+        _SettingRow(
+          art: 'assets/art/ic_privacy.png',
+          title: '清除练习记录',
+          danger: true,
+          onTap: _confirmClear,
+        ),
+        _SettingRow(
+          art: 'assets/art/ic_about.png',
           title: '重看引导',
-          value: '3 屏',
           onTap: () async {
             await Navigator.of(context).push(
               MaterialPageRoute(
@@ -423,21 +539,7 @@ class _ProfilePageState extends State<ProfilePage> {
             _reload();
           },
         ),
-        const RowDivider(),
-        _SettingRow(
-          icon: AppIcon.info,
-          title: '关于 OpenExam',
-          value: 'v1.0.1',
-          onTap: () => showModalBottomSheet<void>(
-            context: context,
-            backgroundColor: Colors.transparent,
-            builder: (_) => const _InfoSheet(
-              title: '关于 OpenExam',
-              body: '本地优先的公务员行测刷题工具，与 OpenExam 桌面端同源，'
-                  '内置 15936 道行测真题与 137 套真题卷（含图形题）。'
-                  '商业题库请自行合法导入，App 不会爬取第三方付费内容。',
-            ),
-          ),
+          ]),
         ),
       ],
     );
@@ -457,124 +559,127 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 }
 
-/// Seven day cells tinted by volume. Days with nothing show a dot rather than
-/// an empty box — a row of blank squares reads as broken, not as idle.
-class _WeekStrip extends StatelessWidget {
-  const _WeekStrip({required this.counts, required this.goal});
+class _BigStat extends StatelessWidget {
+  const _BigStat({required this.value, required this.label});
 
-  final List<int> counts;
-
-  /// Days that reached the daily target get the solid brand fill.
-  final int goal;
-
-  static const _weekday = ['一', '二', '三', '四', '五', '六', '日'];
+  final String value;
+  final String label;
 
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
     final text = Theme.of(context).textTheme;
-    final today = DateTime.now();
-    final total = counts.fold<int>(0, (a, b) => a + b);
-
-    // Nothing all week: one honest line instead of seven blanks.
-    if (total == 0) {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        decoration: BoxDecoration(
-          color: t.name == 'dark'
-              ? Colors.white.withValues(alpha: 0.05)
-              : t.text.withValues(alpha: 0.04),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          children: [
-            StrokeIcon(AppIcon.practice, size: 18, color: t.muted),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                '这周还没开练，刷一组就有记录了',
-                style: text.bodySmall?.copyWith(fontSize: 13),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return Row(
-      children: [
-        for (var i = 0; i < counts.length; i++)
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.only(right: i == counts.length - 1 ? 0 : 7),
-              child: Column(
-                children: [
-                  AspectRatio(
-                    aspectRatio: 1,
-                    child: Container(
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: counts[i] == 0
-                            ? (t.name == 'dark'
-                                ? Colors.white.withValues(alpha: 0.05)
-                                : t.text.withValues(alpha: 0.04))
-                            : t.brand.withValues(
-                                alpha: goal <= 0 || counts[i] >= goal
-                                    ? 1
-                                    : (0.3 + 0.5 * (counts[i] / goal))
-                                        .clamp(0.3, 0.85),
-                              ),
-                        borderRadius: BorderRadius.circular(13),
-                        border: i == counts.length - 1
-                            ? Border.all(
-                                color: t.brand.withValues(alpha: 0.5),
-                                width: 1.4,
-                              )
-                            : null,
-                      ),
-                      child: counts[i] == 0
-                          ? Container(
-                              width: 5,
-                              height: 5,
-                              decoration: BoxDecoration(
-                                color: t.muted.withValues(alpha: 0.5),
-                                shape: BoxShape.circle,
-                              ),
-                            )
-                          : Text(
-                              '${counts[i]}',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: goal > 0 && counts[i] / goal > 0.5
-                                    ? Colors.white
-                                    : t.text,
-                                fontFeatures: AppTheme.numeric,
-                              ),
-                            ),
-                    ),
-                  ),
-                  const SizedBox(height: 7),
-                  Text(
-                    _weekday[today
-                            .subtract(Duration(days: counts.length - 1 - i))
-                            .weekday -
-                        1],
-                    style: text.bodySmall?.copyWith(
-                      fontSize: 11,
-                      color: i == counts.length - 1 ? t.brand : t.muted,
-                    ),
-                  ),
-                ],
-              ),
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            value,
+            style: text.headlineSmall?.copyWith(
+              color: t.text,
+              fontWeight: FontWeight.w700,
+              height: 1,
+              fontFeatures: AppTheme.numeric,
             ),
           ),
-      ],
+          const SizedBox(height: 4),
+          Text(label, style: text.bodySmall?.copyWith(fontSize: 11)),
+        ],
+      ),
     );
   }
 }
 
-/// Gradient avatar carrying the first character of the nickname.
+/// 宫格入口：一个大图标一个词。
+///
+/// 之前每格套了一层卡片底，图标只有 22px，卡里全是空白 —— 比例整个反了。
+/// 现在去掉卡片，图标占主体，靠对齐的网格本身建立秩序。
+class _QuickTile extends StatelessWidget {
+  const _QuickTile({
+    required this.art,
+    required this.label,
+    required this.onTap,
+    this.badge,
+  });
+
+  /// 图标素材路径。
+  final String art;
+  final String label;
+  final VoidCallback onTap;
+
+  /// 有内容才显示的角标，没有就不占位。
+  final String? badge;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+    return Expanded(
+      child: PressableCard(
+        scale: 0.93,
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 13),
+          child: Column(
+            children: [
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Image.asset(
+                    art,
+                    width: 48,
+                    height: 48,
+                    filterQuality: FilterQuality.high,
+                    errorBuilder: (_, __, ___) => SizedBox(
+                      width: 48,
+                      height: 48,
+                      child: Icon(Icons.widgets_outlined, color: t.brand),
+                    ),
+                  ),
+                  if (badge != null)
+                    Positioned(
+                      right: -6,
+                      top: -2,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 5,
+                          vertical: 1,
+                        ),
+                        decoration: BoxDecoration(
+                          color: t.brand,
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(color: t.bg, width: 1.5),
+                        ),
+                        child: Text(
+                          badge!,
+                          style: const TextStyle(
+                            fontSize: 9.5,
+                            height: 1.3,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                style: text.bodySmall?.copyWith(
+                  color: t.text,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _Avatar extends StatelessWidget {
   const _Avatar({required this.name, required this.onTap});
 
@@ -585,39 +690,29 @@ class _Avatar extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tokens;
     final initial = name.isEmpty ? '考' : name.characters.first;
+    final dark = t.name == 'dark';
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 44,
-        height: 44,
+        width: 52,
+        height: 52,
         alignment: Alignment.center,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color.lerp(t.brand, Colors.white, 0.18)!,
-              t.brand,
-              t.category('panduan'),
-            ],
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: t.brand.withValues(alpha: 0.24),
-              blurRadius: 12,
-              offset: const Offset(0, 5),
-            ),
-          ],
+          // 卡片本身已经是渐变了。头像再叠三色渐变加投影就会浮在卡上面、
+          // 显得是两张图拼的。这里只用一层薄底，让它落进卡里。
+          color: dark
+              ? Colors.white.withValues(alpha: 0.12)
+              : Colors.white.withValues(alpha: 0.62),
         ),
         child: Text(
           initial,
-          style: const TextStyle(
-            fontSize: 18,
+          style: TextStyle(
+            fontSize: 21,
             fontWeight: FontWeight.w700,
             height: 1,
-            color: Colors.white,
+            color: dark ? Colors.white : t.brand,
           ),
         ),
       ),
@@ -625,33 +720,25 @@ class _Avatar extends StatelessWidget {
   }
 }
 
-class _GroupLabel extends StatelessWidget {
-  const _GroupLabel(this.text);
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 0, AppTheme.gutter, 6),
-      child: Text(text, style: Theme.of(context).textTheme.labelSmall),
-    );
-  }
-}
-
 class _SettingRow extends StatelessWidget {
   const _SettingRow({
-    required this.icon,
+    required this.art,
     required this.title,
-    required this.value,
     required this.onTap,
+    this.value,
     this.danger = false,
     this.active = false,
   });
 
-  final AppIcon icon;
+  /// 行首图标素材。
+  final String art;
+
   final String title;
-  final String value;
+
+  /// 右侧的值。没有实质内容就传 null —— 一整列「暂无」「未设置」
+  /// 只会把页面填满噪音，真正有数的那几行反而看不见了。
+  final String? value;
+
   final VoidCallback onTap;
   final bool danger;
 
@@ -662,30 +749,36 @@ class _SettingRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tokens;
     final text = Theme.of(context).textTheme;
-    final tint = danger
-        ? t.danger
-        : active
-            ? t.brand
-            : t.textSoft;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Container(
-        color: active ? t.brand.withValues(alpha: 0.10) : null,
-        padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter, vertical: 15),
+        color: active ? t.brand.withValues(alpha: 0.08) : null,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
         child: Row(
           children: [
-            StrokeIcon(icon, size: 20, color: tint),
+            Image.asset(
+              art,
+              width: 26,
+              height: 26,
+              filterQuality: FilterQuality.high,
+              // 素材缺失时留个占位，别把整行挤变形
+              errorBuilder: (_, __, ___) => const SizedBox(width: 26, height: 26),
+            ),
             const SizedBox(width: 14),
             Expanded(
               child: Text(
                 title,
-                style: text.titleSmall?.copyWith(color: danger ? t.danger : t.text),
+                style: text.bodyLarge?.copyWith(
+                  color: danger ? t.danger : t.text,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
-            Text(value, style: text.bodySmall),
-            const SizedBox(width: 6),
-            Icon(Icons.chevron_right, size: 17, color: t.muted),
+            if (value != null && value!.isNotEmpty)
+              Text(value!, style: text.bodySmall),
+            const SizedBox(width: 8),
+            Icon(Icons.chevron_right, size: 16, color: t.muted.withValues(alpha: 0.6)),
           ],
         ),
       ),
@@ -693,8 +786,7 @@ class _SettingRow extends StatelessWidget {
   }
 }
 
-/// Theme picker as a compact inline segment — three big cards were louder
-/// than the setting deserves.
+/// Theme picker: large character cards for cute palettes + classic light/dark.
 class _ThemeRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -715,62 +807,156 @@ class _ThemeRow extends StatelessWidget {
           horizontal: AppTheme.gutter,
           vertical: 11,
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            StrokeIcon(controller.icon.toAppIcon(), size: 20, color: t.textSoft),
-            const SizedBox(width: 14),
-            Expanded(child: Text('主题', style: text.titleSmall)),
-            Container(
-              padding: const EdgeInsets.all(3),
-              decoration: BoxDecoration(
-                color: t.name == 'dark'
-                    ? Colors.white.withValues(alpha: 0.07)
-                    : t.text.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(13),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
+            Row(
+              children: [
+                StrokeIcon(controller.icon.toAppIcon(), size: 20, color: t.textSoft),
+                const SizedBox(width: 14),
+                Expanded(child: Text('主题', style: text.titleSmall)),
+                Text(
+                  controller.label,
+                  style: text.bodySmall?.copyWith(color: t.muted),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            SizedBox(
+              height: 148,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
                 children: [
-                  for (final m in modes)
+                  for (final p in ThemeController.palettes) ...[
                     GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () => controller.set(m.mode),
+                      onTap: () => controller.setPalette(p.id),
                       child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 150),
-                        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
+                        duration: const Duration(milliseconds: 180),
+                        width: 118,
+                        margin: const EdgeInsets.only(right: 10),
+                        padding: const EdgeInsets.fromLTRB(8, 8, 8, 10),
                         decoration: BoxDecoration(
-                          color: controller.mode == m.mode ? t.brand : null,
-                          borderRadius: BorderRadius.circular(10),
+                          color: controller.palette == p.id
+                              ? t.brand.withValues(alpha: 0.12)
+                              : t.surfaceAlt.withValues(alpha: 0.65),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: controller.palette == p.id
+                                ? t.brand
+                                : t.line.withValues(alpha: 0.45),
+                            width: controller.palette == p.id ? 1.8 : 1,
+                          ),
                         ),
-                        child: Row(
+                        child: Column(
                           children: [
-                            StrokeIcon(
-                              m.icon,
-                              size: 14,
-                              weight: 2,
-                              color: controller.mode == m.mode
-                                  ? Colors.white
-                                  : t.muted,
+                            Expanded(
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(14),
+                                child: ColoredBox(
+                                  color: Colors.white.withValues(alpha: 0.55),
+                                  child: p.asset == null
+                                      ? Center(
+                                          child: Icon(
+                                            Icons.contrast,
+                                            size: 36,
+                                            color: t.brand,
+                                          ),
+                                        )
+                                      : Image.asset(
+                                          p.asset!,
+                                          fit: BoxFit.contain,
+                                          filterQuality: FilterQuality.high,
+                                        ),
+                                ),
+                              ),
                             ),
-                            const SizedBox(width: 5),
+                            const SizedBox(height: 8),
                             Text(
-                              m.label,
-                              style: TextStyle(
+                              p.label,
+                              style: text.labelMedium?.copyWith(
+                                color: controller.palette == p.id
+                                    ? t.brand
+                                    : t.text,
+                                fontWeight: FontWeight.w700,
                                 fontSize: 12.5,
-                                fontWeight: FontWeight.w600,
-                                height: 1,
-                                color: controller.mode == m.mode
-                                    ? Colors.white
-                                    : t.textSoft,
                               ),
                             ),
                           ],
                         ),
                       ),
                     ),
+                  ],
                 ],
               ),
             ),
+            if (controller.palette == 'classic') ...[
+              const SizedBox(height: 12),
+              Align(
+                alignment: Alignment.centerRight,
+                child: Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: BoxDecoration(
+                    color: t.name == 'dark'
+                        ? Colors.white.withValues(alpha: 0.07)
+                        : t.text.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(13),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      for (final m in modes)
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => controller.set(m.mode),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 150),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 11,
+                              vertical: 7,
+                            ),
+                            decoration: BoxDecoration(
+                              color: controller.mode == m.mode ? t.brand : null,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Row(
+                              children: [
+                                StrokeIcon(
+                                  m.icon,
+                                  size: 14,
+                                  weight: 2,
+                                  color: controller.mode == m.mode
+                                      ? Colors.white
+                                      : t.muted,
+                                ),
+                                const SizedBox(width: 5),
+                                Text(
+                                  m.label,
+                                  style: TextStyle(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w600,
+                                    height: 1,
+                                    color: controller.mode == m.mode
+                                        ? Colors.white
+                                        : t.textSoft,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ] else ...[
+              const SizedBox(height: 10),
+              Text(
+                controller.palette == 'guga'
+                    ? '首页会换上咕咕嘎嘎插画；完成今日目标时切庆祝姿势。'
+                    : '官方皮卡丘形象受限，用的是原创闪电黄伴读狐插画。',
+                style: text.bodySmall?.copyWith(fontSize: 12, height: 1.4),
+              ),
+            ],
           ],
         ),
       ),

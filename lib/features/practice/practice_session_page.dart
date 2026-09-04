@@ -29,6 +29,7 @@ class PracticeSessionPage extends StatefulWidget {
     this.startAt = 0,
     this.resumeAnswers,
     this.resumeElapsed,
+    this.preferScroll = false,
   });
 
   /// Answers carried over from an interrupted session.
@@ -39,6 +40,10 @@ class PracticeSessionPage extends StatefulWidget {
   /// answers are already filled in and locked — reading a report should look
   /// like doing the paper, not like a list of letters.
   final Map<String, String>? reviewAnswers;
+
+  /// Open in whole-paper scroll layout (速览). Does not overwrite the user's
+  /// saved practice view-mode preference.
+  final bool preferScroll;
 
   /// Which question to open on (review mode jumps straight to a wrong one).
   final int startAt;
@@ -56,16 +61,28 @@ class PracticeSessionPage extends StatefulWidget {
 }
 
 class _PracticeSessionPageState extends State<PracticeSessionPage> {
-  late final PageController _pager = PageController(initialPage: widget.startAt);
+  late PageController _pager = PageController(initialPage: widget.startAt);
+  late final ScrollController _scroll = ScrollController();
+  late final List<GlobalKey> _qKeys =
+      List.generate(widget.questions.length, (_) => GlobalKey());
 
   late int _index = widget.startAt;
   final Map<String, String> _answers = {};
   Set<String> _marked = {};
   bool _finished = false;
 
+  /// Tablet: after 交卷 keep the question UI for review instead of jumping away.
+  bool _postReview = false;
+
+  /// single = one question per page; dual = two side-by-side; scroll = whole paper.
+  late _ViewMode _mode =
+      widget.preferScroll ? _ViewMode.scroll : _ViewMode.single;
+
   final _started = DateTime.now();
   Timer? _ticker;
-  Duration _elapsed = Duration.zero;
+  /// Isolated from setState so the 1 Hz clock does not rebuild the whole session.
+  final _elapsedN = ValueNotifier(Duration.zero);
+  Duration get _elapsed => _elapsedN.value;
 
   /// When the current question came on screen — 行测 lives or dies on pace.
   DateTime _questionShownAt = DateTime.now();
@@ -108,8 +125,8 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
     if (widget.resumeAnswers != null) _answers.addAll(widget.resumeAnswers!);
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted || _finished) return;
-      setState(() => _elapsed =
-          DateTime.now().difference(_started) + (widget.resumeElapsed ?? Duration.zero));
+      _elapsedN.value = DateTime.now().difference(_started) +
+          (widget.resumeElapsed ?? Duration.zero);
       if (_isExam && _left.inSeconds <= 0) _finish();
     });
   }
@@ -117,7 +134,9 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
   @override
   void dispose() {
     _ticker?.cancel();
+    _elapsedN.dispose();
     _pager.dispose();
+    _scroll.dispose();
     super.dispose();
   }
 
@@ -128,6 +147,15 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
     final notes = await AppDatabase.instance.notes();
     final difficulty = await AppDatabase.instance.difficulties();
     if (!mounted) return;
+    final raw = prefs.getString(Prefs.practiceViewMode);
+    final mode = widget.preferScroll
+        ? _ViewMode.scroll
+        : _ViewMode.values.firstWhere(
+            (m) => m.name == raw,
+            orElse: () => MediaQuery.sizeOf(context).width >= 640
+                ? _ViewMode.dual
+                : _ViewMode.single,
+          );
     setState(() {
       _marked = marked;
       _reasons = reasons;
@@ -135,14 +163,75 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
       _notes = notes;
       _fontScale = prefs.getDouble(Prefs.fontScale) ?? 1;
       _autoNext = prefs.getBool(Prefs.autoNext) ?? true;
+      _mode = mode;
     });
+  }
+
+  Future<void> _setMode(_ViewMode mode) async {
+    if (_mode == mode) return;
+    final idx = _index;
+    setState(() => _mode = mode);
+    // Browse/速览 sessions shouldn't overwrite the user's practice layout.
+    if (!widget.preferScroll) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(Prefs.practiceViewMode, mode.name);
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (mode == _ViewMode.scroll) {
+        _scrollToIndex(idx);
+        return;
+      }
+      final page = mode == _ViewMode.dual ? idx ~/ 2 : idx;
+      _pager.dispose();
+      _pager = PageController(initialPage: page);
+      setState(() {});
+    });
+  }
+
+  void _scrollToIndex(int index) {
+    if (index < 0 || index >= _qKeys.length) return;
+    final ctx = _qKeys[index].currentContext;
+    if (ctx == null) return;
+    Scrollable.ensureVisible(
+      ctx,
+      duration: const Duration(milliseconds: 240),
+      curve: Curves.easeOutCubic,
+      alignment: 0.02,
+    );
+  }
+
+  void _syncIndexFromScroll() {
+    if (_mode != _ViewMode.scroll || !mounted) return;
+    final mediaTop = MediaQuery.paddingOf(context).top + kToolbarHeight + 24;
+    var best = _index;
+    var bestScore = double.infinity;
+    for (var i = 0; i < _qKeys.length; i++) {
+      final ctx = _qKeys[i].currentContext;
+      if (ctx == null) continue;
+      final box = ctx.findRenderObject() as RenderBox?;
+      if (box == null || !box.hasSize) continue;
+      final y = box.localToGlobal(Offset.zero).dy;
+      final score = (y - mediaTop).abs() + (y < mediaTop - 40 ? 80 : 0);
+      if (score < bestScore) {
+        bestScore = score;
+        best = i;
+      }
+    }
+    if (best != _index) {
+      setState(() {
+        _index = best;
+        _questionShownAt = DateTime.now();
+      });
+    }
   }
 
   // ---------------------------------------------------------------- answering
 
-  Future<void> _select(String key) async {
-    if (_finished || _isReview) return;
-    final q = _current;
+  Future<void> _select(String key) => _selectOn(_current, key);
+
+  Future<void> _selectOn(Question q, String key) async {
+    if (_finished || _isReview || _postReview) return;
     if (_answers.containsKey(q.id)) return;
 
     final answer = key.toUpperCase();
@@ -151,7 +240,6 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
     _questionMs[q.id] = spent;
     setState(() => _answers[q.id] = answer);
 
-    // Physical feedback: a soft tick for right, a heavier bump for wrong.
     if (_isExam) {
       HapticFeedback.selectionClick();
     } else {
@@ -166,43 +254,118 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
     );
     await _snapshot();
 
-    // In a mock exam picking an option IS the action — no confirm step, the
-    // paper just advances. In practice mode a wrong answer stops for the
-    // explanation; a right one flows on unless the user turned that off.
-    final last = _index >= _questions.length - 1;
+    final qi = _questions.indexWhere((e) => e.id == q.id);
+    final last = qi < 0 || qi >= _questions.length - 1;
     if (last) return;
+    // 整卷滚动不自动跳；单题/双题按原节奏往下走。
+    if (_mode == _ViewMode.scroll) return;
     if (_isExam) {
       await Future<void>.delayed(const Duration(milliseconds: 220));
-      if (mounted && !_finished) _next();
+      if (mounted && !_finished) _goTo(qi + 1);
     } else if (correct && _autoNext) {
       await Future<void>.delayed(const Duration(milliseconds: 450));
-      if (mounted && !_finished) _next();
+      if (mounted && !_finished) _goTo(qi + 1);
     }
   }
 
   void _goTo(int index) {
     if (index < 0 || index >= _questions.length) return;
-    _pager.animateToPage(
-      index,
-      duration: const Duration(milliseconds: 260),
-      curve: Curves.easeOutCubic,
-    );
+    setState(() {
+      _index = index;
+      _questionShownAt = DateTime.now();
+    });
+    if (_mode == _ViewMode.scroll) {
+      _scrollToIndex(index);
+    } else if (_pager.hasClients) {
+      final page = _mode == _ViewMode.dual ? index ~/ 2 : index;
+      _pager.animateToPage(
+        page,
+        duration: const Duration(milliseconds: 260),
+        curve: Curves.easeOutCubic,
+      );
+    }
   }
-
-  void _next() => _goTo(_index + 1);
 
   void _finish() {
     _ticker?.cancel();
     if (!mounted || _finished) return;
+    final wide = context.isWide;
+    _elapsedN.value = DateTime.now().difference(_started) +
+        (widget.resumeElapsed ?? Duration.zero);
     setState(() {
-      _elapsed = DateTime.now().difference(_started) +
-          (widget.resumeElapsed ?? Duration.zero);
       _finished = true;
+      _postReview = wide;
     });
     HapticFeedback.mediumImpact();
     _saveReport();
     AppDatabase.instance.clearResume();
     _celebrate();
+    if (wide) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _showTabletScoreSheet();
+      });
+    }
+  }
+
+  Future<void> _showTabletScoreSheet() async {
+    final total = _questions.length;
+    final correct = _questions
+        .where((q) => _answers[q.id] == q.answer.toUpperCase())
+        .length;
+    final rate = total == 0 ? 0 : (correct * 100 / total).round();
+    if (!mounted) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        final t = ctx.tokens;
+        final text = Theme.of(ctx).textTheme;
+        return Container(
+          decoration: BoxDecoration(
+            color: t.gradient.last,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            border: Border(top: BorderSide(color: t.glassBorder)),
+          ),
+          padding: const EdgeInsets.fromLTRB(22, 18, 22, 16),
+          child: SafeArea(
+            top: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('本场结果', style: text.titleMedium),
+                const SizedBox(height: 10),
+                Text(
+                  '正确率 $rate% · 答对 $correct / $total · 用时 ${_clock(_elapsed)}',
+                  style: text.bodyMedium,
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () {
+                          Navigator.of(ctx).pop();
+                          setState(() => _postReview = false);
+                        },
+                        child: const Text('看成绩单'),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: FilledButton(
+                        onPressed: () => Navigator.of(ctx).pop(),
+                        child: const Text('逐题看解析'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   /// Checks for newly earned badges once the session is over.
@@ -358,6 +521,8 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
         await _openScratch();
       case 'note':
         await _editNote();
+      case 'layout':
+        await _pickViewMode();
       case 'font':
         await _openReadingSettings();
       case 'mark':
@@ -365,6 +530,20 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
       case 'report':
         await _reportIssue();
     }
+  }
+
+  /// 答题版式：单题 / 双题 / 整卷。
+  ///
+  /// 原来这三个 chip 常驻顶栏，一是把窄屏顶栏挤溢出，二是做题时
+  /// 每一眼都要先跳过它们才看到题号 —— 它是设置，不是答题动作。
+  Future<void> _pickViewMode() async {
+    final picked = await showModalBottomSheet<_ViewMode>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _ViewModeSheet(current: _mode),
+    );
+    if (picked == null || !mounted) return;
+    _setMode(picked);
   }
 
   Future<void> _editNote() async {
@@ -511,17 +690,22 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (_finished) return _ResultView(session: this);
+    if (_finished && !_postReview) return _ResultView(session: this);
 
     final t = context.tokens;
     final text = Theme.of(context).textTheme;
     final total = _questions.length;
     final q = _current;
+    final reviewMode = _isReview || _postReview;
 
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
         if (didPop) return;
+        if (_postReview) {
+          setState(() => _postReview = false);
+          return;
+        }
         await _leave();
       },
       child: Focus(
@@ -531,60 +715,82 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.close, size: 21),
-            onPressed: _leave,
+            onPressed: _postReview
+                ? () => setState(() => _postReview = false)
+                : _leave,
           ),
           titleSpacing: 0,
           title: GestureDetector(
             behavior: HitTestBehavior.opaque,
             onLongPress: _reportIssue,
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
+              crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  '${_index + 1}',
+                  _mode == _ViewMode.dual && _index + 1 < total
+                      ? '${_index + 1}–${_index + 2}'
+                      : '${_index + 1}',
                   style:
                       text.titleMedium?.copyWith(fontFeatures: AppTheme.numeric),
                 ),
                 Text(' / $total', style: text.bodySmall),
                 const SizedBox(width: 9),
                 // Elapsed (practice) or remaining (exam) — pace is the thing
-                // candidates actually lose points to.
-                if (!_isReview)
-                  Text(
-                    _isExam ? _clock(_left) : _clock(_elapsed),
-                    style: text.bodySmall?.copyWith(
-                      color: _isExam && _left.inMinutes < 5 ? t.danger : t.muted,
-                      fontFeatures: AppTheme.numeric,
-                    ),
+                // candidates actually lose points to. ValueListenable so the
+                // clock ticks without rebuilding the question surface.
+                if (!reviewMode)
+                  ValueListenableBuilder<Duration>(
+                    valueListenable: _elapsedN,
+                    builder: (context, elapsed, _) {
+                      final left = widget.limit == null
+                          ? Duration.zero
+                          : widget.limit! - elapsed;
+                      return Text(
+                        _isExam ? _clock(left) : _clock(elapsed),
+                        style: text.bodySmall?.copyWith(
+                          color: _isExam && left.inMinutes < 5
+                              ? t.danger
+                              : t.muted,
+                          fontFeatures: AppTheme.numeric,
+                        ),
+                      );
+                    },
                   )
                 else
-                  Text('回顾', style: text.bodySmall?.copyWith(color: t.brand)),
+                  Text(
+                    _postReview ? '解析 · ${_clock(_elapsed)}' : '回顾',
+                    style: text.bodySmall?.copyWith(color: t.brand),
+                  ),
               ],
             ),
           ),
           actions: [
-            // 顶栏塞六个图标会跟题号计时撞在一起（363dp 宽的机器上直接重叠）。
-            // 留最常用的存疑，其余收进「更多」。
-            _BarButton(
-              icon: _doubts.contains(q.id)
-                  ? Icons.flag_rounded
-                  : Icons.outlined_flag_rounded,
-              color:
-                  _doubts.contains(q.id) ? t.category('shuliang') : t.textSoft,
-              onTap: _toggleDoubt,
-            ),
-            _BarButton(
-              icon: Icons.more_horiz_rounded,
-              color: (_notes.containsKey(q.id) ||
-                      _marked.contains(q.id) ||
-                      (_scratch[q.id]?.isNotEmpty ?? false))
-                  ? t.brand
-                  : t.textSoft,
-              onTap: _openTools,
-            ),
-            // Answer card doubles as the progress readout, so it carries the count.
+            if (_postReview)
+              TextButton(
+                onPressed: () => setState(() => _postReview = false),
+                child: const Text('成绩'),
+              ),
+            if (!_postReview)
+              _BarButton(
+                icon: _doubts.contains(q.id)
+                    ? Icons.flag_rounded
+                    : Icons.outlined_flag_rounded,
+                color:
+                    _doubts.contains(q.id) ? t.category('shuliang') : t.textSoft,
+                onTap: _toggleDoubt,
+              ),
+            if (!_postReview)
+              _BarButton(
+                icon: Icons.more_horiz_rounded,
+                color: (_notes.containsKey(q.id) ||
+                        _marked.contains(q.id) ||
+                        (_scratch[q.id]?.isNotEmpty ?? false))
+                    ? t.brand
+                    : t.textSoft,
+                onTap: _openTools,
+              ),
+            // 答题卡只从顶栏打开，不再占右侧整栏。
             GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: _openAnswerCard,
@@ -621,75 +827,252 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
             child: Meter(value: (_index + 1) / total, height: 3),
           ),
         ),
-        // Swiping between questions is how every 刷题 app works.
-        body: Row(
-          children: [
-            Expanded(
-              child: PageView.builder(
-          controller: _pager,
+        body: _buildBody(reviewMode: reviewMode),
+      ),
+      ),
+    );
+  }
+
+  Widget _buildQuestion(
+    int i, {
+    required bool reviewMode,
+    bool paired = false,
+    bool inScrollList = false,
+  }) {
+    final q = _questions[i];
+    return _QuestionView(
+      question: q,
+      selected: _answers[q.id],
+      showHints: i < 3,
+      isExam: _isExam && !reviewMode,
+      fontScale: _fontScale,
+      isLast: i == _questions.length - 1 && !reviewMode,
+      isReview: reviewMode,
+      singleColumn: paired || inScrollList || _mode != _ViewMode.single,
+      inScrollList: inScrollList,
+      hideAnalysis: false,
+      reason: _reasons[q.id],
+      difficulty: _difficulty[q.id],
+      excluded: _excluded[q.id] ?? const {},
+      onExclude: (key) => _toggleExclude(q.id, key),
+      note: _notes[q.id],
+      onReason: (r) => _setReason(q.id, r),
+      onDifficulty: (l) => _setDifficulty(q.id, l),
+      onEditNote: _editNote,
+      onSelect: (key) => _selectOn(q, key),
+      onSubmit: _submit,
+    );
+  }
+
+  Widget _buildBody({required bool reviewMode}) {
+    final t = context.tokens;
+    final total = _questions.length;
+
+    if (_mode == _ViewMode.scroll) {
+      return NotificationListener<ScrollNotification>(
+        onNotification: (n) {
+          if (n is ScrollUpdateNotification || n is ScrollEndNotification) {
+            _syncIndexFromScroll();
+          }
+          return false;
+        },
+        child: ListView.separated(
+          controller: _scroll,
+          padding: const EdgeInsets.only(bottom: 40),
           itemCount: total,
-          onPageChanged: (i) {
-            setState(() {
-              _index = i;
-              _questionShownAt = DateTime.now();
-            });
-            _snapshot();
-          },
-          itemBuilder: (context, i) => _QuestionView(
-            question: _questions[i],
-            selected: _answers[_questions[i].id],
-            isExam: _isExam,
-            fontScale: _fontScale,
-            isLast: i == total - 1 && !_isReview,
-            isReview: _isReview,
-            reason: _reasons[_questions[i].id],
-            difficulty: _difficulty[_questions[i].id],
-            excluded: _excluded[_questions[i].id] ?? const {},
-            onExclude: (key) => _toggleExclude(_questions[i].id, key),
-            note: _notes[_questions[i].id],
-            onReason: (r) => _setReason(_questions[i].id, r),
-            onDifficulty: (l) => _setDifficulty(_questions[i].id, l),
-            onEditNote: _editNote,
-            onSelect: _select,
-            onSubmit: _submit,
+          separatorBuilder: (_, __) => Divider(
+            height: 28,
+            thickness: 1,
+            color: t.line.withValues(alpha: 0.55),
           ),
-              ),
-            ),
-            // 平板横屏：答题卡不再是弹层，直接钉在右边。整套 130 题的卷子，
-            // 每跳一题都要先拉一次弹层是折磨。
-            if (context.isExpanded) ...[
-              Container(width: 1, color: t.line.withValues(alpha: 0.5)),
-              SizedBox(
-                width: 232,
-                child: _AnswerCard(
-                  questions: _questions,
-                  answers: _answers,
-                  doubts: _doubts,
-                  current: _index,
-                  isExam: _isExam,
-                  docked: true,
-                  onPick: _goTo,
-                  onSubmit: _submit,
+          itemBuilder: (context, i) => KeyedSubtree(
+            key: _qKeys[i],
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppTheme.gutter,
+                    12,
+                    AppTheme.gutter,
+                    0,
+                  ),
+                  child: Text(
+                    '第 ${i + 1} 题',
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                          color: i == _index ? t.brand : t.muted,
+                          fontFeatures: AppTheme.numeric,
+                        ),
+                  ),
                 ),
+                _buildQuestion(
+                  i,
+                  reviewMode: reviewMode,
+                  inScrollList: true,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (_mode == _ViewMode.dual) {
+      final pages = (total + 1) ~/ 2;
+      return PageView.builder(
+        key: const ValueKey('dual'),
+        controller: _pager,
+        itemCount: pages,
+        onPageChanged: (page) {
+          setState(() {
+            _index = page * 2;
+            _questionShownAt = DateTime.now();
+          });
+          _snapshot();
+        },
+        itemBuilder: (context, page) {
+          final left = page * 2;
+          final right = left + 1;
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: _buildQuestion(left, reviewMode: reviewMode, paired: true),
+              ),
+              Container(width: 1, color: t.line.withValues(alpha: 0.5)),
+              Expanded(
+                child: right < total
+                    ? _buildQuestion(right, reviewMode: reviewMode, paired: true)
+                    : Center(
+                        child: Text(
+                          '最后一题',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ),
               ),
             ],
-          ],
-        ),
+          );
+        },
+      );
+    }
+
+    return PageView.builder(
+      key: const ValueKey('single'),
+      controller: _pager,
+      itemCount: total,
+      onPageChanged: (i) {
+        setState(() {
+          _index = i;
+          _questionShownAt = DateTime.now();
+        });
+        _snapshot();
+      },
+      itemBuilder: (context, i) =>
+          _buildQuestion(i, reviewMode: reviewMode),
+    );
+  }
+}
+
+enum _ViewMode { single, dual, scroll }
+
+/// 答题版式选择。原来是顶栏那三个 chip。
+class _ViewModeSheet extends StatelessWidget {
+  const _ViewModeSheet({required this.current});
+
+  final _ViewMode current;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+    const items = <({_ViewMode mode, IconData icon, String label, String hint})>[
+      (
+        mode: _ViewMode.single,
+        icon: Icons.crop_portrait_rounded,
+        label: '单题',
+        hint: '一屏一题，最专注',
       ),
+      (
+        mode: _ViewMode.dual,
+        icon: Icons.view_column_outlined,
+        label: '双题',
+        hint: '一屏两题，适合宽屏',
+      ),
+      (
+        mode: _ViewMode.scroll,
+        icon: Icons.view_stream_outlined,
+        label: '整卷',
+        hint: '连续下滑，像纸质卷',
+      ),
+    ];
+
+    return _SheetShell(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('答题版式', style: text.titleMedium),
+          const SizedBox(height: 14),
+          for (final item in items)
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => Navigator.of(context).pop(item.mode),
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+                decoration: BoxDecoration(
+                  color: item.mode == current
+                      ? t.brand.withValues(alpha: 0.12)
+                      : t.surface,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      item.icon,
+                      size: 20,
+                      color: item.mode == current ? t.brand : t.textSoft,
+                    ),
+                    const SizedBox(width: 13),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.label,
+                            style: text.titleSmall?.copyWith(
+                              color: item.mode == current ? t.brand : t.text,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(item.hint, style: text.bodySmall),
+                        ],
+                      ),
+                    ),
+                    if (item.mode == current)
+                      Icon(Icons.check_rounded, size: 19, color: t.brand),
+                  ],
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
 }
 
-/// One question page: body, options, analysis.
 class _QuestionView extends StatelessWidget {
   const _QuestionView({
     required this.question,
     required this.selected,
     required this.isExam,
+    required this.showHints,
     required this.fontScale,
     required this.isLast,
     required this.isReview,
+    this.singleColumn = false,
+    this.inScrollList = false,
+    this.hideAnalysis = false,
     required this.reason,
     required this.difficulty,
     required this.excluded,
@@ -705,9 +1088,22 @@ class _QuestionView extends StatelessWidget {
   final Question question;
   final String? selected;
   final bool isExam;
+
+  /// 操作提示只在开头几题显示。每题都挂一行"长按可排除、左右滑动切换"，
+  /// 看第五遍就只剩干扰了。
+  final bool showHints;
   final double fontScale;
   final bool isLast;
   final bool isReview;
+
+  /// Parent already splits 题目 | 答题卡/解析 — keep stem+options in one column.
+  final bool singleColumn;
+
+  /// Nested inside the 整卷 ListView — must not spawn another scroll view.
+  final bool inScrollList;
+
+  /// Analysis lives in the right pane; don't duplicate it under options.
+  final bool hideAnalysis;
   final String? reason;
   final int? difficulty;
 
@@ -919,11 +1315,16 @@ class _QuestionView extends StatelessWidget {
         }),
         // Wrong answers get a one-tap 错因 tag; this is what makes the 错题本
         // worth reviewing instead of just a pile of questions.
-        if (revealed && selected != null && selected != question.answer.toUpperCase()) ...[
+        if (!hideAnalysis &&
+            revealed &&
+            selected != null &&
+            selected != question.answer.toUpperCase()) ...[
           const SizedBox(height: 6),
           _ReasonPicker(selected: reason, onPick: onReason),
         ],
-        if (revealed && question.analysisMarkup.isNotEmpty) ...[
+        if (!hideAnalysis &&
+            revealed &&
+            question.analysisMarkup.isNotEmpty) ...[
           const SizedBox(height: 8),
           Container(
             width: double.infinity,
@@ -960,7 +1361,7 @@ class _QuestionView extends StatelessWidget {
           const SizedBox(height: 10),
           _PastAttempts(questionId: question.id, answer: question.answer),
           _DifficultyPicker(level: difficulty, onPick: onDifficulty),
-        ] else if (selected == null)
+        ] else if (!hideAnalysis && selected == null && showHints)
           Padding(
             padding: const EdgeInsets.only(top: 6),
             child: Text(
@@ -970,7 +1371,7 @@ class _QuestionView extends StatelessWidget {
               style: text.bodySmall?.copyWith(fontSize: 12),
             ),
           ),
-        if (note != null && (revealed || isReview)) ...[
+        if (!hideAnalysis && note != null && (revealed || isReview)) ...[
           const SizedBox(height: 10),
           GestureDetector(
             behavior: HitTestBehavior.opaque,
@@ -1025,7 +1426,27 @@ class _QuestionView extends StatelessWidget {
 
     // 宽屏两栏：题干和材料在左，选项、解析、笔记在右。资料分析一道题的材料
     // 能有半屏长，左右分栏后不用来回滚。窄屏还是从上到下一条。
-    final twoPane = MediaQuery.sizeOf(context).width >= 900;
+    // 整卷模式嵌在外层 ListView 里，必须用 Column，否则高度为 0 整页空白。
+    if (inScrollList) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppTheme.gutter,
+          8,
+          AppTheme.gutter,
+          16,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ...head,
+            const SizedBox(height: 18),
+            ...rest,
+          ],
+        ),
+      );
+    }
+
+    final twoPane = !singleColumn && MediaQuery.sizeOf(context).width >= 900;
     if (twoPane) {
       return Padding(
         padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 14, AppTheme.gutter, 20),
@@ -1072,7 +1493,7 @@ class _QuestionView extends StatelessWidget {
 }
 
 /// Prior attempts at this question, if any.
-class _History extends StatelessWidget {
+class _History extends StatefulWidget {
   const _History({required this.questionId, required this.answered});
 
   final String questionId;
@@ -1082,16 +1503,37 @@ class _History extends StatelessWidget {
   final bool answered;
 
   @override
+  State<_History> createState() => _HistoryState();
+}
+
+class _HistoryState extends State<_History> {
+  late Future<List<({String answer, bool correct, DateTime at})>> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = AppDatabase.instance.historyFor(widget.questionId);
+  }
+
+  @override
+  void didUpdateWidget(covariant _History oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.questionId != widget.questionId) {
+      _future = AppDatabase.instance.historyFor(widget.questionId);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final t = context.tokens;
     final text = Theme.of(context).textTheme;
 
     return FutureBuilder<List<({String answer, bool correct, DateTime at})>>(
-      future: AppDatabase.instance.historyFor(questionId),
+      future: _future,
       builder: (context, snap) {
         final all = snap.data ?? const <({String answer, bool correct, DateTime at})>[];
         // The current attempt is already logged; drop it here.
-        final past = answered && all.isNotEmpty ? all.skip(1).toList() : all;
+        final past = widget.answered && all.isNotEmpty ? all.skip(1).toList() : all;
         if (past.isEmpty) return const SizedBox.shrink();
 
         final last = past.first;
@@ -1111,7 +1553,7 @@ class _History extends StatelessWidget {
               const SizedBox(width: 7),
               Expanded(
                 child: Text(
-                  answered
+                  widget.answered
                       ? '$when做过，当时选了 ${last.answer}'
                           '${last.correct ? '（对）' : '（错）'}'
                           '${wrongTimes > 1 ? ' · 一共错过 $wrongTimes 次' : ''}'
@@ -1789,15 +2231,7 @@ class _AnswerCard extends StatelessWidget {
     required this.doubts,
     required this.current,
     required this.isExam,
-    this.docked = false,
-    this.onPick,
-    this.onSubmit,
   });
-
-  /// 钉在宽屏右侧时不画圆角顶边，点格子直接跳题而不是 pop 出一个下标。
-  final bool docked;
-  final ValueChanged<int>? onPick;
-  final VoidCallback? onSubmit;
 
   final List<Question> questions;
   final Map<String, String> answers;
@@ -1812,21 +2246,15 @@ class _AnswerCard extends StatelessWidget {
     final done = answers.length;
 
     return Container(
-      constraints: docked
-          ? const BoxConstraints.expand()
-          : BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.72,
-            ),
-      decoration: docked
-          ? null
-          : BoxDecoration(
-              color: t.gradient.last,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-              border: Border(top: BorderSide(color: t.glassBorder)),
-            ),
-      padding: docked
-          ? const EdgeInsets.fromLTRB(14, 16, 14, 16)
-          : const EdgeInsets.fromLTRB(20, 16, 20, 16),
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.72,
+      ),
+      decoration: BoxDecoration(
+        color: t.gradient.last,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        border: Border(top: BorderSide(color: t.glassBorder)),
+      ),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
       child: SafeArea(
         top: false,
         child: Column(
@@ -1841,18 +2269,15 @@ class _AnswerCard extends StatelessWidget {
                 const SizedBox(width: 10),
                 Text('已答 $done / ${questions.length}', style: text.bodySmall),
                 const Spacer(),
-                // 钉在 232dp 的侧栏里放不下图例，颜色本身够直白。
-                if (!docked) ...[
-                  if (!isExam) ...[
-                    _Legend(color: t.success, label: '对'),
-                    const SizedBox(width: 10),
-                    _Legend(color: t.danger, label: '错'),
-                  ] else
-                    _Legend(color: t.brand, label: '已答'),
-                  if (doubts.isNotEmpty) ...[
-                    const SizedBox(width: 10),
-                    _Legend(color: t.category('shuliang'), label: '存疑'),
-                  ],
+                if (!isExam) ...[
+                  _Legend(color: t.success, label: '对'),
+                  const SizedBox(width: 10),
+                  _Legend(color: t.danger, label: '错'),
+                ] else
+                  _Legend(color: t.brand, label: '已答'),
+                if (doubts.isNotEmpty) ...[
+                  const SizedBox(width: 10),
+                  _Legend(color: t.category('shuliang'), label: '存疑'),
                 ],
               ],
             ),
@@ -1871,9 +2296,7 @@ class _AnswerCard extends StatelessWidget {
                         doubt: doubts.contains(questions[i].id),
                         isCurrent: i == current,
                         isExam: isExam,
-                        onTap: () => docked
-                            ? onPick?.call(i)
-                            : Navigator.of(context).pop(i),
+                        onTap: () => Navigator.of(context).pop(i),
                       ),
                   ],
                 ),
@@ -1883,9 +2306,7 @@ class _AnswerCard extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: FilledButton(
-                onPressed: () => docked
-                    ? onSubmit?.call()
-                    : Navigator.of(context).pop(-1),
+                onPressed: () => Navigator.of(context).pop(-1),
                 child: Text(done == questions.length ? '交卷' : '提前交卷'),
               ),
             ),
@@ -2122,11 +2543,32 @@ class _DifficultyPicker extends StatelessWidget {
 
 /// 本题历史作答：这道题以前做过没有、上次选的什么。反复错同一道题却
 /// 毫无察觉，是错题本最常见的失效方式。
-class _PastAttempts extends StatelessWidget {
+class _PastAttempts extends StatefulWidget {
   const _PastAttempts({required this.questionId, required this.answer});
 
   final String questionId;
   final String answer;
+
+  @override
+  State<_PastAttempts> createState() => _PastAttemptsState();
+}
+
+class _PastAttemptsState extends State<_PastAttempts> {
+  late Future<List<({String answer, bool correct, DateTime at})>> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = AppDatabase.instance.historyFor(widget.questionId, limit: 6);
+  }
+
+  @override
+  void didUpdateWidget(covariant _PastAttempts oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.questionId != widget.questionId) {
+      _future = AppDatabase.instance.historyFor(widget.questionId, limit: 6);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -2134,7 +2576,7 @@ class _PastAttempts extends StatelessWidget {
     final text = Theme.of(context).textTheme;
 
     return FutureBuilder<List<({String answer, bool correct, DateTime at})>>(
-      future: AppDatabase.instance.historyFor(questionId, limit: 6),
+      future: _future,
       builder: (context, snap) {
         final all = snap.data ?? const [];
         // 最新一次就是刚刚这次，看的是它之前的。
@@ -2217,6 +2659,13 @@ class _ToolSheet extends StatelessWidget {
         label: '写笔记',
         hint: hasNote ? '这题已有笔记' : '记方法和坑点，回顾时会显示',
         on: hasNote,
+      ),
+      (
+        key: 'layout',
+        icon: Icons.view_agenda_outlined,
+        label: '答题版式',
+        hint: '单题 / 双题 / 整卷',
+        on: false,
       ),
       (
         key: 'font',

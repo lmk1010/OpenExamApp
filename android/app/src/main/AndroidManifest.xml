@@ -1,4 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 只有 AI 批改/识题会联网，请求直接发往用户自己配的服务商 -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:label="OpenExam"
         android:name="${applicationName}"

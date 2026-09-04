@@ -11,9 +11,21 @@ class Prefs {
   static const nickname = 'nickname';
   static const examDate = 'exam_date';
   static const themeMode = 'theme_mode';
+
+  /// Visual palette: `classic` | `guga` | `spark` (cute themes).
+  static const themePalette = 'theme_palette';
   static const fontScale = 'font_scale';
   static const autoNext = 'auto_next';
   static const dailyGoal = 'daily_goal';
   static const onboarded = 'onboarded';
   static const province = 'province';
+
+  /// Active study-plan template id (`working` / `light` / `off`).
+  static const studyPlanTemplate = 'study_plan_template';
+
+  /// Wide layout: hide the left nav rail for a wider content pane.
+  static const navRailHidden = 'nav_rail_hidden';
+
+  /// Practice session layout: `single` | `dual` | `scroll`.
+  static const practiceViewMode = 'practice_view_mode';
 }

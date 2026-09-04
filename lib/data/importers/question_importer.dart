@@ -140,15 +140,22 @@ class QuestionImporter {
   static List<Question> _parseJson(String text) {
     final decoded = jsonDecode(text);
     final items = <dynamic>[];
+    Map<String, dynamic> paper = {};
     if (decoded is List) {
       items.addAll(decoded);
     } else if (decoded is Map && decoded['questions'] is List) {
+      if (decoded['paper'] is Map) {
+        paper = Map<String, dynamic>.from(decoded['paper'] as Map);
+      }
       items.addAll(decoded['questions'] as List);
     } else if (decoded is Map) {
       items.add(decoded);
     }
 
     final now = DateTime.now().millisecondsSinceEpoch;
+    final paperId = '${paper['id'] ?? ''}';
+    final paperTitle = '${paper['title'] ?? ''}';
+    final paperYear = paper['year'];
     final out = <Question>[];
     for (var i = 0; i < items.length; i++) {
       final item = items[i];
@@ -156,6 +163,18 @@ class QuestionImporter {
       final map = Map<String, dynamic>.from(item);
       map['id'] = '${map['id'] ?? map['key'] ?? 'import_${now}_$i'}';
       map['source'] = 'imported';
+      if ((map['paperId'] == null || '${map['paperId']}'.isEmpty) && paperId.isNotEmpty) {
+        map['paperId'] = paperId;
+      }
+      if ((map['paperTitle'] == null || '${map['paperTitle']}'.isEmpty) && paperTitle.isNotEmpty) {
+        map['paperTitle'] = paperTitle;
+      }
+      if (map['year'] == null && paperYear != null) {
+        map['year'] = paperYear;
+      }
+      if (map['orderNum'] == null && map['order_num'] == null) {
+        map['orderNum'] = i + 1;
+      }
       if ((map['category'] == null || '${map['category']}'.isEmpty) && map['module'] != null) {
         map['category'] = _guessCategory('${map['module']}');
       }
@@ -236,6 +255,17 @@ class QuestionImporter {
     if (t.contains('判断') || t.contains('panduan')) return 'panduan';
     if (t.contains('资料') || t.contains('ziliao')) return 'ziliao';
     if (t.contains('常识') || t.contains('changshi')) return 'changshi';
+    if (t.startsWith('cs_')) return raw;
+    if (t.contains('计算机') || t.contains('computer') || t.contains('计基')) return 'cs_base';
+    if (t.contains('安全')) return 'cs_security';
+    if (t.contains('windows') || t.contains('系统')) return 'cs_windows';
+    if (t.contains('office') || t.contains('excel') || t.contains('word') || t.contains('办公')) {
+      return 'cs_office';
+    }
+    if (t.contains('程序') || t.contains('编程') || t.contains('c语言')) return 'cs_prog';
+    if (t.contains('数据库') || t.contains('sql')) return 'cs_db';
+    if (t.contains('网络')) return 'cs_net';
+    if (t.contains('软件工程') || t.contains('软工')) return 'cs_se';
     return raw.isEmpty ? 'yanyu' : raw;
   }
 

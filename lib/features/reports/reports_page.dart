@@ -11,7 +11,11 @@ import 'package:openexam_app/features/practice/practice_session_page.dart';
 
 /// 成绩报告 — every finished session, so a 模考 result survives leaving the page.
 class ReportsPage extends StatefulWidget {
-  const ReportsPage({super.key});
+  const ReportsPage({super.key, this.paperId, this.pageTitle});
+
+  /// When set, only sessions that mostly belong to this paper.
+  final String? paperId;
+  final String? pageTitle;
 
   @override
   State<ReportsPage> createState() => _ReportsPageState();
@@ -28,7 +32,9 @@ class _ReportsPageState extends State<ReportsPage> {
   }
 
   Future<void> _load() async {
-    final reports = await AppDatabase.instance.listReports();
+    final reports = await AppDatabase.instance.listReports(
+      paperId: widget.paperId,
+    );
     if (!mounted) return;
     setState(() {
       _reports = reports;
@@ -106,7 +112,7 @@ class _ReportsPageState extends State<ReportsPage> {
           onPressed: () => Navigator.of(context).maybePop(),
         ),
         titleSpacing: 0,
-        title: const Text('成绩报告'),
+        title: Text(widget.pageTitle ?? '练习历史'),
       ),
       body: ReadableWidth(
         maxWidth: context.isExpanded ? 820 : context.readableWidth,

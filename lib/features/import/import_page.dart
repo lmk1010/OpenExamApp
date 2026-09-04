@@ -218,7 +218,7 @@ class _ImportPageState extends State<ImportPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '支持 JSON / CSV / TXT / ZIP。每道题至少要有题干、选项和答案：',
+                        '推荐一份 paper.json：试卷元数据 + questions 数组。也兼容旧的题目数组。CSV 最低集是 content,A,B,C,D,answer,category,analysis。',
                         style: text.bodyMedium,
                       ),
                       const SizedBox(height: 14),
@@ -227,7 +227,7 @@ class _ImportPageState extends State<ImportPage> {
                         radius: 16,
                         padding: const EdgeInsets.all(14),
                         child: Text(
-                          '[\n  {\n    "content": "题干",\n    "options": [\n      {"key": "A", "text": "选项一"},\n      {"key": "B", "text": "选项二"}\n    ],\n    "answer": "A",\n    "category": "yanyu",\n    "analysis": "解析（选填）"\n  }\n]',
+                          '{\n  "schemaVersion": 1,\n  "paper": {\n    "id": "paper_user_001",\n    "title": "我的试卷",\n    "examKind": "gongwuyuan",\n    "examLevel": "provincial",\n    "region": "anhui",\n    "subject": "computer",\n    "source": "imported"\n  },\n  "questions": [\n    {\n      "content": "题干",\n      "options": [\n        {"key": "A", "text": "选项一"},\n        {"key": "B", "text": "选项二"}\n      ],\n      "answer": "A",\n      "category": "cs_base",\n      "analysis": "解析（选填）"\n    }\n  ]\n}',
                           style: text.bodySmall?.copyWith(
                             fontFamily: 'Menlo',
                             fontSize: 12,
@@ -238,19 +238,21 @@ class _ImportPageState extends State<ImportPage> {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'category 可填 yanyu 言语 / shuliang 数量 / panduan 判断 / ziliao 资料 / changshi 常识，'
-                        '不填会归到「综合」。',
+                        'examKind：gongwuyuan 公务员 / shiyedanwei 事业单位。examLevel：national 国家 / provincial 省级。'
+                        'subject：xingce 行测 / computer 计算机。'
+                        '行测 category：yanyu / shuliang / panduan / ziliao / changshi。'
+                        '计算机 category：cs_base / cs_security / cs_windows / cs_office / cs_prog / cs_db / cs_net / cs_se。',
                         style: text.bodySmall,
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'ZIP：把题目文件和图片放进同一个压缩包，题干里写 '
-                        '<img src="图片文件名.png">，导入时会自动关联。',
+                        'ZIP：题目文件和图片放进同一个压缩包，题干写 '
+                        '<img src="图片文件名.png">。完整字段见仓库 data/original/IMPORT_SCHEMA.md。',
                         style: text.bodySmall,
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        '内置题来自 OpenExam 桌面端种子库。商业题库请自行合法导入，App 不会爬取第三方付费内容。',
+                        '导入内容的权利归内容来源方。请只导入你有权使用的材料。',
                         style: text.bodySmall,
                       ),
                     ],

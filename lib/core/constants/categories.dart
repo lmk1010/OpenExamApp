@@ -22,8 +22,22 @@ const kGongkaoCategories = <CategoryMeta>[
   CategoryMeta(key: 'changshi', label: '常识判断', short: '常识', icon: AppIcon.globe),
 ];
 
+const kComputerCategories = <CategoryMeta>[
+  CategoryMeta(key: 'cs_base', label: '计算机基础', short: '计基', icon: AppIcon.globe),
+  CategoryMeta(key: 'cs_security', label: '信息安全', short: '安全', icon: AppIcon.privacy),
+  CategoryMeta(key: 'cs_windows', label: 'Windows', short: '系统', icon: AppIcon.papers),
+  CategoryMeta(key: 'cs_office', label: '办公软件', short: '办公', icon: AppIcon.papers),
+  CategoryMeta(key: 'cs_prog', label: '程序设计', short: '编程', icon: AppIcon.numbers),
+  CategoryMeta(key: 'cs_db', label: '数据库', short: '数据库', icon: AppIcon.chart),
+  CategoryMeta(key: 'cs_net', label: '网络技术', short: '网络', icon: AppIcon.globe),
+  CategoryMeta(key: 'cs_se', label: '软件工程', short: '软工', icon: AppIcon.logic),
+];
+
 String categoryLabel(String? key) {
   for (final item in kGongkaoCategories) {
+    if (item.key == key) return item.label;
+  }
+  for (final item in kComputerCategories) {
     if (item.key == key) return item.label;
   }
   return key?.isNotEmpty == true ? key! : '综合';
@@ -33,7 +47,38 @@ AppIcon categoryIcon(String? key) {
   for (final item in kGongkaoCategories) {
     if (item.key == key) return item.icon;
   }
+  for (final item in kComputerCategories) {
+    if (item.key == key) return item.icon;
+  }
   return AppIcon.shuffle;
+}
+
+/// Seed bank sub_category keys → 考生常用叫法.
+const kSubCategoryLabels = <String, String>{
+  'xuanci': '逻辑填空',
+  'yueduan': '片段阅读',
+  'yuju': '语句表达',
+  'wenzhang': '文章阅读',
+  'jisuan': '数学运算',
+  'tuili': '数字推理',
+  'dingyi': '定义判断',
+  'luoji': '逻辑判断',
+  'leibi': '类比推理',
+  'tuxing': '图形推理',
+  'zonghe': '综合资料',
+  'zengzhang': '增长量/率',
+  'biaoge': '表格资料',
+  'zhengzhi': '政治',
+  'keji': '科技',
+  'renwen': '人文',
+  'falv': '法律',
+  'jingji': '经济',
+  'dili': '地理',
+};
+
+String subCategoryLabel(String? key) {
+  if (key == null || key.isEmpty) return '未分类';
+  return kSubCategoryLabels[key] ?? key;
 }
 
 /// 错因分类 — from how 考生 actually review: 粗心 / 不会 / 审题 / 没时间.

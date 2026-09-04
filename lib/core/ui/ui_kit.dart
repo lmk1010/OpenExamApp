@@ -62,21 +62,87 @@ class SectionHeader extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 0, AppTheme.gutter, 12),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.baseline,
-        textBaseline: TextBaseline.alphabetic,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text(title, style: text.titleMedium),
           if (caption != null) ...[
             const SizedBox(width: 8),
-            Expanded(child: Text(caption!, style: text.bodySmall)),
+            Expanded(
+              child: Text(
+                caption!,
+                style: text.bodySmall,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ] else
             const Spacer(),
           if (trailing != null)
             GestureDetector(
               onTap: onTapTrailing,
-              child: Text(trailing!, style: text.labelMedium?.copyWith(color: t.brand)),
+              child: Text(
+                trailing!,
+                style: text.labelMedium?.copyWith(color: t.brand),
+              ),
             ),
         ],
+      ),
+    );
+  }
+}
+
+/// Page-level title row: title + meta + actions on one horizontal line.
+class PageTitleBar extends StatelessWidget {
+  const PageTitleBar({
+    super.key,
+    required this.title,
+    this.meta,
+    this.actions = const [],
+    this.top = 18,
+    this.bottom = 14,
+  });
+
+  final String title;
+  final String? meta;
+  final List<Widget> actions;
+  final double top;
+  final double bottom;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(AppTheme.gutter, top, AppTheme.gutter, bottom),
+      child: SizedBox(
+        height: 36,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              title,
+              style: text.displaySmall?.copyWith(
+                fontSize: 26,
+                height: 1,
+              ),
+            ),
+            if (meta != null) ...[
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  meta!,
+                  style: text.bodySmall?.copyWith(fontSize: 13, height: 1.2),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ] else
+              const Spacer(),
+            for (var i = 0; i < actions.length; i++) ...[
+              if (i > 0) const SizedBox(width: 4),
+              actions[i],
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -391,7 +457,22 @@ class EmptyState extends StatelessWidget {
 }
 
 /// Which little scene an empty state shows.
-enum EmptyArt { box, star, search, chart, done }
+enum EmptyArt { box, star, search, chart, done, essay, vocab, note, wrong, bank, paper }
+
+/// 每种空态对应的插画资源。classic 主题用这套，guga / spark 用各自的吉祥物。
+const _emptyArtAsset = <EmptyArt, String>{
+  EmptyArt.box: 'assets/art/empty_box.png',
+  EmptyArt.star: 'assets/art/empty_star.png',
+  EmptyArt.search: 'assets/art/empty_search.png',
+  EmptyArt.chart: 'assets/art/empty_chart.png',
+  EmptyArt.done: 'assets/art/empty_done.png',
+  EmptyArt.essay: 'assets/art/empty_essay.png',
+  EmptyArt.vocab: 'assets/art/empty_vocab.png',
+  EmptyArt.note: 'assets/art/empty_note.png',
+  EmptyArt.wrong: 'assets/art/empty_wrong.png',
+  EmptyArt.bank: 'assets/art/empty_bank.png',
+  EmptyArt.paper: 'assets/art/empty_paper.png',
+};
 
 /// Drawn empty-state art: a few shapes with a soft glow, in theme colours.
 class EmptyArtwork extends StatelessWidget {
@@ -403,6 +484,36 @@ class EmptyArtwork extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
+    final mascot = (t.name == 'guga' || t.name == 'spark')
+        ? (kind == EmptyArt.done
+            ? (t.name == 'guga'
+                ? 'assets/themes/guga_cheer.png'
+                : 'assets/themes/spark_mascot.png')
+            : (t.name == 'guga'
+                ? 'assets/themes/guga_study.png'
+                : 'assets/themes/spark_study.png'))
+        : null;
+    if (mascot != null) {
+      return TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0, end: 1),
+        duration: const Duration(milliseconds: 600),
+        curve: Curves.easeOutBack,
+        builder: (context, v, _) => Transform.scale(
+          scale: 0.85 + 0.15 * v,
+          child: Opacity(
+            opacity: v.clamp(0.0, 1.0),
+            child: Image.asset(
+              mascot,
+              width: size + 28,
+              height: size + 28,
+              fit: BoxFit.contain,
+              filterQuality: FilterQuality.high,
+            ),
+          ),
+        ),
+      );
+    }
+    final asset = _emptyArtAsset[kind];
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: 1),
       duration: const Duration(milliseconds: 600),
@@ -412,18 +523,35 @@ class EmptyArtwork extends StatelessWidget {
         child: Opacity(
           opacity: v.clamp(0.0, 1.0),
           child: SizedBox(
-            width: size,
-            height: size,
-            child: CustomPaint(
-              painter: _EmptyArtPainter(
-                kind: kind,
-                brand: t.brand,
-                soft: t.name == 'dark'
-                    ? Colors.white.withValues(alpha: 0.10)
-                    : t.text.withValues(alpha: 0.08),
-                accent: t.category('shuliang'),
-              ),
-            ),
+            width: size + 20,
+            height: size + 20,
+            child: asset == null
+                ? CustomPaint(
+                    painter: _EmptyArtPainter(
+                      kind: kind,
+                      brand: t.brand,
+                      soft: t.name == 'dark'
+                          ? Colors.white.withValues(alpha: 0.10)
+                          : t.text.withValues(alpha: 0.08),
+                      accent: t.category('shuliang'),
+                    ),
+                  )
+                : Image.asset(
+                    asset,
+                    fit: BoxFit.contain,
+                    filterQuality: FilterQuality.high,
+                    // 素材没跟上版本时不能把整页拖垮，退回手绘那套
+                    errorBuilder: (context, _, __) => CustomPaint(
+                      painter: _EmptyArtPainter(
+                        kind: kind,
+                        brand: t.brand,
+                        soft: t.name == 'dark'
+                            ? Colors.white.withValues(alpha: 0.10)
+                            : t.text.withValues(alpha: 0.08),
+                        accent: t.category('shuliang'),
+                      ),
+                    ),
+                  ),
           ),
         ),
       ),
@@ -469,6 +597,13 @@ class _EmptyArtPainter extends CustomPainter {
     final fill = Paint()..color = soft;
 
     switch (kind) {
+      // 新增的几种只有插画资源，画不出来时统一退回箱子
+      case EmptyArt.essay:
+      case EmptyArt.vocab:
+      case EmptyArt.note:
+      case EmptyArt.wrong:
+      case EmptyArt.bank:
+      case EmptyArt.paper:
       case EmptyArt.box:
         canvas.drawRRect(
           RRect.fromLTRBR(24, 34, 68, 66, const Radius.circular(8)),
@@ -643,6 +778,186 @@ class _PressableState extends State<Pressable> {
       onTap: widget.onTap,
       onLongPress: onLongPress,
       child: widget.builder(_pressed && enabled),
+    );
+  }
+}
+
+/// 一组功能装进一块圆角卡。
+///
+/// 页面的层级不该靠"有的地方是卡、有的地方裸奔"来区分 —— 那会让整页
+/// 看着像几个人拼的。统一成"每组一块卡、卡内紧凑、卡间等距"，
+/// 米家那类工具型 app 的信息密度就是这么来的。
+class SectionCard extends StatelessWidget {
+  const SectionCard({
+    super.key,
+    required this.child,
+    this.title,
+    this.trailing,
+    this.padding = const EdgeInsets.symmetric(vertical: 4),
+    this.margin = const EdgeInsets.fromLTRB(AppTheme.gutter, 0, AppTheme.gutter, 12),
+  });
+
+  final Widget child;
+
+  /// 组标题。放在卡外面、贴着卡，不另起一段留白。
+  final String? title;
+  final Widget? trailing;
+
+  final EdgeInsets padding;
+  final EdgeInsets margin;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final dark = t.name == 'dark';
+    return Padding(
+      padding: margin,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (title != null) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
+              child: Row(
+                children: [
+                  Text(
+                    title!,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: t.muted,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.4,
+                        ),
+                  ),
+                  const Spacer(),
+                  if (trailing != null) trailing!,
+                ],
+              ),
+            ),
+          ],
+          Container(
+            width: double.infinity,
+            padding: padding,
+            decoration: BoxDecoration(
+              // 实体卡面，不是半透明叠色 —— 背景本身是有色渐变，
+              // 半透明卡会被底色染透，看不出"一块东西浮在上面"。
+              color: t.surface,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: dark
+                      ? Colors.black.withValues(alpha: 0.30)
+                      : const Color(0xFF1B2540).withValues(alpha: 0.07),
+                  blurRadius: dark ? 18 : 20,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: child,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 可按压的卡片：按下去会微微缩一下再弹回来。
+///
+/// 没有按压反馈的卡看着就是一张贴纸 —— "塑料感"有一半来自这里：
+/// 元素不会对手指做出反应，就不像实物。
+class PressableCard extends StatefulWidget {
+  const PressableCard({
+    super.key,
+    required this.child,
+    required this.onTap,
+    this.onLongPress,
+    this.scale = 0.97,
+  });
+
+  final Widget child;
+  final VoidCallback onTap;
+  final VoidCallback? onLongPress;
+
+  /// 按下时缩到多少。卡越大缩得越少，不然会像弹簧。
+  final double scale;
+
+  @override
+  State<PressableCard> createState() => _PressableCardState();
+}
+
+class _PressableCardState extends State<PressableCard> {
+  bool _down = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: widget.onTap,
+      onLongPress: widget.onLongPress,
+      onTapDown: (_) => setState(() => _down = true),
+      onTapUp: (_) => setState(() => _down = false),
+      onTapCancel: () => setState(() => _down = false),
+      child: AnimatedScale(
+        scale: _down ? widget.scale : 1,
+        duration: const Duration(milliseconds: 110),
+        curve: Curves.easeOut,
+        child: widget.child,
+      ),
+    );
+  }
+}
+
+/// 进场时依次淡入上移一点点。
+///
+/// 一屏内容"啪"地整块出现，跟一张静态图没区别；错开几十毫秒依次进场，
+/// 页面才有被"搭起来"的感觉。
+class FadeInUp extends StatefulWidget {
+  const FadeInUp({
+    super.key,
+    required this.child,
+    this.delay = Duration.zero,
+  });
+
+  final Widget child;
+  final Duration delay;
+
+  @override
+  State<FadeInUp> createState() => _FadeInUpState();
+}
+
+class _FadeInUpState extends State<FadeInUp>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 420),
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    Future<void>.delayed(widget.delay, () {
+      if (mounted) _c.forward();
+    });
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final curve = CurvedAnimation(parent: _c, curve: Curves.easeOutCubic);
+    return AnimatedBuilder(
+      animation: curve,
+      builder: (context, child) => Opacity(
+        opacity: curve.value,
+        child: Transform.translate(
+          offset: Offset(0, 14 * (1 - curve.value)),
+          child: child,
+        ),
+      ),
+      child: widget.child,
     );
   }
 }

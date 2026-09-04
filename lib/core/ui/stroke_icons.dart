@@ -15,6 +15,7 @@ enum AppIcon {
   shuffle, // 随机练习
   // Navigation
   practice,
+  plan, // 复习计划 / Todo
   papers,
   wrongBook,
   profile,
@@ -179,6 +180,19 @@ class _IconPainter extends CustomPainter {
           stroke,
         );
         canvas.drawLine(const Offset(13, 6), const Offset(17.6, 10.6), stroke);
+
+      case AppIcon.plan:
+        // Checklist: two rows with checkmarks.
+        canvas.drawRRect(
+          RRect.fromLTRBR(3.5, 3.5, 20.5, 20.5, const Radius.circular(4)),
+          stroke,
+        );
+        canvas.drawLine(const Offset(7, 9), const Offset(9.2, 11.2), stroke);
+        canvas.drawLine(const Offset(9.2, 11.2), const Offset(13.5, 7.2), stroke);
+        canvas.drawLine(const Offset(15, 9.2), const Offset(19, 9.2), stroke);
+        canvas.drawLine(const Offset(7, 16), const Offset(9.2, 18.2), stroke);
+        canvas.drawLine(const Offset(9.2, 18.2), const Offset(13.5, 14.2), stroke);
+        canvas.drawLine(const Offset(15, 16.2), const Offset(19, 16.2), stroke);
 
       case AppIcon.papers:
         canvas.drawRRect(

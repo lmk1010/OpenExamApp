@@ -106,6 +106,8 @@ class _WrongBookPageState extends State<WrongBookPage> {
     switch (action) {
       case 'practise':
         await _practise([q]);
+      case 'browse':
+        await _browse([q]);
       case 'same':
         final list = await AppDatabase.instance.fetchPractice(
           category: q.category,
@@ -216,6 +218,12 @@ class _WrongBookPageState extends State<WrongBookPage> {
     await _practise(list.take(20).toList());
   }
 
+  Future<void> _browseToday() async {
+    final list = [..._wrong]
+      ..sort((a, b) => (_counts[b.id] ?? 1).compareTo(_counts[a.id] ?? 1));
+    await _browse(list.take(20).toList());
+  }
+
   /// 开一个四天计划。同一个 key 再开一次就是重新计时。
   Future<void> _startPlan({
     required String key,
@@ -289,6 +297,23 @@ class _WrongBookPageState extends State<WrongBookPage> {
     _reload();
   }
 
+  /// 只看答案与解析，不计入新一次作答。
+  Future<void> _browse(List<Question> questions) async {
+    if (questions.isEmpty) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => PracticeSessionPage(
+          questions: questions,
+          preferScroll: true,
+          reviewAnswers: {
+            for (final q in questions) q.id: q.answer.trim().toUpperCase(),
+          },
+          title: '错题速览',
+        ),
+      ),
+    );
+  }
+
 
   /// 概览：先回答「我错在哪、今天该练什么」，再谈逐题翻。
   List<Widget> _overview(
@@ -334,50 +359,79 @@ class _WrongBookPageState extends State<WrongBookPage> {
       // 今日复盘 — one tap into the questions that cost the most marks.
       Padding(
         padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: _reviewToday,
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(18, 17, 16, 17),
-            decoration: GlassDecor.tinted(t, t.brand, radius: 22),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
+          children: [
+            Expanded(
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: _reviewToday,
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(18, 17, 16, 17),
+                  decoration: GlassDecor.tinted(t, t.brand, radius: 22),
+                  child: Row(
                     children: [
-                      Text(
-                        '今日复盘',
-                        style: text.titleSmall?.copyWith(fontSize: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '今日复盘',
+                              style: text.titleSmall?.copyWith(fontSize: 16),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              repeat > 0
+                                  ? '先啃错过两次以上的 $repeat 题'
+                                  : '挑 ${_wrong.length > 20 ? 20 : _wrong.length} 题重做',
+                              style: text.bodySmall,
+                            ),
+                          ],
+                        ),
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        repeat > 0
-                            ? '先啃错过两次以上的 $repeat 题，其余按最近排'
-                            : '挑 ${_wrong.length > 20 ? 20 : _wrong.length} 题重做一遍，做对就自动移出',
-                        style: text.bodySmall,
+                      const SizedBox(width: 10),
+                      Container(
+                        width: 42,
+                        height: 42,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: t.brand,
+                          shape: BoxShape.circle,
+                        ),
+                        child: StrokeIcon(
+                          AppIcon.play,
+                          size: 20,
+                          color: GlassDecor.on(t.brand),
+                        ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(width: 12),
-                Container(
-                  width: 42,
-                  height: 42,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: t.brand,
-                    shape: BoxShape.circle,
-                  ),
-                  child: StrokeIcon(
-                    AppIcon.play,
-                    size: 20,
-                    color: GlassDecor.on(t.brand),
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
+            const SizedBox(width: 10),
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: _browseToday,
+              child: Container(
+                width: 88,
+                padding: const EdgeInsets.symmetric(vertical: 17, horizontal: 10),
+                decoration: GlassDecor.panel(t, radius: 22, raised: false),
+                child: Column(
+                  children: [
+                    StrokeIcon(AppIcon.papers, size: 20, color: t.brand),
+                    const SizedBox(height: 8),
+                    Text(
+                      '速览解析',
+                      style: text.labelMedium?.copyWith(
+                        color: t.brand,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
       // 进行中的四天计划排在最前，因为它是有截止感的那件事。
@@ -582,27 +636,11 @@ class _WrongBookPageState extends State<WrongBookPage> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(0, 18, 0, 30),
               children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppTheme.gutter,
-                    0,
-                    AppTheme.gutter,
-                    16,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '错题本',
-                        style: text.displaySmall?.copyWith(fontSize: 26),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        '${_wrong.length} 题待消灭',
-                        style: text.bodySmall?.copyWith(fontSize: 13),
-                      ),
-                    ],
-                  ),
+                PageTitleBar(
+                  title: '错题本',
+                  meta: '${_wrong.length} 题待消灭',
+                  top: 0,
+                  bottom: 16,
                 ),
                 ..._overview(context, counts, reasonCounts, papers, paperKeys),
               ],
@@ -687,24 +725,21 @@ class _WrongBookPageState extends State<WrongBookPage> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                Text(
+                  '错题本',
+                  style: text.displaySmall?.copyWith(fontSize: 26, height: 1),
+                ),
+                const SizedBox(width: 10),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '错题本',
-                        style: text.displaySmall?.copyWith(fontSize: 26),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        _wrong.isEmpty
-                            ? '答错的题会自动收进来'
-                            : _listMode
-                                ? '${_wrong.length} 题 · 长按可标错因'
-                                : '${_wrong.length} 题待消灭',
-                        style: text.bodySmall?.copyWith(fontSize: 13),
-                      ),
-                    ],
+                  child: Text(
+                    _wrong.isEmpty
+                        ? '答错的题会自动收进来'
+                        : _listMode
+                            ? '${_wrong.length} 题 · 长按可标错因'
+                            : '${_wrong.length} 题待消灭',
+                    style: text.bodySmall?.copyWith(fontSize: 13, height: 1.2),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 if (_wrong.isNotEmpty) ...[
@@ -719,6 +754,12 @@ class _WrongBookPageState extends State<WrongBookPage> {
                     icon: AppIcon.replay,
                     tip: '重练当前筛选的题',
                     onTap: () => _practise(shown.take(20).toList()),
+                  ),
+                  const SizedBox(width: 4),
+                  _IconAction(
+                    icon: AppIcon.papers,
+                    tip: '速览当前筛选的答案解析',
+                    onTap: () => _browse(shown.take(40).toList()),
                   ),
                   const SizedBox(width: 4),
                   _IconAction(
@@ -984,6 +1025,8 @@ class _ActionSheet extends StatelessWidget {
             const SizedBox(height: 10),
             const RowDivider(indent: 0),
             row(AppIcon.play, '重做这道题', 'practise'),
+            const RowDivider(indent: 0),
+            row(AppIcon.papers, '只看答案解析', 'browse'),
             const RowDivider(indent: 0),
             row(AppIcon.shuffle, '再练 10 道同类型', 'same'),
             const RowDivider(indent: 0),

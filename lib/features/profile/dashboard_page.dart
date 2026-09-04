@@ -327,7 +327,7 @@ class _DashboardPageState extends State<DashboardPage> {
         },
         actionLabel: '去错题本按错因过一遍',
         onAct: (context) async {
-          AppShell.jumpTo.value = 2;
+          AppShell.jumpTo.value = AppShell.wrongBookTab;
           Navigator.of(context).popUntil((r) => r.isFirst);
         },
       ));
@@ -357,7 +357,7 @@ class _DashboardPageState extends State<DashboardPage> {
               '先别加量，去错题本按这个模块过一遍，看是同一类题反复错还是手生了。',
           actionLabel: '看这个模块的错题',
           onAct: (context) async {
-            AppShell.jumpTo.value = 2;
+            AppShell.jumpTo.value = AppShell.wrongBookTab;
             Navigator.of(context).popUntil((r) => r.isFirst);
           },
         ));
@@ -857,43 +857,56 @@ class _Heatmap extends StatelessWidget {
         LayoutBuilder(
           builder: (context, box) {
             const cols = 7;
-            const gap = 7.0;
-            final cell = (box.maxWidth - gap * (cols - 1)) / cols;
-            return Wrap(
-              spacing: gap,
-              runSpacing: gap,
-              children: [
-                for (var i = 0; i < days.length; i++)
-                  TweenAnimationBuilder<double>(
-                    tween: Tween(begin: 0, end: 1),
-                    duration: Duration(milliseconds: 260 + i * 14),
-                    curve: Curves.easeOut,
-                    builder: (_, v, __) => Opacity(
-                      opacity: v,
-                      child: Container(
-                        width: cell,
-                        height: cell,
-                        decoration: BoxDecoration(
-                          color: days[i].answered == 0
-                              ? empty
-                              : t.brand.withValues(
-                                  alpha: goal <= 0 || days[i].answered >= goal
-                                      ? 0.95
-                                      : (0.25 + 0.6 * (days[i].answered / goal))
-                                          .clamp(0.25, 0.9),
-                                ),
-                          borderRadius: BorderRadius.circular(8),
-                          border: i == days.length - 1
-                              ? Border.all(
-                                  color: t.brand.withValues(alpha: 0.6),
-                                  width: 1.4,
-                                )
-                              : null,
+            const gap = 5.0;
+            // Cap cell size so a wide tablet doesn't turn the grid into tiles.
+            final raw = (box.maxWidth - gap * (cols - 1)) / cols;
+            final cell = raw.clamp(18.0, 28.0);
+            final gridWidth = cell * cols + gap * (cols - 1);
+            return Align(
+              alignment: Alignment.centerLeft,
+              child: SizedBox(
+                width: gridWidth,
+                child: Wrap(
+                  spacing: gap,
+                  runSpacing: gap,
+                  children: [
+                    for (var i = 0; i < days.length; i++)
+                      TweenAnimationBuilder<double>(
+                        tween: Tween(begin: 0, end: 1),
+                        duration: Duration(milliseconds: 260 + i * 14),
+                        curve: Curves.easeOut,
+                        builder: (_, v, __) => Opacity(
+                          opacity: v,
+                          child: Container(
+                            width: cell,
+                            height: cell,
+                            decoration: BoxDecoration(
+                              color: days[i].answered == 0
+                                  ? empty
+                                  : t.brand.withValues(
+                                      alpha: goal <= 0 ||
+                                              days[i].answered >= goal
+                                          ? 0.95
+                                          : (0.25 +
+                                                  0.6 *
+                                                      (days[i].answered /
+                                                          goal))
+                                              .clamp(0.25, 0.9),
+                                    ),
+                              borderRadius: BorderRadius.circular(6),
+                              border: i == days.length - 1
+                                  ? Border.all(
+                                      color: t.brand.withValues(alpha: 0.6),
+                                      width: 1.2,
+                                    )
+                                  : null,
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-              ],
+                  ],
+                ),
+              ),
             );
           },
         ),

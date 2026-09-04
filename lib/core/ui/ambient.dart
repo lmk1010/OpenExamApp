@@ -26,21 +26,38 @@ class AmbientBackground extends StatelessWidget {
             ),
           ),
         ),
-        // Two soft light sources give the backdrop its liquid, glassy depth.
-        Positioned(top: -150, right: -120, child: _Blob(color: t.glow, size: 360)),
+        // 光斑压得很淡：内容是一张张实体卡，背景越安静，卡越跳得出来。
+        // 之前三团高饱和光斑在卡底下窜，整页看着糊。
         Positioned(
-          top: 90,
-          left: -150,
-          child: _Blob(color: t.brand.withValues(alpha: 0.22), size: 330),
+          top: -160,
+          right: -130,
+          child: _Blob(color: t.glow.withValues(alpha: 0.35), size: 340),
         ),
         Positioned(
-          top: 260,
-          right: -80,
-          child: _Blob(
-            color: t.category('ziliao').withValues(alpha: 0.14),
-            size: 260,
+          top: 120,
+          left: -170,
+          child: _Blob(color: t.brand.withValues(alpha: 0.08), size: 300),
+        ),
+        // Cute-theme corner companion — real mascot, not a colour blob.
+        if (t.name == 'guga' || t.name == 'spark')
+          Positioned(
+            right: -4,
+            bottom: 56,
+            child: IgnorePointer(
+              child: Opacity(
+                opacity: 0.22,
+                child: Image.asset(
+                  t.name == 'guga'
+                      ? 'assets/themes/guga_mascot.png'
+                      : 'assets/themes/spark_mascot.png',
+                  width: 156,
+                  height: 156,
+                  fit: BoxFit.contain,
+                  filterQuality: FilterQuality.medium,
+                ),
+              ),
+            ),
           ),
-        ),
         Positioned.fill(child: child),
       ],
     );

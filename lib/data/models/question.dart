@@ -161,6 +161,7 @@ class Question {
       year: int.tryParse('${json['year'] ?? 0}') ?? 0,
       difficulty: int.tryParse('${json['difficulty'] ?? 2}') ?? 2,
       source: '${json['source'] ?? 'builtin'}',
+      orderNum: int.tryParse('${json['orderNum'] ?? json['order_num'] ?? 0}') ?? 0,
     );
   }
 
