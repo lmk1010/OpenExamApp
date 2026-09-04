@@ -312,7 +312,7 @@ class _ConfirmSheet extends StatelessWidget {
       decoration: BoxDecoration(
         color: t.gradient.last,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        border: Border(top: BorderSide(color: t.glassBorder)),
+        border: Border(top: BorderSide(color: t.lineSoft)),
       ),
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
       child: SafeArea(

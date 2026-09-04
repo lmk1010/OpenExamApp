@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
+import 'package:openexam_app/features/practice/shore_home.dart';
 import 'package:openexam_app/core/ui/ambient.dart';
 import 'package:openexam_app/core/ui/responsive.dart';
 import 'package:openexam_app/core/ui/ui_kit.dart';
@@ -11,7 +12,6 @@ import 'package:openexam_app/features/plan/data/plan_templates.dart';
 import 'package:openexam_app/features/plan/data/study_plan_store.dart';
 import 'package:openexam_app/features/plan/domain/models/study_task.dart';
 import 'package:openexam_app/features/plan/presentation/widgets/study_task_editor_sheet.dart';
-import 'package:openexam_app/features/plan/presentation/widgets/today_plan_section.dart';
 import 'package:openexam_app/features/practice/practice_session_page.dart';
 import 'package:openexam_app/features/shell/app_shell.dart';
 
@@ -19,7 +19,7 @@ class StudyPlanPage extends StatefulWidget {
   const StudyPlanPage({super.key, this.onRunTask, this.embedded = false});
 
   /// When opened from practice home, running a task can reuse the same starters.
-  final StudyTaskCallback? onRunTask;
+  final Future<void> Function(StudyTask task)? onRunTask;
 
   /// True when shown as a shell tab — no back button.
   final bool embedded;
@@ -418,47 +418,106 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
                           },
                         ),
                       ),
-                      if (_plan == null)
-                        TodayPlanSection(
-                          plan: null,
-                          doneIds: const {},
-                          onToggle: (_, __) async {},
-                          onRun: (_) async {},
-                          onManage: _pickTemplate,
-                          onEnable: _pickTemplate,
+                      const SizedBox(height: 22),
+                      if (_plan == null || _plan!.tasks.isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: ShoreGap.page,
+                          ),
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: _pickTemplate,
+                            child: Container(
+                              padding: const EdgeInsets.all(18),
+                              decoration: BoxDecoration(
+                                color: t.accentSoft,
+                                borderRadius: BorderRadius.circular(22),
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          '这天还没有安排',
+                                          style: text.titleSmall
+                                              ?.copyWith(fontSize: 15.5),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          '挑个模板，之后每条都能改',
+                                          style: text.bodySmall?.copyWith(
+                                            fontSize: 12.5,
+                                            color: t.onAccentSoft,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 20,
+                                      vertical: 11,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: t.accent,
+                                      borderRadius: BorderRadius.circular(99),
+                                    ),
+                                    child: Text(
+                                      '选模板',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                        color: t.onAccent,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                         )
                       else ...[
-                        TodayPlanSection(
-                          plan: _plan,
-                          doneIds: _done,
-                          onToggle: _toggle,
-                          onRun: _run,
-                          onOpen: _openTask,
-                          onLongPress: _longPressTask,
-                          onManage: _pickTemplate,
+                        // 跟首页「今日航线」是同一个清单组件。
+                        // 之前这里是一排横滑的彩色任务卡，跟首页各说各的，
+                        // 同一份计划在两个页面长得完全不像同一件事。
+                        ShoreSection(
+                          title: '今日安排',
+                          caption: '${_done.intersection(_plan!.tasks.map((e) => e.id).toSet()).length} / ${_plan!.tasks.length}',
+                          action: '管理',
+                          onAction: _pickTemplate,
+                          child: RouteList(
+                            tasks: _plan!.tasks,
+                            doneIds: _done,
+                            onRun: _run,
+                            onToggle: _toggle,
+                            onLongPress: _longPressTask,
+                            max: 99,
+                            highlightCurrent:
+                                _sameDay(_selected, DateTime.now()),
+                          ),
                         ),
+                        const SizedBox(height: 14),
                         Padding(
-                          padding: const EdgeInsets.fromLTRB(
-                            AppTheme.gutter,
-                            8,
-                            AppTheme.gutter,
-                            0,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: ShoreGap.page,
                           ),
                           child: Row(
                             children: [
-                              TextButton.icon(
-                                onPressed: _addTask,
-                                icon: const Icon(Icons.add, size: 18),
-                                label: const Text('添加安排'),
+                              Expanded(
+                                child: OutlinedButton(
+                                  onPressed: _addTask,
+                                  child: const Text('添加安排'),
+                                ),
                               ),
-                              const Spacer(),
-                              TextButton(
-                                onPressed: _pickTemplate,
-                                child: Text(
-                                  '换模板',
-                                  style: text.labelMedium?.copyWith(
-                                    color: t.brand,
-                                  ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: OutlinedButton(
+                                  onPressed: _pickTemplate,
+                                  child: const Text('换模板'),
                                 ),
                               ),
                             ],
@@ -513,14 +572,17 @@ class _DayChip extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
+          // 选中走 accent，跟别处"按下去会发生什么"同一个色；
+          // 做完那天留一层淡绿，一眼能扫出这周哪几天划完了。
           color: selected
-              ? t.brand
-              : (complete ? t.brandSoft : t.glass),
-          borderRadius: BorderRadius.circular(16),
+              ? t.accent
+              : (complete ? t.successSoft : t.surface),
+          borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: isToday && !selected
-                ? t.brand.withValues(alpha: 0.45)
-                : t.glassBorder,
+            color: selected
+                ? t.accent
+                : (isToday ? t.accent.withValues(alpha: 0.55) : t.lineSoft),
+            width: 1.5,
           ),
         ),
         child: Column(
@@ -529,7 +591,7 @@ class _DayChip extends StatelessWidget {
             Text(
               isToday ? '今' : labels[day.weekday - 1],
               style: text.bodySmall?.copyWith(
-                color: selected ? t.onBrand : t.muted,
+                color: selected ? t.onAccent : t.muted,
                 fontSize: 11,
               ),
             ),
@@ -537,7 +599,7 @@ class _DayChip extends StatelessWidget {
             Text(
               '${day.day}',
               style: text.titleSmall?.copyWith(
-                color: selected ? t.onBrand : t.text,
+                color: selected ? t.onAccent : t.text,
                 fontFeatures: AppTheme.numeric,
               ),
             ),
@@ -546,7 +608,9 @@ class _DayChip extends StatelessWidget {
               progressLabel,
               style: text.bodySmall?.copyWith(
                 fontSize: 10,
-                color: selected ? t.onBrand.withValues(alpha: 0.85) : t.muted,
+                color: selected
+                    ? t.onAccent.withValues(alpha: 0.75)
+                    : (complete ? t.success : t.muted),
                 fontFeatures: AppTheme.numeric,
               ),
             ),
@@ -584,7 +648,7 @@ class _TemplateSheet extends StatelessWidget {
       decoration: BoxDecoration(
         color: t.gradient.last,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        border: Border(top: BorderSide(color: t.glassBorder)),
+        border: Border(top: BorderSide(color: t.lineSoft)),
       ),
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 12),
       child: SafeArea(

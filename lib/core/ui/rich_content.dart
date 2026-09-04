@@ -217,7 +217,7 @@ class _QuestionImageState extends State<QuestionImage> {
         alignment: Alignment.center,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
-          color: t.glass,
+          color: t.surfaceAlt,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Text('图片缺失', style: Theme.of(context).textTheme.bodySmall),
@@ -228,7 +228,7 @@ class _QuestionImageState extends State<QuestionImage> {
       return Container(
         height: 96,
         decoration: BoxDecoration(
-          color: t.glass,
+          color: t.surfaceAlt,
           borderRadius: BorderRadius.circular(12),
         ),
       );

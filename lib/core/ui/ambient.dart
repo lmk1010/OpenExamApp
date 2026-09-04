@@ -84,7 +84,7 @@ class Panel extends StatelessWidget {
       duration: const Duration(milliseconds: 160),
       padding: padding,
       decoration: BoxDecoration(
-        color: color ?? (fill ? t.glass : null),
+        color: color ?? (fill ? t.surfaceAlt : null),
         borderRadius: BorderRadius.circular(radius),
       ),
       child: child,

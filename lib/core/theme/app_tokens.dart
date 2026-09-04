@@ -29,9 +29,6 @@ class AppTokens extends ThemeExtension<AppTokens> {
     required this.shadow,
     required this.gradient,
     required this.glow,
-    required this.glass,
-    required this.glassStrong,
-    required this.glassBorder,
     required this.chip,
     required this.onChip,
   });
@@ -93,11 +90,8 @@ class AppTokens extends ThemeExtension<AppTokens> {
   final Color glow;
 
   /// Frosted panel fill (translucent — always sits on [gradient]).
-  final Color glass;
 
   /// Denser frosted fill for panels that carry dense content.
-  final Color glassStrong;
-  final Color glassBorder;
 
   /// Tonal chip over the backdrop (the 米家-style status tiles).
   final Color chip;
@@ -131,18 +125,12 @@ class AppTokens extends ThemeExtension<AppTokens> {
     List<BoxShadow>? shadow,
     List<Color>? gradient,
     Color? glow,
-    Color? glass,
-    Color? glassStrong,
-    Color? glassBorder,
     Color? chip,
     Color? onChip,
   }) {
     return AppTokens(
       gradient: gradient ?? this.gradient,
       glow: glow ?? this.glow,
-      glass: glass ?? this.glass,
-      glassStrong: glassStrong ?? this.glassStrong,
-      glassBorder: glassBorder ?? this.glassBorder,
       chip: chip ?? this.chip,
       onChip: onChip ?? this.onChip,
       name: name ?? this.name,
@@ -180,9 +168,6 @@ class AppTokens extends ThemeExtension<AppTokens> {
           c(gradient[i], other.gradient[i.clamp(0, other.gradient.length - 1)]),
       ],
       glow: c(glow, other.glow),
-      glass: c(glass, other.glass),
-      glassStrong: c(glassStrong, other.glassStrong),
-      glassBorder: c(glassBorder, other.glassBorder),
       chip: c(chip, other.chip),
       onChip: c(onChip, other.onChip),
       name: t < 0.5 ? name : other.name,
@@ -248,9 +233,6 @@ class AppTokens extends ThemeExtension<AppTokens> {
     // 米家's sky: real colour up top, dissolving to near-white at the bottom.
     gradient: [Color(0xFFEAF3FA), Color(0xFFF0F6FB), Color(0xFFF2F8FC)],
     glow: Color(0x80FFFFFF),
-    glass: Color(0x8AFFFFFF),
-    glassStrong: Color(0xCCFFFFFF),
-    glassBorder: Color(0xA6FFFFFF),
     chip: Color(0xA62E4560),
     onChip: Color(0xFFFFFFFF),
   );
@@ -292,9 +274,6 @@ class AppTokens extends ThemeExtension<AppTokens> {
     ],
     gradient: [Color(0xFF122232), Color(0xFF0E1926), Color(0xFF0C141E)],
     glow: Color(0x3D6FB6E8),
-    glass: Color(0x14FFFFFF),
-    glassStrong: Color(0x1FFFFFFF),
-    glassBorder: Color(0x1AFFFFFF),
     chip: Color(0x33FFFFFF),
     onChip: Color(0xFFEDF3F8),
   );
@@ -333,9 +312,6 @@ class AppTokens extends ThemeExtension<AppTokens> {
     ],
     gradient: [Color(0xFFE8E8EC), Color(0xFFF3F3F5), Color(0xFFFAFAFB)],
     glow: Color(0x66FFFFFF),
-    glass: Color(0xB8FFFFFF),
-    glassStrong: Color(0xE0FFFFFF),
-    glassBorder: Color(0xA6FFFFFF),
     chip: Color(0xA62C2C2E),
     onChip: Color(0xFFFFFFFF),
   );
@@ -374,9 +350,6 @@ class AppTokens extends ThemeExtension<AppTokens> {
     ],
     gradient: [Color(0xFFFFE6A8), Color(0xFFFFF3D4), Color(0xFFFFFBF2)],
     glow: Color(0x80FFFFFF),
-    glass: Color(0xBFFFFFFF),
-    glassStrong: Color(0xE6FFFFFF),
-    glassBorder: Color(0xB3FFFFFF),
     chip: Color(0xA65C4A1A),
     onChip: Color(0xFFFFFFF8),
   );

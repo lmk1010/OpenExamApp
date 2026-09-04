@@ -546,7 +546,7 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
                                   ? t.brand
                                   : isToday
                                       ? t.brand.withValues(alpha: 0.18)
-                                      : t.glass,
+                                      : t.surfaceAlt,
                               borderRadius: BorderRadius.circular(7),
                             ),
                             child: mark != null
@@ -893,14 +893,14 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
       ),
       const SizedBox(height: ShoreGap.section),
       if (tasks.isEmpty)
-        _ShoreSection(
+        ShoreSection(
           title: '今日航线',
           action: '安排',
           onAction: _openStudyPlan,
           child: _EmptyRoute(onTap: _openStudyPlan),
         )
       else
-        _ShoreSection(
+        ShoreSection(
           title: '今日航线',
           action: tasks.length > 4 ? '全部 ${tasks.length}' : '调整',
           onAction: _openStudyPlan,
@@ -924,7 +924,7 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
 
     final rest = <Widget>[
       const SizedBox(height: ShoreGap.section),
-      _ShoreSection(
+      ShoreSection(
         title: '五座岛',
         action: '更多练法',
         onAction: _openMorePractice,
@@ -995,66 +995,6 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
 String _weekdayCn(DateTime d) =>
     const ['周一', '周二', '周三', '周四', '周五', '周六', '周日'][d.weekday - 1];
 
-/// 区块头：标题在左，一个可点的次动作在右。
-/// 右边只放一个词，放两个就会跟标题抢。
-class _ShoreSection extends StatelessWidget {
-  const _ShoreSection({
-    required this.title,
-    required this.child,
-    this.action,
-    this.onAction,
-  });
-
-  final String title;
-  final Widget child;
-  final String? action;
-  final VoidCallback? onAction;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.tokens;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: ShoreGap.page),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Text(
-                title,
-                style: Theme.of(context)
-                    .textTheme
-                    .titleMedium
-                    ?.copyWith(fontSize: 17, letterSpacing: -0.3),
-              ),
-              const Spacer(),
-              if (action != null)
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: onAction,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Text(
-                      action!,
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w600,
-                        color: t.brand,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-        const SizedBox(height: ShoreGap.headToList),
-        child,
-      ],
-    );
-  }
-}
 
 /// 没排航线时的占位。空态给一句话和一个动作，不给一张空卡。
 class _EmptyRoute extends StatelessWidget {
@@ -1280,7 +1220,7 @@ class _ScopeSheet extends StatelessWidget {
       decoration: BoxDecoration(
         color: t.gradient.last,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        border: Border(top: BorderSide(color: t.glassBorder)),
+        border: Border(top: BorderSide(color: t.lineSoft)),
       ),
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 12),
       child: SafeArea(
@@ -1344,7 +1284,7 @@ class _GoalSheet extends StatelessWidget {
       decoration: BoxDecoration(
         color: t.gradient.last,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        border: Border(top: BorderSide(color: t.glassBorder)),
+        border: Border(top: BorderSide(color: t.lineSoft)),
       ),
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 12),
       child: SafeArea(
@@ -1577,7 +1517,7 @@ class _CategoryBrowseSheetState extends State<_CategoryBrowseSheet> {
       decoration: BoxDecoration(
         color: t.gradient.last,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        border: Border(top: BorderSide(color: t.glassBorder)),
+        border: Border(top: BorderSide(color: t.lineSoft)),
       ),
       child: SafeArea(
         top: false,
@@ -1617,9 +1557,9 @@ class _CategoryBrowseSheetState extends State<_CategoryBrowseSheet> {
               padding: const EdgeInsets.fromLTRB(12, 0, 12, 4),
               child: Container(
                 decoration: BoxDecoration(
-                  color: t.glass,
+                  color: t.surfaceAlt,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: t.glassBorder),
+                  border: Border.all(color: t.lineSoft),
                 ),
                 child: Column(
                   children: [
@@ -1651,12 +1591,12 @@ class _CategoryBrowseSheetState extends State<_CategoryBrowseSheet> {
                       decoration: BoxDecoration(
                         color: open
                             ? color.withValues(alpha: 0.08)
-                            : t.glass,
+                            : t.surfaceAlt,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                           color: open
                               ? color.withValues(alpha: 0.35)
-                              : t.glassBorder,
+                              : t.lineSoft,
                         ),
                       ),
                       child: Column(

@@ -318,6 +318,9 @@ class RouteList extends StatelessWidget {
     required this.doneIds,
     required this.onRun,
     this.onLongPress,
+    this.onToggle,
+    this.max = 4,
+    this.highlightCurrent = true,
   });
 
   final List<StudyTask> tasks;
@@ -325,16 +328,25 @@ class RouteList extends StatelessWidget {
   final void Function(StudyTask) onRun;
   final void Function(StudyTask)? onLongPress;
 
+  /// 点救生圈本身 = 勾掉/取消。计划页要，首页不要 —— 首页那一屏
+  /// 只有一件事该做，点哪儿都应该是"开始"。
+  final void Function(StudyTask, bool)? onToggle;
+
+  /// 最多显示几条。首页只留 4 条，计划页全列。
+  final int max;
+
+  /// 是否把第一条没做完的整行点亮。
+  final bool highlightCurrent;
+
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
     if (tasks.isEmpty) return const SizedBox.shrink();
 
     // 第一条没做完的就是「当前」
-    final currentId = tasks
-        .where((x) => !doneIds.contains(x.id))
-        .map((x) => x.id)
-        .firstOrNull;
+    final currentId = highlightCurrent
+        ? tasks.where((x) => !doneIds.contains(x.id)).map((x) => x.id).firstOrNull
+        : null;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: ShoreGap.page),
@@ -347,7 +359,7 @@ class RouteList extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: Column(
           children: [
-            for (final task in tasks.take(4))
+            for (final task in tasks.take(max))
               _RouteRow(
                 task: task,
                 state: doneIds.contains(task.id)
@@ -358,6 +370,9 @@ class RouteList extends StatelessWidget {
                 onRun: () => onRun(task),
                 onLongPress:
                     onLongPress == null ? null : () => onLongPress!(task),
+                onToggle: onToggle == null
+                    ? null
+                    : () => onToggle!(task, !doneIds.contains(task.id)),
               ),
           ],
         ),
@@ -372,12 +387,14 @@ class _RouteRow extends StatelessWidget {
     required this.state,
     required this.onRun,
     this.onLongPress,
+    this.onToggle,
   });
 
   final StudyTask task;
   final LifeRingState state;
   final VoidCallback onRun;
   final VoidCallback? onLongPress;
+  final VoidCallback? onToggle;
 
   @override
   Widget build(BuildContext context) {
@@ -399,8 +416,16 @@ class _RouteRow extends StatelessWidget {
         padding: EdgeInsets.fromLTRB(16, current ? 14 : 13, 16, current ? 14 : 13),
         child: Row(
           children: [
-            LifeRing(state: state),
-            const SizedBox(width: 13),
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: onToggle,
+              // 救生圈本身就是勾选区，但 21px 够不着，外面垫一圈
+              child: Padding(
+                padding: EdgeInsets.all(onToggle == null ? 0 : 6),
+                child: LifeRing(state: state),
+              ),
+            ),
+            SizedBox(width: onToggle == null ? 13 : 7),
             Expanded(
               child: Text(
                 task.title,
@@ -554,6 +579,118 @@ class _IsleCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────── 区块
+
+/// 区块头：标题在左，一个可点的次动作在右。
+/// 右边只放一个词，放两个就会跟标题抢。
+class ShoreSection extends StatelessWidget {
+  const ShoreSection({
+    super.key,
+    required this.title,
+    required this.child,
+    this.caption,
+    this.action,
+    this.onAction,
+  });
+
+  final String title;
+  final Widget child;
+
+  /// 右侧的说明文字。不可点，所以是灰的 —— 蓝色是"这行字能点"的意思，
+  /// 拿来写「近 30 天」会让人一直想去点它。
+  final String? caption;
+
+  final String? action;
+  final VoidCallback? onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: ShoreGap.page),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text(
+                title,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontSize: 17, letterSpacing: -0.3),
+              ),
+              const Spacer(),
+              if (caption != null)
+                Text(
+                  caption!,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodySmall
+                      ?.copyWith(fontSize: 12.5),
+                ),
+              if (caption != null && action != null) const SizedBox(width: 12),
+              if (action != null)
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: onAction,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Text(
+                      action!,
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: t.brand,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: ShoreGap.headToList),
+        child,
+      ],
+    );
+  }
+}
+
+/// 一段内容的白卡。图表、列表、说明都装进它，页面才有"块"。
+///
+/// 统计页原来是标题、图、标题、图直接落在背景上，没有块的边界，
+/// 一屏扫下来分不出哪句话管哪张图。
+class ShoreCard extends StatelessWidget {
+  const ShoreCard({
+    super.key,
+    required this.child,
+    this.padding = const EdgeInsets.all(16),
+  });
+
+  final Widget child;
+  final EdgeInsets padding;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: ShoreGap.page),
+      child: Container(
+        width: double.infinity,
+        padding: padding,
+        decoration: BoxDecoration(
+          color: t.surface,
+          borderRadius: BorderRadius.circular(22),
+          boxShadow: t.shadow,
+        ),
+        child: child,
       ),
     );
   }

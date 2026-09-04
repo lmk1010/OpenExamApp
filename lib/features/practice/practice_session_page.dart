@@ -326,7 +326,7 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
           decoration: BoxDecoration(
             color: t.gradient.last,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-            border: Border(top: BorderSide(color: t.glassBorder)),
+            border: Border(top: BorderSide(color: t.lineSoft)),
           ),
           padding: const EdgeInsets.fromLTRB(22, 18, 22, 16),
           child: SafeArea(
@@ -2003,7 +2003,7 @@ class _ReasonPicker extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: selected == r.key
                           ? t.brand.withValues(alpha: 0.15)
-                          : t.glass,
+                          : t.surfaceAlt,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color: selected == r.key
@@ -2077,7 +2077,7 @@ class _FeedbackSheetState extends State<_FeedbackSheet> {
                       decoration: BoxDecoration(
                         color: _kind == entry.key
                             ? t.brand.withValues(alpha: 0.15)
-                            : t.glass,
+                            : t.surfaceAlt,
                         borderRadius: BorderRadius.circular(15),
                         border: Border.all(
                           color: _kind == entry.key
@@ -2284,7 +2284,7 @@ class _AnswerCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: t.gradient.last,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        border: Border(top: BorderSide(color: t.glassBorder)),
+        border: Border(top: BorderSide(color: t.lineSoft)),
       ),
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
       child: SafeArea(
@@ -2396,7 +2396,7 @@ class _CardChip extends StatelessWidget {
     final answered = answer != null;
     final right = answered && answer == question.answer.toUpperCase();
 
-    Color bg = t.glass;
+    Color bg = t.surfaceAlt;
     Color fg = t.textSoft;
     if (answered) {
       if (isExam) {
@@ -2515,7 +2515,7 @@ class _SheetShell extends StatelessWidget {
       decoration: BoxDecoration(
         color: t.gradient.last,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        border: Border(top: BorderSide(color: t.glassBorder)),
+        border: Border(top: BorderSide(color: t.lineSoft)),
       ),
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
       child: SafeArea(top: false, child: child),
@@ -2553,7 +2553,7 @@ class _DifficultyPicker extends StatelessWidget {
               decoration: BoxDecoration(
                 color: level == i + 1
                     ? colors[i].withValues(alpha: 0.16)
-                    : t.glass,
+                    : t.surfaceAlt,
                 borderRadius: BorderRadius.circular(13),
               ),
               child: Text(

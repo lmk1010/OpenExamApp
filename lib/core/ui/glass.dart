@@ -8,54 +8,31 @@ class GlassDecor {
   const GlassDecor._();
 
   /// Panel / sheet material sitting on the ambient backdrop.
+  /// 卡面。
+  ///
+  /// 上一版是半透明的白 0.88→0.62 加一圈白描边 —— 那是"玻璃"的做法：
+  /// 背景一变，卡就跟着变色，白边在浅底上又几乎看不见，
+  /// 剩下的观感就是一层塑料膜。现在是实底 + 一层软阴影，
+  /// 卡就是卡，边界靠阴影而不是描边。
   static BoxDecoration panel(
     AppTokens t, {
     double radius = 22,
     bool raised = true,
   }) {
-    final dark = t.name == 'dark';
     return BoxDecoration(
+      color: t.surface,
       borderRadius: BorderRadius.circular(radius),
-      gradient: LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: dark
-            ? [
-                Colors.white.withValues(alpha: 0.10),
-                Colors.white.withValues(alpha: 0.035),
-              ]
-            : [
-                Colors.white.withValues(alpha: 0.88),
-                Colors.white.withValues(alpha: 0.62),
-              ],
-      ),
-      border: Border.all(
-        color: Colors.white.withValues(alpha: dark ? 0.09 : 0.65),
-        width: 1,
-      ),
-      boxShadow: raised
-          ? [
-              BoxShadow(
-                color: dark
-                    ? Colors.black.withValues(alpha: 0.42)
-                    : const Color(0xFF3B3B6B).withValues(alpha: 0.10),
-                blurRadius: 22,
-                offset: const Offset(0, 10),
-              ),
-              BoxShadow(
-                color: dark
-                    ? Colors.black.withValues(alpha: 0.22)
-                    : const Color(0xFF3B3B6B).withValues(alpha: 0.05),
-                blurRadius: 3,
-                offset: const Offset(0, 1),
-              ),
-            ]
-          : null,
+      boxShadow: raised ? t.shadow : null,
+      border: raised ? null : Border.all(color: t.lineSoft, width: 1.5),
     );
   }
 
   /// Saturated tile — feature cards and category covers. The sheen sits on top
   /// of the brand colour instead of on the backdrop.
+  /// 实色块 —— 需要一整块颜色的地方（强调卡、分类封面）。
+  ///
+  /// 原来是三段渐变加白描边加同色投影，一块颜色要用五个图层说，
+  /// 放大了看是"湿玻璃"，缩到卡片尺寸就只剩脏。
   static BoxDecoration tinted(
     AppTokens t,
     Color color, {
@@ -63,24 +40,14 @@ class GlassDecor {
     bool glow = true,
   }) {
     return BoxDecoration(
+      color: color,
       borderRadius: BorderRadius.circular(radius),
-      gradient: LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [
-          Color.lerp(color, Colors.white, 0.14)!,
-          color,
-          Color.lerp(color, Colors.black, 0.10)!,
-        ],
-        stops: const [0, 0.55, 1],
-      ),
-      border: Border.all(color: Colors.white.withValues(alpha: 0.16), width: 1),
       boxShadow: glow
           ? [
               BoxShadow(
-                color: color.withValues(alpha: t.name == 'dark' ? 0.34 : 0.28),
+                color: color.withValues(alpha: 0.30),
                 blurRadius: 20,
-                offset: const Offset(0, 9),
+                offset: const Offset(0, 8),
               ),
             ]
           : null,

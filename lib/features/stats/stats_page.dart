@@ -9,6 +9,7 @@ import 'package:openexam_app/data/db/app_database.dart';
 import 'package:openexam_app/data/models/question.dart';
 import 'package:openexam_app/features/practice/practice_session_page.dart';
 import 'package:openexam_app/features/profile/dashboard_page.dart';
+import 'package:openexam_app/features/practice/shore_home.dart';
 import 'package:openexam_app/features/reports/reports_page.dart';
 
 /// 学习统计 — 30-day volume + accuracy trend and a per-category breakdown.
@@ -94,8 +95,14 @@ class _StatsPageState extends State<StatsPage> {
               child: ListView(
               padding: const EdgeInsets.only(bottom: 30),
               children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 10, AppTheme.gutter, 22),
+                const SizedBox(height: 6),
+                // 三个总数装进一块卡。原来它们直接落在背景上，
+                // 跟下面的图表之间没有边界，一屏扫下来分不出块。
+                ShoreCard(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 18,
+                  ),
                   child: Row(
                     children: [
                       _Figure(
@@ -118,33 +125,31 @@ class _StatsPageState extends State<StatsPage> {
                     ],
                   ),
                 ),
-                const SectionHeader(title: '每日题量', caption: '近 30 天'),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
-                  child: _VolumeChart(days: _days, max: best),
+                const SizedBox(height: ShoreGap.section),
+                ShoreSection(
+                  title: '每日题量',
+                  caption: '近 30 天',
+                  child: ShoreCard(child: _VolumeChart(days: _days, max: best)),
                 ),
                 if (_weeks.any((w) => w.answered > 0)) ...[
-                  const SizedBox(height: 28),
-                  const SectionHeader(title: '每周走势', caption: '题量与正确率，近 8 周'),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
-                    child: _WeeklyChart(weeks: _weeks),
+                  const SizedBox(height: ShoreGap.section),
+                  ShoreSection(
+                    title: '每周走势',
+                    caption: '近 8 周',
+                    child: ShoreCard(child: _WeeklyChart(weeks: _weeks)),
                   ),
                 ],
-                const SizedBox(height: 28),
-                const SectionHeader(title: '正确率趋势', caption: '只统计练过的日子'),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
-                  child: _AccuracyTrend(days: _days),
+                const SizedBox(height: ShoreGap.section),
+                ShoreSection(
+                  title: '正确率趋势',
+                  caption: '练过的日子',
+                  child: ShoreCard(child: _AccuracyTrend(days: _days)),
                 ),
-                const SizedBox(height: 28),
-                SectionHeader(
+                const SizedBox(height: ShoreGap.section),
+                ShoreSection(
                   title: '成绩趋势',
-                  caption: _reports.length < 2
-                      ? '完成 2 次以上练习后显示'
-                      : '最近 ${_reports.length} 次',
-                  trailing: _reports.isEmpty ? null : '全部记录',
-                  onTapTrailing: _reports.isEmpty
+                  action: _reports.isEmpty ? null : '全部记录',
+                  onAction: _reports.isEmpty
                       ? null
                       : () async {
                           await Navigator.of(context).push(
@@ -152,41 +157,48 @@ class _StatsPageState extends State<StatsPage> {
                           );
                           _load();
                         },
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
-                  child: _ScoreTrend(
-                    reports: _reports,
-                    onTapLatest: _reports.isEmpty
-                        ? null
-                        : () => _review(_reports.last),
+                  child: ShoreCard(
+                    child: _ScoreTrend(
+                      reports: _reports,
+                      onTapLatest:
+                          _reports.isEmpty ? null : () => _review(_reports.last),
+                    ),
                   ),
                 ),
                 if (_reasons.isNotEmpty) ...[
-                  const SizedBox(height: 28),
-                  const SectionHeader(title: '错因分布', caption: '标记过的错题'),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
-                    child: _ReasonBreakdown(counts: _reasons),
+                  const SizedBox(height: ShoreGap.section),
+                  ShoreSection(
+                    title: '错因分布',
+                    caption: '标记过的',
+                    child: ShoreCard(child: _ReasonBreakdown(counts: _reasons)),
                   ),
                 ],
-                const SizedBox(height: 28),
-                SectionHeader(
+                const SizedBox(height: ShoreGap.section),
+                ShoreSection(
                   title: '题型强弱',
-                  caption: ranked.isEmpty ? '还没有数据' : '正确率由低到高',
+                  caption: ranked.isEmpty ? null : '低到高',
+                  child: const SizedBox.shrink(),
                 ),
                 if (ranked.isEmpty)
-                  const EmptyState(
-                    icon: Icons.insights_outlined,
-                    title: '还没有练习记录',
-                    message: '刷一组题后，这里会显示你的强项和弱项。',
+                  ShoreCard(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 22,
+                    ),
+                    child: Text(
+                      '刷一组题后，这里会显示你的强项和弱项',
+                      style: text.bodySmall,
+                    ),
                   )
                 else
+                  ShoreCard(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Column(children: [
                   for (final s in ranked)
                     Padding(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: AppTheme.gutter,
-                        vertical: 12,
+                        horizontal: 14,
+                        vertical: 11,
                       ),
                       child: Row(
                         children: [
@@ -232,6 +244,8 @@ class _StatsPageState extends State<StatsPage> {
                         ],
                       ),
                     ),
+                    ]),
+                  ),
               ],
             ),
             ),

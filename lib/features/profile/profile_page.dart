@@ -1073,7 +1073,7 @@ class _ProvinceSheet extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: p == current
                               ? t.brand.withValues(alpha: 0.15)
-                              : t.glass,
+                              : t.surfaceAlt,
                           borderRadius: BorderRadius.circular(15),
                           border: Border.all(
                             color: p == current
@@ -1280,7 +1280,7 @@ class _SheetShell extends StatelessWidget {
       decoration: BoxDecoration(
         color: t.gradient.last,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        border: Border(top: BorderSide(color: t.glassBorder)),
+        border: Border(top: BorderSide(color: t.lineSoft)),
       ),
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
       child: SafeArea(top: false, child: child),

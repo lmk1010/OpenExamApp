@@ -425,7 +425,7 @@ class BadgeUnlockedDialog extends StatelessWidget {
           decoration: BoxDecoration(
             color: t.gradient.last,
             borderRadius: BorderRadius.circular(26),
-            border: Border.all(color: t.glassBorder),
+            border: Border.all(color: t.lineSoft),
             boxShadow: t.shadow,
           ),
           child: Column(

@@ -220,7 +220,7 @@ class _MarkedPageState extends State<MarkedPage> {
                                               ),
                                               decoration: BoxDecoration(
                                                 color: (_tags[_shown[i].id] ?? '').isEmpty
-                                                    ? t.glass
+                                                    ? t.surfaceAlt
                                                     : t.brand.withValues(alpha: 0.13),
                                                 borderRadius: BorderRadius.circular(7),
                                               ),
@@ -284,7 +284,7 @@ class _TagChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: selected ? t.brand : t.glass,
+          color: selected ? t.brand : t.surfaceAlt,
           borderRadius: BorderRadius.circular(17),
         ),
         child: Text(
@@ -315,7 +315,7 @@ class _TagSheet extends StatelessWidget {
       decoration: BoxDecoration(
         color: t.gradient.last,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        border: Border(top: BorderSide(color: t.glassBorder)),
+        border: Border(top: BorderSide(color: t.lineSoft)),
       ),
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 16),
       child: SafeArea(
@@ -339,7 +339,7 @@ class _TagSheet extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: current == tag
                             ? t.brand.withValues(alpha: 0.15)
-                            : t.glass,
+                            : t.surfaceAlt,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                           color: current == tag

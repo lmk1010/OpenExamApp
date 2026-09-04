@@ -984,7 +984,7 @@ class _ActionSheet extends StatelessWidget {
       decoration: BoxDecoration(
         color: t.gradient.last,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        border: Border(top: BorderSide(color: t.glassBorder)),
+        border: Border(top: BorderSide(color: t.lineSoft)),
       ),
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
       child: SafeArea(
@@ -1263,7 +1263,7 @@ class _ReasonChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
-          color: t.glass,
+          color: t.surfaceAlt,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
@@ -1386,7 +1386,7 @@ class _PlanCard extends StatelessWidget {
                     vertical: 9,
                   ),
                   decoration: BoxDecoration(
-                    color: rest ? t.glass : t.brand,
+                    color: rest ? t.surfaceAlt : t.brand,
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: Text(
@@ -1431,7 +1431,7 @@ class _Step extends StatelessWidget {
             ? t.brand.withValues(alpha: 0.18)
             : current
                 ? t.brand
-                : t.glass,
+                : t.surfaceAlt,
         borderRadius: BorderRadius.circular(11),
       ),
       child: done

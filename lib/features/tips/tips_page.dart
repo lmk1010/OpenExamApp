@@ -58,7 +58,7 @@ class _TipsPageState extends State<TipsPage> {
                         decoration: BoxDecoration(
                           color: _selected == g.category
                               ? t.category(g.category)
-                              : t.glass,
+                              : t.surfaceAlt,
                           borderRadius: BorderRadius.circular(19),
                         ),
                         child: Text(

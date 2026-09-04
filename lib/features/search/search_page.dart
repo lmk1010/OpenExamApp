@@ -494,7 +494,7 @@ class _SearchChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: selected ? color.withValues(alpha: 0.16) : t.glass,
+          color: selected ? color.withValues(alpha: 0.16) : t.surfaceAlt,
           borderRadius: BorderRadius.circular(17),
           border: Border.all(
             color: selected ? color.withValues(alpha: 0.5) : Colors.transparent,

@@ -152,7 +152,7 @@ class _StudyTaskEditorSheetState extends State<_StudyTaskEditorSheet> {
         decoration: BoxDecoration(
           color: t.gradient.last,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-          border: Border(top: BorderSide(color: t.glassBorder)),
+          border: Border(top: BorderSide(color: t.lineSoft)),
         ),
         child: SafeArea(
           top: false,
@@ -358,7 +358,7 @@ Future<void> showStudyTaskActions(
         decoration: BoxDecoration(
           color: t.gradient.last,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-          border: Border(top: BorderSide(color: t.glassBorder)),
+          border: Border(top: BorderSide(color: t.lineSoft)),
         ),
         padding: const EdgeInsets.fromLTRB(20, 18, 20, 12),
         child: SafeArea(

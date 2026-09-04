@@ -113,7 +113,7 @@ class _NotesPageState extends State<NotesPage> {
               ? const EmptyState(
                   icon: Icons.sticky_note_2_outlined,
                   title: '还没有笔记',
-                  art: EmptyArt.box,
+                  art: EmptyArt.note,
                   message: '做题时点右上角的便签图标，写下方法或坑点，这里会汇总。',
                 )
               : Column(
