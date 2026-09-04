@@ -9,6 +9,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
     required this.brand,
     required this.brandSoft,
     required this.onBrand,
+    required this.accent,
+    required this.accentSoft,
+    required this.onAccent,
     required this.bg,
     required this.surface,
     required this.surfaceAlt,
@@ -40,6 +43,18 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Tinted brand wash for icon chips and selected surfaces.
   final Color brandSoft;
   final Color onBrand;
+
+  /// 主行动色。按钮、进度、选中块用它，不是 [brand]。
+  ///
+  /// 分成两个是因为亮黄在白底上做文字读不出来（对比度约 1.7:1），
+  /// 而海蓝做大色块又太重。所以：黄管"按下去会发生什么"，蓝管"这行字能点"。
+  final Color accent;
+
+  /// 亮黄的浅底，用在当前项那一行。
+  final Color accentSoft;
+
+  /// 压在 [accent] 上的文字色。
+  final Color onAccent;
 
   /// Page background, one step darker/lighter than [surface].
   final Color bg;
@@ -89,6 +104,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
     Color? brand,
     Color? brandSoft,
     Color? onBrand,
+    Color? accent,
+    Color? accentSoft,
+    Color? onAccent,
     Color? bg,
     Color? surface,
     Color? surfaceAlt,
@@ -123,6 +141,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
       brand: brand ?? this.brand,
       brandSoft: brandSoft ?? this.brandSoft,
       onBrand: onBrand ?? this.onBrand,
+      accent: accent ?? this.accent,
+      accentSoft: accentSoft ?? this.accentSoft,
+      onAccent: onAccent ?? this.onAccent,
       bg: bg ?? this.bg,
       surface: surface ?? this.surface,
       surfaceAlt: surfaceAlt ?? this.surfaceAlt,
@@ -159,6 +180,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
       brand: c(brand, other.brand),
       brandSoft: c(brandSoft, other.brandSoft),
       onBrand: c(onBrand, other.onBrand),
+      accent: c(accent, other.accent),
+      accentSoft: c(accentSoft, other.accentSoft),
+      onAccent: c(onAccent, other.onAccent),
       bg: c(bg, other.bg),
       surface: c(surface, other.surface),
       surfaceAlt: c(surfaceAlt, other.surfaceAlt),
@@ -182,33 +206,36 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Light: lavender-tinted canvas, white surfaces, indigo brand.
   static const light = AppTokens(
     name: 'light',
-    brand: Color(0xFF1668D6),
-    brandSoft: Color(0xFFE4EFFC),
+    accent: Color(0xFFFFC94A),
+    accentSoft: Color(0xFFFFF6E0),
+    onAccent: Color(0xFF4A3410),
+    brand: Color(0xFF1B8FD1),
+    brandSoft: Color(0xFFE3F2FA),
     onBrand: Colors.white,
-    bg: Color(0xFFF7F7FB),
+    bg: Color(0xFFF2F8FC),
     surface: Color(0xFFFFFFFF),
-    surfaceAlt: Color(0xFFF2F2F8),
-    text: Color(0xFF1B1B23),
-    textSoft: Color(0xFF4A4A57),
-    muted: Color(0xFF9394A6),
-    line: Color(0xFFD5D7E6),
-    lineSoft: Color(0xFFE3E4F0),
-    success: Color(0xFF15A46E),
-    successSoft: Color(0xFFE7F7F0),
+    surfaceAlt: Color(0xFFEAF2F7),
+    text: Color(0xFF16232E),
+    textSoft: Color(0xFF4A5866),
+    muted: Color(0xFF7A8B99),
+    line: Color(0xFFD3DDE5),
+    lineSoft: Color(0xFFE1EBF2),
+    success: Color(0xFF12A06B),
+    successSoft: Color(0xFFE7F7EF),
     danger: Color(0xFFE2483D),
-    dangerSoft: Color(0xFFFDECEA),
+    dangerSoft: Color(0xFFFDEFEC),
     categories: {
-      'yanyu': Color(0xFF1E74D8),
-      'shuliang': Color(0xFFE08A1E),
+      'yanyu': Color(0xFF2E6FD9),
+      'shuliang': Color(0xFFE5941F),
       'panduan': Color(0xFF7A5CD0),
       'ziliao': Color(0xFF109C93),
       'changshi': Color(0xFFD9506F),
     },
     shadow: [
-      BoxShadow(color: Color(0x14121A2B), blurRadius: 24, offset: Offset(0, 10)),
+      BoxShadow(color: Color(0x121A4266), blurRadius: 26, offset: Offset(0, 10)),
     ],
     // 米家's sky: real colour up top, dissolving to near-white at the bottom.
-    gradient: [Color(0xFFDCE7F2), Color(0xFFEDF1F6), Color(0xFFF7F8FA)],
+    gradient: [Color(0xFFEAF3FA), Color(0xFFF0F6FB), Color(0xFFF2F8FC)],
     glow: Color(0x80FFFFFF),
     glass: Color(0x8AFFFFFF),
     glassStrong: Color(0xCCFFFFFF),
@@ -220,6 +247,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Dark: deep slate canvas, violet brand, same semantic roles.
   static const dark = AppTokens(
     name: 'dark',
+    accent: Color(0xFFFFC94A),
+    accentSoft: Color(0xFF3A3016),
+    onAccent: Color(0xFF241A05),
     brand: Color(0xFF5C9DFF),
     brandSoft: Color(0xFF17263D),
     onBrand: Colors.white,
@@ -257,6 +287,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// 咕咕嘎嘎 — charcoal penguin suit + warm yellow beak accents.
   static const guga = AppTokens(
     name: 'guga',
+    accent: Color(0xFFFFC94A),
+    accentSoft: Color(0xFFFFF6E0),
+    onAccent: Color(0xFF4A3410),
     brand: Color(0xFFF0A429),
     brandSoft: Color(0xFFFFF1D6),
     onBrand: Color(0xFF1A1A1C),
@@ -294,6 +327,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// 皮卡丘黄 — sunny yellow companion theme (original fox mascot + lightning).
   static const spark = AppTokens(
     name: 'spark',
+    accent: Color(0xFFFFC94A),
+    accentSoft: Color(0xFFFFF6E0),
+    onAccent: Color(0xFF4A3410),
     brand: Color(0xFFF0B429),
     brandSoft: Color(0xFFFFF0C8),
     onBrand: Color(0xFF3A2A00),
