@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
+import 'package:openexam_app/features/practice/shore_home.dart';
 import 'package:openexam_app/core/ui/responsive.dart';
 import 'package:openexam_app/core/ui/filter_bar.dart';
 import 'package:openexam_app/core/ui/glass.dart';
@@ -366,8 +367,11 @@ class _WrongBookPageState extends State<WrongBookPage> {
                 behavior: HitTestBehavior.opaque,
                 onTap: _reviewToday,
                 child: Container(
-                  padding: const EdgeInsets.fromLTRB(18, 17, 16, 17),
-                  decoration: GlassDecor.tinted(t, t.brand, radius: 22),
+                  padding: const EdgeInsets.fromLTRB(20, 18, 14, 18),
+                  decoration: BoxDecoration(
+                    color: t.accentSoft,
+                    borderRadius: BorderRadius.circular(22),
+                  ),
                   child: Row(
                     children: [
                       Expanded(
@@ -378,29 +382,35 @@ class _WrongBookPageState extends State<WrongBookPage> {
                               '今日复盘',
                               style: text.titleSmall?.copyWith(fontSize: 16),
                             ),
-                            const SizedBox(height: 6),
+                            const SizedBox(height: 5),
                             Text(
                               repeat > 0
                                   ? '先啃错过两次以上的 $repeat 题'
                                   : '挑 ${_wrong.length > 20 ? 20 : _wrong.length} 题重做',
-                              style: text.bodySmall,
+                              style: text.bodySmall?.copyWith(
+                                color: const Color(0xFF96792F),
+                              ),
                             ),
                           ],
                         ),
                       ),
                       const SizedBox(width: 10),
                       Container(
-                        width: 42,
-                        height: 42,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: t.brand,
-                          shape: BoxShape.circle,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 11,
                         ),
-                        child: StrokeIcon(
-                          AppIcon.play,
-                          size: 20,
-                          color: GlassDecor.on(t.brand),
+                        decoration: BoxDecoration(
+                          color: t.accent,
+                          borderRadius: BorderRadius.circular(99),
+                        ),
+                        child: Text(
+                          '开始',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: t.onAccent,
+                          ),
                         ),
                       ),
                     ],
@@ -479,24 +489,8 @@ class _WrongBookPageState extends State<WrongBookPage> {
           ),
         ),
 
-      header('错在哪个模块', action: '全部 ›', onAction: () => _focus()),
-      for (final e in worst)
-        _DistRow(
-          label: categoryLabel(e.key),
-          count: e.value,
-          ratio: e.value / max,
-          color: t.category(e.key),
-          icon: categoryIcon(e.key),
-          onTap: () => _focus(category: e.key),
-          onLong: () => _startPlan(
-            key: e.key,
-            kind: 'category',
-            label: categoryLabel(e.key),
-          ),
-        ),
-
       if (reasonCounts.isNotEmpty) ...[
-        header('错在什么地方'),
+        header('还在反复犯的'),
       Padding(
         padding: const EdgeInsets.fromLTRB(
           AppTheme.gutter,
@@ -534,6 +528,22 @@ class _WrongBookPageState extends State<WrongBookPage> {
           ),
         ),
       ],
+
+      header('按题型', action: '全部 ›', onAction: () => _focus()),
+      for (final e in worst)
+        _DistRow(
+          label: categoryLabel(e.key),
+          count: e.value,
+          ratio: e.value / max,
+          color: t.category(e.key),
+          icon: categoryIcon(e.key),
+          onTap: () => _focus(category: e.key),
+          onLong: () => _startPlan(
+            key: e.key,
+            kind: 'category',
+            label: categoryLabel(e.key),
+          ),
+        ),
 
       if (paperKeys.length > 1) ...[
         header('错得最多的卷'),
@@ -713,64 +723,37 @@ class _WrongBookPageState extends State<WrongBookPage> {
       onRefresh: _reload,
       child: ReadableWidth(
         child: ListView(
-        padding: const EdgeInsets.only(bottom: 30),
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.paddingOf(context).bottom + 150,
+        ),
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppTheme.gutter,
-              18,
-              AppTheme.gutter,
-              16,
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  '错题本',
-                  style: text.displaySmall?.copyWith(fontSize: 26, height: 1),
+          const SizedBox(height: ShoreGap.top),
+          ShoreHeader(
+            kicker: _wrong.isEmpty
+                ? '答错的题会自动收进来'
+                : (_listMode
+                    ? '${_wrong.length} 题 · 长按可标错因'
+                    : '${_wrong.length} 题待消灭'),
+            title: '错题本',
+            actions: [
+              if (_wrong.isNotEmpty) ...[
+                if (_listMode)
+                  ShoreRoundButton(
+                    icon: StrokeIcon(AppIcon.chart, size: 19, color: t.textSoft),
+                    onTap: () => setState(() => _listMode = false),
+                  ),
+                ShoreRoundButton(
+                  icon: StrokeIcon(AppIcon.replay, size: 19, color: t.textSoft),
+                  onTap: () => _practise(shown.take(20).toList()),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    _wrong.isEmpty
-                        ? '答错的题会自动收进来'
-                        : _listMode
-                            ? '${_wrong.length} 题 · 长按可标错因'
-                            : '${_wrong.length} 题待消灭',
-                    style: text.bodySmall?.copyWith(fontSize: 13, height: 1.2),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                ShoreRoundButton(
+                  icon: StrokeIcon(AppIcon.papers, size: 19, color: t.textSoft),
+                  onTap: () => _browse(shown.take(40).toList()),
                 ),
-                if (_wrong.isNotEmpty) ...[
-                  if (_listMode)
-                    _IconAction(
-                      icon: AppIcon.chart,
-                      tip: '回到概览',
-                      onTap: () => setState(() => _listMode = false),
-                    ),
-                  // Icon-only: the list itself already says what this page is.
-                  _IconAction(
-                    icon: AppIcon.replay,
-                    tip: '重练当前筛选的题',
-                    onTap: () => _practise(shown.take(20).toList()),
-                  ),
-                  const SizedBox(width: 4),
-                  _IconAction(
-                    icon: AppIcon.papers,
-                    tip: '速览当前筛选的答案解析',
-                    onTap: () => _browse(shown.take(40).toList()),
-                  ),
-                  const SizedBox(width: 4),
-                  _IconAction(
-                    icon: AppIcon.download,
-                    tip: '导出当前列表为 Markdown',
-                    onTap: () => _export(shown),
-                  ),
-                ],
               ],
-            ),
+            ],
           ),
+          const SizedBox(height: ShoreGap.titleToBody),
           if (_wrong.isEmpty)
             const EmptyState(
               icon: Icons.verified_outlined,

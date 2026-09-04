@@ -447,6 +447,20 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
         colors: [t.category('changshi')],
         onTap: _wrong == 0 ? null : _startWrong,
       ),
+      // 申论不该只能从当天的计划任务进。没排任务的日子它就消失了。
+      _FeatureCard(
+        title: '申论批改',
+        meta: '写一篇，交给 AI 评',
+        glyph: AppIcon.papers,
+        colors: [t.success],
+        onTap: () async {
+          if (!mounted) return;
+          Navigator.of(context).pop();
+          await Navigator.of(context)
+              .push(MaterialPageRoute(builder: (_) => const EssayPage()));
+          if (mounted) _reload();
+        },
+      ),
       _FeatureCard(
         title: '限时模考',
         meta: '50 题 · 45 分钟',

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
+import 'package:openexam_app/features/practice/shore_home.dart';
 import 'package:openexam_app/core/ui/responsive.dart';
 import 'package:openexam_app/core/constants/app_constants.dart';
 import 'package:openexam_app/core/constants/categories.dart';
@@ -218,58 +219,26 @@ class _BankPageState extends State<BankPage> {
           slivers: [
             SliverList(
               delegate: SliverChildListDelegate([
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppTheme.gutter,
-                      18,
-                      AppTheme.gutter,
-                      14,
-                    ),
-                    child: SizedBox(
-                      height: 36,
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Text(
-                            '题库',
-                            style: text.displaySmall
-                                ?.copyWith(fontSize: 26, height: 1),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              matched.length == _papers.length
-                                  ? '${_papers.length} 套真题卷'
-                                  : '${matched.length} / ${_papers.length} 套',
-                              style: text.bodySmall
-                                  ?.copyWith(fontSize: 13, height: 1.2),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: () => Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => const ReportsPage(),
-                              ),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 8,
-                                horizontal: 4,
-                              ),
-                              child: Text(
-                                '历史',
-                                style:
-                                    text.labelMedium?.copyWith(color: t.brand),
-                              ),
-                            ),
-                          ),
-                        ],
+                  const SizedBox(height: ShoreGap.top),
+                  ShoreHeader(
+                    kicker: matched.length == _papers.length
+                        ? '${_papers.length} 套真题卷'
+                        : '${matched.length} / ${_papers.length} 套',
+                    title: '题库',
+                    actions: [
+                      ShoreRoundButton(
+                        icon: StrokeIcon(
+                          AppIcon.chart,
+                          size: 19,
+                          color: t.textSoft,
+                        ),
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const ReportsPage()),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
+                  const SizedBox(height: ShoreGap.titleToBody),
                   Padding(
                     padding:
                         const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
@@ -448,7 +417,7 @@ class _BankPageState extends State<BankPage> {
             SliverToBoxAdapter(
               child: SizedBox(
                 height: MediaQuery.paddingOf(context).bottom +
-                    (context.isWide ? 30 : 130),
+                    (context.isWide ? 30 : 152),
               ),
             ),
           ],
@@ -646,7 +615,7 @@ class _PaperRow extends StatelessWidget {
   Color _regionColor(AppTokens t) {
     return switch (paper.region) {
       '国考' => t.category('ziliao'),
-      '联考' => t.category('changshi'),
+      '联考' => t.category('ziliao'),
       '事业' => t.category('panduan'),
       '选调' => t.category('shuliang'),
       '其他' => t.muted,
