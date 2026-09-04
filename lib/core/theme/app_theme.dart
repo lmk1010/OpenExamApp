@@ -6,8 +6,11 @@ import 'package:openexam_app/core/theme/app_tokens.dart';
 /// Builds a ThemeData from a token set, so light/dark (and any future theme)
 /// share one definition and differ only in tokens.
 class AppTheme {
-  /// Horizontal page gutter used by every screen.
-  static const double gutter = 18;
+  /// 每一屏的左右页边距。
+  ///
+  /// 跟 [ShoreGap.page] 必须是同一个数，否则用 gutter 的标题和用
+  /// ShoreCard 的卡片会差 2px —— 单看每处都对，并排就是没对齐。
+  static const double gutter = 20;
 
   /// Corner radius of surfaces / cards.
   static const double radius = 24;

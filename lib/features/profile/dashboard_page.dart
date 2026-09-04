@@ -1,10 +1,11 @@
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:openexam_app/core/constants/app_constants.dart';
 import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
+import 'package:openexam_app/core/ui/shore.dart';
+import 'package:openexam_app/features/practice/shore_home.dart';
 import 'package:openexam_app/core/ui/glass.dart';
 import 'package:openexam_app/core/ui/responsive.dart';
 import 'package:openexam_app/core/ui/stroke_icons.dart';
@@ -223,7 +224,10 @@ class _DashboardPageState extends State<DashboardPage> {
                   child: _SectionTitle(title: '最近 35 天', caption: '颜色越深练得越多'),
                 ),
                 const SizedBox(height: 14),
-                _Reveal(delay: 340, child: _Heatmap(days: _days, goal: _goal)),
+                _Reveal(
+                  delay: 340,
+                  child: ShoreCard(child: _Heatmap(days: _days, goal: _goal)),
+                ),
                 const SizedBox(height: 30),
                 if (_reports.length >= 2) ...[
                   _Reveal(
@@ -234,7 +238,10 @@ class _DashboardPageState extends State<DashboardPage> {
                     ),
                   ),
                   const SizedBox(height: 14),
-                  _Reveal(delay: 420, child: _Sparkline(reports: _reports)),
+                  _Reveal(
+                    delay: 420,
+                    child: ShoreCard(child: _Sparkline(reports: _reports)),
+                  ),
                   const SizedBox(height: 30),
                 ],
                 if (_hours.any((n) => n > 0)) ...[
@@ -577,59 +584,20 @@ class _AccuracyBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
-    final text = Theme.of(context).textTheme;
-
     return Row(
       children: [
-        SizedBox(
-          width: 132,
-          height: 132,
-          child: TweenAnimationBuilder<double>(
-            tween: Tween(begin: 0, end: answered == 0 ? 0 : rate / 100),
-            duration: const Duration(milliseconds: 1000),
-            curve: Curves.easeOutCubic,
-            builder: (context, v, _) => Stack(
-              alignment: Alignment.center,
-              children: [
-                CustomPaint(
-                  size: const Size(132, 132),
-                  painter: _RingPainter(
-                    value: v,
-                    color: t.brand,
-                    track: t.name == 'dark'
-                        ? Colors.white.withValues(alpha: 0.12)
-                        : t.text.withValues(alpha: 0.09),
-                  ),
-                ),
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.baseline,
-                      textBaseline: TextBaseline.alphabetic,
-                      children: [
-                        Text(
-                          answered == 0 ? '—' : '${(v * 100).round()}',
-                          style: TextStyle(
-                            fontSize: 34,
-                            fontWeight: FontWeight.w700,
-                            height: 1,
-                            letterSpacing: -1.2,
-                            color: t.text,
-                            fontFeatures: AppTheme.numeric,
-                          ),
-                        ),
-                        if (answered > 0)
-                          Text('%', style: text.bodySmall?.copyWith(fontSize: 14)),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Text('总正确率', style: text.bodySmall?.copyWith(fontSize: 11.5)),
-                  ],
-                ),
-              ],
-            ),
+        // 正确率环换成罗盘：跟练习结果页、申论批改是同一个读数器。
+        // 一个 app 里不该有两种"环形分数"的画法。
+        TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0, end: answered == 0 ? 0 : rate / 100),
+          duration: const Duration(milliseconds: 900),
+          curve: Curves.easeOutCubic,
+          builder: (context, v, _) => CompassDial(
+            value: v,
+            label: answered == 0 ? '—' : '${(v * 100).round()}%',
+            caption: '总正确率',
+            size: 132,
+            color: answered == 0 ? t.line : null,
           ),
         ),
         const SizedBox(width: 22),
@@ -709,52 +677,6 @@ class _Figure extends StatelessWidget {
   }
 }
 
-class _RingPainter extends CustomPainter {
-  const _RingPainter({
-    required this.value,
-    required this.color,
-    required this.track,
-  });
-
-  final double value;
-  final Color color;
-  final Color track;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final rect = Rect.fromLTWH(7, 7, size.width - 14, size.height - 14);
-    canvas.drawArc(
-      rect,
-      -math.pi / 2,
-      math.pi * 2,
-      false,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 11
-        ..color = track,
-    );
-    if (value <= 0) return;
-    canvas.drawArc(
-      rect,
-      -math.pi / 2,
-      math.pi * 2 * value,
-      false,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 11
-        ..strokeCap = StrokeCap.round
-        ..isAntiAlias = true
-        ..shader = SweepGradient(
-          startAngle: -math.pi / 2,
-          endAngle: math.pi * 1.5,
-          colors: [color.withValues(alpha: 0.45), color],
-        ).createShader(rect),
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _RingPainter old) => old.value != value;
-}
 
 /// One module: name, animated accuracy bar, pace, and how much is left.
 class _ModuleBar extends StatelessWidget {

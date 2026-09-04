@@ -515,7 +515,7 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
                     Text(
                       _checkinStreak > 0 ? '连续打卡 $_checkinStreak 天' : '每日一练打卡',
                       style: Theme.of(sheetContext).textTheme.bodySmall?.copyWith(
-                            color: _checkinStreak > 0 ? t.brand : null,
+                            color: _checkinStreak > 0 ? t.success : null,
                           ),
                     ),
                     const Spacer(),
@@ -538,27 +538,28 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
                                   }
                                 },
                           child: Container(
-                            width: 22,
-                            height: 22,
+                            width: 24,
+                            height: 24,
                             alignment: Alignment.center,
                             decoration: BoxDecoration(
                               color: mark != null
-                                  ? t.brand
+                                  ? t.success
                                   : isToday
-                                      ? t.brand.withValues(alpha: 0.18)
+                                      ? t.accentSoft
                                       : t.surfaceAlt,
-                              borderRadius: BorderRadius.circular(7),
+                              shape: BoxShape.circle,
                             ),
                             child: mark != null
-                                ? Icon(Icons.check,
-                                    size: 12, color: GlassDecor.on(t.brand))
+                                ? const Icon(Icons.check,
+                                    size: 13, color: Colors.white)
                                 : Text(
                                     '${day.day}',
                                     style: TextStyle(
                                       fontSize: 10,
                                       fontWeight: FontWeight.w600,
                                       height: 1,
-                                      color: isToday ? t.brand : t.muted,
+                                      color:
+                                          isToday ? t.onAccentSoft : t.muted,
                                     ),
                                   ),
                           ),
@@ -1107,7 +1108,7 @@ String _scopeLabel(QuestionScope scope) => switch (scope) {
 /// 横向 ListView 需要一个确定高度，所以这里统一算一次给两边用。
 double featureCardHeight(BuildContext context) {
   final scale = MediaQuery.textScalerOf(context).scale(1);
-  const chrome = 10 + 10 + 28 + 3 + 6; // 上下内边距 + 图标行 + 行间距 + 余量
+  const chrome = 11 + 11 + 19 + 3 + 8; // 上下内边距 + 图标行 + 行间距 + 余量
   return chrome + (14 * 1.1 + 11 * 1.2) * scale;
 }
 
@@ -1133,37 +1134,30 @@ class _FeatureCard extends StatelessWidget {
     final t = context.tokens;
     final disabled = onTap == null;
     final base = colors.first;
-    final dark = t.name == 'dark';
 
     return Opacity(
       opacity: disabled ? 0.42 : 1,
       child: GestureDetector(
         onTap: onTap,
         onLongPress: onLong,
+        // 五张卡五个底色、每个 icon 还各自套一层色块，一屏就成了调色盘。
+        // 现在卡面统一是白的，颜色只留在 icon 上 —— 卡片本身已经是容器了。
         child: Container(
           height: featureCardHeight(context),
-          padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+          padding: const EdgeInsets.fromLTRB(14, 11, 12, 11),
           decoration: BoxDecoration(
-            color: base.withValues(alpha: dark ? 0.22 : 0.12),
-            borderRadius: BorderRadius.circular(14),
+            color: t.surface,
+            borderRadius: BorderRadius.circular(18),
+            boxShadow: t.shadow,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  Container(
-                    width: 28,
-                    height: 28,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: base.withValues(alpha: dark ? 0.35 : 0.18),
-                      borderRadius: BorderRadius.circular(9),
-                    ),
-                    child: StrokeIcon(glyph, size: 15, color: base),
-                  ),
+                  StrokeIcon(glyph, size: 19, color: base),
                   const Spacer(),
-                  Icon(Icons.chevron_right, size: 16, color: base),
+                  Icon(Icons.chevron_right, size: 16, color: t.muted),
                 ],
               ),
               const Spacer(),

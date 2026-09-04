@@ -15,7 +15,8 @@ import 'package:openexam_app/features/plan/domain/models/study_task.dart';
 /// 页面统一的间距节奏。区块间距是卡内的两倍多，「组」的边界才立得住。
 class ShoreGap {
   const ShoreGap._();
-  static const page = 20.0;
+  /// 跟 [AppTheme.gutter] 是同一个数，改一个必须改另一个。
+  static const page = AppTheme.gutter;
   static const top = 34.0;
   static const titleToBody = 22.0;
   static const section = 30.0;

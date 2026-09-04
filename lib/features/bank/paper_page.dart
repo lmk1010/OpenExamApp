@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
-import 'package:openexam_app/core/ui/glass.dart';
+import 'package:openexam_app/features/practice/shore_home.dart';
 import 'package:openexam_app/core/ui/stroke_icons.dart';
 import 'package:openexam_app/core/ui/ui_kit.dart';
 import 'package:openexam_app/data/db/app_database.dart';
@@ -280,7 +280,12 @@ class _PaperPageState extends State<PaperPage> {
                   ),
                 ),
                 const SizedBox(height: 28),
-                const SectionHeader(title: '模块构成', caption: '点一行只练这一模块 · 长按速览'),
+                ShoreSection(
+                  title: '模块构成',
+                  caption: '点一行只练这块',
+                  child: ShoreCard(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Column(children: [
                 for (var i = 0; i < _stats.length; i++) ...[
                   if (i > 0) const RowDivider(),
                   _ModuleRow(
@@ -308,11 +313,16 @@ class _PaperPageState extends State<PaperPage> {
                   ),
                 ],
                 if (_stats.isEmpty)
-                  const EmptyState(
-                    icon: Icons.inbox_outlined,
-                    title: '这套卷子还没有题目',
-                    message: '导入的题目缺少题型标注时会出现这种情况。',
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(
+                      '这套卷子还没有题目 —— 导入时缺少题型标注会这样',
+                      style: text.bodySmall,
+                    ),
                   ),
+                    ]),
+                  ),
+                ),
                 const SizedBox(height: 24),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
@@ -348,9 +358,7 @@ class _Action extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
-    final on = enabled
-        ? (primary ? GlassDecor.on(t.brand) : t.text)
-        : t.muted;
+    final on = enabled ? (primary ? t.onAccent : t.text) : t.muted;
 
     return Expanded(
       child: Opacity(
@@ -361,8 +369,15 @@ class _Action extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.fromLTRB(13, 13, 13, 13),
             decoration: primary
-                ? GlassDecor.tinted(t, t.brand, radius: 18)
-                : GlassDecor.panel(t, radius: 18, raised: false),
+                ? BoxDecoration(
+                    color: t.accent,
+                    borderRadius: BorderRadius.circular(20),
+                  )
+                : BoxDecoration(
+                    color: t.surface,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: t.shadow,
+                  ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -383,7 +398,7 @@ class _Action extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 11.5,
                     height: 1,
-                    color: primary ? on.withValues(alpha: 0.78) : t.muted,
+                    color: primary ? t.onAccent.withValues(alpha: 0.72) : t.muted,
                     fontFeatures: AppTheme.numeric,
                   ),
                 ),
