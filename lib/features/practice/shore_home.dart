@@ -153,7 +153,10 @@ class VoyageCard extends StatelessWidget {
               Stack(
                 children: [
                   Image.asset(
-                    ShoreArt.voyage,
+                    ShoreArt.forBrightness(
+                      ShoreArt.voyage,
+                      Theme.of(context).brightness,
+                    ),
                     height: 150,
                     width: double.infinity,
                     fit: BoxFit.cover,

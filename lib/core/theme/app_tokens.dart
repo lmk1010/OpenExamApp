@@ -244,44 +244,47 @@ class AppTokens extends ThemeExtension<AppTokens> {
     onChip: Color(0xFFFFFFFF),
   );
 
-  /// Dark: deep slate canvas, violet brand, same semantic roles.
+  /// 深色是夜航：同一片海，把光关掉。
+  ///
+  /// 上一版是一块中性石板灰，跟浅色那片海没有关系 —— 切主题像换了个 app。
+  /// 现在底色带蓝，蓝还是可点的字，黄还是要按的按钮，两边说同一种话。
   static const dark = AppTokens(
     name: 'dark',
     accent: Color(0xFFFFC94A),
-    accentSoft: Color(0xFF3A3016),
+    accentSoft: Color(0xFF3B3016),
     onAccent: Color(0xFF241A05),
-    brand: Color(0xFF5C9DFF),
-    brandSoft: Color(0xFF17263D),
-    onBrand: Colors.white,
-    bg: Color(0xFF0F1116),
-    surface: Color(0xFF1C212B),
-    surfaceAlt: Color(0xFF262C38),
-    text: Color(0xFFF2F3F7),
-    textSoft: Color(0xFFC3C6D1),
-    muted: Color(0xFF858A99),
-    line: Color(0xFF353B48),
-    lineSoft: Color(0xFF272C36),
+    brand: Color(0xFF6FB6E8),
+    brandSoft: Color(0xFF14293A),
+    onBrand: Color(0xFF07131C),
+    bg: Color(0xFF0C141E),
+    surface: Color(0xFF152230),
+    surfaceAlt: Color(0xFF1D2E3E),
+    text: Color(0xFFEDF3F8),
+    textSoft: Color(0xFFB8C6D2),
+    muted: Color(0xFF7C8D9C),
+    line: Color(0xFF2A3B4D),
+    lineSoft: Color(0xFF1F2E3D),
     success: Color(0xFF35C48D),
-    successSoft: Color(0xFF16302A),
+    successSoft: Color(0xFF10302A),
     danger: Color(0xFFFF6B5E),
-    dangerSoft: Color(0xFF34211F),
+    dangerSoft: Color(0xFF33211F),
     categories: {
-      'yanyu': Color(0xFF62A5FF),
+      'yanyu': Color(0xFF6FA8FF),
       'shuliang': Color(0xFFF0A83F),
       'panduan': Color(0xFF9E86F0),
       'ziliao': Color(0xFF3EC4B8),
       'changshi': Color(0xFFF06A8B),
     },
     shadow: [
-      BoxShadow(color: Color(0x73000000), blurRadius: 24, offset: Offset(0, 10)),
+      BoxShadow(color: Color(0x8C000616), blurRadius: 24, offset: Offset(0, 10)),
     ],
-    gradient: [Color(0xFF141821), Color(0xFF11151C), Color(0xFF0F1116)],
-    glow: Color(0x3D5C9DFF),
+    gradient: [Color(0xFF122232), Color(0xFF0E1926), Color(0xFF0C141E)],
+    glow: Color(0x3D6FB6E8),
     glass: Color(0x14FFFFFF),
     glassStrong: Color(0x1FFFFFFF),
     glassBorder: Color(0x1AFFFFFF),
     chip: Color(0x33FFFFFF),
-    onChip: Color(0xFFF2F3F7),
+    onChip: Color(0xFFEDF3F8),
   );
 
   /// 咕咕嘎嘎 — charcoal penguin suit + warm yellow beak accents.

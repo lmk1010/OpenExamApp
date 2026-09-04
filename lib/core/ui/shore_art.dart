@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart' show Brightness;
 /// 「上岸」素材的路径表。
 ///
 /// 散在各页里写字符串迟早会拼错，而且改名要全局搜 —— 集中在这里。
@@ -11,6 +12,9 @@ class ShoreArt {
   // ── 场景（620px jpg）──
   /// 首页航程卡：晴天海面划船，远处白灯塔。
   static const voyage = '$_dir/day_voyage.jpg';
+  static const nightVoyage = '$_dir/night_voyage.jpg';
+  static const nightArrive = '$_dir/night_arrive.jpg';
+  static const nightCalm = '$_dir/night_calm.jpg';
 
   /// 引导页：出发。
   static const start = '$_dir/day_start.jpg';
@@ -36,6 +40,20 @@ class ShoreArt {
   };
 
   static String? isle(String? category) => _isles[category];
+
+  /// 深色主题下换夜航的那几张。
+  ///
+  /// 白底贴夜景、黑底贴晴天，都是把插画和底色放进两个光线世界里。
+  /// 同一个母题出两套光，切主题时画面跟着一起暗下来。
+  static String forBrightness(String day, Brightness b) {
+    if (b == Brightness.light) return day;
+    return switch (day) {
+      voyage || start => nightVoyage,
+      arrive => nightArrive,
+      calm => nightCalm,
+      _ => day,
+    };
+  }
 
   // ── 成就徽章（320px png，六枚各画各的）──
   static const badgeFirst = '$_dir/badge_first.png';

@@ -128,6 +128,7 @@ class _RingPainter extends CustomPainter {
       );
     }
 
+    // 没拿到也要看得出等级：同一组三枚长得一样，只有环色分得开铜银金。
     canvas.drawCircle(
       c,
       r,
@@ -135,7 +136,7 @@ class _RingPainter extends CustomPainter {
         ..style = PaintingStyle.stroke
         ..strokeWidth = w
         ..isAntiAlias = true
-        ..color = unlocked ? tier.withValues(alpha: 0.85) : track,
+        ..color = unlocked ? tier.withValues(alpha: 0.85) : tier.withValues(alpha: 0.30),
     );
 
     if (!unlocked && progress > 0) {

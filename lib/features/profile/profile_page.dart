@@ -626,7 +626,10 @@ class _VoyageTotal extends StatelessWidget {
                     child: Stack(
                       children: [
                         Image.asset(
-                          ShoreArt.arrive,
+                          ShoreArt.forBrightness(
+                            ShoreArt.arrive,
+                            Theme.of(context).brightness,
+                          ),
                           height: 112,
                           width: double.infinity,
                           fit: BoxFit.cover,

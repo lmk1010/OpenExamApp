@@ -80,17 +80,29 @@ class _AchievementsPageState extends State<AchievementsPage> {
                 for (final entry in groups.entries) ...[
                   Text(entry.key, style: text.titleSmall),
                   const SizedBox(height: 14),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 18,
-                    children: [
-                      for (final badge in entry.value)
-                        _BadgeTile(
-                          badge: badge,
-                          onTap: () =>
-                              showBadgeCard(context, badge, all: _badges),
-                        ),
-                    ],
+                  // 一行四枚。之前固定 96 宽，手机上一行只放得下三枚，
+                  // 每组第四枚单独换行，看着像少了一枚。
+                  LayoutBuilder(
+                    builder: (context, box) {
+                      const gap = 10.0;
+                      final cols = box.maxWidth >= 520 ? 6 : 4;
+                      final w = (box.maxWidth - gap * (cols - 1)) / cols;
+                      return Wrap(
+                        spacing: gap,
+                        runSpacing: 18,
+                        children: [
+                          for (final badge in entry.value)
+                            SizedBox(
+                              width: w,
+                              child: _BadgeTile(
+                                badge: badge,
+                                onTap: () =>
+                                    showBadgeCard(context, badge, all: _badges),
+                              ),
+                            ),
+                        ],
+                      );
+                    },
                   ),
                   const SizedBox(height: 26),
                 ],
@@ -111,14 +123,12 @@ class _BadgeTile extends StatelessWidget {
     final t = context.tokens;
     final text = Theme.of(context).textTheme;
 
-    return SizedBox(
-      width: 96,
-      child: GestureDetector(
+    return GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
         child: Column(
           children: [
-            BadgeMedal(badge: badge, size: 72),
+            BadgeMedal(badge: badge, size: 64),
             const SizedBox(height: 9),
             Text(
               badge.name,
@@ -141,8 +151,7 @@ class _BadgeTile extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
+      );
   }
 }
 
