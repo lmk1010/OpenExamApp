@@ -46,3 +46,10 @@ app.*.map.json
 
 # 打包产物
 dist/
+
+# 本地素材生成用的 API 凭据，别提交
+.env
+tool/.imagekey
+
+# 设计画布的中间产物（每次 seed 重新生成，2MB+）
+design/openexam-ui.html

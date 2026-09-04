@@ -1,0 +1,145 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; font-family: -apple-system, "PingFang SC", "Noto Sans SC", system-ui, sans-serif; }
+    a { color: #1668D6; } a:hover { color: #0F4FA3; }
+    .num { font-variant-numeric: tabular-nums; }
+    .lbl { font-size: 11px; color: #9394A6; margin-top: 6px; }
+    .sw { height: 52px; border-radius: 10px; }
+    .code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10.5px; color: #9394A6; }
+  </style>
+</helmet>
+
+<div style="width: 820px; background: #FFFFFF; color: #1B1B23; padding: 32px;">
+
+  <div style="font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">设计系统</div>
+  <div style="font-size: 13.5px; color: #4A4A57; line-height: 1.7; margin-top: 8px; max-width: 560px;">全部取自 <span class="code">lib/core/theme/app_tokens.dart</span>，不是新造的值。落地时直接对应现有 token，不需要改主题层。</div>
+
+  <!-- 三条规则 -->
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 26px;">
+    <div style="background: #F7F7FB; border-radius: 14px; padding: 16px;">
+      <div style="font-size: 14px; font-weight: 700;">一个强调色</div>
+      <div style="font-size: 12.5px; color: #4A4A57; line-height: 1.65; margin-top: 6px;">蓝色只用在四处：主按钮、当前项、可点文字、进度。题型色降级成 3px 色条，不染卡面。</div>
+    </div>
+    <div style="background: #F7F7FB; border-radius: 14px; padding: 16px;">
+      <div style="font-size: 14px; font-weight: 700;">数字是主角</div>
+      <div style="font-size: 12.5px; color: #4A4A57; line-height: 1.65; margin-top: 6px;">备考的人要的是确定感。今日进度、正确率、倒计时用大号等宽数字，插画不进日常页。</div>
+    </div>
+    <div style="background: #F7F7FB; border-radius: 14px; padding: 16px;">
+      <div style="font-size: 14px; font-weight: 700;">情绪只在一次性时刻</div>
+      <div style="font-size: 12.5px; color: #4A4A57; line-height: 1.65; margin-top: 6px;">引导页、空态、成就可以有插画和氛围色。每天开几十次的页面保持安静。</div>
+    </div>
+  </div>
+
+  <!-- 颜色 -->
+  <div style="font-size: 15px; font-weight: 700; margin-top: 30px;">颜色 · 浅色</div>
+  <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; margin-top: 12px;">
+    <div><div class="sw" style="background: #1668D6;"></div><div class="lbl">brand</div><div class="code">#1668D6</div></div>
+    <div><div class="sw" style="background: #E4EFFC;"></div><div class="lbl">brandSoft</div><div class="code">#E4EFFC</div></div>
+    <div><div class="sw" style="background: #F7F7FB; border: 1px solid #E3E4F0;"></div><div class="lbl">bg</div><div class="code">#F7F7FB</div></div>
+    <div><div class="sw" style="background: #FFFFFF; border: 1px solid #E3E4F0;"></div><div class="lbl">surface</div><div class="code">#FFFFFF</div></div>
+    <div><div class="sw" style="background: #15A46E;"></div><div class="lbl">success</div><div class="code">#15A46E</div></div>
+    <div><div class="sw" style="background: #E2483D;"></div><div class="lbl">danger</div><div class="code">#E2483D</div></div>
+  </div>
+
+  <div style="font-size: 15px; font-weight: 700; margin-top: 26px;">颜色 · 深色</div>
+  <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; margin-top: 12px;">
+    <div><div class="sw" style="background: #5C9DFF;"></div><div class="lbl">brand</div><div class="code">#5C9DFF</div></div>
+    <div><div class="sw" style="background: #17263D;"></div><div class="lbl">brandSoft</div><div class="code">#17263D</div></div>
+    <div><div class="sw" style="background: #0F1116;"></div><div class="lbl">bg</div><div class="code">#0F1116</div></div>
+    <div><div class="sw" style="background: #1C212B;"></div><div class="lbl">surface</div><div class="code">#1C212B</div></div>
+    <div><div class="sw" style="background: #35C48D;"></div><div class="lbl">success</div><div class="code">#35C48D</div></div>
+    <div><div class="sw" style="background: #FF6B5E;"></div><div class="lbl">danger</div><div class="code">#FF6B5E</div></div>
+  </div>
+
+  <div style="font-size: 15px; font-weight: 700; margin-top: 26px;">题型色 · 只做 3px 色条与小标签</div>
+  <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-top: 12px;">
+    <div><div class="sw" style="background: #1E74D8;"></div><div class="lbl">言语理解</div><div class="code">#1E74D8</div></div>
+    <div><div class="sw" style="background: #E08A1E;"></div><div class="lbl">数量关系</div><div class="code">#E08A1E</div></div>
+    <div><div class="sw" style="background: #7A5CD0;"></div><div class="lbl">判断推理</div><div class="code">#7A5CD0</div></div>
+    <div><div class="sw" style="background: #109C93;"></div><div class="lbl">资料分析</div><div class="code">#109C93</div></div>
+    <div><div class="sw" style="background: #D9506F;"></div><div class="lbl">常识判断</div><div class="code">#D9506F</div></div>
+  </div>
+
+  <!-- 字阶 -->
+  <div style="font-size: 15px; font-weight: 700; margin-top: 30px;">字阶</div>
+  <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 10px;">
+    <div style="display: flex; align-items: baseline; gap: 16px;"><div class="code" style="width: 170px;">displaySmall 25 / 700 / -0.6</div><div style="font-size: 25px; font-weight: 700; letter-spacing: -0.6px;">今天还差 18 题</div></div>
+    <div style="display: flex; align-items: baseline; gap: 16px;"><div class="code" style="width: 170px;">headlineSmall 22 / 700 / tab</div><div class="num" style="font-size: 22px; font-weight: 700; letter-spacing: -0.4px;">12 / 30</div></div>
+    <div style="display: flex; align-items: baseline; gap: 16px;"><div class="code" style="width: 170px;">titleLarge 18 / 700</div><div style="font-size: 18px; font-weight: 700; letter-spacing: -0.3px;">资料分析 · 限时</div></div>
+    <div style="display: flex; align-items: baseline; gap: 16px;"><div class="code" style="width: 170px;">titleMedium 16 / 600</div><div style="font-size: 16px; font-weight: 600;">今日安排</div></div>
+    <div style="display: flex; align-items: baseline; gap: 16px;"><div class="code" style="width: 170px;">bodyLarge 16 / 400 / 1.65</div><div style="font-size: 16px; line-height: 1.65;">题干正文用这一级，长时间阅读不累</div></div>
+    <div style="display: flex; align-items: baseline; gap: 16px;"><div class="code" style="width: 170px;">bodyMedium 14 / 400</div><div style="font-size: 14px; color: #4A4A57;">选项文字与说明</div></div>
+    <div style="display: flex; align-items: baseline; gap: 16px;"><div class="code" style="width: 170px;">bodySmall 12.5 / 400 / tab</div><div class="num" style="font-size: 12.5px; color: #9394A6;">20 题 · 约 25 分钟</div></div>
+  </div>
+
+  <!-- 组件 -->
+  <div style="font-size: 15px; font-weight: 700; margin-top: 30px;">组件</div>
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 12px;">
+
+    <div>
+      <div style="background: #1668D6; color: #FFFFFF; border-radius: 14px; padding: 15px; text-align: center; font-size: 16px; font-weight: 700;">开始练习</div>
+      <div class="lbl">主按钮 · 半径 14 · 每屏只有一个</div>
+    </div>
+
+    <div>
+      <div style="background: #FFFFFF; border: 1.5px solid #1668D6; color: #1668D6; border-radius: 14px; padding: 13.5px; text-align: center; font-size: 15px; font-weight: 600;">再练一组</div>
+      <div class="lbl">次按钮</div>
+    </div>
+
+    <div>
+      <div style="background: #FFFFFF; border-radius: 16px; padding: 14px; box-shadow: 0 10px 24px rgba(18,26,43,0.06); display: flex; align-items: center; gap: 11px;">
+        <div style="width: 3px; height: 30px; border-radius: 99px; background: #109C93;"></div>
+        <div>
+          <div style="font-size: 14px; font-weight: 600;">资料分析</div>
+          <div class="num" style="font-size: 11.5px; color: #9394A6; margin-top: 2px;">2 691</div>
+        </div>
+      </div>
+      <div class="lbl">列表卡 · 半径 16 · 阴影 0 10 24 / 6%</div>
+    </div>
+
+    <div>
+      <div style="display: flex; gap: 7px;">
+        <div class="num" style="background: #1668D6; color: #FFFFFF; font-size: 13px; font-weight: 700; padding: 7px 13px; border-radius: 99px;">全部 161</div>
+        <div class="num" style="background: #F2F2F8; color: #4A4A57; font-size: 13px; padding: 7px 13px; border-radius: 99px;">国考 15</div>
+      </div>
+      <div class="lbl">筛选 chip · 全圆角</div>
+    </div>
+
+    <div>
+      <div style="display: flex; align-items: center; gap: 14px; border: 1.5px solid #1668D6; background: #E4EFFC; border-radius: 14px; padding: 15px 16px;">
+        <div style="width: 26px; height: 26px; border-radius: 99px; background: #1668D6; color: #FFFFFF; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center;">A</div>
+        <div style="font-size: 15.5px; font-weight: 600;">以柔克刚</div>
+      </div>
+      <div class="lbl">选项 · 选中态 · 高 56</div>
+    </div>
+
+    <div>
+      <div style="height: 6px; border-radius: 99px; background: #F2F2F8; overflow: hidden; display: flex; margin-top: 25px;">
+        <div style="width: 40%; background: #1668D6; border-radius: 99px;"></div>
+      </div>
+      <div class="lbl">进度条 · 高 6 · 全圆角</div>
+    </div>
+  </div>
+
+  <div style="font-size: 15px; font-weight: 700; margin-top: 30px;">尺寸</div>
+  <div style="display: flex; gap: 26px; margin-top: 10px; font-size: 12.5px; color: #4A4A57;">
+    <div>页边距 <span class="code">18</span></div>
+    <div>卡片半径 <span class="code">16 / 20</span></div>
+    <div>按钮半径 <span class="code">14</span></div>
+    <div>最小点击区 <span class="code">44</span></div>
+    <div>卡片间距 <span class="code">9 / 10</span></div>
+    <div>区块间距 <span class="code">22</span></div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

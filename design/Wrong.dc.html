@@ -1,0 +1,148 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&display=swap">
+  <style>
+    body { margin: 0; font-family: -apple-system, "PingFang SC", "Noto Sans SC", system-ui, sans-serif; }
+    a { color: #1B8FD1; } a:hover { color: #146FA4; }
+    .num { font-family: "Outfit", -apple-system, system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+  </style>
+</helmet>
+
+<!--
+  错题本的重点不是"我错了多少"，是"哪个错因还在反复犯"。
+  所以第一屏给错因分组，不是给一条一条的错题流水账。
+-->
+<div style="width: 390px; height: 844px; background: #F2F8FC; color: #16232E; display: flex; flex-direction: column; overflow: hidden;">
+
+  <div style="height: 36px;"></div>
+
+  <div style="display: flex; align-items: center; padding: 0 20px; gap: 10px;">
+    <div style="flex-grow: 1;">
+      <div style="font-size: 28px; font-weight: 700; letter-spacing: -0.8px; line-height: 1.1;">错题本</div>
+      <div class="num" style="font-size: 13px; color: #7A8B99; margin-top: 5px;">186 题 · 42 题到期该复习</div>
+    </div>
+    <div style="width: 38px; height: 38px; border-radius: 99px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(22,60,90,0.06);">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5B6E7D" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+    </div>
+  </div>
+
+  <div style="height: 22px;"></div>
+
+  <!-- 到期复习：唯一的主行动 -->
+  <div style="margin: 0 20px; background: #FFF6E0; border-radius: 22px; padding: 18px 20px; display: flex; align-items: center; gap: 14px;">
+    <div style="flex-grow: 1;">
+      <div style="font-size: 16px; font-weight: 700;">今天该回炉 42 题</div>
+      <div class="num" style="font-size: 12px; color: #96792F; margin-top: 4px;">按遗忘曲线排的，约 30 分钟</div>
+    </div>
+    <div style="background: #FFC94A; color: #4A3410; border-radius: 99px; padding: 12px 22px; font-size: 14.5px; font-weight: 700; flex-shrink: 0;">开始</div>
+  </div>
+
+  <div style="height: 30px;"></div>
+
+  <!-- 错因分组 —— 这才是错题本该回答的问题 -->
+  <div style="display: flex; align-items: baseline; padding: 0 20px;">
+    <div style="font-size: 17px; font-weight: 700; letter-spacing: -0.3px;">还在反复犯的</div>
+    <div style="flex-grow: 1;"></div>
+    <div style="font-size: 12.5px; font-weight: 600; color: #1B8FD1;">全部错因</div>
+  </div>
+
+  <div style="height: 11px;"></div>
+
+  <div style="margin: 0 20px; display: flex; flex-direction: column; gap: 10px;">
+
+    <div style="background: #FFFFFF; border-radius: 20px; padding: 16px; box-shadow: 0 10px 24px rgba(22,60,90,0.07);">
+      <div style="display: flex; align-items: center; gap: 9px;">
+        <div style="width: 3px; height: 15px; border-radius: 99px; background: #E5941F;"></div>
+        <div style="font-size: 15px; font-weight: 700;">年均增长率忘了开方</div>
+        <div style="flex-grow: 1;"></div>
+        <div class="num" style="font-size: 15px; font-weight: 700; color: #E2483D;">3 次</div>
+      </div>
+      <div class="num" style="font-size: 12px; color: #7A8B99; margin-top: 8px; margin-left: 12px;">资料分析 · 本周第 3 次 · 上次 2 天前</div>
+      <div style="display: flex; gap: 8px; margin-top: 13px; margin-left: 12px;">
+        <div style="background: #FFF6E0; color: #B8730F; border-radius: 99px; padding: 7px 15px; font-size: 12.5px; font-weight: 700;">专攻这个</div>
+        <div style="background: #EAF2F7; color: #5B6E7D; border-radius: 99px; padding: 7px 15px; font-size: 12.5px; font-weight: 600;">看笔记</div>
+      </div>
+    </div>
+
+    <div style="background: #FFFFFF; border-radius: 20px; padding: 16px; box-shadow: 0 10px 24px rgba(22,60,90,0.07);">
+      <div style="display: flex; align-items: center; gap: 9px;">
+        <div style="width: 3px; height: 15px; border-radius: 99px; background: #2E6FD9;"></div>
+        <div style="font-size: 15px; font-weight: 700;">成语只看字面意思</div>
+        <div style="flex-grow: 1;"></div>
+        <div class="num" style="font-size: 15px; font-weight: 700; color: #E08A1E;">2 次</div>
+      </div>
+      <div class="num" style="font-size: 12px; color: #7A8B99; margin-top: 8px; margin-left: 12px;">逻辑填空 · 本周第 2 次 · 上次 4 天前</div>
+    </div>
+
+    <div style="background: #FFFFFF; border-radius: 20px; padding: 16px; box-shadow: 0 10px 24px rgba(22,60,90,0.07);">
+      <div style="display: flex; align-items: center; gap: 9px;">
+        <div style="width: 3px; height: 15px; border-radius: 99px; background: #7A5CD0;"></div>
+        <div style="font-size: 15px; font-weight: 700;">图形推理漏看对称轴</div>
+        <div style="flex-grow: 1;"></div>
+        <div class="num" style="font-size: 15px; font-weight: 700; color: #E08A1E;">2 次</div>
+      </div>
+      <div class="num" style="font-size: 12px; color: #7A8B99; margin-top: 8px; margin-left: 12px;">判断推理 · 本周第 2 次 · 上次 5 天前</div>
+    </div>
+  </div>
+
+  <div style="height: 30px;"></div>
+
+  <div style="display: flex; align-items: baseline; padding: 0 20px;">
+    <div style="font-size: 17px; font-weight: 700; letter-spacing: -0.3px;">按题型</div>
+  </div>
+  <div style="height: 11px;"></div>
+
+  <div style="margin: 0 20px; background: #FFFFFF; border-radius: 22px; box-shadow: 0 10px 24px rgba(22,60,90,0.07); overflow: hidden;">
+    <div style="display: flex; align-items: center; gap: 13px; padding: 13px 16px;">
+      <div style="width: 3px; height: 22px; border-radius: 99px; background: #109C93;"></div>
+      <div style="flex-grow: 1; font-size: 14.5px;">资料分析</div>
+      <div class="num" style="font-size: 12.5px; color: #7A8B99;">68 题</div>
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#B7C6D1" stroke-width="2" stroke-linecap="round"><path d="M10 6l6 6-6 6"/></svg>
+    </div>
+    <div style="height: 1px; background: #EDF3F7; margin-left: 32px;"></div>
+    <div style="display: flex; align-items: center; gap: 13px; padding: 13px 16px;">
+      <div style="width: 3px; height: 22px; border-radius: 99px; background: #2E6FD9;"></div>
+      <div style="flex-grow: 1; font-size: 14.5px;">言语理解</div>
+      <div class="num" style="font-size: 12.5px; color: #7A8B99;">51 题</div>
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#B7C6D1" stroke-width="2" stroke-linecap="round"><path d="M10 6l6 6-6 6"/></svg>
+    </div>
+    <div style="height: 1px; background: #EDF3F7; margin-left: 32px;"></div>
+    <div style="display: flex; align-items: center; gap: 13px; padding: 13px 16px;">
+      <div style="width: 3px; height: 22px; border-radius: 99px; background: #7A5CD0;"></div>
+      <div style="flex-grow: 1; font-size: 14.5px;">判断推理</div>
+      <div class="num" style="font-size: 12.5px; color: #7A8B99;">39 题</div>
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#B7C6D1" stroke-width="2" stroke-linecap="round"><path d="M10 6l6 6-6 6"/></svg>
+    </div>
+  </div>
+
+  <div style="flex-grow: 1;"></div>
+
+  <div style="padding: 0 20px 26px 20px;">
+    <div style="background: #FFFFFF; border-radius: 99px; padding: 7px; display: flex; align-items: center; gap: 2px; box-shadow: 0 10px 28px rgba(22,60,90,0.14);">
+      <div style="flex-grow: 1; display: flex; justify-content: center; padding: 11px 0;">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#98A6B2" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18.2c1.5.9 3 .9 4.5 0s3-.9 4.5 0 3 .9 4.5 0"/><path d="M17.5 4.5L9 13"/><path d="M18.8 3.2a1.8 1.8 0 010 2.6l-1.3 1.3-2.6-2.6 1.3-1.3a1.8 1.8 0 012.6 0z"/><path d="M9 13l-2.4.6.6-2.4"/></svg>
+      </div>
+      <div style="flex-grow: 1; display: flex; justify-content: center; padding: 11px 0;">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#98A6B2" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 5.5A2.5 2.5 0 017 3h12.5v18H7a2.5 2.5 0 01-2.5-2.5z"/><path d="M8.5 8h7M8.5 11.5h4.5"/></svg>
+      </div>
+      <div style="display: flex; align-items: center; gap: 7px; background: #FFC94A; border-radius: 99px; padding: 11px 17px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4A3410" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4.5A1.5 1.5 0 017.5 3h9A1.5 1.5 0 0118 4.5V21l-6-4.2L6 21z"/><path d="M10 8.5l4 4M14 8.5l-4 4"/></svg>
+        <div style="font-size: 13.5px; font-weight: 700; color: #4A3410;">错题本</div>
+      </div>
+      <div style="flex-grow: 1; display: flex; justify-content: center; padding: 11px 0;">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#98A6B2" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.8"/><path d="M4.8 20.5c1.2-3.8 4-5.7 7.2-5.7s6 1.9 7.2 5.7"/></svg>
+      </div>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

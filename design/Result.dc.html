@@ -1,0 +1,122 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&display=swap">
+  <style>
+    body { margin: 0; font-family: -apple-system, "PingFang SC", "Noto Sans SC", system-ui, sans-serif; }
+    a { color: #1B8FD1; } a:hover { color: #146FA4; }
+    .num { font-family: "Outfit", -apple-system, system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+  </style>
+</helmet>
+
+<!--
+  交卷结果。分数只是入口，真正有用的是「哪一道最贵」和「下一步练什么」，
+  所以底部两个按钮直接指向动作，不是"确定"。
+-->
+<div style="width: 390px; height: 844px; background: #F2F8FC; color: #16232E; display: flex; flex-direction: column; overflow: hidden;">
+
+  <div style="height: 26px;"></div>
+
+  <div style="display: flex; align-items: center; padding: 0 20px;">
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#16232E" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    <div style="flex-grow: 1;"></div>
+    <div style="font-size: 13px; font-weight: 600; color: #1B8FD1;">全部解析</div>
+  </div>
+
+  <div style="height: 26px;"></div>
+
+  <!-- 成绩卡 -->
+  <div style="margin: 0 20px; background: #FFFFFF; border-radius: 26px; padding: 24px 22px; box-shadow: 0 14px 30px rgba(22,60,90,0.10);">
+    <div style="font-size: 12px; font-weight: 700; color: #7A8B99; letter-spacing: 1px;">资料分析 · 限时</div>
+
+    <div style="display: flex; align-items: baseline; gap: 8px; margin-top: 12px;">
+      <div class="num" style="font-size: 52px; font-weight: 700; letter-spacing: -2px; line-height: 1;">16</div>
+      <div class="num" style="font-size: 17px; font-weight: 600; color: #7A8B99;">/ 20 题</div>
+      <div style="flex-grow: 1;"></div>
+      <div style="background: #E7F7EF; color: #0E8A5C; border-radius: 99px; padding: 6px 13px; font-size: 12.5px; font-weight: 700;">比上次 +2</div>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 20px; margin-top: 18px;">
+      <svg width="104" height="104" viewBox="0 0 112 112" style="flex-shrink: 0;">
+        <g stroke="#DCE6EE" stroke-width="2" stroke-linecap="round"><path d="M56 8v6M56 98v6M8 56h6M98 56h6"/></g>
+        <g stroke="#E8EFF4" stroke-width="1.6" stroke-linecap="round"><path d="M22.1 22.1l4.3 4.3M85.6 85.6l4.3 4.3M89.9 22.1l-4.3 4.3M26.4 85.6l-4.3 4.3"/></g>
+        <circle cx="56" cy="56" r="38" fill="none" stroke="#EAF2F7" stroke-width="8"/>
+        <circle cx="56" cy="56" r="38" fill="none" stroke="#12A06B" stroke-width="8" stroke-linecap="round" stroke-dasharray="238.8" stroke-dashoffset="47.8" transform="rotate(-90 56 56)"/>
+        <text x="56" y="53" text-anchor="middle" font-family="Outfit, system-ui" font-size="26" font-weight="700" fill="#16232E">80</text>
+        <text x="56" y="70" text-anchor="middle" font-family="Outfit, system-ui" font-size="11" fill="#98A6B2">%</text>
+      </svg>
+      <div style="flex-grow: 1;">
+        <div class="num" style="font-size: 19px; font-weight: 700; line-height: 1;">23:41</div>
+        <div style="font-size: 11px; color: #7A8B99; margin-top: 5px;">用时</div>
+        <div class="num" style="font-size: 19px; font-weight: 700; line-height: 1; margin-top: 14px;">71s</div>
+        <div style="font-size: 11px; color: #7A8B99; margin-top: 5px;">每题均速</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="height: 30px;"></div>
+
+  <!-- 最该记住的一条 -->
+  <div style="padding: 0 20px;">
+    <div style="font-size: 17px; font-weight: 700; letter-spacing: -0.3px;">今天最贵的一道</div>
+  </div>
+  <div style="height: 11px;"></div>
+
+  <div style="margin: 0 20px; background: #FFF6E0; border-radius: 22px; padding: 18px;">
+    <div style="font-size: 14.5px; line-height: 1.75; color: #4A3410;">第 12 题 · 年均增长率忘了开方，直接除了年数。</div>
+    <div class="num" style="font-size: 12px; color: #96792F; margin-top: 8px;">这是本周第 3 次犯同一个错</div>
+    <div style="display: flex; gap: 8px; margin-top: 14px;">
+      <div style="background: #FFC94A; color: #4A3410; border-radius: 99px; padding: 9px 17px; font-size: 13px; font-weight: 700;">专攻这个错因</div>
+      <div style="background: #FFFFFF; color: #5B6E7D; border-radius: 99px; padding: 9px 17px; font-size: 13px; font-weight: 600;">看这道题</div>
+    </div>
+  </div>
+
+  <div style="height: 30px;"></div>
+
+  <!-- 答题卡 -->
+  <div style="padding: 0 20px; display: flex; align-items: baseline;">
+    <div style="font-size: 17px; font-weight: 700; letter-spacing: -0.3px;">答题卡</div>
+    <div class="num" style="font-size: 12.5px; color: #7A8B99; margin-left: 9px;">错 4 题</div>
+  </div>
+  <div style="height: 11px;"></div>
+
+  <div style="margin: 0 20px; background: #FFFFFF; border-radius: 22px; padding: 16px; box-shadow: 0 10px 24px rgba(22,60,90,0.07); display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 8px;">
+    <div class="num" style="aspect-ratio: 1; border-radius: 9px; background: #E7F7EF; color: #0E8A5C; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;">1</div>
+    <div class="num" style="aspect-ratio: 1; border-radius: 9px; background: #E7F7EF; color: #0E8A5C; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;">2</div>
+    <div class="num" style="aspect-ratio: 1; border-radius: 9px; background: #FDEAE8; color: #C6362B; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;">3</div>
+    <div class="num" style="aspect-ratio: 1; border-radius: 9px; background: #E7F7EF; color: #0E8A5C; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;">4</div>
+    <div class="num" style="aspect-ratio: 1; border-radius: 9px; background: #E7F7EF; color: #0E8A5C; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;">5</div>
+    <div class="num" style="aspect-ratio: 1; border-radius: 9px; background: #E7F7EF; color: #0E8A5C; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;">6</div>
+    <div class="num" style="aspect-ratio: 1; border-radius: 9px; background: #FDEAE8; color: #C6362B; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;">7</div>
+    <div class="num" style="aspect-ratio: 1; border-radius: 9px; background: #E7F7EF; color: #0E8A5C; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;">8</div>
+    <div class="num" style="aspect-ratio: 1; border-radius: 9px; background: #E7F7EF; color: #0E8A5C; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;">9</div>
+    <div class="num" style="aspect-ratio: 1; border-radius: 9px; background: #E7F7EF; color: #0E8A5C; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;">10</div>
+    <div class="num" style="aspect-ratio: 1; border-radius: 9px; background: #E7F7EF; color: #0E8A5C; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;">11</div>
+    <div class="num" style="aspect-ratio: 1; border-radius: 9px; background: #FDEAE8; color: #C6362B; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;">12</div>
+    <div class="num" style="aspect-ratio: 1; border-radius: 9px; background: #E7F7EF; color: #0E8A5C; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;">13</div>
+    <div class="num" style="aspect-ratio: 1; border-radius: 9px; background: #E7F7EF; color: #0E8A5C; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;">14</div>
+    <div class="num" style="aspect-ratio: 1; border-radius: 9px; background: #E7F7EF; color: #0E8A5C; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;">15</div>
+    <div class="num" style="aspect-ratio: 1; border-radius: 9px; background: #FDEAE8; color: #C6362B; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;">16</div>
+    <div class="num" style="aspect-ratio: 1; border-radius: 9px; background: #E7F7EF; color: #0E8A5C; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;">17</div>
+    <div class="num" style="aspect-ratio: 1; border-radius: 9px; background: #E7F7EF; color: #0E8A5C; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;">18</div>
+    <div class="num" style="aspect-ratio: 1; border-radius: 9px; background: #E7F7EF; color: #0E8A5C; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;">19</div>
+    <div class="num" style="aspect-ratio: 1; border-radius: 9px; background: #E7F7EF; color: #0E8A5C; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;">20</div>
+  </div>
+
+  <div style="flex-grow: 1;"></div>
+
+  <div style="padding: 0 20px 30px 20px; display: flex; gap: 11px;">
+    <div style="flex-grow: 1; background: #FFFFFF; color: #4A5866; border-radius: 99px; padding: 16px; text-align: center; font-size: 15px; font-weight: 600; box-shadow: 0 6px 16px rgba(22,60,90,0.06);">看 4 道错题</div>
+    <div style="flex-grow: 1; background: #FFC94A; color: #4A3410; border-radius: 99px; padding: 16px; text-align: center; font-size: 15px; font-weight: 700; box-shadow: 0 8px 20px rgba(255,201,74,0.40);">继续下一桨</div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

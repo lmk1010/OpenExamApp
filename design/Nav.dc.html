@@ -1,0 +1,144 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; font-family: -apple-system, "PingFang SC", "Noto Sans SC", system-ui, sans-serif; }
+    a { color: #1668D6; } a:hover { color: #0F4FA3; }
+  </style>
+</helmet>
+
+<!--
+  组件规范表。四个图标同一套：24 网格、1.8 描边、圆头圆角、视觉重量一致。
+  选中态不靠变色，靠升级成一个实心圆 —— 变色在小尺寸下太弱。
+-->
+<div style="width: 820px; background: #FFFFFF; color: #1B1B23; padding: 30px;">
+
+  <div style="font-size: 20px; font-weight: 700; letter-spacing: -0.4px;">导航与按钮</div>
+  <div style="font-size: 13px; color: #4A4A57; margin-top: 6px;">上一版这两处最不协调：图标粗细体量各不相同，按钮混用三种圆角。</div>
+
+  <!-- 底部导航 -->
+  <div style="font-size: 14px; font-weight: 700; margin-top: 26px;">底部导航 · 浅色</div>
+  <div style="margin-top: 10px; width: 390px; background: #FFFFFF; border: 1px solid #E3E4F0; border-radius: 18px; display: flex; padding: 8px 0 14px 0;">
+
+    <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; gap: 6px;">
+      <div style="width: 44px; height: 44px; border-radius: 99px; background: #1668D6; display: flex; align-items: center; justify-content: center;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18.2c1.5.9 3 .9 4.5 0s3-.9 4.5 0 3 .9 4.5 0"/><path d="M17.5 4.5L9 13"/><path d="M18.8 3.2a1.8 1.8 0 010 2.6l-1.3 1.3-2.6-2.6 1.3-1.3a1.8 1.8 0 012.6 0z"/><path d="M9 13l-2.4.6.6-2.4"/></svg>
+      </div>
+      <div style="font-size: 11px; font-weight: 600; color: #1668D6;">练习</div>
+    </div>
+
+    <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; gap: 6px;">
+      <div style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9394A6" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 5.5A2.5 2.5 0 017 3h12.5v18H7a2.5 2.5 0 01-2.5-2.5z"/><path d="M8.5 8h7M8.5 11.5h4.5"/></svg>
+      </div>
+      <div style="font-size: 11px; color: #9394A6;">题库</div>
+    </div>
+
+    <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; gap: 6px;">
+      <div style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9394A6" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4.5A1.5 1.5 0 017.5 3h9A1.5 1.5 0 0118 4.5V21l-6-4.2L6 21z"/><path d="M10 8.5l4 4M14 8.5l-4 4"/></svg>
+      </div>
+      <div style="font-size: 11px; color: #9394A6;">错题本</div>
+    </div>
+
+    <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; gap: 6px;">
+      <div style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9394A6" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.8"/><path d="M4.8 20.5c1.2-3.8 4-5.7 7.2-5.7s6 1.9 7.2 5.7"/></svg>
+      </div>
+      <div style="font-size: 11px; color: #9394A6;">我的</div>
+    </div>
+  </div>
+
+  <div style="font-size: 12px; color: #9394A6; margin-top: 8px;">选中项 44 圆填充 · 图标 22 · 标签 11 · 条高 74（含安全区再加 22）</div>
+
+  <!-- 深色 -->
+  <div style="font-size: 14px; font-weight: 700; margin-top: 24px;">底部导航 · 深色</div>
+  <div style="margin-top: 10px; width: 390px; background: #1C212B; border-radius: 18px; display: flex; padding: 8px 0 14px 0;">
+    <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; gap: 6px;">
+      <div style="width: 44px; height: 44px; border-radius: 99px; background: #5C9DFF; display: flex; align-items: center; justify-content: center;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0F1116" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18.2c1.5.9 3 .9 4.5 0s3-.9 4.5 0 3 .9 4.5 0"/><path d="M17.5 4.5L9 13"/><path d="M18.8 3.2a1.8 1.8 0 010 2.6l-1.3 1.3-2.6-2.6 1.3-1.3a1.8 1.8 0 012.6 0z"/><path d="M9 13l-2.4.6.6-2.4"/></svg>
+      </div>
+      <div style="font-size: 11px; font-weight: 600; color: #5C9DFF;">练习</div>
+    </div>
+    <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; gap: 6px;">
+      <div style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#858A99" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 5.5A2.5 2.5 0 017 3h12.5v18H7a2.5 2.5 0 01-2.5-2.5z"/><path d="M8.5 8h7M8.5 11.5h4.5"/></svg>
+      </div>
+      <div style="font-size: 11px; color: #858A99;">题库</div>
+    </div>
+    <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; gap: 6px;">
+      <div style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#858A99" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4.5A1.5 1.5 0 017.5 3h9A1.5 1.5 0 0118 4.5V21l-6-4.2L6 21z"/><path d="M10 8.5l4 4M14 8.5l-4 4"/></svg>
+      </div>
+      <div style="font-size: 11px; color: #858A99;">错题本</div>
+    </div>
+    <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; gap: 6px;">
+      <div style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#858A99" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.8"/><path d="M4.8 20.5c1.2-3.8 4-5.7 7.2-5.7s6 1.9 7.2 5.7"/></svg>
+      </div>
+      <div style="font-size: 11px; color: #858A99;">我的</div>
+    </div>
+  </div>
+
+  <!-- 按钮：一律 pill -->
+  <div style="font-size: 14px; font-weight: 700; margin-top: 28px;">按钮 · 一律全圆角</div>
+  <div style="font-size: 12px; color: #9394A6; margin-top: 4px;">上一版混用了 pill、14 圆角矩形和 44 圆形三种，放在一屏里就散了。</div>
+
+  <div style="display: flex; gap: 16px; margin-top: 14px; align-items: flex-end;">
+    <div style="width: 220px;">
+      <div style="background: #1668D6; color: #FFFFFF; border-radius: 99px; padding: 16px; text-align: center; font-size: 16px; font-weight: 700;">开始练习</div>
+      <div style="font-size: 11px; color: #9394A6; margin-top: 6px;">主 · 高 52 · 全宽</div>
+    </div>
+    <div style="width: 150px;">
+      <div style="background: #FFFFFF; border: 1.5px solid #D5D7E6; color: #4A4A57; border-radius: 99px; padding: 13px; text-align: center; font-size: 14.5px; font-weight: 600;">看复盘</div>
+      <div style="font-size: 11px; color: #9394A6; margin-top: 6px;">次 · 高 46</div>
+    </div>
+    <div style="width: 110px;">
+      <div style="background: #F4D98B; color: #2A2018; border-radius: 99px; padding: 10px; text-align: center; font-size: 13px; font-weight: 700;">继续</div>
+      <div style="font-size: 11px; color: #9394A6; margin-top: 6px;">卡内小按钮 · 高 38</div>
+    </div>
+    <div style="width: 120px;">
+      <div style="background: #E4EFFC; color: #1668D6; border-radius: 99px; padding: 8px 14px; text-align: center; font-size: 13px; font-weight: 700;">全部 161</div>
+      <div style="font-size: 11px; color: #9394A6; margin-top: 6px;">筛选 chip · 高 32</div>
+    </div>
+  </div>
+
+  <!-- 圆形分类 chip -->
+  <div style="font-size: 14px; font-weight: 700; margin-top: 28px;">分类 chip · 圆形，标签在圆外</div>
+  <div style="display: flex; gap: 16px; margin-top: 12px;">
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 7px;">
+      <div style="width: 54px; height: 54px; border-radius: 99px; background: #1668D6; display: flex; align-items: center; justify-content: center;">
+        <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.9" stroke-linecap="round"><path d="M4 12h16M12 4v16"/></svg>
+      </div>
+      <div style="font-size: 11.5px; font-weight: 600;">全部</div>
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 7px;">
+      <div style="width: 54px; height: 54px; border-radius: 99px; background: #ECEEF5; display: flex; align-items: center; justify-content: center;">
+        <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#6E7385" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V4h9l.6 2H20v8h-6l-.6-2H5"/></svg>
+      </div>
+      <div style="font-size: 11.5px; color: #6E7385;">存疑</div>
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 7px;">
+      <div style="width: 54px; height: 54px; border-radius: 99px; background: #ECEEF5; display: flex; align-items: center; justify-content: center;">
+        <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#6E7385" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.6"/><path d="M12 7.4V12l3.2 2"/></svg>
+      </div>
+      <div style="font-size: 11.5px; color: #6E7385;">限时</div>
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 7px;">
+      <div style="width: 54px; height: 54px; border-radius: 99px; background: #ECEEF5; display: flex; align-items: center; justify-content: center;">
+        <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#6E7385" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4.5A1.5 1.5 0 017.5 3h9A1.5 1.5 0 0118 4.5V21l-6-4.2L6 21z"/></svg>
+      </div>
+      <div style="font-size: 11.5px; color: #6E7385;">收藏</div>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

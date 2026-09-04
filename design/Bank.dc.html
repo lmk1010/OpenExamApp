@@ -1,0 +1,152 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&display=swap">
+  <style>
+    body { margin: 0; font-family: -apple-system, "PingFang SC", "Noto Sans SC", system-ui, sans-serif; }
+    a { color: #1B8FD1; } a:hover { color: #0F4FA3; }
+    .num { font-family: "Outfit", -apple-system, system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+  </style>
+</helmet>
+
+<div style="width: 390px; height: 844px; background: #F2F8FC; color: #16232E; display: flex; flex-direction: column; overflow: hidden;">
+
+  <div style="height: 36px;"></div>
+  <div style="display: flex; align-items: center; padding: 0 20px;">
+    <div style="flex-grow: 1;">
+      <div style="font-size: 28px; font-weight: 700; letter-spacing: -0.8px; line-height: 1.1;">题库</div>
+      <div class="num" style="font-size: 13px; color: #7A8B99; margin-top: 5px;">161 套真题卷 · 18 686 题</div>
+    </div>
+    <div style="font-size: 12.5px; font-weight: 600; color: #1B8FD1;">历史</div>
+  </div>
+  <div style="height: 20px;"></div>
+
+  <!-- 搜索 -->
+  <div style="margin: 0 20px; background: #FFFFFF; border-radius: 99px; padding: 13px 18px; display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 24px rgba(22,60,90,0.06);">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#7A8B99" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+    <div style="font-size: 14px; color: #7A8B99;">搜年份、省份、卷名</div>
+  </div>
+
+  <!-- 地区：最常用的一层筛选摊在页面上 -->
+  <div style="display: flex; gap: 7px; padding: 16px 20px 0 20px; overflow: hidden;">
+    <div class="num" style="background: #1B8FD1; color: #FFFFFF; font-size: 13px; font-weight: 700; padding: 7px 13px; border-radius: 99px; white-space: nowrap;">全部 161</div>
+    <div class="num" style="background: #FFFFFF; color: #4A5866; font-size: 13px; padding: 7px 13px; border-radius: 99px; white-space: nowrap;">国考 15</div>
+    <div class="num" style="background: #FFFFFF; color: #4A5866; font-size: 13px; padding: 7px 13px; border-radius: 99px; white-space: nowrap;">浙江 13</div>
+    <div class="num" style="background: #FFFFFF; color: #4A5866; font-size: 13px; padding: 7px 13px; border-radius: 99px; white-space: nowrap;">江苏 9</div>
+    <div class="num" style="background: #FFFFFF; color: #4A5866; font-size: 13px; padding: 7px 13px; border-radius: 99px; white-space: nowrap;">联考</div>
+  </div>
+
+  <!-- 次级筛选 -->
+  <div style="display: flex; gap: 7px; padding: 10px 20px 0 20px;">
+    <div style="display: flex; align-items: center; gap: 5px; background: #FFFFFF; color: #4A5866; font-size: 12.5px; padding: 6px 11px; border-radius: 99px;">年份
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#7A8B99" stroke-width="2.4" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+    <div style="display: flex; align-items: center; gap: 5px; background: #FFFFFF; color: #4A5866; font-size: 12.5px; padding: 6px 11px; border-radius: 99px;">状态
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#7A8B99" stroke-width="2.4" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+    <div style="display: flex; align-items: center; gap: 5px; background: #FFFFFF; color: #4A5866; font-size: 12.5px; padding: 6px 11px; border-radius: 99px;">排序
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#7A8B99" stroke-width="2.4" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+  </div>
+
+  <div style="display: flex; align-items: baseline; gap: 8px; padding: 30px 20px 11px 20px;">
+    <div class="num" style="font-size: 16px; font-weight: 700;">2026 年</div>
+    <div class="num" style="font-size: 12.5px; color: #7A8B99;">37 套</div>
+  </div>
+
+  <!-- 卷列表：进度是主角，卷名是次角 -->
+  <div style="margin: 0 20px; display: flex; flex-direction: column; gap: 10px;">
+
+    <div style="background: #FFFFFF; border-radius: 16px; padding: 14px; box-shadow: 0 10px 24px rgba(22,60,90,0.06); display: flex; align-items: center; gap: 13px;">
+      <div style="width: 3px; height: 40px; border-radius: 99px; background: #109C93;"></div>
+      <div style="flex-grow: 1;">
+        <div style="font-size: 14.5px; font-weight: 600; line-height: 1.35;">全国联考 A 类《职业能力倾向测验》</div>
+        <div style="display: flex; align-items: center; gap: 7px; margin-top: 6px;">
+          <div style="background: #E0F3F1; color: #109C93; font-size: 10.5px; font-weight: 600; padding: 2px 7px; border-radius: 5px;">联考</div>
+          <div class="num" style="font-size: 11.5px; color: #1B8FD1; font-weight: 600;">62 / 100 题</div>
+        </div>
+      </div>
+      <div class="num" style="font-size: 17px; font-weight: 700; color: #1B8FD1;">62%</div>
+    </div>
+
+    <div style="background: #FFFFFF; border-radius: 16px; padding: 14px; box-shadow: 0 10px 24px rgba(22,60,90,0.06); display: flex; align-items: center; gap: 13px;">
+      <div style="width: 3px; height: 40px; border-radius: 99px; background: #109C93;"></div>
+      <div style="flex-grow: 1;">
+        <div style="font-size: 14.5px; font-weight: 600; line-height: 1.35;">全国联考 B 类《职业能力倾向测验》</div>
+        <div style="display: flex; align-items: center; gap: 7px; margin-top: 6px;">
+          <div style="background: #E0F3F1; color: #109C93; font-size: 10.5px; font-weight: 600; padding: 2px 7px; border-radius: 5px;">联考</div>
+          <div class="num" style="font-size: 11.5px; color: #7A8B99;">100 题</div>
+        </div>
+      </div>
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#B7C6D1" stroke-width="2" stroke-linecap="round"><path d="M10 6l6 6-6 6"/></svg>
+    </div>
+
+    <div style="background: #FFFFFF; border-radius: 16px; padding: 14px; box-shadow: 0 10px 24px rgba(22,60,90,0.06); display: flex; align-items: center; gap: 13px;">
+      <div style="width: 3px; height: 40px; border-radius: 99px; background: #1E74D8;"></div>
+      <div style="flex-grow: 1;">
+        <div style="font-size: 14.5px; font-weight: 600; line-height: 1.35;">上海公务员录用考试《行测》</div>
+        <div style="display: flex; align-items: center; gap: 7px; margin-top: 6px;">
+          <div style="background: #E3F2FA; color: #1E74D8; font-size: 10.5px; font-weight: 600; padding: 2px 7px; border-radius: 5px;">上海</div>
+          <div class="num" style="font-size: 11.5px; color: #7A8B99;">128 题</div>
+        </div>
+      </div>
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#B7C6D1" stroke-width="2" stroke-linecap="round"><path d="M10 6l6 6-6 6"/></svg>
+    </div>
+
+    <div style="background: #FFFFFF; border-radius: 16px; padding: 14px; box-shadow: 0 10px 24px rgba(22,60,90,0.06); display: flex; align-items: center; gap: 13px;">
+      <div style="width: 3px; height: 40px; border-radius: 99px; background: #1E74D8;"></div>
+      <div style="flex-grow: 1;">
+        <div style="font-size: 14.5px; font-weight: 600; line-height: 1.35;">云南公务员录用考试《行测》</div>
+        <div style="display: flex; align-items: center; gap: 7px; margin-top: 6px;">
+          <div style="background: #E3F2FA; color: #1E74D8; font-size: 10.5px; font-weight: 600; padding: 2px 7px; border-radius: 5px;">云南</div>
+          <div class="num" style="font-size: 11.5px; color: #7A8B99;">110 题</div>
+        </div>
+      </div>
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#B7C6D1" stroke-width="2" stroke-linecap="round"><path d="M10 6l6 6-6 6"/></svg>
+    </div>
+
+    <div style="background: #FFFFFF; border-radius: 16px; padding: 14px; box-shadow: 0 10px 24px rgba(22,60,90,0.06); display: flex; align-items: center; gap: 13px;">
+      <div style="width: 3px; height: 40px; border-radius: 99px; background: #D9506F;"></div>
+      <div style="flex-grow: 1;">
+        <div style="font-size: 14.5px; font-weight: 600; line-height: 1.35;">国家公务员录用考试《行测》副省级</div>
+        <div style="display: flex; align-items: center; gap: 7px; margin-top: 6px;">
+          <div style="background: #FBE7EC; color: #D9506F; font-size: 10.5px; font-weight: 600; padding: 2px 7px; border-radius: 5px;">国考</div>
+          <div class="num" style="font-size: 11.5px; color: #7A8B99;">135 题</div>
+        </div>
+      </div>
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#B7C6D1" stroke-width="2" stroke-linecap="round"><path d="M10 6l6 6-6 6"/></svg>
+    </div>
+
+  </div>
+
+  <div style="flex-grow: 1;"></div>
+
+  <!-- 定制 tabbar：悬浮白色药丸条，选中项是图标+文字的黄色药丸 -->
+  <div style="padding: 0 18px 26px 18px;">
+    <div style="background: #FFFFFF; border-radius: 99px; padding: 7px; display: flex; align-items: center; gap: 2px; box-shadow: 0 10px 28px rgba(22,60,90,0.14);">
+      <div style="flex-grow: 1; display: flex; justify-content: center; padding: 11px 0;">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#98A6B2" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18.2c1.5.9 3 .9 4.5 0s3-.9 4.5 0 3 .9 4.5 0"/><path d="M17.5 4.5L9 13"/><path d="M18.8 3.2a1.8 1.8 0 010 2.6l-1.3 1.3-2.6-2.6 1.3-1.3a1.8 1.8 0 012.6 0z"/><path d="M9 13l-2.4.6.6-2.4"/></svg>
+      </div>
+      <div style="display: flex; align-items: center; gap: 7px; background: #FFC94A; border-radius: 99px; padding: 11px 17px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4A3410" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 5.5A2.5 2.5 0 017 3h12.5v18H7a2.5 2.5 0 01-2.5-2.5z"/><path d="M8.5 8h7M8.5 11.5h4.5"/></svg>
+        <div style="font-size: 13.5px; font-weight: 700; color: #4A3410;">题库</div>
+      </div>
+      <div style="flex-grow: 1; display: flex; justify-content: center; padding: 11px 0;">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#98A6B2" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4.5A1.5 1.5 0 017.5 3h9A1.5 1.5 0 0118 4.5V21l-6-4.2L6 21z"/><path d="M10 8.5l4 4M14 8.5l-4 4"/></svg>
+      </div>
+      <div style="flex-grow: 1; display: flex; justify-content: center; padding: 11px 0;">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#98A6B2" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.8"/><path d="M4.8 20.5c1.2-3.8 4-5.7 7.2-5.7s6 1.9 7.2 5.7"/></svg>
+      </div>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

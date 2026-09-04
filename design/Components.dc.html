@@ -1,0 +1,179 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&display=swap">
+  <style>
+    body { margin: 0; font-family: -apple-system, "PingFang SC", "Noto Sans SC", system-ui, sans-serif; }
+    a { color: #1B8FD1; } a:hover { color: #146FA4; }
+    .num { font-family: "Outfit", -apple-system, system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+    .cap { font-size: 11.5px; color: #7A8B99; margin-top: 9px; line-height: 1.6; }
+    .h { font-size: 14px; font-weight: 700; }
+  </style>
+</helmet>
+
+<div style="width: 860px; background: #FFFFFF; color: #16232E; padding: 32px;">
+
+  <div style="font-size: 22px; font-weight: 700; letter-spacing: -0.5px;">定制组件</div>
+  <div style="font-size: 13px; color: #4A5866; line-height: 1.7; margin-top: 8px; max-width: 580px;">母题不能只停在插图里。进度条、勾选、卡片分隔、分数环这四个每天出现几十次的组件，全部按「上岸」重做 —— 通用圆角矩形谁都有，这几个是我们自己的。</div>
+
+  <!-- ── 1 航迹进度条 ── -->
+  <div style="margin-top: 32px;" class="h">1 · 航迹进度条</div>
+  <div style="display: flex; gap: 40px; align-items: flex-start; margin-top: 14px;">
+
+    <div>
+      <svg width="310" height="34" viewBox="0 0 310 34">
+        <!-- 未走的航段：淡虚线 -->
+        <path d="M8 22 Q 48 14 88 22 T 168 22 T 248 22 T 302 20" fill="none" stroke="#DCE6EE" stroke-width="3" stroke-linecap="round" stroke-dasharray="1 7"/>
+        <!-- 已走的航段：实线 + 尾流点 -->
+        <path d="M8 22 Q 48 14 88 22 T 130 20" fill="none" stroke="#FFC94A" stroke-width="3.4" stroke-linecap="round"/>
+        <circle cx="18" cy="20.5" r="1.6" fill="#FFC94A" opacity="0.5"/>
+        <circle cx="34" cy="18.4" r="1.6" fill="#FFC94A" opacity="0.65"/>
+        <circle cx="52" cy="17.8" r="1.6" fill="#FFC94A" opacity="0.8"/>
+        <!-- 船：航迹末端 -->
+        <g transform="translate(130 20)">
+          <path d="M-8 2 L8 2 L5.5 7 L-5.5 7 Z" fill="#4A3410"/>
+          <path d="M0 2 L0 -9 L7 -2 L0 -2" fill="#FFC94A" stroke="#4A3410" stroke-width="1.2" stroke-linejoin="round"/>
+        </g>
+        <!-- 灯塔：终点 -->
+        <g transform="translate(298 22)">
+          <path d="M-3.4 0 L-2.2 -13 L2.2 -13 L3.4 0 Z" fill="#B7C6D1"/>
+          <rect x="-2.8" y="-17" width="5.6" height="4.2" rx="1.2" fill="#FFC94A"/>
+        </g>
+      </svg>
+      <div class="cap">首页今日进度 · 五座岛完成度 · 成就<br>船停在当前位置，尾流点提示"已经划过"，终点是灯塔</div>
+    </div>
+
+    <div>
+      <svg width="310" height="34" viewBox="0 0 310 34">
+        <path d="M8 22 Q 48 14 88 22 T 168 22 T 248 22 T 302 20" fill="none" stroke="#DCE6EE" stroke-width="3" stroke-linecap="round" stroke-dasharray="1 7"/>
+        <path d="M8 22 Q 48 14 88 22 T 168 22 T 248 22 T 296 20" fill="none" stroke="#12A06B" stroke-width="3.4" stroke-linecap="round"/>
+        <g transform="translate(298 22)">
+          <path d="M-3.4 0 L-2.2 -13 L2.2 -13 L3.4 0 Z" fill="#12A06B"/>
+          <rect x="-2.8" y="-17" width="5.6" height="4.2" rx="1.2" fill="#FFC94A"/>
+          <circle cx="0" cy="-15" r="7" fill="#FFC94A" opacity="0.28"/>
+        </g>
+      </svg>
+      <div class="cap">走满时航线转绿，灯塔亮起一圈光晕</div>
+    </div>
+  </div>
+
+  <!-- ── 2 救生圈勾选 ── -->
+  <div style="margin-top: 34px;" class="h">2 · 救生圈勾选</div>
+  <div style="display: flex; gap: 34px; align-items: flex-start; margin-top: 14px;">
+
+    <div>
+      <div style="display: flex; gap: 16px; align-items: center;">
+        <svg width="26" height="26" viewBox="0 0 26 26">
+          <circle cx="13" cy="13" r="10" fill="none" stroke="#D3DDE5" stroke-width="3"/>
+          <g stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round">
+            <path d="M13 3v4M13 19v4M3 13h4M19 13h4"/>
+          </g>
+        </svg>
+        <svg width="26" height="26" viewBox="0 0 26 26">
+          <circle cx="13" cy="13" r="10" fill="none" stroke="#FFC94A" stroke-width="3"/>
+          <g stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round">
+            <path d="M13 3v4M13 19v4M3 13h4M19 13h4"/>
+          </g>
+          <circle cx="13" cy="13" r="4.4" fill="#FFC94A"/>
+        </svg>
+        <svg width="26" height="26" viewBox="0 0 26 26">
+          <circle cx="13" cy="13" r="10" fill="#12A06B"/>
+          <g stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" opacity="0.55">
+            <path d="M13 3v4M13 19v4M3 13h4M19 13h4"/>
+          </g>
+          <path d="M9 13.4l2.7 2.7L17.2 10" fill="none" stroke="#FFFFFF" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="cap">未开始 / 进行中 / 已完成<br>四道白色开口是救生圈的绑绳，通用打勾圈没有这个</div>
+    </div>
+
+    <div>
+      <div style="display: flex; gap: 16px; align-items: center;">
+        <svg width="26" height="26" viewBox="0 0 26 26">
+          <circle cx="13" cy="13" r="10" fill="#FDEFEC"/>
+          <circle cx="13" cy="13" r="10" fill="none" stroke="#E2483D" stroke-width="2.4"/>
+          <path d="M9.6 9.6l6.8 6.8M16.4 9.6l-6.8 6.8" stroke="#E2483D" stroke-width="2.3" stroke-linecap="round"/>
+        </svg>
+        <svg width="26" height="26" viewBox="0 0 26 26">
+          <circle cx="13" cy="13" r="10" fill="none" stroke="#D3DDE5" stroke-width="3" stroke-dasharray="3 4"/>
+        </svg>
+      </div>
+      <div class="cap">做错 / 已跳过</div>
+    </div>
+  </div>
+
+  <!-- ── 3 水线分隔 ── -->
+  <div style="margin-top: 34px;" class="h">3 · 水线分隔</div>
+  <div style="display: flex; gap: 32px; align-items: flex-start; margin-top: 14px;">
+    <div>
+      <div style="width: 250px; border-radius: 20px; overflow: hidden; background: #FFFFFF; box-shadow: 0 10px 24px rgba(22,60,90,0.10);">
+        <div style="position: relative; height: 100px;">
+          <img src="day_voyage.jpg" style="width: 250px; height: 100px; object-fit: cover; display: block;">
+          <!-- 插画不是被直线切断，是没入水里 -->
+          <svg width="250" height="20" viewBox="0 0 250 20" style="position: absolute; left: 0; bottom: -1px; display: block;">
+            <path d="M0 12 Q 31 2 62 12 T 125 12 T 188 12 T 250 12 L250 20 L0 20 Z" fill="#FFFFFF"/>
+          </svg>
+        </div>
+        <div style="padding: 12px 16px 16px 16px;">
+          <div style="font-size: 14.5px; font-weight: 700;">今日航程</div>
+          <div class="num" style="font-size: 11.5px; color: #98A6B2; margin-top: 3px;">12 / 30</div>
+        </div>
+      </div>
+      <div class="cap">图文交界处是一道波浪，插画没入水里，<br>不是被一条直线硬切</div>
+    </div>
+
+    <div>
+      <div style="width: 250px; height: 1px; margin-top: 40px;"></div>
+      <svg width="250" height="12" viewBox="0 0 250 12">
+        <path d="M0 6 Q 15.6 1 31 6 T 62 6 T 94 6 T 125 6 T 156 6 T 188 6 T 219 6 T 250 6" fill="none" stroke="#DCE6EE" stroke-width="1.6"/>
+      </svg>
+      <div class="cap">列表里的分隔线也是水波，不是直线</div>
+    </div>
+  </div>
+
+  <!-- ── 4 罗盘分数环 ── -->
+  <div style="margin-top: 34px;" class="h">4 · 罗盘分数环</div>
+  <div style="display: flex; gap: 34px; align-items: flex-start; margin-top: 14px;">
+    <div>
+      <svg width="112" height="112" viewBox="0 0 112 112">
+        <!-- 刻度：一圈短线，罗盘的度盘 -->
+        <g stroke="#DCE6EE" stroke-width="2" stroke-linecap="round">
+          <path d="M56 8v6M56 98v6M8 56h6M98 56h6"/>
+        </g>
+        <g stroke="#E8EFF4" stroke-width="1.6" stroke-linecap="round">
+          <path d="M22.1 22.1l4.3 4.3M85.6 85.6l4.3 4.3M89.9 22.1l-4.3 4.3M26.4 85.6l-4.3 4.3"/>
+        </g>
+        <circle cx="56" cy="56" r="38" fill="none" stroke="#EAF2F7" stroke-width="8"/>
+        <circle cx="56" cy="56" r="38" fill="none" stroke="#FFC94A" stroke-width="8" stroke-linecap="round"
+                stroke-dasharray="238.8" stroke-dashoffset="47.8" transform="rotate(-90 56 56)"/>
+        <text x="56" y="53" text-anchor="middle" font-family="Outfit, system-ui" font-size="26" font-weight="700" fill="#16232E">80</text>
+        <text x="56" y="70" text-anchor="middle" font-family="Outfit, system-ui" font-size="11" fill="#98A6B2">%</text>
+      </svg>
+      <div class="cap">交卷结果 · 统计<br>外圈四个主刻度 + 四个副刻度是罗盘度盘</div>
+    </div>
+
+    <div>
+      <svg width="112" height="112" viewBox="0 0 112 112">
+        <g stroke="#DCE6EE" stroke-width="2" stroke-linecap="round">
+          <path d="M56 8v6M56 98v6M8 56h6M98 56h6"/>
+        </g>
+        <circle cx="56" cy="56" r="38" fill="none" stroke="#EAF2F7" stroke-width="8"/>
+        <circle cx="56" cy="56" r="38" fill="none" stroke="#E2483D" stroke-width="8" stroke-linecap="round"
+                stroke-dasharray="238.8" stroke-dashoffset="167" transform="rotate(-90 56 56)"/>
+        <text x="56" y="53" text-anchor="middle" font-family="Outfit, system-ui" font-size="26" font-weight="700" fill="#16232E">30</text>
+        <text x="56" y="70" text-anchor="middle" font-family="Outfit, system-ui" font-size="11" fill="#98A6B2">%</text>
+      </svg>
+      <div class="cap">低分转红，刻度不变</div>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

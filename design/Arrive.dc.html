@@ -1,0 +1,67 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;700&display=swap">
+  <style>
+    body { margin: 0; font-family: -apple-system, "PingFang SC", "Noto Sans SC", system-ui, sans-serif; }
+    a { color: #1B8FD1; } a:hover { color: #146FA4; }
+    .num { font-family: "Outfit", -apple-system, system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+    .serif { font-family: "Noto Serif SC", "Songti SC", serif; }
+  </style>
+</helmet>
+
+<!-- 今日完成。一天里唯一值得给情绪的时刻，所以这一屏可以放开。 -->
+<div style="width: 390px; height: 844px; background: #F2F8FC; color: #16232E; display: flex; flex-direction: column; overflow: hidden; position: relative;">
+
+  <img src="day_arrive.jpg" style="position: absolute; top: 0; left: 0; width: 390px; height: 430px; object-fit: cover;">
+  <div style="position: absolute; top: 230px; left: 0; width: 390px; height: 200px; background: linear-gradient(180deg, rgba(242,248,252,0) 0%, rgba(242,248,252,0.80) 52%, #F2F8FC 100%);"></div>
+
+  <div style="position: relative; height: 400px;"></div>
+
+  <div style="position: relative; padding: 0 34px; text-align: center;">
+    <div class="serif" style="font-size: 29px; font-weight: 700; letter-spacing: 1px;">今天靠岸了</div>
+    <div style="font-size: 14px; color: #6E8091; margin-top: 10px; line-height: 1.8;">第 6 天连着划完。<br>明天这个点，灯塔还在。</div>
+  </div>
+
+  <!-- 今日结算：三个数字 -->
+  <div style="position: relative; margin: 26px 26px 0 26px; background: #FFFFFF; border-radius: 22px; padding: 22px; box-shadow: 0 10px 26px rgba(22,60,90,0.08); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">
+    <div style="text-align: center;">
+      <div class="num" style="font-size: 26px; font-weight: 700; letter-spacing: -1px; line-height: 1;">30</div>
+      <div style="font-size: 11.5px; color: #92A2AF; margin-top: 6px;">今日题量</div>
+    </div>
+    <div style="text-align: center;">
+      <div class="num" style="font-size: 26px; font-weight: 700; letter-spacing: -1px; line-height: 1; color: #12A06B;">80%</div>
+      <div style="font-size: 11.5px; color: #92A2AF; margin-top: 6px;">正确率</div>
+    </div>
+    <div style="text-align: center;">
+      <div class="num" style="font-size: 26px; font-weight: 700; letter-spacing: -1px; line-height: 1;">42</div>
+      <div style="font-size: 11.5px; color: #92A2AF; margin-top: 6px;">分钟</div>
+    </div>
+  </div>
+
+  <!-- 今天最该记住的一条 -->
+  <div style="position: relative; margin: 12px 26px 0 26px; background: #FFF6E0; border-radius: 18px; padding: 16px;">
+    <div style="font-size: 11px; font-weight: 700; color: #B8730F; letter-spacing: 1px;">今天最贵的一道</div>
+    <div style="font-size: 13.5px; line-height: 1.7; color: #4A5866; margin-top: 7px;">资料分析 · 年均增长率忘了开方，直接除了年数。这是本周第 3 次。</div>
+  </div>
+
+  <div style="flex-grow: 1;"></div>
+
+  <div style="position: relative; padding: 0 26px 16px 26px; display: flex; gap: 11px;">
+    <div style="flex-grow: 1; background: #FFFFFF; color: #4A5866; border-radius: 99px; padding: 15px; text-align: center; font-size: 15px; font-weight: 600;">看复盘</div>
+    <div style="flex-grow: 1; background: #FFC94A; color: #4A3410; border-radius: 99px; padding: 15px; text-align: center; font-size: 15px; font-weight: 700;">再划一组</div>
+  </div>
+
+  <div style="position: relative; text-align: center; font-size: 12.5px; color: #92A2AF; padding-bottom: 32px;">离岸还有 43 天</div>
+
+</div>
+</x-dc>
+</body>
+</html>

@@ -1,0 +1,69 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&display=swap">
+  <style>
+    body { margin: 0; font-family: -apple-system, "PingFang SC", "Noto Sans SC", system-ui, sans-serif; }
+    a { color: #1B8FD1; } a:hover { color: #146FA4; }
+    .num { font-family: "Outfit", -apple-system, system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+  </style>
+</helmet>
+
+<!--
+  作答页跟做题页同一个原则：不要氛围。白底、材料在上、答题区在下，
+  中间一条可拖的分隔 —— 写着写着要回头翻材料，固定比例总有一边不够用。
+-->
+<div style="width: 390px; height: 844px; background: #FFFFFF; color: #16232E; display: flex; flex-direction: column; overflow: hidden;">
+
+  <div style="height: 26px;"></div>
+
+  <div style="display: flex; align-items: center; gap: 14px; padding: 0 20px;">
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#16232E" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    <div style="flex-grow: 1; font-size: 14.5px; font-weight: 600;">归纳概括</div>
+    <div class="num" style="background: #EAF2F7; color: #4A5866; font-size: 13px; font-weight: 700; padding: 7px 13px; border-radius: 99px;">12:36</div>
+  </div>
+
+  <div style="height: 18px;"></div>
+
+  <!-- 材料 -->
+  <div style="height: 268px; background: #F7FAFC; padding: 16px 20px; overflow: hidden;">
+    <div class="num" style="font-size: 11px; font-weight: 700; color: #98A6B2; letter-spacing: 1px;">给定材料</div>
+    <div style="font-size: 14px; line-height: 1.95; color: #3A4956; margin-top: 10px;">材料一：某县推行网格化基层治理已满三年。全县划分 486 个网格，配备专职网格员 512 名。三年来，网格员累计上报事件 3.7 万件，办结率 91%。<br><br>但调研发现，网格员日均需填报表格 4 张，用于填报的时间约占工作时长的四成。多位网格员反映，同一件事往往要在三个系统里各录一遍……</div>
+  </div>
+
+  <!-- 可拖的分隔 -->
+  <div style="height: 20px; display: flex; align-items: center; justify-content: center; background: #FFFFFF;">
+    <div style="width: 38px; height: 4px; border-radius: 99px; background: #DCE6EE;"></div>
+  </div>
+
+  <!-- 题干 -->
+  <div style="margin: 0 20px; background: #FFF6E0; border-radius: 16px; padding: 13px 15px;">
+    <div style="font-size: 13.5px; line-height: 1.7; color: #4A3410;">概括该县基层治理存在的问题。要求：全面、准确、有条理，不超过 200 字。</div>
+  </div>
+
+  <div style="height: 14px;"></div>
+
+  <!-- 答题区 -->
+  <div style="flex-grow: 1; padding: 0 20px;">
+    <div style="font-size: 15px; line-height: 2.1; color: #16232E;">一是填报负担重。网格员日均填表 4 张，占工作时长四成，同一事项需在三个系统重复录入。<br>二是<span style="display: inline-block; width: 2px; height: 17px; background: #FFC94A; vertical-align: -3px;"></span></div>
+  </div>
+
+  <div style="padding: 0 20px 26px 20px;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <div class="num" style="font-size: 12.5px; color: #98A6B2;">58 / 200 字</div>
+      <div style="flex-grow: 1;"></div>
+      <div style="background: #EAF2F7; color: #4A5866; border-radius: 99px; padding: 13px 20px; font-size: 14px; font-weight: 600;">存草稿</div>
+      <div style="background: #FFC94A; color: #4A3410; border-radius: 99px; padding: 13px 24px; font-size: 14.5px; font-weight: 700; box-shadow: 0 8px 20px rgba(255,201,74,0.38);">交给 AI 批改</div>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

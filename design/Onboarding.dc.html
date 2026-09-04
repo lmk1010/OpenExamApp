@@ -1,0 +1,61 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&display=swap">
+  <style>
+    body { margin: 0; font-family: -apple-system, "PingFang SC", "Noto Sans SC", system-ui, sans-serif; }
+    a { color: #1B8FD1; } a:hover { color: #146FA4; }
+    .num { font-family: "Outfit", -apple-system, system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+  </style>
+</helmet>
+
+<!--
+  上中下三段，各自有呼吸：标题在上、插画在中、按钮在下。
+  上一版把插画放上面、文字全堆到底部，头重脚轻，视线先撞图再回头找字。
+-->
+<div style="width: 390px; height: 844px; background: #F2F8FC; color: #16232E; display: flex; flex-direction: column; overflow: hidden;">
+
+  <div style="height: 20px;"></div>
+
+  <div style="display: flex; justify-content: flex-end; padding: 0 20px;">
+    <div style="font-size: 13.5px; color: #92A2AF; padding: 8px 4px;">跳过</div>
+  </div>
+
+  <div style="height: 34px;"></div>
+
+  <!-- 上：标题组 -->
+  <div style="padding: 0 40px; text-align: center;">
+    <div style="font-size: 30px; font-weight: 700; letter-spacing: -0.4px; line-height: 1.42;">上岸<br>是划出来的</div>
+    <div style="font-size: 14.5px; line-height: 1.8; color: #6E8091; margin-top: 14px;">18 686 道真题在这台手机里<br>不用登录，没网也能划</div>
+  </div>
+
+  <!-- 中：插画 -->
+  <div style="flex-grow: 1; display: flex; align-items: center; justify-content: center; padding: 0 20px;">
+    <img src="day_start.jpg" style="width: 320px; height: 320px; object-fit: cover; border-radius: 32px;">
+  </div>
+
+  <!-- 下：页码 + 按钮 -->
+  <div style="display: flex; justify-content: center; gap: 7px;">
+    <div style="width: 22px; height: 6px; border-radius: 99px; background: #FFC94A;"></div>
+    <div style="width: 6px; height: 6px; border-radius: 99px; background: #CFDDE7;"></div>
+    <div style="width: 6px; height: 6px; border-radius: 99px; background: #CFDDE7;"></div>
+  </div>
+
+  <div style="height: 26px;"></div>
+
+  <div style="padding: 0 28px;">
+    <div style="background: #FFC94A; color: #4A3410; border-radius: 99px; padding: 17px; text-align: center; font-size: 16.5px; font-weight: 700; letter-spacing: 0.5px; box-shadow: 0 10px 24px rgba(255,201,74,0.42);">出发</div>
+  </div>
+
+  <div style="height: 34px;"></div>
+
+</div>
+</x-dc>
+</body>
+</html>

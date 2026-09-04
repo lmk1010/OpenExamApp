@@ -1,0 +1,133 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&display=swap">
+  <style>
+    body { margin: 0; font-family: -apple-system, "PingFang SC", "Noto Sans SC", system-ui, sans-serif; }
+    a { color: #1B8FD1; } a:hover { color: #146FA4; }
+    .num { font-family: "Outfit", -apple-system, system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+  </style>
+</helmet>
+
+<div style="width: 390px; height: 844px; background: #F2F8FC; color: #16232E; display: flex; flex-direction: column; overflow: hidden;">
+
+  <div style="height: 34px;"></div>
+  <div style="display: flex; align-items: center; padding: 0 20px; gap: 14px;">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#16232E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6"/></svg>
+      <div style="flex-grow: 1;">
+      <div class="num" style="font-size: 11.5px; color: #98A6B2; letter-spacing: 0.6px;">近 30 天</div>
+      <div style="font-size: 26px; font-weight: 700; letter-spacing: -0.7px; line-height: 1.15; margin-top: 4px;">海图</div>
+    </div>
+  </div>
+  <div style="height: 24px;"></div>
+
+  <div style="margin: 0 20px; border-radius: 26px; background: #FFFFFF; box-shadow: 0 14px 30px rgba(22,60,90,0.10);">
+    <div style="position: relative; height: 130px; border-radius: 26px 26px 0 0; overflow: hidden;">
+      <img src="day_chart.jpg" style="width: 350px; height: 130px; object-fit: cover; display: block;">
+      <svg width="350" height="20" viewBox="0 0 350 20" style="position: absolute; left: 0; bottom: -1px; display: block;"><path d="M0 12 Q 43.75 2 87.5 12 T 175 12 T 262.5 12 T 350 12 L350 20 L0 20 Z" fill="#FFFFFF"/></svg>
+    </div>
+    <div style="padding: 20px;">
+      <div style="display: flex; align-items: baseline; gap: 8px;">
+        <div class="num" style="font-size: 42px; font-weight: 700; letter-spacing: -1.4px; line-height: 1;">72%</div>
+        <div style="font-size: 14px; font-weight: 600; color: #98A6B2;">正确率</div>
+      </div>
+      <div class="num" style="font-size: 13px; color: #7A8B99; margin-top: 10px;">比上月高 4 个点</div>
+    </div>
+  </div>
+
+  <div style="height: 32px;"></div>
+
+  <div style="padding: 0 20px;">
+    <div style="font-size: 17px; font-weight: 700; letter-spacing: -0.3px;">各岛正确率</div>
+  </div>
+  <div style="height: 12px;"></div>
+
+  <div style="margin: 0 20px; background: #FFFFFF; border-radius: 22px; padding: 18px 18px 8px 18px; box-shadow: 0 10px 24px rgba(22,60,90,0.07);">
+    <div style="margin-bottom: 16px;">
+      <div style="display: flex; align-items: baseline;">
+        <div style="font-size: 14px; font-weight: 600;">言语理解</div>
+        <div style="flex-grow: 1;"></div>
+        <div class="num" style="font-size: 14px; font-weight: 700; color: #12A06B;">81%</div>
+      </div>
+      <div style="height: 6px; border-radius: 99px; background: #EAF2F7; margin-top: 9px; overflow: hidden; display: flex;">
+        <div style="width: 81%; background: #12A06B; border-radius: 99px;"></div>
+      </div>
+    </div>
+    <div style="margin-bottom: 16px;">
+      <div style="display: flex; align-items: baseline;">
+        <div style="font-size: 14px; font-weight: 600;">判断推理</div>
+        <div style="flex-grow: 1;"></div>
+        <div class="num" style="font-size: 14px; font-weight: 700; color: #12A06B;">74%</div>
+      </div>
+      <div style="height: 6px; border-radius: 99px; background: #EAF2F7; margin-top: 9px; overflow: hidden; display: flex;">
+        <div style="width: 74%; background: #12A06B; border-radius: 99px;"></div>
+      </div>
+    </div>
+    <div style="margin-bottom: 16px;">
+      <div style="display: flex; align-items: baseline;">
+        <div style="font-size: 14px; font-weight: 600;">资料分析</div>
+        <div style="flex-grow: 1;"></div>
+        <div class="num" style="font-size: 14px; font-weight: 700; color: #E0A21E;">68%</div>
+      </div>
+      <div style="height: 6px; border-radius: 99px; background: #EAF2F7; margin-top: 9px; overflow: hidden; display: flex;">
+        <div style="width: 68%; background: #E0A21E; border-radius: 99px;"></div>
+      </div>
+    </div>
+    <div style="margin-bottom: 16px;">
+      <div style="display: flex; align-items: baseline;">
+        <div style="font-size: 14px; font-weight: 600;">常识判断</div>
+        <div style="flex-grow: 1;"></div>
+        <div class="num" style="font-size: 14px; font-weight: 700; color: #E0A21E;">61%</div>
+      </div>
+      <div style="height: 6px; border-radius: 99px; background: #EAF2F7; margin-top: 9px; overflow: hidden; display: flex;">
+        <div style="width: 61%; background: #E0A21E; border-radius: 99px;"></div>
+      </div>
+    </div>
+    <div style="margin-bottom: 16px;">
+      <div style="display: flex; align-items: baseline;">
+        <div style="font-size: 14px; font-weight: 600;">数量关系</div>
+        <div style="flex-grow: 1;"></div>
+        <div class="num" style="font-size: 14px; font-weight: 700; color: #E2483D;">43%</div>
+      </div>
+      <div style="height: 6px; border-radius: 99px; background: #EAF2F7; margin-top: 9px; overflow: hidden; display: flex;">
+        <div style="width: 43%; background: #E2483D; border-radius: 99px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="height: 24px;"></div>
+
+  <div style="margin: 0 20px; background: #FFF6E0; border-radius: 20px; padding: 17px;">
+    <div style="font-size: 11px; font-weight: 700; color: #B8730F; letter-spacing: 0.8px;">这个月的建议</div>
+    <div style="font-size: 13.5px; line-height: 1.7; color: #4A3410; margin-top: 8px;">数量关系拖了后腿，但它只占 15 分。先把资料分析从 68 拉到 80，性价比高得多。</div>
+  </div>
+
+  <div style="flex-grow: 1;"></div>
+  <div style="padding: 0 20px 26px 20px;">
+    <div style="background: #FFFFFF; border-radius: 99px; padding: 7px; display: flex; align-items: center; gap: 2px; box-shadow: 0 10px 28px rgba(22,60,90,0.14);">
+      <div style="flex-grow: 1; display: flex; justify-content: center; padding: 11px 0;">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#98A6B2" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18.2c1.5.9 3 .9 4.5 0s3-.9 4.5 0 3 .9 4.5 0"/><path d="M17.5 4.5L9 13"/><path d="M18.8 3.2a1.8 1.8 0 010 2.6l-1.3 1.3-2.6-2.6 1.3-1.3a1.8 1.8 0 012.6 0z"/><path d="M9 13l-2.4.6.6-2.4"/></svg>
+      </div>
+      <div style="flex-grow: 1; display: flex; justify-content: center; padding: 11px 0;">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#98A6B2" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 5.5A2.5 2.5 0 017 3h12.5v18H7a2.5 2.5 0 01-2.5-2.5z"/><path d="M8.5 8h7M8.5 11.5h4.5"/></svg>
+      </div>
+      <div style="flex-grow: 1; display: flex; justify-content: center; padding: 11px 0;">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#98A6B2" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4.5A1.5 1.5 0 017.5 3h9A1.5 1.5 0 0118 4.5V21l-6-4.2L6 21z"/><path d="M10 8.5l4 4M14 8.5l-4 4"/></svg>
+      </div>
+      <div style="display: flex; align-items: center; gap: 7px; background: #FFC94A; border-radius: 99px; padding: 11px 17px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4A3410" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.8"/><path d="M4.8 20.5c1.2-3.8 4-5.7 7.2-5.7s6 1.9 7.2 5.7"/></svg>
+        <div style="font-size: 13.5px; font-weight: 700; color: #4A3410;">我的</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

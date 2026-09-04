@@ -1,0 +1,101 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&display=swap">
+  <style>
+    body { margin: 0; font-family: -apple-system, "PingFang SC", "Noto Sans SC", system-ui, sans-serif; }
+    a { color: #1B8FD1; } a:hover { color: #146FA4; }
+    .num { font-family: "Outfit", -apple-system, system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+  </style>
+</helmet>
+
+<!--
+  做题页是全屏唯一一个「不要氛围」的地方：没有插画、没有底色，
+  白底加最大的正文，眼睛只需要落在题干和四个选项上。
+-->
+<div style="width: 390px; height: 844px; background: #FFFFFF; color: #16232E; display: flex; flex-direction: column; overflow: hidden;">
+
+  <div style="height: 26px;"></div>
+
+  <!-- 顶栏：退出 · 进度 · 计时 · 两个动作 · 答题卡 -->
+  <div style="display: flex; align-items: center; gap: 14px; padding: 0 20px;">
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#16232E" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    <div style="display: flex; align-items: baseline; gap: 3px;">
+      <div class="num" style="font-size: 18px; font-weight: 700;">7</div>
+      <div class="num" style="font-size: 12.5px; color: #7A8B99;">/ 20</div>
+    </div>
+    <div class="num" style="font-size: 12.5px; color: #7A8B99;">08:14</div>
+    <div style="flex-grow: 1;"></div>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7A8B99" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4h9l.6 2H20v8h-6l-.6-2H5"/></svg>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7A8B99" stroke-width="2" stroke-linecap="round"><circle cx="5" cy="12" r="1.5" fill="#7A8B99"/><circle cx="12" cy="12" r="1.5" fill="#7A8B99"/><circle cx="19" cy="12" r="1.5" fill="#7A8B99"/></svg>
+    <div class="num" style="background: #FFF6E0; color: #B8730F; font-size: 12px; font-weight: 700; padding: 6px 11px; border-radius: 99px;">6/20</div>
+  </div>
+
+  <div style="height: 16px;"></div>
+
+  <!-- 进度：细，不占空间 -->
+  <div style="margin: 0 20px; height: 4px; border-radius: 99px; background: #EAF2F7; display: flex; overflow: hidden;">
+    <div style="width: 35%; background: #FFC94A; border-radius: 99px;"></div>
+  </div>
+
+  <div style="height: 26px;"></div>
+
+  <!-- 题干 -->
+  <div style="padding: 0 20px;">
+    <div style="display: flex; align-items: center; gap: 7px;">
+      <div style="background: #E3F2FA; color: #1B8FD1; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 99px;">逻辑填空</div>
+      <div class="num" style="font-size: 11.5px; color: #98A6B2;">2026 · 浙江</div>
+    </div>
+
+    <div style="font-size: 16.5px; line-height: 1.85; color: #16232E; margin-top: 16px;">随着技术经验积累，高空风弹道修正等技术方法能使火箭在飞行过程中有效抵抗风干扰。本发长八火箭还增加了自动滚转减载技术，根据风的来向，会在空中主动滚动调整，用“<span style="color: #B8730F; font-weight: 700; background: #FFF6E0; padding: 1px 6px; border-radius: 5px;">______</span>”的方式，通过自身的旋转抵消掉高空风的影响。</div>
+  </div>
+
+  <div style="height: 26px;"></div>
+
+  <!-- 选项：高 58，指头够得着 -->
+  <div style="padding: 0 20px; display: flex; flex-direction: column; gap: 11px;">
+
+    <div style="display: flex; align-items: center; gap: 14px; background: #FFF6E0; border: 1.5px solid #FFC94A; border-radius: 18px; padding: 16px 17px;">
+      <div class="num" style="width: 27px; height: 27px; border-radius: 99px; background: #FFC94A; color: #4A3410; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center;">A</div>
+      <div style="font-size: 15.5px; font-weight: 600;">以柔克刚</div>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 14px; background: #FFFFFF; border: 1.5px solid #E1EBF2; border-radius: 18px; padding: 16px 17px;">
+      <div class="num" style="width: 27px; height: 27px; border-radius: 99px; background: #EAF2F7; color: #5B6E7D; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center;">B</div>
+      <div style="font-size: 15.5px;">以守为攻</div>
+    </div>
+
+    <!-- 排除态：长按划掉 -->
+    <div style="display: flex; align-items: center; gap: 14px; background: #FFFFFF; border: 1.5px solid #E1EBF2; border-radius: 18px; padding: 16px 17px; opacity: 0.42;">
+      <div class="num" style="width: 27px; height: 27px; border-radius: 99px; background: #EAF2F7; color: #98A6B2; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center;">C</div>
+      <div style="font-size: 15.5px; color: #98A6B2; text-decoration: line-through;">以虚为实</div>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 14px; background: #FFFFFF; border: 1.5px solid #E1EBF2; border-radius: 18px; padding: 16px 17px;">
+      <div class="num" style="width: 27px; height: 27px; border-radius: 99px; background: #EAF2F7; color: #5B6E7D; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center;">D</div>
+      <div style="font-size: 15.5px;">以退为进</div>
+    </div>
+  </div>
+
+  <div style="flex-grow: 1;"></div>
+
+  <div style="padding: 0 20px 30px 20px; display: flex; align-items: center; gap: 11px;">
+    <div style="width: 50px; height: 50px; border-radius: 99px; background: #EAF2F7; display: flex; align-items: center; justify-content: center;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5B6E7D" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6"/></svg>
+    </div>
+    <div style="flex-grow: 1; height: 50px; border-radius: 99px; background: #FFC94A; color: #4A3410; font-size: 15.5px; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(255,201,74,0.40);">确认 · 下一题</div>
+    <div style="width: 50px; height: 50px; border-radius: 99px; background: #EAF2F7; display: flex; align-items: center; justify-content: center;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5B6E7D" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 6l6 6-6 6"/></svg>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>
