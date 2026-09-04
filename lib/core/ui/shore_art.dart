@@ -39,7 +39,16 @@ class ShoreArt {
     'changshi': '$_dir/day_changshi.jpg',
   };
 
-  static String? isle(String? category) => _isles[category];
+  static const _nightIsles = <String, String>{
+    'yanyu': '$_dir/night_yanyu.jpg',
+    'shuliang': '$_dir/night_shuliang.jpg',
+    'panduan': '$_dir/night_panduan.jpg',
+    'ziliao': '$_dir/night_ziliao.jpg',
+    'changshi': '$_dir/night_changshi.jpg',
+  };
+
+  static String? isle(String? category, [Brightness b = Brightness.light]) =>
+      b == Brightness.light ? _isles[category] : _nightIsles[category];
 
   /// 深色主题下换夜航的那几张。
   ///

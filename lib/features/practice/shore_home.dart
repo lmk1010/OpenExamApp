@@ -499,7 +499,7 @@ class _IsleCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tokens;
     final text = Theme.of(context).textTheme;
-    final art = ShoreArt.isle(meta.key);
+    final art = ShoreArt.isle(meta.key, Theme.of(context).brightness);
     final s = stat;
 
     return GestureDetector(
