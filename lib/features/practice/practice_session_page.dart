@@ -1192,15 +1192,18 @@ class _QuestionView extends StatelessWidget {
           // 排除只在还没作答时有意义；一旦揭晓，对错配色说明一切。
           final struck = !revealed && excluded.contains(key);
 
-          // 未选中的选项是白底细线，不是灰块 —— 四个灰块并排，
-          // 一屏就只剩灰，选中的那个反而不突出。
-          Color badgeBg = t.surfaceAlt;
+          // 浅色下选项是白底细线；深色下页面本身就是深的，
+          // 再用同一个 surface 就等于没有边界，所以改用高一档的底色。
+          final darkTheme = Theme.of(context).brightness == Brightness.dark;
+          Color badgeBg = darkTheme ? t.surface : t.surfaceAlt;
           Color badgeFg = t.textSoft;
           Color fg = t.text;
           BoxDecoration decoration = BoxDecoration(
-            color: t.surface,
+            color: darkTheme ? t.surfaceAlt : t.surface,
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: t.lineSoft, width: 1.5),
+            border: darkTheme
+                ? null
+                : Border.all(color: t.lineSoft, width: 1.5),
           );
 
           if (isExam && chosen) {
@@ -1259,9 +1262,11 @@ class _QuestionView extends StatelessWidget {
                       )
                     : (struck
                         ? BoxDecoration(
-                            color: t.surface,
+                            color: darkTheme ? t.surfaceAlt : t.surface,
                             borderRadius: BorderRadius.circular(18),
-                            border: Border.all(color: t.lineSoft, width: 1.5),
+                            border: darkTheme
+                                ? null
+                                : Border.all(color: t.lineSoft, width: 1.5),
                           )
                         : decoration),
                 child: Row(

@@ -545,7 +545,8 @@ class _QuickTile extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: t.brand,
                           borderRadius: BorderRadius.circular(999),
-                          border: Border.all(color: t.bg, width: 1.5),
+                          // 角标压在卡上，描边就该是卡的颜色，不是页面的
+                          border: Border.all(color: t.surface, width: 1.5),
                         ),
                         child: Text(
                           badge!,
@@ -836,14 +837,14 @@ class _ThemeRow extends StatelessWidget {
                         padding: const EdgeInsets.fromLTRB(8, 8, 8, 10),
                         decoration: BoxDecoration(
                           color: controller.palette == p.id
-                              ? t.brand.withValues(alpha: 0.12)
-                              : t.surfaceAlt.withValues(alpha: 0.65),
+                              ? t.accentSoft
+                              : t.surfaceAlt,
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
                             color: controller.palette == p.id
-                                ? t.brand
-                                : t.line.withValues(alpha: 0.45),
-                            width: controller.palette == p.id ? 1.8 : 1,
+                                ? t.accent
+                                : Colors.transparent,
+                            width: 1.5,
                           ),
                         ),
                         child: Column(
@@ -874,7 +875,7 @@ class _ThemeRow extends StatelessWidget {
                               p.label,
                               style: text.labelMedium?.copyWith(
                                 color: controller.palette == p.id
-                                    ? t.brand
+                                    ? t.onAccentSoft
                                     : t.text,
                                 fontWeight: FontWeight.w700,
                                 fontSize: 12.5,
@@ -895,10 +896,8 @@ class _ThemeRow extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.all(3),
                   decoration: BoxDecoration(
-                    color: t.name == 'dark'
-                        ? Colors.white.withValues(alpha: 0.07)
-                        : t.text.withValues(alpha: 0.05),
-                    borderRadius: BorderRadius.circular(13),
+                    color: t.surfaceAlt,
+                    borderRadius: BorderRadius.circular(99),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -914,8 +913,8 @@ class _ThemeRow extends StatelessWidget {
                               vertical: 7,
                             ),
                             decoration: BoxDecoration(
-                              color: controller.mode == m.mode ? t.brand : null,
-                              borderRadius: BorderRadius.circular(10),
+                              color: controller.mode == m.mode ? t.accent : null,
+                              borderRadius: BorderRadius.circular(99),
                             ),
                             child: Row(
                               children: [
@@ -924,7 +923,7 @@ class _ThemeRow extends StatelessWidget {
                                   size: 14,
                                   weight: 2,
                                   color: controller.mode == m.mode
-                                      ? Colors.white
+                                      ? t.onAccent
                                       : t.muted,
                                 ),
                                 const SizedBox(width: 5),
@@ -935,7 +934,7 @@ class _ThemeRow extends StatelessWidget {
                                     fontWeight: FontWeight.w600,
                                     height: 1,
                                     color: controller.mode == m.mode
-                                        ? Colors.white
+                                        ? t.onAccent
                                         : t.textSoft,
                                   ),
                                 ),
