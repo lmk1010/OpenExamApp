@@ -459,7 +459,7 @@ class EmptyState extends StatelessWidget {
 /// Which little scene an empty state shows.
 enum EmptyArt { box, star, search, chart, done, essay, vocab, note, wrong, bank, paper }
 
-/// 每种空态对应的插画资源。classic 主题用这套，guga / spark 用各自的吉祥物。
+/// 每种空态对应的插画资源。
 const _emptyArtAsset = <EmptyArt, String>{
   EmptyArt.box: 'assets/shore/empty_box.png',
   EmptyArt.star: 'assets/shore/empty_star.png',
@@ -484,35 +484,6 @@ class EmptyArtwork extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
-    final mascot = (t.name == 'guga' || t.name == 'spark')
-        ? (kind == EmptyArt.done
-            ? (t.name == 'guga'
-                ? 'assets/themes/guga_cheer.png'
-                : 'assets/themes/spark_mascot.png')
-            : (t.name == 'guga'
-                ? 'assets/themes/guga_study.png'
-                : 'assets/themes/spark_study.png'))
-        : null;
-    if (mascot != null) {
-      return TweenAnimationBuilder<double>(
-        tween: Tween(begin: 0, end: 1),
-        duration: const Duration(milliseconds: 600),
-        curve: Curves.easeOutBack,
-        builder: (context, v, _) => Transform.scale(
-          scale: 0.85 + 0.15 * v,
-          child: Opacity(
-            opacity: v.clamp(0.0, 1.0),
-            child: Image.asset(
-              mascot,
-              width: size + 28,
-              height: size + 28,
-              fit: BoxFit.contain,
-              filterQuality: FilterQuality.high,
-            ),
-          ),
-        ),
-      );
-    }
     final asset = _emptyArtAsset[kind];
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: 1),

@@ -12,7 +12,7 @@ class Prefs {
   static const examDate = 'exam_date';
   static const themeMode = 'theme_mode';
 
-  /// Visual palette: `classic` | `guga` | `spark` (cute themes).
+  /// 旧的皮肤键，只留着给 ThemeController 启动时清一次遗留值。
   static const themePalette = 'theme_palette';
   static const fontScale = 'font_scale';
   static const autoNext = 'auto_next';

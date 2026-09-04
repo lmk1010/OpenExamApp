@@ -20,8 +20,6 @@ class AppTheme {
 
   static ThemeData light() => _build(AppTokens.light, Brightness.light);
   static ThemeData dark() => _build(AppTokens.dark, Brightness.dark);
-  static ThemeData guga() => _build(AppTokens.guga, Brightness.light);
-  static ThemeData spark() => _build(AppTokens.spark, Brightness.light);
 
   static ThemeData fromTokens(AppTokens t, Brightness brightness) =>
       _build(t, brightness);

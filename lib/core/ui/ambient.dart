@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
 import 'package:openexam_app/core/ui/brand_mark.dart';
 
-/// Full-screen ambient backdrop: a vertical wash plus two soft light blobs.
-/// Pure gradients — no BackdropFilter anywhere, so scrolling stays cheap.
 /// 页面底色。
 ///
 /// 原本是一层竖向渐变加三团高饱和光斑。内容是一张张实体白卡，
@@ -31,26 +29,6 @@ class AmbientBackground extends StatelessWidget {
             ),
           ),
         ),
-        // 可爱主题的角落吉祥物是那两套皮肤的卖点，留着
-        if (t.name == 'guga' || t.name == 'spark')
-          Positioned(
-            right: -4,
-            bottom: 56,
-            child: IgnorePointer(
-              child: Opacity(
-                opacity: 0.22,
-                child: Image.asset(
-                  t.name == 'guga'
-                      ? 'assets/themes/guga_mascot.png'
-                      : 'assets/themes/spark_mascot.png',
-                  width: 156,
-                  height: 156,
-                  fit: BoxFit.contain,
-                  filterQuality: FilterQuality.medium,
-                ),
-              ),
-            ),
-          ),
         Positioned.fill(child: child),
       ],
     );

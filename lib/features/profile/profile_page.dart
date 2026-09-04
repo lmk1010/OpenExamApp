@@ -786,7 +786,8 @@ class _SettingRow extends StatelessWidget {
   }
 }
 
-/// Theme picker: large character cards for cute palettes + classic light/dark.
+/// 明暗切换。原来这里还是一排吉祥物皮肤卡，现在只剩一件事，
+/// 就压成一行设置 —— 一件事不值得占 148px 高的横滑列表。
 class _ThemeRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -803,158 +804,69 @@ class _ThemeRow extends StatelessWidget {
     return AnimatedBuilder(
       animation: controller,
       builder: (context, _) => Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppTheme.gutter,
-          vertical: 11,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+        child: Row(
           children: [
-            Row(
-              children: [
-                StrokeIcon(controller.icon.toAppIcon(), size: 20, color: t.textSoft),
-                const SizedBox(width: 14),
-                Expanded(child: Text('主题', style: text.titleSmall)),
-                Text(
-                  controller.label,
-                  style: text.bodySmall?.copyWith(color: t.muted),
-                ),
-              ],
+            StrokeIcon(
+              controller.icon.toAppIcon(),
+              size: 20,
+              color: t.textSoft,
+              weight: 1.8,
             ),
-            const SizedBox(height: 14),
-            SizedBox(
-              height: 148,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
+            const SizedBox(width: 14),
+            Expanded(child: Text('主题', style: text.bodyLarge)),
+            Container(
+              padding: const EdgeInsets.all(3),
+              decoration: BoxDecoration(
+                color: t.surfaceAlt,
+                borderRadius: BorderRadius.circular(99),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  for (final p in ThemeController.palettes) ...[
+                  for (final m in modes)
                     GestureDetector(
-                      onTap: () => controller.setPalette(p.id),
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => controller.set(m.mode),
                       child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 180),
-                        width: 118,
-                        margin: const EdgeInsets.only(right: 10),
-                        padding: const EdgeInsets.fromLTRB(8, 8, 8, 10),
-                        decoration: BoxDecoration(
-                          color: controller.palette == p.id
-                              ? t.accentSoft
-                              : t.surfaceAlt,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: controller.palette == p.id
-                                ? t.accent
-                                : Colors.transparent,
-                            width: 1.5,
-                          ),
+                        duration: const Duration(milliseconds: 150),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 11,
+                          vertical: 7,
                         ),
-                        child: Column(
+                        decoration: BoxDecoration(
+                          color: controller.mode == m.mode ? t.accent : null,
+                          borderRadius: BorderRadius.circular(99),
+                        ),
+                        child: Row(
                           children: [
-                            Expanded(
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(14),
-                                child: ColoredBox(
-                                  color: Colors.white.withValues(alpha: 0.55),
-                                  child: p.asset == null
-                                      ? Center(
-                                          child: Icon(
-                                            Icons.contrast,
-                                            size: 36,
-                                            color: t.brand,
-                                          ),
-                                        )
-                                      : Image.asset(
-                                          p.asset!,
-                                          fit: BoxFit.contain,
-                                          filterQuality: FilterQuality.high,
-                                        ),
-                                ),
-                              ),
+                            StrokeIcon(
+                              m.icon,
+                              size: 14,
+                              weight: 2,
+                              color: controller.mode == m.mode
+                                  ? t.onAccent
+                                  : t.muted,
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(width: 5),
                             Text(
-                              p.label,
-                              style: text.labelMedium?.copyWith(
-                                color: controller.palette == p.id
-                                    ? t.onAccentSoft
-                                    : t.text,
-                                fontWeight: FontWeight.w700,
+                              m.label,
+                              style: TextStyle(
                                 fontSize: 12.5,
+                                fontWeight: FontWeight.w600,
+                                height: 1,
+                                color: controller.mode == m.mode
+                                    ? t.onAccent
+                                    : t.textSoft,
                               ),
                             ),
                           ],
                         ),
                       ),
                     ),
-                  ],
                 ],
               ),
             ),
-            if (controller.palette == 'classic') ...[
-              const SizedBox(height: 12),
-              Align(
-                alignment: Alignment.centerRight,
-                child: Container(
-                  padding: const EdgeInsets.all(3),
-                  decoration: BoxDecoration(
-                    color: t.surfaceAlt,
-                    borderRadius: BorderRadius.circular(99),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      for (final m in modes)
-                        GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () => controller.set(m.mode),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 150),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 11,
-                              vertical: 7,
-                            ),
-                            decoration: BoxDecoration(
-                              color: controller.mode == m.mode ? t.accent : null,
-                              borderRadius: BorderRadius.circular(99),
-                            ),
-                            child: Row(
-                              children: [
-                                StrokeIcon(
-                                  m.icon,
-                                  size: 14,
-                                  weight: 2,
-                                  color: controller.mode == m.mode
-                                      ? t.onAccent
-                                      : t.muted,
-                                ),
-                                const SizedBox(width: 5),
-                                Text(
-                                  m.label,
-                                  style: TextStyle(
-                                    fontSize: 12.5,
-                                    fontWeight: FontWeight.w600,
-                                    height: 1,
-                                    color: controller.mode == m.mode
-                                        ? t.onAccent
-                                        : t.textSoft,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-            ] else ...[
-              const SizedBox(height: 10),
-              Text(
-                controller.palette == 'guga'
-                    ? '首页会换上咕咕嘎嘎插画；完成今日目标时切庆祝姿势。'
-                    : '官方皮卡丘形象受限，用的是原创闪电黄伴读狐插画。',
-                style: text.bodySmall?.copyWith(fontSize: 12, height: 1.4),
-              ),
-            ],
           ],
         ),
       ),

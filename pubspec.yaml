@@ -27,5 +27,4 @@ flutter:
   uses-material-design: true
   assets:
     - assets/seed/openexam_seed.db.gz
-    - assets/themes/
     - assets/shore/
