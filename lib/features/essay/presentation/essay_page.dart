@@ -148,8 +148,8 @@ class _EssayPageState extends State<EssayPage> {
           ? null
           : FloatingActionButton.extended(
               onPressed: _create,
-              backgroundColor: t.brand,
-              foregroundColor: Colors.white,
+              backgroundColor: t.accent,
+              foregroundColor: t.onAccent,
               icon: const Icon(Icons.add_rounded, size: 20),
               label: const Text('录入题目'),
             ),
@@ -225,11 +225,11 @@ class _PromptCard extends StatelessWidget {
       onTap: onTap,
       onLongPress: onDelete,
       child: Container(
-        padding: const EdgeInsets.all(15),
+        padding: const EdgeInsets.fromLTRB(16, 15, 14, 15),
         decoration: BoxDecoration(
           color: t.surface,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: t.line),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: t.shadow,
         ),
         child: Row(
           children: [
@@ -256,15 +256,17 @@ class _PromptCard extends StatelessWidget {
                           ),
                           decoration: BoxDecoration(
                             color: m == prompt.type.label
-                                ? t.brand.withValues(alpha: 0.14)
-                                : t.text.withValues(alpha: 0.05),
-                            borderRadius: BorderRadius.circular(6),
+                                ? t.accentSoft
+                                : t.surfaceAlt,
+                            borderRadius: BorderRadius.circular(99),
                           ),
                           child: Text(
                             m,
                             style: text.bodySmall?.copyWith(
                               fontSize: 11,
-                              color: m == prompt.type.label ? t.brand : t.muted,
+                              color: m == prompt.type.label
+                                  ? t.onAccentSoft
+                                  : t.muted,
                               fontWeight: m == prompt.type.label
                                   ? FontWeight.w600
                                   : FontWeight.w500,
@@ -288,7 +290,8 @@ class _PromptCard extends StatelessWidget {
                             prompt.bestScore! % 1 == 0 ? 0 : 1,
                           ),
                     style: text.titleMedium?.copyWith(
-                      color: t.brand,
+                      fontSize: 20,
+                      color: t.success,
                       fontFeatures: AppTheme.numeric,
                     ),
                   ),
@@ -332,15 +335,18 @@ class _TypeChip extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 14),
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: selected ? t.brand : t.surface,
+            color: selected ? t.accent : t.surface,
             borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: selected ? t.brand : t.line),
+            border: Border.all(
+              color: selected ? t.accent : t.line,
+              width: 1.5,
+            ),
           ),
           child: Text(
             label,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: selected ? Colors.white : t.textSoft,
-                  fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                  color: selected ? t.onAccent : t.textSoft,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                 ),
           ),
         ),

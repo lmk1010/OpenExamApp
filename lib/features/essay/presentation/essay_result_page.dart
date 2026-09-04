@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
+import 'package:openexam_app/core/ui/shore.dart';
 import 'package:openexam_app/features/essay/domain/essay_models.dart';
 
 /// 批改结果。
@@ -63,49 +64,41 @@ class EssayResultPage extends StatelessWidget {
           40,
         ),
         children: [
-          // 分数卡
+          // 分数卡：罗盘当主角，三个次要数字排在右边。
+          // 上一版一个大数字加三个同样大小的数字并排，四个数字互相抵消。
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
+            padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
             decoration: BoxDecoration(
-              color: t.brand.withValues(alpha: 0.10),
-              borderRadius: BorderRadius.circular(16),
+              color: t.surface,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: t.shadow,
             ),
             child: Row(
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.baseline,
-                      textBaseline: TextBaseline.alphabetic,
-                      children: [
-                        Text(
-                          review.score?.toStringAsFixed(
-                                (review.score ?? 0) % 1 == 0 ? 0 : 1,
-                              ) ??
-                              '—',
-                          style: text.displaySmall?.copyWith(
-                            color: t.brand,
-                            fontWeight: FontWeight.w700,
-                            fontFeatures: AppTheme.numeric,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '/ ${review.maxScore?.toStringAsFixed(0) ?? '—'}',
-                          style: text.bodySmall,
-                        ),
-                      ],
-                    ),
-                  ],
+                CompassDial(
+                  value: (review.maxScore ?? 0) <= 0
+                      ? 0
+                      : (review.score ?? 0) / review.maxScore!,
+                  label: review.score?.toStringAsFixed(
+                        (review.score ?? 0) % 1 == 0 ? 0 : 1,
+                      ) ??
+                      '—',
+                  caption: '满分 ${review.maxScore?.toStringAsFixed(0) ?? '—'}',
+                  size: 104,
                 ),
-                const Spacer(),
-                _Stat(label: '要点覆盖', value: '${review.hitRate}%'),
-                const SizedBox(width: 18),
-                _Stat(label: '字数', value: '${attempt.wordCount}'),
-                const SizedBox(width: 18),
-                _Stat(label: '用时', value: _clock),
+                const SizedBox(width: 20),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _Stat(label: '要点覆盖', value: '${review.hitRate}%'),
+                      const SizedBox(height: 12),
+                      _Stat(label: '字数', value: '${attempt.wordCount}'),
+                      const SizedBox(height: 12),
+                      _Stat(label: '用时', value: _clock),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -113,11 +106,10 @@ class EssayResultPage extends StatelessWidget {
           if (review.summary != null && review.summary!.isNotEmpty) ...[
             const SizedBox(height: 16),
             Container(
-              padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+              padding: const EdgeInsets.fromLTRB(18, 15, 18, 16),
               decoration: BoxDecoration(
-                color: t.surface,
-                borderRadius: BorderRadius.circular(12),
-                border: Border(left: BorderSide(color: t.brand, width: 3)),
+                color: t.accentSoft,
+                borderRadius: BorderRadius.circular(18),
               ),
               child: Text(review.summary!,
                   style: text.bodyMedium?.copyWith(height: 1.85)),
@@ -220,15 +212,22 @@ class _Stat extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    return Column(
+    // 标签在左、数字在右。竖着排三组的话，罗盘旁边就成了第二个数字阵。
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      textBaseline: TextBaseline.alphabetic,
       children: [
-        Text(value,
-            style: text.titleMedium?.copyWith(
-              color: context.tokens.text,
-              fontFeatures: AppTheme.numeric,
-            )),
-        const SizedBox(height: 2),
-        Text(label, style: text.bodySmall?.copyWith(fontSize: 10.5)),
+        Expanded(
+          child: Text(label, style: text.bodySmall?.copyWith(fontSize: 12.5)),
+        ),
+        Text(
+          value,
+          style: text.titleSmall?.copyWith(
+            fontSize: 15,
+            color: context.tokens.text,
+            fontFeatures: AppTheme.numeric,
+          ),
+        ),
       ],
     );
   }
@@ -270,8 +269,8 @@ class _DimensionRow extends StatelessWidget {
             Text(
               '${_fmt(dimension.score)} / ${_fmt(dimension.max)}',
               style: text.bodySmall?.copyWith(
-                color: t.brand,
-                fontWeight: FontWeight.w600,
+                color: t.textSoft,
+                fontWeight: FontWeight.w700,
                 fontFeatures: AppTheme.numeric,
               ),
             ),
@@ -282,9 +281,9 @@ class _DimensionRow extends StatelessWidget {
           borderRadius: BorderRadius.circular(999),
           child: LinearProgressIndicator(
             value: dimension.ratio,
-            minHeight: 4,
+            minHeight: 5,
             backgroundColor: t.text.withValues(alpha: 0.07),
-            valueColor: AlwaysStoppedAnimation(t.brand),
+            valueColor: AlwaysStoppedAnimation(t.accent),
           ),
         ),
         if (dimension.comment != null && dimension.comment!.isNotEmpty) ...[
@@ -307,28 +306,23 @@ class _PointRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tokens;
     final text = Theme.of(context).textTheme;
-    final tint = point.hit ? t.success : t.danger;
 
     return Container(
-      padding: const EdgeInsets.all(13),
+      padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        color: point.hit ? t.surface : t.danger.withValues(alpha: 0.07),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: point.hit ? t.line : t.danger.withValues(alpha: 0.25)),
+        color: point.hit ? t.surface : t.dangerSoft,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: point.hit ? t.lineSoft : t.danger.withValues(alpha: 0.30),
+          width: 1.5,
+        ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 19,
-            height: 19,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(color: tint, shape: BoxShape.circle),
-            child: Icon(
-              point.hit ? Icons.check_rounded : Icons.close_rounded,
-              size: 13,
-              color: Colors.white,
-            ),
+          LifeRing(
+            state: point.hit ? LifeRingState.done : LifeRingState.wrong,
+            size: 20,
           ),
           const SizedBox(width: 11),
           Expanded(

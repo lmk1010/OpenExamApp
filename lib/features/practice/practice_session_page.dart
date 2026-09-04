@@ -6,6 +6,8 @@ import 'package:openexam_app/core/constants/app_constants.dart';
 import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
+import 'package:openexam_app/core/ui/shore.dart';
+import 'package:openexam_app/core/ui/shore_art.dart';
 import 'package:openexam_app/core/ui/glass.dart';
 import 'package:openexam_app/core/ui/responsive.dart';
 import 'package:openexam_app/core/ui/rich_content.dart';
@@ -809,14 +811,14 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
                 child: Row(
                   children: [
                     Icon(Icons.grid_view_rounded,
-                        size: 14, color: const Color(0xFFB8730F)),
+                        size: 14, color: t.onAccentSoft),
                     const SizedBox(width: 6),
                     Text(
                       '${_answers.length}/$total',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12.5,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFFB8730F),
+                        color: t.onAccentSoft,
                         fontFeatures: AppTheme.numeric,
                       ),
                     ),
@@ -1638,70 +1640,86 @@ class _ResultView extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 8, AppTheme.gutter, 24),
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(2, 16, 2, 6),
+          // 靠岸：一组做完是一次到岸，所以这一屏有画面。
+          // 正确率交给罗盘，用时和节奏降成一行小字 —— 一屏一个结论。
+          Container(
+            decoration: BoxDecoration(
+              color: t.surface,
+              borderRadius: BorderRadius.circular(26),
+              boxShadow: t.shadow,
+            ),
+            clipBehavior: Clip.antiAlias,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  rate >= 80 ? '状态不错' : (rate >= 60 ? '继续保持' : '再练一组'),
-                  style: text.bodySmall?.copyWith(fontSize: 13),
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
+                Stack(
                   children: [
-                    Text(
-                      '$rate',
-                      style: TextStyle(
-                        fontSize: 54,
-                        fontWeight: FontWeight.w700,
-                        color: t.text,
-                        height: 1,
-                        letterSpacing: -2,
-                        fontFeatures: AppTheme.numeric,
+                    Image.asset(
+                      ShoreArt.forBrightness(
+                        rate >= 60 ? ShoreArt.arrive : ShoreArt.calm,
+                        Theme.of(context).brightness,
                       ),
+                      height: 130,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      alignment: const Alignment(0, 0.6),
+                      filterQuality: FilterQuality.medium,
+                      errorBuilder: (_, __, ___) =>
+                          Container(height: 130, color: t.brandSoft),
                     ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '%',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: t.muted,
-                      ),
+                    const Positioned(
+                      left: 0, right: 0, bottom: -1, child: Waterline(),
                     ),
-                    const Spacer(),
-                    Text('答对 $correct / $total', style: text.bodySmall),
                   ],
                 ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    StrokeIcon(AppIcon.timer, size: 15, color: t.muted),
-                    const SizedBox(width: 6),
-                    Text('用时 ${session._clock(session._elapsed)}', style: text.bodySmall),
-                    const SizedBox(width: 14),
-                    StrokeIcon(AppIcon.chart, size: 15, color: t.muted),
-                    const SizedBox(width: 6),
-                    // Pace is the number 行测 candidates need most.
-                    Text(
-                      answers.isEmpty
-                          ? '每题 —'
-                          : '每题 ${(session._questionMs.values.fold<int>(0, (a, b) => a + b) / answers.length / 1000).toStringAsFixed(1)}s',
-                      style: text.bodySmall,
-                    ),
-                    if (answers.length < total) ...[
-                      const SizedBox(width: 14),
-                      StrokeIcon(AppIcon.wrongBook, size: 15, color: t.muted),
-                      const SizedBox(width: 6),
-                      Text('未作答 ${total - answers.length}', style: text.bodySmall),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+                  child: Row(
+                    children: [
+                      CompassDial(
+                        value: correct / total,
+                        label: '$rate%',
+                        caption: '$correct / $total',
+                        size: 104,
+                      ),
+                      const SizedBox(width: 20),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              rate >= 80
+                                  ? '状态不错'
+                                  : (rate >= 60 ? '继续保持' : '再练一组'),
+                              style: text.titleSmall?.copyWith(fontSize: 17),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '用时 ${session._clock(session._elapsed)}',
+                              style: text.bodySmall?.copyWith(fontSize: 13),
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              answers.isEmpty
+                                  ? '每题 —'
+                                  : '每题 ${(session._questionMs.values.fold<int>(0, (a, b) => a + b) / answers.length / 1000).toStringAsFixed(1)} 秒',
+                              style: text.bodySmall?.copyWith(fontSize: 13),
+                            ),
+                            if (answers.length < total) ...[
+                              const SizedBox(height: 3),
+                              Text(
+                                '未作答 ${total - answers.length}',
+                                style: text.bodySmall?.copyWith(
+                                  fontSize: 13,
+                                  color: t.danger,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
                     ],
-                  ],
+                  ),
                 ),
-                const SizedBox(height: 18),
-                Meter(value: correct / total, height: 4),
               ],
             ),
           ),

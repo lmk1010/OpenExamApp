@@ -258,7 +258,7 @@ class _Pill extends StatelessWidget {
             style: TextStyle(
               fontSize: 11.5,
               fontWeight: FontWeight.w600,
-              color: icon == null ? t.text : const Color(0xFFB8730F),
+              color: icon == null ? t.text : t.onAccentSoft,
               fontFeatures: AppTheme.numeric,
             ),
           ),

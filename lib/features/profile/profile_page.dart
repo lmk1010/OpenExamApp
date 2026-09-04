@@ -672,7 +672,7 @@ class _VoyageTotal extends StatelessWidget {
                             fontSize: 19,
                             fontWeight: FontWeight.w700,
                             height: 1,
-                            color: const Color(0xFFB8730F),
+                            color: t.onAccentSoft,
                           ),
                         ),
                       ),

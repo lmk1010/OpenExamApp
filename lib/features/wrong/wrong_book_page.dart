@@ -388,7 +388,7 @@ class _WrongBookPageState extends State<WrongBookPage> {
                                   ? '先啃错过两次以上的 $repeat 题'
                                   : '挑 ${_wrong.length > 20 ? 20 : _wrong.length} 题重做',
                               style: text.bodySmall?.copyWith(
-                                color: const Color(0xFF96792F),
+                                color: t.onAccentSoft,
                               ),
                             ),
                           ],
@@ -1033,15 +1033,8 @@ class _ActionSheet extends StatelessWidget {
                         vertical: 9,
                       ),
                       decoration: BoxDecoration(
-                        color: reason == r.key
-                            ? t.brand.withValues(alpha: 0.15)
-                            : t.glass,
-                        borderRadius: BorderRadius.circular(15),
-                        border: Border.all(
-                          color: reason == r.key
-                              ? t.brand.withValues(alpha: 0.5)
-                              : Colors.transparent,
-                        ),
+                        color: reason == r.key ? t.accent : t.surfaceAlt,
+                        borderRadius: BorderRadius.circular(99),
                       ),
                       child: Text(
                         r.label,
@@ -1049,7 +1042,7 @@ class _ActionSheet extends StatelessWidget {
                           fontSize: 13.5,
                           fontWeight: FontWeight.w600,
                           height: 1,
-                          color: reason == r.key ? t.brand : t.textSoft,
+                          color: reason == r.key ? t.onAccent : t.textSoft,
                         ),
                       ),
                     ),

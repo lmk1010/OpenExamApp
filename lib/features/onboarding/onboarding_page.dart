@@ -4,13 +4,16 @@ import 'package:openexam_app/core/constants/app_constants.dart';
 import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
-import 'package:openexam_app/core/ui/glass.dart';
-import 'package:openexam_app/features/onboarding/illustrations.dart';
+import 'package:openexam_app/core/ui/shore_art.dart';
 import 'package:openexam_app/core/ui/stroke_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// First launch: say what the app is, then get the two settings that make the
-/// rest of it meaningful — the exam date and a daily target. Three taps, done.
+/// 第一次打开：说清这是什么，然后拿到让后面一切有意义的两个设置 ——
+/// 考试日期和每天的量。三下点完。
+///
+/// 布局是上中下三段：标题在上、插画在中、按钮在下。
+/// 上一版把插画顶在上面、文字全堆到底部，头重脚轻，
+/// 视线先撞图再回头找字，读一遍要走两趟。
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({super.key, required this.onDone});
 
@@ -72,32 +75,49 @@ class _OnboardingPageState extends State<OnboardingPage> {
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
-    final text = Theme.of(context).textTheme;
+    final dark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       body: SafeArea(
         child: Column(
           children: [
+            // 跳过靠右上，是这一屏唯一的次要出口
+            Align(
+              alignment: Alignment.centerRight,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(0, 12, 14, 0),
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: _finish,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: Text(
+                      '跳过',
+                      style: TextStyle(fontSize: 13.5, color: t.muted),
+                    ),
+                  ),
+                ),
+              ),
+            ),
             Expanded(
               child: PageView(
                 controller: _pager,
                 onPageChanged: (i) => setState(() => _page = i),
                 children: [
                   _Slide(
-                    kind: SceneKind.bank,
-                    active: _page == 0,
-                    title: '15936 道真题\n都在这台手机里',
-                    body: '137 套历年卷，图形题的图也带着。不用登录，没网也能刷。',
+                    art: ShoreArt.forBrightness(
+                      ShoreArt.start,
+                      Theme.of(context).brightness,
+                    ),
+                    title: '上岸\n是划出来的',
+                    body: '18686 道真题在这台手机里\n不用登录，没网也能划',
                   ),
                   _Slide(
-                    kind: SceneKind.review,
-                    active: _page == 1,
+                    art: dark ? ShoreArt.nightCalm : ShoreArt.chart,
                     title: '错的题\n自己会记着',
-                    body: '答错的进错题本，再答对就出去。想写两句笔记、标一下错的原因，都行。',
+                    body: '答错的进错题本，再答对就出去\n想写两句笔记、标一下错在哪，都行',
                   ),
-                  // Last slide collects the two settings instead of preaching.
                   _Setup(
-                    active: _page == 2,
                     goal: _goal,
                     examDate: _examDate,
                     province: _province,
@@ -108,44 +128,36 @@ class _OnboardingPageState extends State<OnboardingPage> {
                 ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 0, AppTheme.gutter, 20),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      for (var i = 0; i < 3; i++)
-                        AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          margin: const EdgeInsets.symmetric(horizontal: 4),
-                          width: i == _page ? 20 : 7,
-                          height: 7,
-                          decoration: BoxDecoration(
-                            color: i == _page ? t.brand : t.line,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton(
-                      onPressed: _next,
-                      child: Text(_page == 2 ? '开始刷题' : '下一个'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                for (var i = 0; i < 3; i++)
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    margin: const EdgeInsets.symmetric(horizontal: 3.5),
+                    width: i == _page ? 22 : 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: i == _page ? t.accent : t.line,
+                      borderRadius: BorderRadius.circular(99),
                     ),
                   ),
-                  if (_page < 2)
-                    TextButton(
-                      onPressed: _finish,
-                      child: Text('跳过', style: text.bodySmall),
-                    )
-                  else
-                    const SizedBox(height: 8),
-                ],
+              ],
+            ),
+            const SizedBox(height: 26),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 28),
+              child: SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: _next,
+                  child: Text(
+                    _page == 0 ? '出发' : (_page == 2 ? '开始划' : '下一个'),
+                  ),
+                ),
               ),
             ),
+            const SizedBox(height: 30),
           ],
         ),
       ),
@@ -153,50 +165,74 @@ class _OnboardingPageState extends State<OnboardingPage> {
   }
 }
 
+/// 一屏一件事：标题、两行说明、一幅图。多一句都是在开屏讲课。
 class _Slide extends StatelessWidget {
-  const _Slide({
-    required this.kind,
-    required this.active,
-    required this.title,
-    required this.body,
-  });
+  const _Slide({required this.art, required this.title, required this.body});
 
-  final SceneKind kind;
-  final bool active;
+  final String art;
   final String title;
   final String body;
 
   @override
   Widget build(BuildContext context) {
+    final t = context.tokens;
     final text = Theme.of(context).textTheme;
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(AppTheme.gutter + 6, 16, AppTheme.gutter + 6, 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // The illustration carries the slide; text stays short underneath.
-          Expanded(
-            flex: 5,
-            child: Center(child: OnboardingScene(kind: kind, active: active)),
+    return Column(
+      children: [
+        const SizedBox(height: 22),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 40),
+          child: Column(
+            children: [
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: text.displaySmall?.copyWith(
+                  fontSize: 30,
+                  height: 1.42,
+                  letterSpacing: -0.4,
+                ),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                body,
+                textAlign: TextAlign.center,
+                style: text.bodyMedium?.copyWith(
+                  fontSize: 14.5,
+                  height: 1.8,
+                  color: t.textSoft,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 8),
-          Text(
-            title,
-            style: text.displaySmall?.copyWith(fontSize: 26, height: 1.35),
+        ),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+            child: Center(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(32),
+                child: Image.asset(
+                  art,
+                  width: 320,
+                  height: 320,
+                  fit: BoxFit.cover,
+                  filterQuality: FilterQuality.medium,
+                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                ),
+              ),
+            ),
           ),
-          const SizedBox(height: 14),
-          Text(body, style: text.bodyMedium?.copyWith(fontSize: 15, height: 1.7)),
-          const Spacer(),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
 
+/// 最后一屏收设置，不再讲第三段道理。
 class _Setup extends StatelessWidget {
   const _Setup({
-    required this.active,
     required this.goal,
     required this.examDate,
     required this.province,
@@ -205,7 +241,6 @@ class _Setup extends StatelessWidget {
     required this.onPickDate,
   });
 
-  final bool active;
   final int goal;
   final DateTime? examDate;
   final String? province;
@@ -222,124 +257,81 @@ class _Setup extends StatelessWidget {
         : examDate!.difference(DateTime.now()).inDays + 1;
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(AppTheme.gutter + 6, 8, AppTheme.gutter + 6, 20),
+      padding: const EdgeInsets.fromLTRB(24, 22, 24, 12),
       children: [
-        SizedBox(
-          height: 170,
-          child: Center(
-            child: OnboardingScene(kind: SceneKind.rhythm, active: active),
-          ),
-        ),
-        const SizedBox(height: 12),
         Text(
           '还有三件事',
-          style: text.displaySmall?.copyWith(fontSize: 26, height: 1.35),
+          style: text.displaySmall?.copyWith(fontSize: 28, height: 1.2),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         Text(
-          '随时能改，在「我的」里。',
-          style: text.bodyMedium?.copyWith(fontSize: 15),
+          '随时能改，都在「我的」里',
+          style: text.bodyMedium?.copyWith(fontSize: 14.5, color: t.textSoft),
         ),
-        const SizedBox(height: 30),
-        Text('一天练几题', style: text.titleSmall),
-        const SizedBox(height: 12),
+        const SizedBox(height: 28),
+
+        _Field(label: '一天划几题'),
         Wrap(
           spacing: 9,
           runSpacing: 9,
           children: [
             for (final n in const [10, 20, 30, 50, 80])
-              GestureDetector(
-                behavior: HitTestBehavior.opaque,
+              _Pick(
+                label: '$n 题',
+                on: goal == n,
                 onTap: () {
                   onGoal(n);
                   HapticFeedback.selectionClick();
                 },
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 140),
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
-                  decoration: BoxDecoration(
-                    color: goal == n ? t.brand : t.glass,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Text(
-                    '$n 题',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      height: 1,
-                      color: goal == n ? Colors.white : t.textSoft,
-                      fontFeatures: AppTheme.numeric,
-                    ),
-                  ),
-                ),
               ),
           ],
         ),
-        const SizedBox(height: 30),
-        Text('考哪儿', style: text.titleSmall),
-        const SizedBox(height: 6),
-        Text('选了之后，题库会优先推你要考的那套卷', style: text.bodySmall),
-        const SizedBox(height: 12),
+
+        const SizedBox(height: 26),
+        _Field(label: '考哪儿', caption: '选了之后题库优先推你要考的那套卷'),
         SizedBox(
           height: 38,
-          child: ListView(
+          child: ListView.separated(
             scrollDirection: Axis.horizontal,
-            children: [
-              for (final p in kProvinces)
-                Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () {
-                      onProvince(p);
-                      HapticFeedback.selectionClick();
-                    },
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 140),
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: province == p ? t.brand : t.glass,
-                        borderRadius: BorderRadius.circular(19),
-                      ),
-                      child: Text(
-                        p,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          height: 1,
-                          color: province == p ? Colors.white : t.textSoft,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
+            itemCount: kProvinces.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            itemBuilder: (_, i) => _Pick(
+              label: kProvinces[i],
+              on: province == kProvinces[i],
+              onTap: () {
+                onProvince(kProvinces[i]);
+                HapticFeedback.selectionClick();
+              },
+            ),
           ),
         ),
-        const SizedBox(height: 30),
-        Text('考试哪天', style: text.titleSmall),
-        const SizedBox(height: 12),
+
+        const SizedBox(height: 26),
+        _Field(label: '考试哪天'),
         GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: onPickDate,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
-            decoration: GlassDecor.panel(t, radius: 16, raised: false),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+            decoration: BoxDecoration(
+              color: t.surface,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: t.shadow,
+            ),
             child: Row(
               children: [
-                StrokeIcon(AppIcon.timer, size: 19, color: t.brand),
+                StrokeIcon(AppIcon.calendar, size: 19, color: t.textSoft),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     examDate == null
                         ? '不填也行'
-                        : '${examDate!.year}-${examDate!.month.toString().padLeft(2, '0')}'
-                            '-${examDate!.day.toString().padLeft(2, '0')}'
+                        : '${examDate!.year} 年 ${examDate!.month} 月 ${examDate!.day} 日'
                             '${days == null ? '' : ' · 还有 $days 天'}',
                     style: text.titleSmall?.copyWith(
                       fontSize: 15,
                       color: examDate == null ? t.muted : t.text,
+                      fontFeatures: AppTheme.numeric,
                     ),
                   ),
                 ),
@@ -349,6 +341,74 @@ class _Setup extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _Field extends StatelessWidget {
+  const _Field({required this.label, this.caption});
+
+  final String label;
+  final String? caption;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: text.titleSmall?.copyWith(fontSize: 15.5)),
+          if (caption != null) ...[
+            const SizedBox(height: 4),
+            Text(caption!, style: text.bodySmall),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// 选中态用黄，跟别处的"按下去会发生什么"是同一个颜色。
+class _Pick extends StatelessWidget {
+  const _Pick({required this.label, required this.on, required this.onTap});
+
+  final String label;
+  final bool on;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 140),
+        padding: const EdgeInsets.symmetric(horizontal: 18),
+        height: 38,
+        decoration: BoxDecoration(
+          color: on ? t.accent : t.surface,
+          borderRadius: BorderRadius.circular(99),
+          border: Border.all(color: on ? t.accent : t.line, width: 1.5),
+        ),
+        // Container 一旦有 alignment 就会撑满可用宽度，
+        // 放进 Wrap 里每颗 chip 就各占一行。用 widthFactor 收回来。
+        child: Center(
+          widthFactor: 1,
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: on ? FontWeight.w700 : FontWeight.w500,
+              height: 1,
+              color: on ? t.onAccent : t.textSoft,
+              fontFeatures: AppTheme.numeric,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

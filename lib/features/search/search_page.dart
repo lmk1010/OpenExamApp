@@ -419,10 +419,10 @@ class _HistoryView extends StatelessWidget {
             behavior: HitTestBehavior.opaque,
             onTap: () => onPick(item),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 9),
               decoration: BoxDecoration(
-                color: t.glass,
-                borderRadius: BorderRadius.circular(16),
+                color: t.surfaceAlt,
+                borderRadius: BorderRadius.circular(99),
               ),
               child: Text(
                 item,

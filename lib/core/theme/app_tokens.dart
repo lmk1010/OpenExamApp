@@ -12,6 +12,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
     required this.accent,
     required this.accentSoft,
     required this.onAccent,
+    required this.onAccentSoft,
     required this.bg,
     required this.surface,
     required this.surfaceAlt,
@@ -55,6 +56,12 @@ class AppTokens extends ThemeExtension<AppTokens> {
 
   /// 压在 [accent] 上的文字色。
   final Color onAccent;
+
+  /// 落在 [accentSoft] 上的字。
+  ///
+  /// 亮黄的浅色底上直接用 [text] 太重、用 [muted] 又飘，
+  /// 得是一个同色系压深的琥珀色。深色下反过来提亮。
+  final Color onAccentSoft;
 
   /// Page background, one step darker/lighter than [surface].
   final Color bg;
@@ -107,6 +114,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
     Color? accent,
     Color? accentSoft,
     Color? onAccent,
+    Color? onAccentSoft,
     Color? bg,
     Color? surface,
     Color? surfaceAlt,
@@ -144,6 +152,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
       accent: accent ?? this.accent,
       accentSoft: accentSoft ?? this.accentSoft,
       onAccent: onAccent ?? this.onAccent,
+      onAccentSoft: onAccentSoft ?? this.onAccentSoft,
       bg: bg ?? this.bg,
       surface: surface ?? this.surface,
       surfaceAlt: surfaceAlt ?? this.surfaceAlt,
@@ -183,6 +192,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
       accent: c(accent, other.accent),
       accentSoft: c(accentSoft, other.accentSoft),
       onAccent: c(onAccent, other.onAccent),
+      onAccentSoft: c(onAccentSoft, other.onAccentSoft),
       bg: c(bg, other.bg),
       surface: c(surface, other.surface),
       surfaceAlt: c(surfaceAlt, other.surfaceAlt),
@@ -209,6 +219,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
     accent: Color(0xFFFFC94A),
     accentSoft: Color(0xFFFFF6E0),
     onAccent: Color(0xFF4A3410),
+    onAccentSoft: Color(0xFFB8730F),
     brand: Color(0xFF1B8FD1),
     brandSoft: Color(0xFFE3F2FA),
     onBrand: Colors.white,
@@ -253,6 +264,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
     accent: Color(0xFFFFC94A),
     accentSoft: Color(0xFF3B3016),
     onAccent: Color(0xFF241A05),
+    onAccentSoft: Color(0xFFF0C161),
     brand: Color(0xFF6FB6E8),
     brandSoft: Color(0xFF14293A),
     onBrand: Color(0xFF07131C),
@@ -293,6 +305,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
     accent: Color(0xFFFFC94A),
     accentSoft: Color(0xFFFFF6E0),
     onAccent: Color(0xFF4A3410),
+    onAccentSoft: Color(0xFFB8730F),
     brand: Color(0xFFF0A429),
     brandSoft: Color(0xFFFFF1D6),
     onBrand: Color(0xFF1A1A1C),
@@ -333,6 +346,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
     accent: Color(0xFFFFC94A),
     accentSoft: Color(0xFFFFF6E0),
     onAccent: Color(0xFF4A3410),
+    onAccentSoft: Color(0xFFB8730F),
     brand: Color(0xFFF0B429),
     brandSoft: Color(0xFFFFF0C8),
     onBrand: Color(0xFF3A2A00),

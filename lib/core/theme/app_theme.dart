@@ -86,29 +86,32 @@ class AppTheme {
         surfaceTintColor: Colors.transparent,
         foregroundColor: t.text,
         systemOverlayStyle: overlayFor(t, brightness),
-        titleTextStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: t.text, letterSpacing: -0.2),
-        toolbarHeight: 48,
+        titleTextStyle: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: t.text, letterSpacing: -0.3),
+        toolbarHeight: 54,
       ),
+      // 按钮一律全圆角，主按钮一律是那一个动作色。
+      // 上一版混着 pill、13 圆角矩形和圆形三种，放一屏里就散了；
+      // 主按钮用蓝，跟"可点的字"撞成同一种颜色，谁是动作分不出来。
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          backgroundColor: t.brand,
-          foregroundColor: t.onBrand,
+          backgroundColor: t.accent,
+          foregroundColor: t.onAccent,
           disabledBackgroundColor: t.surfaceAlt,
           disabledForegroundColor: t.muted,
-          minimumSize: const Size(0, 46),
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, letterSpacing: -0.2),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)),
+          minimumSize: const Size(0, 50),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          textStyle: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700, letterSpacing: -0.2),
+          shape: const StadiumBorder(),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: t.text,
-          minimumSize: const Size(0, 42),
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-          side: BorderSide(color: t.line),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)),
+          foregroundColor: t.textSoft,
+          minimumSize: const Size(0, 46),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          textStyle: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w600),
+          side: BorderSide(color: t.line, width: 1.5),
+          shape: const StadiumBorder(),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
@@ -121,7 +124,7 @@ class AppTheme {
       ),
       dividerTheme: DividerThemeData(color: t.line, thickness: 1, space: 1),
       progressIndicatorTheme: ProgressIndicatorThemeData(
-        color: t.brand,
+        color: t.accent,
         linearTrackColor: t.surfaceAlt,
         linearMinHeight: 4,
       ),
@@ -130,7 +133,7 @@ class AppTheme {
         backgroundColor: t.text,
         insetPadding: const EdgeInsets.fromLTRB(gutter, 0, gutter, 20),
         contentTextStyle: TextStyle(fontSize: 14, color: t.surface, height: 1.4),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
     );
   }

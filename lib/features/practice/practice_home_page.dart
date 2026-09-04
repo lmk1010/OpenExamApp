@@ -1095,7 +1095,7 @@ class _EmptyRoute extends StatelessWidget {
                       style: Theme.of(context)
                           .textTheme
                           .bodySmall
-                          ?.copyWith(fontSize: 12.5, color: const Color(0xFF96792F)),
+                          ?.copyWith(fontSize: 12.5, color: t.onAccentSoft),
                     ),
                   ],
                 ),
