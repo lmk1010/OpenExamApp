@@ -1306,6 +1306,18 @@ class _QuestionView extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 14),
+                    if (opt.isFigureOnly)
+                      // 选项内容在上面那张图里，这儿再写一遍字母是噪音
+                      Expanded(
+                        child: Text(
+                          '见上图',
+                          style: text.bodySmall?.copyWith(
+                            fontSize: 13 * fontScale,
+                            color: struck ? t.muted : t.muted,
+                          ),
+                        ),
+                      )
+                    else
                     Expanded(
                       child: opt.hasImage
                           ? RichContent(

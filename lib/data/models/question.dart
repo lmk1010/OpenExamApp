@@ -27,6 +27,10 @@ class QuestionOption {
 
   /// An option is usable when it has readable text or a figure.
   bool get isUsable => key.isNotEmpty && (text.isNotEmpty || hasImage);
+
+  /// 选项本身是图（图形推理）。这类题扫进来时文字位上放的是字母本身，
+  /// 真正的选项内容在题干那张横条图里 —— 做题页别把字母再重复一遍。
+  bool get isFigureOnly => text == key && html.isEmpty;
 }
 
 class Question {

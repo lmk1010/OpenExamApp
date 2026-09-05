@@ -94,28 +94,38 @@ class PaperScanner {
 
   /// 提示词把「这页有什么」问清楚，而不是让模型自由发挥。
   ///
-  /// 三件事必须点名，否则模型十次有八次会漏：跨页的半道题要丢掉、
-  /// 一材多题的材料要单独放、图的位置要给坐标。
-  static const _prompt = '''
+  /// 图不让模型框，让它切横条。视觉模型给小图的精确 bbox 很不准 ——
+  /// 实测框歪到题干和选项之间的空白里；但「这道题从第几行到第几行」
+  /// 容错高得多，题与题之间本来就有空行。横条整段切下来，
+  /// 题干图和选项图都在里面，跟看纸质卷一样。
+  static const _prompt = """
 把这一页里完整的选择题提取出来，输出 JSON：
 
 {"questions":[{
   "number": 题号数字，没有就 null,
   "stem": "题干纯文字，去掉题号",
   "material": "这题上方的共用材料全文；没有就 null。同一段材料下的几道题都要原样重复填",
-  "options": [{"key":"A","text":"选项文字"}],
+  "options": [{"key":"A","text":"选项文字；选项本身是图形时填 null"}],
   "answer": "A",
   "analysis": "解析全文，没有就 null",
-  "figure": {"x":0.1,"y":0.2,"w":0.5,"h":0.3} 或 null
+  "category": "yanyu / shuliang / panduan / ziliao / changshi 之一，判断不出填 null",
+  "hasFigure": true 或 false,
+  "band": {"top":0.12,"bottom":0.33}
 }]}
+
+category 对应：yanyu 言语理解（逻辑填空、片段阅读）、shuliang 数量关系、
+panduan 判断推理（图形、定义、类比、逻辑）、ziliao 资料分析、changshi 常识判断。
+
+band 是这道题在整页上占的纵向范围（0–1 的比例），从题号那一行的上边缘，
+到最后一个选项的下边缘，题干和选项都要包进去。只有 hasFigure 为 true 时
+才需要 band，其余填 null。
 
 规则：
 1. 题干或选项被页面截断的半道题，整道丢掉，不要猜。
-2. 图形推理这类题干是图的，stem 写文字部分，图的位置写进 figure，
-   坐标是相对整页的比例，0–1 之间，框住图本身不要框进文字。
+2. 题干或选项里有图形、表格、公式图的，hasFigure 填 true 并给出 band。
 3. answer 只在页面上明确给出时才填，猜不出就填 null，绝不编。
 4. 这页没有完整题目就返回 {"questions":[]}。
-''';
+""";
 
   /// 识别一页。失败不抛，写进 [ScanPage.error]，让用户单页重试。
   Future<void> scanPage(ScanPage page) async {
@@ -155,37 +165,45 @@ class PaperScanner {
       if (item is! Map) continue;
       final map = Map<String, dynamic>.from(item);
 
+      final hasFigure = map['hasFigure'] == true;
+
       final options = <QuestionOption>[];
       final rawOptions = map['options'];
       if (rawOptions is List) {
         for (var j = 0; j < rawOptions.length; j++) {
           final o = rawOptions[j];
-          final key = o is Map
-              ? '${o['key'] ?? String.fromCharCode(65 + j)}'
-              : String.fromCharCode(65 + j);
-          final text = o is Map ? '${o['text'] ?? ''}' : '$o';
-          if (text.trim().isEmpty) continue;
-          options.add(QuestionOption(key: key.toUpperCase(), text: text.trim()));
+          final key = (o is Map
+                  ? '${o['key'] ?? String.fromCharCode(65 + j)}'
+                  : String.fromCharCode(65 + j))
+              .toUpperCase();
+          final text = (o is Map ? '${o['text'] ?? ''}' : '$o').trim();
+          // 图形推理的选项本身就是图，模型只能返回 null。
+          // 按"文字为空就丢"处理的话，整道题会因为选项不足两个被扔掉 ——
+          // 行测最大的一块就这么没了。用字母顶上，图在题干那张横条里。
+          if (text.isEmpty && !hasFigure) continue;
+          options.add(QuestionOption(
+            key: key,
+            text: text.isEmpty ? key : text,
+          ));
         }
       }
 
       var stem = '${map['stem'] ?? ''}'.trim();
       if (stem.isEmpty || options.length < 2) continue;
 
-      // 图裁下来放进题干。模型给的是比例坐标，本地按像素裁。
+      // 整道题横切一条存进题干。上下余量不对称：
+      // 上边多给一点，模型给的上界常压着字，切紧会削掉半行；
+      // 下边几乎不给 —— 试卷里紧挨着选项的往往就是「参考答案」，
+      // 多切两行就把答案印进题图里了，做题时一眼穿帮。
       var stemHtml = '';
-      final figure = map['figure'];
-      if (figure is Map) {
+      final band = map['band'];
+      if (hasFigure && band is Map) {
         final name = 'scan_${now}_${page.index}_$i';
+        final top = _num(band['top']);
+        final bottom = _num(band['bottom']);
         final cropped = await compute(
           _crop,
-          _CropJob(
-            bytes: page.bytes,
-            x: _num(figure['x']),
-            y: _num(figure['y']),
-            w: _num(figure['w']),
-            h: _num(figure['h']),
-          ),
+          _CropJob(bytes: page.bytes, top: top - 0.03, bottom: bottom + 0.005),
         );
         if (cropped != null) {
           figures[name] = cropped;
@@ -199,7 +217,7 @@ class PaperScanner {
         contentHtml: stemHtml,
         options: options,
         answer: '${map['answer'] ?? ''}'.trim().toUpperCase(),
-        category: '',
+        category: _category('${map['category'] ?? ''}'),
         analysis: '${map['analysis'] ?? ''}'.trim(),
         material: '${map['material'] ?? ''}'.trim(),
         materialId: '',
@@ -213,23 +231,41 @@ class PaperScanner {
   /// 裁下来的图，键是 oeimg:// 后面的名字。
   final Map<String, Uint8List> figures = {};
 
+  /// 模型偶尔会写中文题型名或别的写法，只认我们库里那五个键。
+  static String _category(String raw) {
+    final v = raw.trim().toLowerCase();
+    const known = {'yanyu', 'shuliang', 'panduan', 'ziliao', 'changshi'};
+    if (known.contains(v)) return v;
+    const cn = {
+      '言语': 'yanyu', '言语理解': 'yanyu', '逻辑填空': 'yanyu', '片段阅读': 'yanyu',
+      '数量': 'shuliang', '数量关系': 'shuliang',
+      '判断': 'panduan', '判断推理': 'panduan', '图形推理': 'panduan',
+      '资料': 'ziliao', '资料分析': 'ziliao',
+      '常识': 'changshi', '常识判断': 'changshi',
+    };
+    return cn[raw.trim()] ?? '';
+  }
+
   static double _num(Object? v) =>
       v is num ? v.toDouble() : (double.tryParse('$v') ?? 0);
 
   static int? _int(Object? v) =>
       v is num ? v.toInt() : int.tryParse('${v ?? ''}');
 
+  /// 整页宽 + 指定纵向区间。横向不裁：题目本来就是整行排的。
   static Uint8List? _crop(_CropJob job) {
     final src = img.decodeImage(job.bytes);
     if (src == null) return null;
-    final x = (job.x * src.width).round().clamp(0, src.width - 1);
-    final y = (job.y * src.height).round().clamp(0, src.height - 1);
-    final w = (job.w * src.width).round().clamp(1, src.width - x);
-    final h = (job.h * src.height).round().clamp(1, src.height - y);
-    // 太小的框多半是模型给歪了，宁可不裁也别塞一块糊的进去
-    if (w < 40 || h < 40) return null;
+    final y0 = (job.top * src.height).round().clamp(0, src.height - 1);
+    final y1 = (job.bottom * src.height).round().clamp(y0 + 1, src.height);
+    final h = y1 - y0;
+    // 太薄多半是模型给歪了，宁可不裁也别塞一条空白进去
+    if (h < 60) return null;
     return Uint8List.fromList(
-      img.encodePng(img.copyCrop(src, x: x, y: y, width: w, height: h)),
+      img.encodeJpg(
+        img.copyCrop(src, x: 0, y: y0, width: src.width, height: h),
+        quality: 88,
+      ),
     );
   }
 }
@@ -237,12 +273,10 @@ class PaperScanner {
 class _CropJob {
   const _CropJob({
     required this.bytes,
-    required this.x,
-    required this.y,
-    required this.w,
-    required this.h,
+    required this.top,
+    required this.bottom,
   });
 
   final Uint8List bytes;
-  final double x, y, w, h;
+  final double top, bottom;
 }

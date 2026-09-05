@@ -38,7 +38,9 @@ class _ScanPaperPageState extends State<ScanPaperPage> {
   /// 识别出来的题，逐题可以剔掉。
   final _kept = <String, bool>{};
   List<Question> _questions = const [];
-  String _category = kGongkaoCategories.first.key;
+
+  /// 整批改成同一个题型。空 = 用模型逐题判的结果。
+  String? _override;
 
   int get _failedCount => _pages.where((p) => p.state == PageState.failed).length;
   List<Question> get _selected =>
@@ -165,8 +167,11 @@ class _ScanPaperPageState extends State<ScanPaperPage> {
   }
 
   Future<void> _import() async {
-    final list =
-        _selected.map((q) => q.withCategory(_category)).toList();
+    final list = _selected
+        .map((q) => q.withCategory(
+              _override ?? (q.category.isEmpty ? 'yanyu' : q.category),
+            ))
+        .toList();
     if (list.isEmpty) {
       Navigator.of(context).pop(0);
       return;
@@ -209,8 +214,8 @@ class _ScanPaperPageState extends State<ScanPaperPage> {
             questions: _questions,
             kept: _kept,
             failed: _failedCount,
-            category: _category,
-            onCategory: (c) => setState(() => _category = c),
+            overrideCategory: _override,
+            onOverride: (c) => setState(() => _override = c),
             onToggle: (id, v) => setState(() => _kept[id] = v),
             onImport: _import,
             onBackToScan: () => setState(() => _stage = _Stage.scanning),
@@ -479,8 +484,8 @@ class _ReviewBody extends StatelessWidget {
     required this.questions,
     required this.kept,
     required this.failed,
-    required this.category,
-    required this.onCategory,
+    required this.overrideCategory,
+    required this.onOverride,
     required this.onToggle,
     required this.onImport,
     required this.onBackToScan,
@@ -489,8 +494,9 @@ class _ReviewBody extends StatelessWidget {
   final List<Question> questions;
   final Map<String, bool> kept;
   final int failed;
-  final String category;
-  final ValueChanged<String> onCategory;
+  /// 整批覆盖的题型。字段不能叫 override —— 会盖掉 @override 注解。
+  final String? overrideCategory;
+  final ValueChanged<String?> onOverride;
   final void Function(String, bool) onToggle;
   final VoidCallback onImport;
   final VoidCallback onBackToScan;
@@ -507,6 +513,11 @@ class _ReviewBody extends StatelessWidget {
         return ai.compareTo(bi);
       });
     final missing = questions.where((q) => q.answer.isEmpty).length;
+    final unknown = questions.where((q) => q.category.isEmpty).length;
+    final byCategory = questions
+        .map((q) => q.category)
+        .where((c) => c.isNotEmpty)
+        .toSet();
 
     return Column(
       children: [
@@ -535,17 +546,31 @@ class _ReviewBody extends StatelessWidget {
                     style: text.bodySmall?.copyWith(color: t.onAccentSoft),
                   ),
                 ),
-              Text('归到哪个题型', style: text.titleSmall),
+              // 题型逐题判过了。这一行是"判错了就整批改"的兜底，
+              // 不是必填项 —— 默认那颗选中的就是"按识别结果"。
+              Text('题型', style: text.titleSmall),
+              const SizedBox(height: 4),
+              Text(
+                unknown > 0
+                    ? '识别出 ${byCategory.length} 类，$unknown 题没认出'
+                    : '已逐题识别，不对可以整批改',
+                style: text.bodySmall,
+              ),
               const SizedBox(height: 10),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
                 children: [
+                  _Chip(
+                    label: '按识别结果',
+                    on: overrideCategory == null,
+                    onTap: () => onOverride(null),
+                  ),
                   for (final c in kGongkaoCategories)
                     _Chip(
                       label: c.label,
-                      on: category == c.key,
-                      onTap: () => onCategory(c.key),
+                      on: overrideCategory == c.key,
+                      onTap: () => onOverride(c.key),
                     ),
                 ],
               ),
@@ -554,6 +579,7 @@ class _ReviewBody extends StatelessWidget {
                 _QuestionCard(
                   question: q,
                   on: kept[q.id] ?? true,
+                  category: overrideCategory ?? q.category,
                   onToggle: (v) => onToggle(q.id, v),
                 ),
                 const SizedBox(height: 10),
@@ -599,11 +625,13 @@ class _QuestionCard extends StatelessWidget {
   const _QuestionCard({
     required this.question,
     required this.on,
+    required this.category,
     required this.onToggle,
   });
 
   final Question question;
   final bool on;
+  final String category;
   final ValueChanged<bool> onToggle;
 
   @override
@@ -662,6 +690,23 @@ class _QuestionCard extends StatelessWidget {
                         color: noAnswer ? t.danger : t.success,
                         fontWeight: FontWeight.w600,
                       ),
+                    ),
+                    const SizedBox(width: 12),
+                    // 题型用一条 3px 色条加短名，跟别处一样，不染整块
+                    Container(
+                      width: 3,
+                      height: 11,
+                      margin: const EdgeInsets.only(right: 5),
+                      decoration: BoxDecoration(
+                        color: category.isEmpty
+                            ? t.muted
+                            : t.category(category),
+                        borderRadius: BorderRadius.circular(99),
+                      ),
+                    ),
+                    Text(
+                      category.isEmpty ? '未判定' : categoryLabel(category),
+                      style: text.bodySmall,
                     ),
                     const SizedBox(width: 12),
                     Text(
