@@ -4,31 +4,42 @@ import 'package:openexam_app/app/app.dart';
 import 'package:openexam_app/core/constants/app_constants.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
+import 'package:openexam_app/features/onboarding/onboarding_page.dart';
+import 'package:openexam_app/features/shell/app_shell.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
+  // pumpWidget 会拉起整个 app，app 启动就开库。测试进程里没有平台通道，
+  // 得先把 sqflite 换成 ffi 实现，否则两个 widget 测试必然 StateError。
+  setUpAll(() {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+  });
   testWidgets('首次启动进入引导，可跳过', (tester) async {
     SharedPreferences.setMockInitialValues({});
 
     await tester.pumpWidget(const OpenExamApp());
     await tester.pump(const Duration(milliseconds: 400));
 
-    expect(find.textContaining('15936'), findsOneWidget);
-    expect(find.text('继续'), findsOneWidget);
+    expect(find.textContaining('上岸'), findsWidgets);
+    expect(find.text('出发'), findsOneWidget);
     expect(find.text('跳过'), findsOneWidget);
   });
 
-  testWidgets('已引导过的用户直接进入四个 Tab', (tester) async {
+  testWidgets('已引导过的用户直接进入主界面，不再走引导', (tester) async {
     SharedPreferences.setMockInitialValues({Prefs.onboarded: true});
 
     await tester.pumpWidget(const OpenExamApp());
-    await tester.pump(const Duration(milliseconds: 400));
+    // 解种子库要几百毫秒，pump 一次是不够的。
+    for (var i = 0; i < 20; i++) {
+      await tester.pump(const Duration(milliseconds: 200));
+    }
 
-    // The shell renders its tabs even before the database finishes loading.
-    expect(find.text('练习'), findsWidgets);
-    expect(find.text('题库'), findsWidgets);
-    expect(find.text('错题本'), findsWidgets);
-    expect(find.text('我的'), findsWidgets);
+    // 断言"进了 shell"，不断言底栏文字 —— 底栏只给选中的 tab 配字，
+    // 其余是纯图标，拿文字当契约会跟着视觉改动一起碎。
+    expect(find.byType(AppShell), findsOneWidget);
+    expect(find.byType(OnboardingPage), findsNothing);
   });
 
   test('浅色与深色主题都带完整 token', () {

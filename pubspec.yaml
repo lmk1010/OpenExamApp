@@ -22,6 +22,8 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  # widget 测试要 pump 整个 app，app 一起来就开库。
+  sqflite_common_ffi: ^2.3.4
 
 flutter:
   uses-material-design: true
