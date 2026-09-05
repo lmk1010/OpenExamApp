@@ -4,7 +4,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
-import 'package:openexam_app/core/ui/ui_kit.dart';
+import 'package:openexam_app/core/ui/shore_art.dart';
+import 'package:openexam_app/features/import/presentation/scan_paper_page.dart';
 import 'package:openexam_app/data/db/app_database.dart';
 import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/ui/stroke_icons.dart';
@@ -89,6 +90,18 @@ class _ImportPageState extends State<ImportPage> {
     }
   }
 
+  /// 拍照 / PDF：交给扫描页，回来的是已经确认过的题。
+  Future<void> _scan() async {
+    final done = await Navigator.of(context).push<int>(
+      MaterialPageRoute(builder: (_) => const ScanPaperPage()),
+    );
+    if (!mounted || done == null) return;
+    setState(() {
+      _failed = false;
+      _result = done == 0 ? '这次没有导入题目' : '成功导入 $done 题';
+    });
+  }
+
   void _fail(String message) {
     if (!mounted) return;
     setState(() {
@@ -103,175 +116,97 @@ class _ImportPageState extends State<ImportPage> {
     final t = context.tokens;
     final text = Theme.of(context).textTheme;
 
-    final body = Column(
+    final body = ListView(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.paddingOf(context).bottom + 24,
+      ),
       children: [
-        Expanded(
-          child: ListView(
-            padding: const EdgeInsets.only(bottom: 20),
-            children: [
-              Padding(
-                padding: EdgeInsets.fromLTRB(
-                  AppTheme.gutter,
-                  widget.standalone ? 8 : 24,
-                  AppTheme.gutter,
-                  22,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (!widget.standalone) ...[
-                      Text(
-                        '导入题目',
-                        style: text.displaySmall?.copyWith(fontSize: 26),
-                      ),
-                      const SizedBox(height: 7),
-                    ],
-                    Text(
-                      '三步就好，题目只存在这台手机上',
-                      style: text.bodySmall?.copyWith(fontSize: 13),
-                    ),
-                  ],
-                ),
+        const SizedBox(height: 8),
+        // 两条路，各一张卡。上面那张是主路：拍照或选 PDF，AI 逐页认。
+        _Way(
+          art: ShoreArt.icoNote,
+          title: '拍照 / PDF',
+          desc: '试卷、截图、买来的 PDF，AI 逐页认成题目',
+          primary: true,
+          onTap: _busy ? null : _scan,
+        ),
+        const SizedBox(height: 12),
+        _Way(
+          art: ShoreArt.icoHistory,
+          title: '题目文件',
+          desc: 'JSON / CSV，带图的打包成 zip',
+          onTap: _busy ? null : _pickAndImport,
+        ),
+
+        if (_busy) ...[
+          const SizedBox(height: 22),
+          const Center(child: CircularProgressIndicator(strokeWidth: 2.5)),
+        ],
+
+        if (_result != null) ...[
+          const SizedBox(height: 22),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: _failed ? t.dangerSoft : t.accentSoft,
+                borderRadius: BorderRadius.circular(18),
               ),
-              if (_result != null)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppTheme.gutter,
-                    0,
-                    AppTheme.gutter,
-                    22,
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(
-                        _failed
-                            ? Icons.error_outline
-                            : Icons.check_circle_outline,
-                        size: 19,
-                        color: _failed ? t.danger : t.success,
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          _result!,
-                          style: text.bodyMedium?.copyWith(
-                            color: _failed ? t.danger : t.success,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              const _Step(
-                index: 1,
-                title: '准备一个题目文件',
-                desc: '手机里存一个 JSON / CSV 文件；带图的题目可以打包成 zip（题目文件 + 图片放一起）。',
-              ),
-              const _Step(
-                index: 2,
-                title: '点下面的按钮选中它',
-                desc: '选中后会先显示解析结果：多少题、按题型分布、多少张图、有多少题会被覆盖。',
-              ),
-              const _Step(
-                index: 3,
-                title: '回「练习」页开刷',
-                desc: '导入的题会和内置题库合并，按题型分类统计。重复的题会自动覆盖。',
-                last: true,
-              ),
-              const SizedBox(height: 12),
-              // Format details stay collapsed — beginners never need to open it.
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppTheme.gutter,
-                ),
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () => setState(() => _showFormat = !_showFormat),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: Row(
-                      children: [
-                        Text('文件格式说明', style: text.titleSmall),
-                        const SizedBox(width: 6),
-                        Icon(
-                          _showFormat ? Icons.expand_less : Icons.expand_more,
-                          size: 19,
-                          color: t.muted,
-                        ),
-                        const Spacer(),
-                        Text('可选', style: text.bodySmall),
-                      ],
-                    ),
-                  ),
+              child: Text(
+                _result!,
+                style: text.bodyMedium?.copyWith(
+                  color: _failed ? t.danger : t.onAccentSoft,
                 ),
               ),
-              if (_showFormat) ...[
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppTheme.gutter,
-                    4,
-                    AppTheme.gutter,
-                    0,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '推荐一份 paper.json：试卷元数据 + questions 数组。也兼容旧的题目数组。CSV 最低集是 content,A,B,C,D,answer,category,analysis。',
-                        style: text.bodyMedium,
-                      ),
-                      const SizedBox(height: 14),
-                      Surface(
-                        fill: true,
-                        radius: 16,
-                        padding: const EdgeInsets.all(14),
-                        child: Text(
-                          '{\n  "schemaVersion": 1,\n  "paper": {\n    "id": "paper_user_001",\n    "title": "我的试卷",\n    "examKind": "gongwuyuan",\n    "examLevel": "provincial",\n    "region": "anhui",\n    "subject": "computer",\n    "source": "imported"\n  },\n  "questions": [\n    {\n      "content": "题干",\n      "options": [\n        {"key": "A", "text": "选项一"},\n        {"key": "B", "text": "选项二"}\n      ],\n      "answer": "A",\n      "category": "cs_base",\n      "analysis": "解析（选填）"\n    }\n  ]\n}',
-                          style: text.bodySmall?.copyWith(
-                            fontFamily: 'Menlo',
-                            fontSize: 12,
-                            color: t.textSoft,
-                            height: 1.6,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'examKind：gongwuyuan 公务员 / shiyedanwei 事业单位。examLevel：national 国家 / provincial 省级。'
-                        'subject：xingce 行测 / computer 计算机。'
-                        '行测 category：yanyu / shuliang / panduan / ziliao / changshi。'
-                        '计算机 category：cs_base / cs_security / cs_windows / cs_office / cs_prog / cs_db / cs_net / cs_se。',
-                        style: text.bodySmall,
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'ZIP：题目文件和图片放进同一个压缩包，题干写 '
-                        '<img src="图片文件名.png">。完整字段见仓库 data/original/IMPORT_SCHEMA.md。',
-                        style: text.bodySmall,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        '导入内容的权利归内容来源方。请只导入你有权使用的材料。',
-                        style: text.bodySmall,
-                      ),
-                    ],
-                  ),
+            ),
+          ),
+        ],
+
+        const SizedBox(height: 26),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => setState(() => _showFormat = !_showFormat),
+            child: Row(
+              children: [
+                Text('题目文件长什么样', style: text.bodySmall),
+                Icon(
+                  _showFormat
+                      ? Icons.keyboard_arrow_up_rounded
+                      : Icons.keyboard_arrow_down_rounded,
+                  size: 18,
+                  color: t.muted,
                 ),
               ],
-            ],
-          ),
-        ),
-        ActionBar(
-          safeBottom: widget.standalone,
-          child: SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              onPressed: _busy ? null : _pickAndImport,
-              child: Text(_busy ? '正在解析…' : '选择文件'),
             ),
           ),
         ),
+        if (_showFormat) ...[
+          const SizedBox(height: 10),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: t.surfaceAlt,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Text(
+                _formatSample,
+                style: TextStyle(
+                  fontFamily: 'monospace',
+                  fontSize: 11.5,
+                  height: 1.6,
+                  color: t.textSoft,
+                ),
+              ),
+            ),
+          ),
+        ],
       ],
     );
 
@@ -288,21 +223,35 @@ class _ImportPageState extends State<ImportPage> {
       body: body,
     );
   }
+
+  static const _formatSample =
+      '{"paper": {"title": "2026 国考行测", "year": 2026},\n'
+      ' "questions": [{\n'
+      '   "content": "题干",\n'
+      '   "material": "共用材料，没有可省",\n'
+      '   "options": [{"key":"A","text":"甲"},\n'
+      '               {"key":"B","text":"乙"}],\n'
+      '   "answer": "A",\n'
+      '   "analysis": "解析",\n'
+      '   "category": "ziliao"\n'
+      ' }]}';
 }
 
-/// Numbered step with a connector line — the beginner path down the page.
-class _Step extends StatelessWidget {
-  const _Step({
-    required this.index,
+/// 一条导入路径。图标 + 一句话，点了就走，不解释第二句。
+class _Way extends StatelessWidget {
+  const _Way({
+    required this.art,
     required this.title,
     required this.desc,
-    this.last = false,
+    required this.onTap,
+    this.primary = false,
   });
 
-  final int index;
+  final String art;
   final String title;
   final String desc;
-  final bool last;
+  final VoidCallback? onTap;
+  final bool primary;
 
   @override
   Widget build(BuildContext context) {
@@ -310,62 +259,54 @@ class _Step extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Column(
+      child: Opacity(
+        opacity: onTap == null ? 0.5 : 1,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(18, 18, 16, 18),
+            decoration: BoxDecoration(
+              color: primary ? t.accentSoft : t.surface,
+              borderRadius: BorderRadius.circular(22),
+              boxShadow: primary ? null : t.shadow,
+            ),
+            child: Row(
               children: [
-                Container(
-                  width: 26,
-                  height: 26,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: t.brand.withValues(alpha: 0.14),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Text(
-                    '$index',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      height: 1,
-                      color: t.brand,
-                    ),
+                Image.asset(
+                  art,
+                  width: 40,
+                  height: 40,
+                  filterQuality: FilterQuality.medium,
+                  errorBuilder: (_, __, ___) => const SizedBox(width: 40),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(title, style: text.titleSmall?.copyWith(fontSize: 16)),
+                      const SizedBox(height: 4),
+                      Text(
+                        desc,
+                        style: text.bodySmall?.copyWith(
+                          fontSize: 12.5,
+                          color: primary ? t.onAccentSoft : t.muted,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                if (!last)
-                  Expanded(
-                    child: Container(
-                      width: 1.5,
-                      color: t.brand.withValues(alpha: 0.16),
-                    ),
-                  ),
+                Icon(Icons.chevron_right, size: 18, color: t.muted),
               ],
             ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.only(top: 2, bottom: last ? 0 : 22),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title, style: text.titleSmall),
-                    const SizedBox(height: 5),
-                    Text(
-                      desc,
-                      style: text.bodyMedium?.copyWith(fontSize: 13.5),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 }
+
 
 /// Import preview — shows exactly what a file will do before it does it.
 class _PreviewSheet extends StatelessWidget {

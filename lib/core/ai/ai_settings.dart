@@ -1,5 +1,19 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// 一个可选的模型。给用户一个下拉，而不是让他去背模型名。
+class AiModel {
+  const AiModel(this.id, this.label, {this.note = '', this.free = false});
+
+  final String id;
+  final String label;
+
+  /// 一句话说明它适合干什么，直接显示在下拉里。
+  final String note;
+
+  /// 免费额度内可用，标出来。
+  final bool free;
+}
+
 /// 一个 AI 服务商的接入参数。除了 Anthropic，其余都走 OpenAI 兼容协议。
 class AiProvider {
   const AiProvider({
@@ -10,6 +24,8 @@ class AiProvider {
     this.isAnthropic = false,
     this.supportsVision = true,
     this.visionModel,
+    this.models = const [],
+    this.keyUrl,
     this.hint,
   });
 
@@ -25,8 +41,17 @@ class AiProvider {
   /// 所以拍照录题、试卷识别得自动切过去，而不是让用户自己去改模型名。
   final String? visionModel;
 
-  /// 去哪儿领 key，显示在设置页里。
+  /// 这家能选的模型。空的话设置页只给一个输入框。
+  final List<AiModel> models;
+
+  /// 领 key 的页面，设置页里那行「去哪儿拿 Key」直接点开它。
+  final String? keyUrl;
+
+  /// 去哪儿领 key 的短说明。
   final String? hint;
+
+  /// 自定义服务商才需要用户自己填地址。
+  bool get needsBaseUrl => id == 'custom';
 }
 
 class AiProviders {
@@ -40,14 +65,24 @@ class AiProviders {
       // deepseek-chat 现在只是 v4-flash 的别名，写实名才能挑 pro。
       defaultModel: 'deepseek-v4-flash',
       visionModel: 'deepseek-v4-flash-vision-exp',
+      keyUrl: 'https://platform.deepseek.com/api_keys',
       hint: 'platform.deepseek.com',
+      models: [
+        AiModel('deepseek-v4-flash', 'V4 Flash', note: '快且便宜，日常够用'),
+        AiModel('deepseek-v4-pro', 'V4 Pro', note: '难题和长文批改更稳'),
+      ],
     ),
     AiProvider(
       id: 'openai',
       label: 'OpenAI',
       baseUrl: 'https://api.openai.com/v1',
       defaultModel: 'gpt-4o-mini',
+      keyUrl: 'https://platform.openai.com/api-keys',
       hint: 'platform.openai.com',
+      models: [
+        AiModel('gpt-4o-mini', 'GPT-4o mini', note: '便宜，能看图'),
+        AiModel('gpt-4o', 'GPT-4o', note: '更强，贵一些'),
+      ],
     ),
     AiProvider(
       id: 'anthropic',
@@ -55,42 +90,66 @@ class AiProviders {
       baseUrl: 'https://api.anthropic.com/v1',
       defaultModel: 'claude-sonnet-4-5',
       isAnthropic: true,
+      keyUrl: 'https://console.anthropic.com/settings/keys',
       hint: 'console.anthropic.com',
+      models: [
+        AiModel('claude-sonnet-4-5', 'Sonnet 4.5', note: '写作和批改最稳'),
+        AiModel('claude-haiku-4-5-20251001', 'Haiku 4.5', note: '快'),
+      ],
     ),
     AiProvider(
       id: 'doubao',
       label: '豆包',
       baseUrl: 'https://ark.cn-beijing.volces.com/api/v3',
       defaultModel: 'doubao-seed-1-6-250615',
+      keyUrl: 'https://console.volcengine.com/ark',
       hint: 'console.volcengine.com',
+      models: [
+        AiModel('doubao-seed-1-6-250615', 'Seed 1.6', note: '通用'),
+      ],
     ),
     AiProvider(
       id: 'kimi',
       label: 'Kimi',
       baseUrl: 'https://api.moonshot.cn/v1',
       defaultModel: 'moonshot-v1-8k',
+      keyUrl: 'https://platform.moonshot.cn/console/api-keys',
       hint: 'platform.moonshot.cn',
+      models: [
+        AiModel('moonshot-v1-8k', 'v1 8K', note: '短文本'),
+        AiModel('moonshot-v1-32k', 'v1 32K', note: '长材料'),
+      ],
     ),
     AiProvider(
       id: 'qwen',
       label: '通义千问',
       baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
       defaultModel: 'qwen-plus',
+      keyUrl: 'https://bailian.console.aliyun.com/?apiKey=1',
       hint: 'bailian.console.aliyun.com',
+      models: [
+        AiModel('qwen-plus', 'Qwen Plus', note: '通用'),
+        AiModel('qwen-vl-plus', 'Qwen VL Plus', note: '能看图'),
+      ],
     ),
     AiProvider(
       id: 'glm',
       label: '智谱 GLM',
       baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
       defaultModel: 'glm-4-flash',
+      keyUrl: 'https://bigmodel.cn/usercenter/apikeys',
       hint: 'bigmodel.cn',
+      models: [
+        AiModel('glm-4-flash', 'GLM-4 Flash', note: '免费额度内可用', free: true),
+        AiModel('glm-4-plus', 'GLM-4 Plus', note: '更强'),
+      ],
     ),
     AiProvider(
       id: 'custom',
       label: '自定义',
       baseUrl: '',
       defaultModel: '',
-      hint: '任何 OpenAI 兼容接口',
+      hint: '任何 OpenAI 兼容接口，地址要带上 /v1',
     ),
   ];
 

@@ -89,8 +89,18 @@ class AiClient {
     required String system,
     required String prompt,
     int maxTokens = 4096,
+    String? imageBase64,
+    String mimeType = 'image/png',
   }) async {
-    final result = await complete(system: system, prompt: prompt, maxTokens: maxTokens);
+    final result = imageBase64 == null
+        ? await complete(system: system, prompt: prompt, maxTokens: maxTokens)
+        : await completeWithImage(
+            system: system,
+            prompt: prompt,
+            imageBase64: imageBase64,
+            mimeType: mimeType,
+            maxTokens: maxTokens,
+          );
     if (!result.isOk) return AiResult.fail(result.error);
     final parsed = extractJson(result.value ?? '');
     if (parsed == null) {
@@ -103,10 +113,13 @@ class AiClient {
   Future<AiResult<String>> testConnection() async {
     if (settings.apiKey.trim().isEmpty) return const AiResult.fail('还没填 API Key');
     if (settings.effectiveBaseUrl.isEmpty) return const AiResult.fail('还没填接口地址');
+    // 预算给足。DeepSeek V4、o 系列这类会先花 token 想，
+    // max_tokens 给小了，想完就没配额吐正文，回来是一句空字符串 ——
+    // 那不是"模型坏了"，是我们没给够。
     final result = await complete(
       system: '你是一个连通性测试端点。',
       prompt: '只回复两个字：正常',
-      maxTokens: 16,
+      maxTokens: 512,
     );
     if (!result.isOk) return result;
     return AiResult.ok('连接正常 · ${settings.effectiveModel}');
@@ -175,7 +188,10 @@ class AiClient {
       final decoded = jsonDecode(utf8.decode(response.bodyBytes));
       final text = _textFrom(decoded);
       if (text == null || text.trim().isEmpty) {
-        return const AiResult.fail('模型返回了空内容，换个模型或稍后再试');
+        return const AiResult.fail(
+        '模型没吐出正文。多半是这个模型要先"想"一轮，配额被想的部分吃完了 —— '
+        '换成非推理模型，或者稍后再试。',
+      );
       }
       return AiResult.ok(text);
     } on TimeoutException {
@@ -196,9 +212,18 @@ class AiClient {
     // OpenAI 兼容
     final choices = decoded['choices'];
     if (choices is List && choices.isNotEmpty) {
-      final message = (choices.first as Map)['message'];
-      if (message is Map && message['content'] is String) {
-        return message['content'] as String;
+      final choice = choices.first as Map;
+      final message = choice['message'];
+      if (message is Map) {
+        final text = message['content'];
+        if (text is String && text.trim().isNotEmpty) return text;
+        // 推理模型会把过程放 reasoning_content。正文空但推理有内容，
+        // 说明预算被想的部分吃光了 —— 这时候报"没配额"比报"空内容"准。
+        if (choice['finish_reason'] == 'length' &&
+            '${message['reasoning_content'] ?? ''}'.trim().isNotEmpty) {
+          return null;
+        }
+        if (text is String) return text;
       }
     }
     return null;

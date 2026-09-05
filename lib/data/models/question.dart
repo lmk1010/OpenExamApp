@@ -185,6 +185,31 @@ class Question {
     );
   }
 
+  /// 扫描出来的题在入库前要补两样东西：归到哪个题型、共用材料的 id。
+  /// 单独给方法而不是塞进 copyWith，是因为这两个字段平时不该被顺手改掉。
+  Question withCategory(String value) => _with(category: value);
+  Question withMaterialId(String value) => _with(materialId: value);
+
+  Question _with({String? category, String? materialId}) => Question(
+        id: id,
+        content: content,
+        contentHtml: contentHtml,
+        options: options,
+        answer: answer,
+        category: category ?? this.category,
+        subCategory: subCategory,
+        analysis: analysis,
+        analysisHtml: analysisHtml,
+        paperId: paperId,
+        paperTitle: paperTitle,
+        year: year,
+        difficulty: difficulty,
+        source: source,
+        orderNum: orderNum,
+        materialId: materialId ?? this.materialId,
+        material: material,
+      );
+
   Question copyWith({String? source, String? material}) => Question(
         id: id,
         content: content,

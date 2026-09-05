@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:openexam_app/core/ai/ai_client.dart';
 import 'package:openexam_app/core/ai/ai_settings.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
@@ -96,6 +97,28 @@ class _AiSettingsPageState extends State<AiSettingsPage> {
     });
   }
 
+  Future<void> _openKeyPage() async {
+    final url = _settings.provider.keyUrl;
+    if (url == null) return;
+    final ok = await launchUrl(
+      Uri.parse(url),
+      mode: LaunchMode.externalApplication,
+    );
+    if (!ok && mounted) {
+      await Clipboard.setData(ClipboardData(text: url));
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('打不开浏览器，网址已复制：$url')));
+    }
+  }
+
+  Future<void> _paste() async {
+    final data = await Clipboard.getData(Clipboard.kTextPlain);
+    final v = data?.text?.trim() ?? '';
+    if (v.isEmpty) return;
+    setState(() => _keyCtrl.text = v);
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
@@ -103,7 +126,9 @@ class _AiSettingsPageState extends State<AiSettingsPage> {
     if (_loading) return const Scaffold(body: LoadingState());
 
     final provider = _settings.provider;
-    final isCustom = provider.id == 'custom';
+    final model = _modelCtrl.text.trim().isEmpty
+        ? provider.defaultModel
+        : _modelCtrl.text.trim();
 
     return Scaffold(
       appBar: AppBar(title: const Text('AI 设置')),
@@ -115,14 +140,9 @@ class _AiSettingsPageState extends State<AiSettingsPage> {
           40,
         ),
         children: [
-          _Note(
-            text: '申论批改、拍照识题要用到 AI。Key 只存在这台手机上，'
-                '请求直接发给你选的服务商，不经过我们任何服务器。',
-          ),
-          const SizedBox(height: 20),
-
-          _Label('服务商'),
-          const SizedBox(height: 10),
+          // 第一步：挑一家
+          _Step(n: 1, title: '选一家'),
+          const SizedBox(height: 12),
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -135,71 +155,100 @@ class _AiSettingsPageState extends State<AiSettingsPage> {
                 ),
             ],
           ),
-          if (provider.hint != null) ...[
-            const SizedBox(height: 8),
-            Text('去 ${provider.hint} 申请 Key', style: text.bodySmall),
-          ],
-          const SizedBox(height: 22),
 
-          _Label('API Key'),
-          const SizedBox(height: 8),
-          _Field(
+          const SizedBox(height: 26),
+
+          // 第二步：填 Key。这是用户唯一必须自己动手的地方。
+          _Step(n: 2, title: '填 Key'),
+          const SizedBox(height: 12),
+          _KeyField(
             controller: _keyCtrl,
-            hint: 'sk-…',
-            obscure: !_revealKey,
-            onChanged: (_) => setState(() => _testMessage = null),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  tooltip: _revealKey ? '隐藏' : '显示',
-                  icon: Icon(
-                    _revealKey ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                    size: 19,
-                    color: t.muted,
-                  ),
-                  onPressed: () => setState(() => _revealKey = !_revealKey),
+            reveal: _revealKey,
+            onReveal: () => setState(() => _revealKey = !_revealKey),
+            onPaste: _paste,
+            onChanged: (_) => setState(() {}),
+          ),
+          if (provider.keyUrl != null) ...[
+            const SizedBox(height: 10),
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: _openKeyPage,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
                 ),
-                IconButton(
-                  tooltip: '粘贴',
-                  icon: Icon(Icons.content_paste_rounded, size: 18, color: t.muted),
-                  onPressed: () async {
-                    final data = await Clipboard.getData(Clipboard.kTextPlain);
-                    final value = data?.text?.trim();
-                    if (value == null || value.isEmpty) return;
-                    setState(() {
-                      _keyCtrl.text = value;
-                      _testMessage = null;
-                    });
-                  },
+                decoration: BoxDecoration(
+                  color: t.brandSoft,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.open_in_new_rounded, size: 17, color: t.brand),
+                    const SizedBox(width: 9),
+                    Expanded(
+                      child: Text(
+                        '去 ${provider.hint} 领一个',
+                        style: text.bodySmall?.copyWith(
+                          color: t.brand,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+
+          const SizedBox(height: 26),
+
+          // 第三步：模型给下拉，别让人去背模型名
+          _Step(n: 3, title: '用哪个模型'),
+          const SizedBox(height: 12),
+          if (provider.models.isNotEmpty)
+            _ModelPicker(
+              models: provider.models,
+              value: model,
+              onPick: (id) => setState(() => _modelCtrl.text = id),
+            )
+          else
+            _Field(
+              controller: _modelCtrl,
+              hint: '模型名，问服务商要',
+              onChanged: (_) => setState(() {}),
+            ),
+
+          // 地址只有自定义服务商要填。官方那几家已经配好了，
+          // 摆一个「留空用默认」的输入框只会让人以为自己漏填了东西。
+          if (provider.needsBaseUrl) ...[
+            const SizedBox(height: 26),
+            _Step(n: 4, title: '接口地址'),
+            const SizedBox(height: 12),
+            _Field(
+              controller: _baseCtrl,
+              hint: 'https://…/v1',
+              onChanged: (_) => setState(() {}),
+            ),
+          ] else ...[
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Icon(Icons.check_circle_rounded, size: 15, color: t.success),
+                const SizedBox(width: 7),
+                Expanded(
+                  child: Text(
+                    '接口地址已配好：${provider.baseUrl}',
+                    style: text.bodySmall,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 20),
+          ],
 
-          _Label('模型'),
-          const SizedBox(height: 8),
-          _Field(
-            controller: _modelCtrl,
-            hint: isCustom ? '必填，例如 gpt-4o-mini' : '留空用默认：${provider.defaultModel}',
-            onChanged: (_) => setState(() => _testMessage = null),
-          ),
-          const SizedBox(height: 20),
-
-          _Label(isCustom ? '接口地址' : '接口地址（可选）'),
-          const SizedBox(height: 8),
-          _Field(
-            controller: _baseCtrl,
-            hint: isCustom
-                ? '必填，例如 https://your-relay.com/v1'
-                : '留空用默认：${provider.baseUrl}',
-            onChanged: (_) => setState(() => _testMessage = null),
-          ),
-          const SizedBox(height: 6),
-          Text('用中转或自建服务时填这里，要带上 /v1', style: text.bodySmall),
-
-          const SizedBox(height: 26),
+          const SizedBox(height: 28),
           Row(
             children: [
               Expanded(
@@ -211,7 +260,7 @@ class _AiSettingsPageState extends State<AiSettingsPage> {
               const SizedBox(width: 12),
               Expanded(
                 child: FilledButton(
-                  onPressed: _testing ? null : _save,
+                  onPressed: _keyCtrl.text.trim().isEmpty ? null : _save,
                   child: const Text('保存'),
                 ),
               ),
@@ -221,30 +270,239 @@ class _AiSettingsPageState extends State<AiSettingsPage> {
           if (_testMessage != null) ...[
             const SizedBox(height: 16),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: (_testOk ? t.success : t.danger).withValues(alpha: 0.10),
-                borderRadius: BorderRadius.circular(12),
+                color: _testOk ? t.successSoft : t.dangerSoft,
+                borderRadius: BorderRadius.circular(16),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Icon(
-                    _testOk ? Icons.check_circle_outline : Icons.error_outline,
-                    size: 18,
+                    _testOk
+                        ? Icons.check_circle_rounded
+                        : Icons.error_outline_rounded,
+                    size: 17,
                     color: _testOk ? t.success : t.danger,
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 9),
                   Expanded(
                     child: Text(
                       _testMessage!,
                       style: text.bodySmall?.copyWith(
                         color: _testOk ? t.success : t.danger,
-                        height: 1.6,
+                        height: 1.5,
                       ),
                     ),
                   ),
                 ],
+              ),
+            ),
+          ],
+
+          const SizedBox(height: 24),
+          _Note(
+            text: 'Key 只存在这台手机上。请求直接发给你选的那家服务商，'
+                '不经过我们任何服务器。',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 步骤号 + 标题。三步走完就能用，不需要读说明。
+class _Step extends StatelessWidget {
+  const _Step({required this.n, required this.title});
+
+  final int n;
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    return Row(
+      children: [
+        Container(
+          width: 22,
+          height: 22,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(color: t.accent, shape: BoxShape.circle),
+          child: Text(
+            '$n',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              height: 1,
+              color: t.onAccent,
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Text(
+          title,
+          style: Theme.of(context)
+              .textTheme
+              .titleSmall
+              ?.copyWith(fontSize: 15.5),
+        ),
+      ],
+    );
+  }
+}
+
+/// Key 输入框：一眼能看出填没填，粘贴和明文各一个按钮。
+class _KeyField extends StatelessWidget {
+  const _KeyField({
+    required this.controller,
+    required this.reveal,
+    required this.onReveal,
+    required this.onPaste,
+    required this.onChanged,
+  });
+
+  final TextEditingController controller;
+  final bool reveal;
+  final VoidCallback onReveal;
+  final VoidCallback onPaste;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final filled = controller.text.trim().isNotEmpty;
+    return Container(
+      padding: const EdgeInsets.only(left: 16, right: 6),
+      decoration: BoxDecoration(
+        color: t.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: filled ? t.success.withValues(alpha: 0.5) : t.line,
+          width: 1.5,
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: controller,
+              obscureText: !reveal,
+              autocorrect: false,
+              enableSuggestions: false,
+              onChanged: onChanged,
+              style: TextStyle(fontSize: 15, color: t.text),
+              decoration: InputDecoration(
+                border: InputBorder.none,
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                hintText: 'sk-…',
+                hintStyle: TextStyle(color: t.muted, fontSize: 15),
+              ),
+            ),
+          ),
+          IconButton(
+            tooltip: '粘贴',
+            onPressed: onPaste,
+            icon: Icon(Icons.content_paste_rounded, size: 19, color: t.textSoft),
+          ),
+          IconButton(
+            tooltip: reveal ? '隐藏' : '显示',
+            onPressed: onReveal,
+            icon: Icon(
+              reveal
+                  ? Icons.visibility_off_outlined
+                  : Icons.visibility_outlined,
+              size: 19,
+              color: t.textSoft,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 模型下拉。每条带一句用途，免得用户对着一串模型名猜。
+class _ModelPicker extends StatelessWidget {
+  const _ModelPicker({
+    required this.models,
+    required this.value,
+    required this.onPick,
+  });
+
+  final List<AiModel> models;
+  final String value;
+  final ValueChanged<String> onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+    return Container(
+      decoration: BoxDecoration(
+        color: t.surface,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: t.shadow,
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          for (var i = 0; i < models.length; i++) ...[
+            if (i > 0)
+              Divider(height: 1, thickness: 1, color: t.lineSoft, indent: 16),
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => onPick(models[i].id),
+              child: Container(
+                color: models[i].id == value ? t.accentSoft : null,
+                padding: const EdgeInsets.fromLTRB(16, 13, 14, 13),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                models[i].label,
+                                style: text.titleSmall?.copyWith(fontSize: 15),
+                              ),
+                              if (models[i].free) ...[
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 7,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: t.successSoft,
+                                    borderRadius: BorderRadius.circular(99),
+                                  ),
+                                  child: Text(
+                                    '免费',
+                                    style: TextStyle(
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: t.success,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                          if (models[i].note.isNotEmpty) ...[
+                            const SizedBox(height: 3),
+                            Text(models[i].note, style: text.bodySmall),
+                          ],
+                        ],
+                      ),
+                    ),
+                    if (models[i].id == value)
+                      Icon(Icons.check_rounded, size: 19, color: t.onAccentSoft),
+                  ],
+                ),
               ),
             ),
           ],
@@ -254,33 +512,15 @@ class _AiSettingsPageState extends State<AiSettingsPage> {
   }
 }
 
-class _Label extends StatelessWidget {
-  const _Label(this.text);
-  final String text;
-
-  @override
-  Widget build(BuildContext context) => Text(
-        text,
-        style: Theme.of(context)
-            .textTheme
-            .titleSmall
-            ?.copyWith(color: context.tokens.text),
-      );
-}
-
 class _Field extends StatelessWidget {
   const _Field({
     required this.controller,
     required this.hint,
-    this.obscure = false,
-    this.trailing,
     this.onChanged,
   });
 
   final TextEditingController controller;
   final String hint;
-  final bool obscure;
-  final Widget? trailing;
   final ValueChanged<String>? onChanged;
 
   @override
@@ -289,15 +529,14 @@ class _Field extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: t.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: t.line),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: t.line, width: 1.5),
       ),
       child: Row(
         children: [
           Expanded(
             child: TextField(
               controller: controller,
-              obscureText: obscure,
               onChanged: onChanged,
               autocorrect: false,
               enableSuggestions: false,
@@ -310,7 +549,6 @@ class _Field extends StatelessWidget {
               ),
             ),
           ),
-          if (trailing != null) trailing!,
         ],
       ),
     );
@@ -333,15 +571,18 @@ class _Chip extends StatelessWidget {
         duration: const Duration(milliseconds: 160),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
         decoration: BoxDecoration(
-          color: selected ? t.brand : t.surface,
+          color: selected ? t.accent : t.surface,
           borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: selected ? t.brand : t.line),
+          border: Border.all(
+            color: selected ? t.accent : t.line,
+            width: 1.5,
+          ),
         ),
         child: Text(
           label,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: selected ? Colors.white : t.textSoft,
-                fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                color: selected ? t.onAccent : t.textSoft,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
               ),
         ),
       ),
@@ -359,7 +600,7 @@ class _Note extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: t.brand.withValues(alpha: 0.08),
+        color: t.surfaceAlt,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
