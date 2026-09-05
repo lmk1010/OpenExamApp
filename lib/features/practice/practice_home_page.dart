@@ -19,6 +19,7 @@ import 'package:openexam_app/features/practice/practice_session_page.dart';
 import 'package:openexam_app/features/practice/shore_home.dart';
 import 'package:openexam_app/features/essay/presentation/essay_page.dart';
 import 'package:openexam_app/features/shell/app_shell.dart';
+import 'package:openexam_app/features/vocab/presentation/vocab_page.dart';
 import 'package:openexam_app/features/search/search_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -271,6 +272,11 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
 
   Future<void> _runStudyTask(StudyTask task) async {
     switch (task.action) {
+      case StudyAction.vocab:
+        await Navigator.of(context)
+            .push(MaterialPageRoute(builder: (_) => const VocabPage()));
+        if (mounted) _reload();
+        return;
       case StudyAction.check:
         // 打卡项没有去处，勾掉就是完成。
         await _toggleStudyTask(task, !_todayPlanDone.contains(task.id));

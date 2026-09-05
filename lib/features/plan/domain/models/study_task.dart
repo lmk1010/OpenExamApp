@@ -9,6 +9,9 @@ enum StudyAction {
   note,
   openWrongBook,
 
+  /// 背今日词语。
+  vocab,
+
   /// 纯打卡：勾了就算，不跳任何页面。
   ///
   /// 备考里一多半事情是这种 —— 背二十个成语、看今天时政、把昨天的错题

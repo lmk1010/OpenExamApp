@@ -109,4 +109,5 @@ class ShoreArt {
   static const icoStats = '$_dir/ico_stats.png';
   static const icoTips = '$_dir/ico_tips.png';
   static const icoFix = '$_dir/ico_fix.png';
+  static const icoVocab = '$_dir/ico_vocab.png';
 }

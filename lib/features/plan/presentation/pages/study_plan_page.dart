@@ -14,6 +14,7 @@ import 'package:openexam_app/features/plan/domain/models/study_task.dart';
 import 'package:openexam_app/features/plan/presentation/widgets/study_task_editor_sheet.dart';
 import 'package:openexam_app/features/practice/practice_session_page.dart';
 import 'package:openexam_app/features/shell/app_shell.dart';
+import 'package:openexam_app/features/vocab/presentation/vocab_page.dart';
 
 class StudyPlanPage extends StatefulWidget {
   const StudyPlanPage({super.key, this.onRunTask, this.embedded = false});
@@ -139,6 +140,11 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
     final db = AppDatabase.instance;
 
     switch (task.action) {
+      case StudyAction.vocab:
+        await Navigator.of(context)
+            .push(MaterialPageRoute(builder: (_) => const VocabPage()));
+        if (mounted) await _reload();
+        return;
       case StudyAction.check:
         // 打卡项没有去处，勾掉就是完成。
         await _toggle(task, !_done.contains(task.id));

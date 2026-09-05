@@ -7,6 +7,7 @@ import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
 import 'package:openexam_app/core/ui/shore.dart';
+import 'package:openexam_app/features/vocab/data/vocab_collector.dart';
 import 'package:openexam_app/core/ui/shore_art.dart';
 import 'package:openexam_app/core/ui/glass.dart';
 import 'package:openexam_app/core/ui/responsive.dart';
@@ -254,6 +255,9 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
       isCorrect: correct,
       elapsedMs: spent,
     );
+    // 逻辑填空错了就把那对词收进词表。当场分不清的一对，
+    // 第二天在别的题里还会再错一次 —— 收进来按间隔重复过一遍更划算。
+    if (!correct) await VocabCollector.collect(q, answer);
     await _snapshot();
 
     final qi = _questions.indexWhere((e) => e.id == q.id);

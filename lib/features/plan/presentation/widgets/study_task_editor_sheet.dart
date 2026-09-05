@@ -28,6 +28,8 @@ String studyActionLabel(StudyAction action) {
       return '弱项强化';
     case StudyAction.note:
       return '备忘 / 手写';
+    case StudyAction.vocab:
+      return '背词语';
     case StudyAction.check:
       return '打卡';
     case StudyAction.openWrongBook:
@@ -49,6 +51,8 @@ String studyActionHint(StudyAction action) {
       return '按薄弱模块抽题';
     case StudyAction.note:
       return '勾选完成即可，不自动开练';
+    case StudyAction.vocab:
+      return '今天到期的成语和易错词';
     case StudyAction.check:
       return '做完打个勾，不跳任何页面';
     case StudyAction.openWrongBook:

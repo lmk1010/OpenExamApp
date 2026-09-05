@@ -438,9 +438,28 @@ class _PageRow extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              '第 ${page.index} 页',
-              style: text.titleSmall?.copyWith(fontSize: 14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '第 ${page.index} 页',
+                  style: text.titleSmall?.copyWith(fontSize: 14),
+                ),
+                // 失败了要说为什么。只给一个"重试"，用户只能盲目再点一次。
+                if (failed && (page.error ?? '').isNotEmpty) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    page.error!,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: text.bodySmall?.copyWith(
+                      fontSize: 11.5,
+                      color: t.danger,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
           switch (page.state) {

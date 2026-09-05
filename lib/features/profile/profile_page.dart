@@ -24,12 +24,13 @@ import 'package:openexam_app/features/notes/notes_page.dart';
 import 'package:openexam_app/features/onboarding/onboarding_page.dart';
 import 'package:openexam_app/features/plan/presentation/pages/study_plan_page.dart';
 import 'package:openexam_app/features/reports/reports_page.dart';
-import 'package:openexam_app/features/reports/timeline_page.dart';
 import 'package:openexam_app/features/shell/app_shell.dart';
 import 'package:openexam_app/core/ui/shore.dart';
 import 'package:openexam_app/core/ui/shore_art.dart';
 import 'package:openexam_app/features/practice/shore_home.dart';
 import 'package:openexam_app/features/stats/stats_page.dart';
+import 'package:openexam_app/features/vocab/data/vocab_repository.dart';
+import 'package:openexam_app/features/vocab/presentation/vocab_page.dart';
 import 'package:openexam_app/features/tips/tips_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -59,6 +60,7 @@ class _ProfilePageState extends State<ProfilePage> {
   int _count = 20;
   int _marked = 0;
   int _reports = 0;
+  int _vocabDue = 0;
   int _goal = 30;
   int _notes = 0;
   int _feedback = 0;
@@ -77,8 +79,9 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _reload() async {
-    // 十个查询彼此不依赖，并发发出去，别排队等
+    // 这些查询彼此不依赖，并发发出去，别排队等
     final db = AppDatabase.instance;
+    await VocabRepository.instance.ensureSeeded();
     final results = await Future.wait([
       db.countAll(),
       db.countImported(),
@@ -90,6 +93,7 @@ class _ProfilePageState extends State<ProfilePage> {
       Achievements.evaluate(),
       db.categoryStats(),
       db.dailyActivity(),
+      VocabRepository.instance.stats(),
     ]);
     final total = results[0] as int;
     final imported = results[1] as int;
@@ -101,6 +105,8 @@ class _ProfilePageState extends State<ProfilePage> {
     final badges = results[7] as List<AchievementBadge>;
     final stats = results[8] as List<CategoryStat>;
     final week = results[9] as List<int>;
+    final vocab =
+        results[10] as ({int total, int due, int learning, int mastered});
     final prefs = await SharedPreferences.getInstance();
 
     final done = stats.fold<int>(0, (s, e) => s + e.done);
@@ -119,6 +125,7 @@ class _ProfilePageState extends State<ProfilePage> {
       _badgeTotal = badges.length;
       _rate = done == 0 ? 0 : (correct * 100 / done).round();
       _week = week;
+      _vocabDue = vocab.due;
       _count = prefs.getInt(Prefs.defaultCount) ?? 20;
       _goal = prefs.getInt(Prefs.dailyGoal) ?? 30;
       _province = prefs.getString(Prefs.province);
@@ -256,9 +263,10 @@ class _ProfilePageState extends State<ProfilePage> {
                     onTap: () => _open(const AchievementsPage()),
                   ),
                   _QuickTile(
-                    art: ShoreArt.icoHistory,
-                    label: '记录',
-                    onTap: () => _open(const TimelinePage()),
+                    art: ShoreArt.icoVocab,
+                    label: '词语',
+                    badge: _vocabDue == 0 ? null : '$_vocabDue',
+                    onTap: () => _open(const VocabPage()),
                   ),
                   _QuickTile(
                     art: ShoreArt.icoNote,
@@ -277,8 +285,8 @@ class _ProfilePageState extends State<ProfilePage> {
               Row(
                 children: [
                   _QuickTile(
-                    art: ShoreArt.icoReport,
-                    label: '报告',
+                    art: ShoreArt.icoHistory,
+                    label: '记录',
                     badge: _reports == 0 ? null : '$_reports',
                     onTap: () => _open(const ReportsPage()),
                   ),

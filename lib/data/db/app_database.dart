@@ -77,6 +77,25 @@ class AppDatabase {
 
   /// Tables the app writes to; the seed ships them, but an older seed might not.
   Future<void> _ensureRuntimeTables(Database db) async {
+    // 词语积累。逻辑填空错的那个词，第二天还会在别的题里再错一次 ——
+    // 收进来按间隔重复过，比重做一遍原题有用。
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS vocab (
+        word TEXT PRIMARY KEY,
+        meaning TEXT NOT NULL DEFAULT '',
+        usage TEXT NOT NULL DEFAULT '',
+        confusable TEXT NOT NULL DEFAULT '',
+        source TEXT NOT NULL DEFAULT 'builtin',
+        from_question_id TEXT NOT NULL DEFAULT '',
+        added_at TEXT NOT NULL,
+        box INTEGER NOT NULL DEFAULT 0,
+        due_at TEXT,
+        seen INTEGER NOT NULL DEFAULT 0,
+        known INTEGER NOT NULL DEFAULT 0
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_vocab_due ON vocab(due_at)');
+
     // 一材多题：资料分析和篇章阅读是一段材料后面跟三到五问。
     // 材料存一份、题指过去，不是每题复制一遍 —— 一段材料上千字，
     // 五题复制五遍既浪费又会在改错时改漏。

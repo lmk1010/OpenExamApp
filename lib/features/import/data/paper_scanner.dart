@@ -116,9 +116,11 @@ class PaperScanner {
 category 对应：yanyu 言语理解（逻辑填空、片段阅读）、shuliang 数量关系、
 panduan 判断推理（图形、定义、类比、逻辑）、ziliao 资料分析、changshi 常识判断。
 
-band 是这道题在整页上占的纵向范围（0–1 的比例），从题号那一行的上边缘，
-到最后一个选项的下边缘，题干和选项都要包进去。只有 hasFigure 为 true 时
-才需要 band，其余填 null。
+band 是这道题里**图形部分**的纵向范围（0–1 的比例）：
+从第一个图形的上边缘，到最后一个图形的下边缘。
+题干文字、选项字母、参考答案这些都不要包进去 —— 文字已经按文字提取了，
+框进来只是重复。只给上下两个数，横向不用管。
+只有 hasFigure 为 true 时才需要 band，其余填 null。
 
 规则：
 1. 题干或选项被页面截断的半道题，整道丢掉，不要猜。
@@ -136,6 +138,10 @@ band 是这道题在整页上占的纵向范围（0–1 的比例），从题号
       prompt: _prompt,
       imageBase64: base64Encode(page.bytes),
       mimeType: 'image/jpeg',
+      // 一页的 JSON 本身撑死两三千 token，但视觉模型要先"想"一轮 ——
+      // 判断哪一段是图形、哪道题被截断都在想的部分。预算给紧了，
+      // 想完就没配额吐正文，回来是一句空字符串。
+      maxTokens: 12000,
     );
     if (!result.isOk || result.value == null) {
       page.state = PageState.failed;
@@ -191,10 +197,12 @@ band 是这道题在整页上占的纵向范围（0–1 的比例），从题号
       var stem = '${map['stem'] ?? ''}'.trim();
       if (stem.isEmpty || options.length < 2) continue;
 
-      // 整道题横切一条存进题干。上下余量不对称：
-      // 上边多给一点，模型给的上界常压着字，切紧会削掉半行；
-      // 下边几乎不给 —— 试卷里紧挨着选项的往往就是「参考答案」，
-      // 多切两行就把答案印进题图里了，做题时一眼穿帮。
+      // 只把图形那一段横切下来。题干文字已经按文字存了一份，
+      // 再框进图里是重复。上下各留一点余量，模型给的边界常压着图的边线。
+      //
+      // 为什么是横条而不是精确的框：让模型给小图的 bbox 实测不准，
+      // 会歪到题干和选项之间的空白里；纵向只判一个维度，
+      // 而且题与题之间本来就有空行，容错高得多。
       var stemHtml = '';
       final band = map['band'];
       if (hasFigure && band is Map) {
@@ -203,7 +211,8 @@ band 是这道题在整页上占的纵向范围（0–1 的比例），从题号
         final bottom = _num(band['bottom']);
         final cropped = await compute(
           _crop,
-          _CropJob(bytes: page.bytes, top: top - 0.03, bottom: bottom + 0.005),
+          // 上边余量给大一档：模型给的上界实测偏晚，会削掉第一行图的边线
+          _CropJob(bytes: page.bytes, top: top - 0.028, bottom: bottom + 0.012),
         );
         if (cropped != null) {
           figures[name] = cropped;
