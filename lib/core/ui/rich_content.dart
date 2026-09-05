@@ -73,18 +73,14 @@ class RichContent extends StatelessWidget {
     return blocks;
   }
 
-  /// Strips the remaining tags and decodes the handful of entities in the bank.
+  /// Strips the remaining tags and decodes the entities the bank actually uses.
   static String _plain(String raw) {
-    var text = raw
-        .replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n')
-        .replaceAll(RegExp(r'</(p|div|li)>', caseSensitive: false), '\n')
-        .replaceAll(RegExp(r'<[^>]+>'), '')
-        .replaceAll('&nbsp;', ' ')
-        .replaceAll('&amp;', '&')
-        .replaceAll('&lt;', '<')
-        .replaceAll('&gt;', '>')
-        .replaceAll('&quot;', '"')
-        .replaceAll('&#39;', "'");
+    var text = decodeEntities(
+      raw
+          .replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n')
+          .replaceAll(RegExp(r'</(p|div|li)>', caseSensitive: false), '\n')
+          .replaceAll(RegExp(r'<[^>]+>'), ''),
+    );
     text = text.replaceAll(RegExp(r'\n{3,}'), '\n\n');
     return text.trim();
   }
@@ -315,3 +311,36 @@ class _ImageViewer extends StatelessWidget {
     );
   }
 }
+
+/// HTML 实体还原。
+///
+/// 中文题库的正文是 HTML 片段，首行缩进普遍写成 &emsp;&emsp;，
+/// 不还原的话每段开头就顶着两串字面量。数字实体兜底放最后，
+/// &amp; 必须最后一个解 —— 先解它的话 &amp;lt; 会被二次解成 <。
+String decodeEntities(String input) => input
+    .replaceAll('&nbsp;', ' ')
+    .replaceAll('&emsp;', '\u2003')
+    .replaceAll('&ensp;', '\u2002')
+    .replaceAll('&thinsp;', '\u2009')
+    .replaceAll('&middot;', '·')
+    .replaceAll('&hellip;', '…')
+    .replaceAll('&mdash;', '—')
+    .replaceAll('&ndash;', '–')
+    .replaceAll('&ldquo;', '\u201c')
+    .replaceAll('&rdquo;', '\u201d')
+    .replaceAll('&lsquo;', '\u2018')
+    .replaceAll('&rsquo;', '\u2019')
+    .replaceAll('&times;', '×')
+    .replaceAll('&divide;', '÷')
+    .replaceAll('&plusmn;', '±')
+    .replaceAll('&deg;', '°')
+    .replaceAll('&permil;', '‰')
+    .replaceAll('&lt;', '<')
+    .replaceAll('&gt;', '>')
+    .replaceAll('&quot;', '"')
+    .replaceAll('&#39;', "'")
+    .replaceAllMapped(RegExp(r'&#(x?)([0-9A-Fa-f]+);'), (m) {
+      final code = int.tryParse(m.group(2)!, radix: m.group(1)!.isEmpty ? 10 : 16);
+      return code == null ? m.group(0)! : String.fromCharCode(code);
+    })
+    .replaceAll('&amp;', '&');

@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:openexam_app/core/ui/rich_content.dart';
 import 'package:openexam_app/data/models/question.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
@@ -76,6 +77,28 @@ class AppDatabase {
 
   /// Tables the app writes to; the seed ships them, but an older seed might not.
   Future<void> _ensureRuntimeTables(Database db) async {
+    // 一材多题：资料分析和篇章阅读是一段材料后面跟三到五问。
+    // 材料存一份、题指过去，不是每题复制一遍 —— 一段材料上千字，
+    // 五题复制五遍既浪费又会在改错时改漏。
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS materials (
+        id TEXT PRIMARY KEY,
+        content TEXT NOT NULL DEFAULT '',
+        content_html TEXT NOT NULL DEFAULT '',
+        paper_id TEXT NOT NULL DEFAULT '',
+        source TEXT NOT NULL DEFAULT ''
+      )
+    ''');
+    try {
+      await db.execute("ALTER TABLE questions ADD COLUMN material_id TEXT DEFAULT ''");
+    } catch (_) {
+      // Column already exists.
+    }
+    try {
+      await db.execute('CREATE INDEX IF NOT EXISTS idx_q_material ON questions(material_id)');
+    } catch (_) {
+      // 老库上 questions 可能是只读附加表，建不了索引也不该拦住启动。
+    }
     await db.execute('''
       CREATE TABLE IF NOT EXISTS practice_logs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -265,6 +288,38 @@ class AppDatabase {
 
   Question _fromRow(Map<String, Object?> row) => Question.fromRow(row);
 
+  /// 把共用材料补进题里。
+  ///
+  /// 不在每条查询上 JOIN：一段材料上千字，五题就是五份重复传输。
+  /// 先取题，再按去重后的 material_id 取一次材料，然后贴回去。
+  Future<List<Question>> _withMaterials(List<Question> questions) async {
+    final ids = questions
+        .map((q) => q.materialId)
+        .where((id) => id.isNotEmpty)
+        .toSet()
+        .toList();
+    if (ids.isEmpty) return questions;
+    final db = await database;
+    final rows = await db.query(
+      'materials',
+      where: 'id IN (${List.filled(ids.length, '?').join(',')})',
+      whereArgs: ids,
+    );
+    if (rows.isEmpty) return questions;
+    final byId = <String, String>{
+      for (final r in rows)
+        '${r['id']}': '${r['content_html'] ?? ''}'.isNotEmpty
+            ? '${r['content_html']}'
+            : '${r['content'] ?? ''}',
+    };
+    return [
+      for (final q in questions)
+        q.materialId.isEmpty || byId[q.materialId] == null
+            ? q
+            : q.copyWith(material: byId[q.materialId]),
+    ];
+  }
+
   Future<int> countAll() async {
     final db = await database;
     return Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM questions')) ?? 0;
@@ -312,7 +367,7 @@ class AppDatabase {
       whereArgs: [paperId],
       orderBy: 'order_num ASC, id ASC',
     );
-    return rows.map(_fromRow).toList();
+    return _withMaterials(rows.map(_fromRow).toList());
   }
 
   Future<List<Question>> fetchPractice({
@@ -356,7 +411,9 @@ class AppDatabase {
     );
     sql.write(' LIMIT ?');
     args.add(limit);
-    return (await db.rawQuery(sql.toString(), args)).map(_fromRow).toList();
+    return _withMaterials(
+      (await db.rawQuery(sql.toString(), args)).map(_fromRow).toList(),
+    );
   }
 
   /// Sub-types under a 行测 module, ordered by question count.
@@ -455,7 +512,7 @@ class AppDatabase {
       'SELECT * FROM questions WHERE paper_title LIKE ? ORDER BY RANDOM() LIMIT ?',
       [like, limit],
     );
-    return rows.map(_fromRow).toList();
+    return _withMaterials(rows.map(_fromRow).toList());
   }
 
   Future<int> countByRegion(String region) async {
@@ -537,6 +594,25 @@ class AppDatabase {
     if (questions.isEmpty) return 0;
     final db = await database;
     final batch = db.batch();
+
+    // 材料先落一份。同一段材料会被同批的三到五题引用，去重后只写一次。
+    final seen = <String>{};
+    for (final q in questions) {
+      if (q.materialId.isEmpty || q.material.isEmpty) continue;
+      if (!seen.add(q.materialId)) continue;
+      batch.insert(
+        'materials',
+        {
+          'id': q.materialId,
+          'content': _stripTags(q.material),
+          'content_html': q.material,
+          'paper_id': q.paperId,
+          'source': q.source,
+        },
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    }
+
     for (final q in questions) {
       batch.insert(
         'questions',
@@ -547,6 +623,14 @@ class AppDatabase {
     await batch.commit(noResult: true);
     return questions.length;
   }
+
+  /// 材料的纯文本版，给搜索用。渲染永远走 content_html。
+  static String _stripTags(String html) => decodeEntities(
+        html
+            .replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n')
+            .replaceAll(RegExp(r'</p>', caseSensitive: false), '\n')
+            .replaceAll(RegExp(r'<[^>]+>'), ''),
+      ).trim();
 
   /// Full-text-ish search over question bodies. LIKE is plenty for 16k rows
   /// and keeps the bundled database free of an FTS index.
@@ -563,7 +647,7 @@ class AppDatabase {
       ''',
       ['%$q%', '%$q%', limit],
     );
-    return rows.map(_fromRow).toList();
+    return _withMaterials(rows.map(_fromRow).toList());
   }
 
   /// Per-week answered/correct counts, oldest first — the daily chart is too
@@ -666,7 +750,7 @@ class AppDatabase {
       'SELECT * FROM questions ORDER BY ((rowid * ? + ?) % 100003) LIMIT ?',
       [a, b, limit],
     );
-    return rows.map(_fromRow).toList();
+    return _withMaterials(rows.map(_fromRow).toList());
   }
 
   /// How far today's set has been taken: answered and correct among its ids.
@@ -1010,7 +1094,7 @@ class AppDatabase {
       ORDER BY d.updated_at DESC
       LIMIT ?
     ''', [level, limit]);
-    return rows.map(_fromRow).toList();
+    return _withMaterials(rows.map(_fromRow).toList());
   }
 
   Future<Map<int, int>> difficultyCounts() async {
@@ -1416,7 +1500,7 @@ class AppDatabase {
       'SELECT * FROM questions WHERE ${where.join(' AND ')} ORDER BY order_num ASC',
       args,
     );
-    return rows.map(_fromRow).toList();
+    return _withMaterials(rows.map(_fromRow).toList());
   }
 
   /// Wrong questions inside one paper.
@@ -1431,7 +1515,7 @@ class AppDatabase {
       WHERE l.is_correct = 0 AND q.paper_id = ?
       ORDER BY q.order_num ASC
     ''', [paperId]);
-    return rows.map(_fromRow).toList();
+    return _withMaterials(rows.map(_fromRow).toList());
   }
 
   /// Count only — paper detail chips don't need full rows.
@@ -1499,7 +1583,7 @@ class AppDatabase {
       ORDER BY l.id DESC
       LIMIT ?
     ''', [limit]);
-    return rows.map(_fromRow).toList();
+    return _withMaterials(rows.map(_fromRow).toList());
   }
 
   /// Past attempts at one question, newest first — shown while practising so
@@ -1670,7 +1754,7 @@ class AppDatabase {
       ORDER BY m.created_at DESC
       LIMIT ?
     ''', [limit]);
-    return rows.map(_fromRow).toList();
+    return _withMaterials(rows.map(_fromRow).toList());
   }
 
   /// question id -> tag, for grouping 我的收藏.

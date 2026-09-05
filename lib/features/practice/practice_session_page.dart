@@ -1177,6 +1177,15 @@ class _QuestionView extends StatelessWidget {
               ),
             ),
           ),
+        // 材料在题干上方，默认收起。资料分析一段材料带五问，每翻一题
+        // 重看一遍全文是没意义的；但算的时候又必须能随时调出来，
+        // 所以展开状态跨题保持，收起也只是这一材的事。
+        if (question.hasMaterial)
+          _MaterialPane(
+            html: question.material,
+            fontScale: fontScale,
+            materialId: question.materialId,
+          ),
         RichContent(
           question.bodyMarkup,
           style: text.bodyLarge?.copyWith(fontSize: 16 * fontScale, height: 1.75),
@@ -2143,6 +2152,121 @@ class _FeedbackSheetState extends State<_FeedbackSheet> {
         ),
       ),
     );
+  }
+}
+
+/// 共用材料。
+///
+/// 展开状态按材料 id 记在内存里：同一段材料的五道题之间来回翻，
+/// 不该每翻一次就重新展开一次；换到下一段材料自然是收起的。
+class _MaterialPane extends StatefulWidget {
+  const _MaterialPane({
+    required this.html,
+    required this.fontScale,
+    required this.materialId,
+  });
+
+  final String html;
+  final double fontScale;
+  final String materialId;
+
+  /// key: material id。跨 Widget 生命周期，所以是静态的。
+  static final Set<String> _open = <String>{};
+
+  @override
+  State<_MaterialPane> createState() => _MaterialPaneState();
+}
+
+class _MaterialPaneState extends State<_MaterialPane> {
+  bool get _expanded => _MaterialPane._open.contains(widget.materialId);
+
+  void _toggle() => setState(() {
+        if (_expanded) {
+          _MaterialPane._open.remove(widget.materialId);
+        } else {
+          _MaterialPane._open.add(widget.materialId);
+        }
+      });
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Container(
+        decoration: BoxDecoration(
+          color: t.surfaceAlt,
+          borderRadius: BorderRadius.circular(18),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: _toggle,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(15, 12, 13, 12),
+                child: Row(
+                  children: [
+                    StrokeIcon(AppIcon.papers, size: 16, color: t.textSoft),
+                    const SizedBox(width: 8),
+                    Text(
+                      '材料',
+                      style: text.titleSmall?.copyWith(fontSize: 14),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _expanded
+                          ? const SizedBox.shrink()
+                          : Text(
+                              _preview,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: text.bodySmall?.copyWith(fontSize: 12.5),
+                            ),
+                    ),
+                    Icon(
+                      _expanded
+                          ? Icons.keyboard_arrow_up_rounded
+                          : Icons.keyboard_arrow_down_rounded,
+                      size: 20,
+                      color: t.muted,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            if (_expanded)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(15, 0, 15, 14),
+                child: RichContent(
+                  widget.html,
+                  style: text.bodyMedium?.copyWith(
+                    fontSize: 15 * widget.fontScale,
+                    color: t.text,
+                    height: 1.85,
+                  ),
+                  maxImageHeight: 420,
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 收起时露出的一行，用来认出"是哪段材料"，不是用来读的。
+  String get _preview {
+    final plain = widget.html
+        .replaceAll(RegExp(r'<[^>]+>'), '')
+        .replaceAll('&emsp;', '')
+        .replaceAll('&nbsp;', ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+    return plain.length <= 40 ? plain : '${plain.substring(0, 40)}…';
   }
 }
 

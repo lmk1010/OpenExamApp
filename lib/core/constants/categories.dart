@@ -78,7 +78,12 @@ const kSubCategoryLabels = <String, String>{
 
 String subCategoryLabel(String? key) {
   if (key == null || key.isEmpty) return '未分类';
-  return kSubCategoryLabels[key] ?? key;
+  final known = kSubCategoryLabels[key];
+  if (known != null) return known;
+  // 导入的题可能带任意子分类键。是中文就照原样显示，是 bizhong 这种
+  // 拼音/英文 slug 就别摆到界面上 —— 那是数据里的键，不是给人看的词。
+  final hasCjk = RegExp(r'[\u4e00-\u9fa5]').hasMatch(key);
+  return hasCjk ? key : '其他';
 }
 
 /// 错因分类 — from how 考生 actually review: 粗心 / 不会 / 审题 / 没时间.

@@ -68,8 +68,8 @@ class QuestionImporter {
     final fixed = questions.map((q) => _rewriteImages(q, images.keys.toSet())).toList();
     final missing = <String>{};
     for (final q in fixed) {
-      for (final match
-          in RegExp(r'oeimg://([A-Za-z0-9._-]+)').allMatches(q.bodyMarkup)) {
+      for (final match in RegExp(r'oeimg://([A-Za-z0-9._-]+)')
+          .allMatches('${q.bodyMarkup}\n${q.material}')) {
         if (!images.containsKey(match.group(1))) missing.add(match.group(1)!);
       }
     }
@@ -115,6 +115,8 @@ class QuestionImporter {
       difficulty: q.difficulty,
       source: q.source,
       orderNum: q.orderNum,
+      materialId: q.materialId,
+      material: fix(q.material),
     );
   }
 
@@ -153,6 +155,7 @@ class QuestionImporter {
     }
 
     final now = DateTime.now().millisecondsSinceEpoch;
+    final materialIds = <String, String>{};
     final paperId = '${paper['id'] ?? ''}';
     final paperTitle = '${paper['title'] ?? ''}';
     final paperYear = paper['year'];
@@ -194,6 +197,21 @@ class QuestionImporter {
         }
         map['options'] = opts;
       }
+      // 一材多题：同一批里材料正文相同的题，自动归到同一个 material_id。
+      // 导出方通常每题都重复一遍材料，不去重的话一段材料会存五份。
+      final material = '${map['material'] ?? map['材料'] ?? ''}'.trim();
+      if (material.isNotEmpty) {
+        map['material'] = material;
+        map['materialId'] = '${map['materialId'] ?? map['material_id'] ?? ''}'
+                .trim()
+                .isNotEmpty
+            ? '${map['materialId'] ?? map['material_id']}'
+            : materialIds.putIfAbsent(
+                material,
+                () => 'mat_${now}_${materialIds.length + 1}',
+              );
+      }
+
       final q = Question.fromJson(map);
       if (q.content.isNotEmpty && q.options.length >= 2 && q.answer.isNotEmpty) {
         out.add(q);

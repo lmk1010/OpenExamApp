@@ -46,6 +46,8 @@ class Question {
     this.difficulty = 2,
     this.source = 'builtin',
     this.orderNum = 0,
+    this.materialId = '',
+    this.material = '',
   });
 
   final String id;
@@ -64,9 +66,19 @@ class Question {
   final String source;
   final int orderNum;
 
+  /// 共用材料的 id。资料分析、篇章阅读是「一材多题」：一段材料后面跟
+  /// 三到五问，材料存一份，题指过去。
+  final String materialId;
+
+  /// 材料正文（HTML）。从 materials 表联查填进来，不落在 questions 行里。
+  final String material;
+
+  bool get hasMaterial => material.trim().isNotEmpty;
+
   bool get hasImage =>
       contentHtml.contains('oeimg://') ||
       analysisHtml.contains('oeimg://') ||
+      material.contains('oeimg://') ||
       options.any((o) => o.hasImage);
 
   /// Markup for rendering, falling back to plain text for imported questions.
@@ -90,6 +102,7 @@ class Question {
         'source': source,
         'has_image': hasImage ? 1 : 0,
         'order_num': orderNum,
+        'material_id': materialId,
       };
 
   factory Question.fromRow(Map<String, Object?> row) {
@@ -114,6 +127,9 @@ class Question {
       difficulty: int.tryParse('${row['difficulty'] ?? 2}') ?? 2,
       source: '${row['source'] ?? 'builtin'}',
       orderNum: int.tryParse('${row['order_num'] ?? 0}') ?? 0,
+      materialId: '${row['material_id'] ?? ''}',
+      // 联查来的列，普通 questions 查询没有它，取不到就是空。
+      material: '${row['material'] ?? ''}',
     );
   }
 
@@ -132,6 +148,8 @@ class Question {
         'year': year,
         'difficulty': difficulty,
         'source': source,
+        if (materialId.isNotEmpty) 'materialId': materialId,
+        if (material.isNotEmpty) 'material': material,
       };
 
   factory Question.fromJson(Map<String, dynamic> json) {
@@ -162,10 +180,12 @@ class Question {
       difficulty: int.tryParse('${json['difficulty'] ?? 2}') ?? 2,
       source: '${json['source'] ?? 'builtin'}',
       orderNum: int.tryParse('${json['orderNum'] ?? json['order_num'] ?? 0}') ?? 0,
+      materialId: '${json['materialId'] ?? json['material_id'] ?? ''}',
+      material: '${json['material'] ?? ''}',
     );
   }
 
-  Question copyWith({String? source}) => Question(
+  Question copyWith({String? source, String? material}) => Question(
         id: id,
         content: content,
         contentHtml: contentHtml,
@@ -181,6 +201,8 @@ class Question {
         difficulty: difficulty,
         source: source ?? this.source,
         orderNum: orderNum,
+        materialId: materialId,
+        material: material ?? this.material,
       );
 }
 

@@ -383,7 +383,7 @@ class _ProfilePageState extends State<ProfilePage> {
           icon: AppIcon.import,
           title: '导入题目',
           value: _imported == 0 ? null : '$_imported 题',
-          onTap: () => _open(const ImportPage()),
+          onTap: () => _open(const ImportPage(standalone: true)),
           active: _detail is ImportPage,
         ),
         _SettingRow(
