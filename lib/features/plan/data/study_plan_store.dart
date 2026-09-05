@@ -12,6 +12,9 @@ class StudyPlanStore {
   final SharedPreferences _prefs;
 
   static const _donePrefix = 'study_plan_done_';
+  /// 会重复的自定义任务只存一份，不按日期存 —— 按日期存的话
+  /// "每天背单词"要往后每一天各写一条，改标题得改 365 处。
+  static const _recurringKey = 'study_plan_recurring';
   static const _extraPrefix = 'study_plan_extra_';
   static const _overridePrefix = 'study_plan_override_';
   static const _hiddenPrefix = 'study_plan_hidden_';
@@ -42,7 +45,73 @@ class StudyPlanStore {
       base.add(overrides[task.id] ?? task);
     }
     final extras = loadExtras(day);
-    return DayPlan(date: day, focus: focus, tasks: [...base, ...extras]);
+    final recurring = loadRecurring()
+        .where((t) => !hidden.contains(t.id))
+        .where((t) => t.repeat.occursOn(day, t.startedOn ?? day))
+        .map((t) => overrides[t.id] ?? t)
+        .toList();
+    return DayPlan(
+      date: day,
+      focus: focus,
+      tasks: [...base, ...recurring, ...extras],
+    );
+  }
+
+  // ------------------------------------------------------- 会重复的自定义任务
+
+  /// 存一份，每天按 [RepeatRule] 判断今天出不出现。
+  List<StudyTask> loadRecurring() {
+    final raw = _prefs.getString(_recurringKey);
+    if (raw == null || raw.isEmpty) return const [];
+    try {
+      return (jsonDecode(raw) as List<dynamic>)
+          .whereType<Map>()
+          .map((e) => StudyTask.fromJson(Map<String, Object?>.from(e)))
+          .map((t) => t.copyWith(custom: true))
+          .toList();
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  Future<void> saveRecurring(List<StudyTask> tasks) async {
+    if (tasks.isEmpty) {
+      await _prefs.remove(_recurringKey);
+      return;
+    }
+    await _prefs.setString(
+      _recurringKey,
+      jsonEncode(tasks.map((t) => t.toJson()).toList()),
+    );
+  }
+
+  /// 加一条任务。[RepeatRule.once] 落在那一天，其余进重复表。
+  Future<void> addTask(DateTime date, StudyTask task) async {
+    final day = DateTime(date.year, date.month, date.day);
+    if (task.repeat == RepeatRule.once) {
+      await addExtra(day, task);
+      return;
+    }
+    await saveRecurring([
+      ...loadRecurring().where((t) => t.id != task.id),
+      task.copyWith(custom: true, startedOn: task.startedOn ?? day),
+    ]);
+  }
+
+  /// 删一条任务。重复的整条删掉，一次性的只删那天那条。
+  Future<void> removeTask(DateTime date, String taskId) async {
+    final recurring = loadRecurring();
+    if (recurring.any((t) => t.id == taskId)) {
+      await saveRecurring(recurring.where((t) => t.id != taskId).toList());
+      return;
+    }
+    await removeExtra(date, taskId);
+  }
+
+  /// 只跳过某一天的重复任务，不动这条任务本身。
+  Future<void> skipOnce(DateTime date, String taskId) async {
+    await saveHiddenIds(date, loadHiddenIds(date)..add(taskId));
+    await saveDoneIds(_dateKey(date), loadDoneIds(_dateKey(date))..remove(taskId));
   }
 
   Set<String> loadDoneIds(String dateKey) {
@@ -156,14 +225,40 @@ class StudyPlanStore {
   /// Create or update a task for [date]. Template tasks become day overrides.
   Future<void> upsertTask(DateTime date, StudyTask task) async {
     if (task.custom) {
-      final extras = loadExtras(date);
+      final day = DateTime(date.year, date.month, date.day);
+      final recurring = loadRecurring();
+      final wasRecurring = recurring.any((t) => t.id == task.id);
+
+      // 改了重复规则就要换存放的地方：一次性的落在那一天，
+      // 会重复的只存一份。两边都清一遍，免得同一条任务出现两次。
+      if (task.repeat != RepeatRule.once) {
+        await removeExtra(day, task.id);
+        await saveRecurring([
+          ...recurring.where((t) => t.id != task.id),
+          task.copyWith(
+            custom: true,
+            startedOn: task.startedOn ??
+                recurring
+                    .where((t) => t.id == task.id)
+                    .map((t) => t.startedOn)
+                    .firstOrNull ??
+                day,
+          ),
+        ]);
+        return;
+      }
+      if (wasRecurring) {
+        await saveRecurring(recurring.where((t) => t.id != task.id).toList());
+      }
+
+      final extras = loadExtras(day);
       final idx = extras.indexWhere((e) => e.id == task.id);
       if (idx < 0) {
-        await saveExtras(date, [...extras, task.copyWith(custom: true)]);
+        await saveExtras(day, [...extras, task.copyWith(custom: true)]);
       } else {
         final next = [...extras];
         next[idx] = task.copyWith(custom: true);
-        await saveExtras(date, next);
+        await saveExtras(day, next);
       }
       return;
     }
@@ -202,7 +297,7 @@ class StudyPlanStore {
   /// Delete custom task, or hide a template task for this day.
   Future<void> deleteTask(DateTime date, StudyTask task) async {
     if (task.custom) {
-      await removeExtra(date, task.id);
+      await removeTask(date, task.id);
       return;
     }
     final hidden = loadHiddenIds(date)..add(task.id);

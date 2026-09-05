@@ -139,6 +139,10 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
     final db = AppDatabase.instance;
 
     switch (task.action) {
+      case StudyAction.check:
+        // 打卡项没有去处，勾掉就是完成。
+        await _toggle(task, !_done.contains(task.id));
+        return;
       case StudyAction.practice:
         questions = await db.fetchPractice(
           category: task.category,

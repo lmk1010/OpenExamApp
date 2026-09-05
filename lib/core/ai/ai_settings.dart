@@ -9,6 +9,7 @@ class AiProvider {
     required this.defaultModel,
     this.isAnthropic = false,
     this.supportsVision = true,
+    this.visionModel,
     this.hint,
   });
 
@@ -18,6 +19,11 @@ class AiProvider {
   final String defaultModel;
   final bool isAnthropic;
   final bool supportsVision;
+
+  /// 看图要换一个模型的服务商填这里。DeepSeek 的视觉能力在
+  /// deepseek-v4-flash-vision-exp 上，正文模型不认图片，
+  /// 所以拍照录题、试卷识别得自动切过去，而不是让用户自己去改模型名。
+  final String? visionModel;
 
   /// 去哪儿领 key，显示在设置页里。
   final String? hint;
@@ -31,8 +37,9 @@ class AiProviders {
       id: 'deepseek',
       label: 'DeepSeek',
       baseUrl: 'https://api.deepseek.com/v1',
-      defaultModel: 'deepseek-chat',
-      supportsVision: false,
+      // deepseek-chat 现在只是 v4-flash 的别名，写实名才能挑 pro。
+      defaultModel: 'deepseek-v4-flash',
+      visionModel: 'deepseek-v4-flash-vision-exp',
       hint: 'platform.deepseek.com',
     ),
     AiProvider(
@@ -117,6 +124,10 @@ class AiSettings {
 
   String get effectiveModel =>
       model.trim().isNotEmpty ? model.trim() : provider.defaultModel;
+
+  /// 带图请求用的模型。服务商单独有视觉模型就切过去，否则还是原来那个。
+  String get effectiveVisionModel =>
+      provider.visionModel ?? effectiveModel;
 
   String get effectiveBaseUrl {
     final custom = baseUrl.trim();

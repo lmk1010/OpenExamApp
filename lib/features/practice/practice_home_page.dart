@@ -271,6 +271,10 @@ class _PracticeHomePageState extends State<PracticeHomePage> {
 
   Future<void> _runStudyTask(StudyTask task) async {
     switch (task.action) {
+      case StudyAction.check:
+        // 打卡项没有去处，勾掉就是完成。
+        await _toggleStudyTask(task, !_todayPlanDone.contains(task.id));
+        return;
       case StudyAction.note:
         // 申论类任务现在有真正的去处：录题、作答、AI 批改
         if (task.title.contains('申论')) {

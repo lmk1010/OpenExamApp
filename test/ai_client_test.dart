@@ -38,7 +38,7 @@ void main() {
   group('AiSettings', () {
     test('留空则回落到服务商默认值', () {
       const s = AiSettings(providerId: 'deepseek', apiKey: 'k');
-      expect(s.effectiveModel, 'deepseek-chat');
+      expect(s.effectiveModel, 'deepseek-v4-flash');
       expect(s.effectiveBaseUrl, 'https://api.deepseek.com/v1');
       expect(s.isConfigured, isTrue);
     });
@@ -70,5 +70,17 @@ void main() {
       expect(r.isOk, isFalse);
       expect(r.error, contains('还没配置'));
     });
+  });
+
+  test('带图请求自动换成服务商的视觉模型', () {
+    // DeepSeek 的正文模型不认图片，视觉在另一个模型上。
+    // 不自动切的话，拍照录题会直接报错，而用户根本不知道要去改模型名。
+    const s = AiSettings(providerId: 'deepseek', apiKey: 'k');
+    expect(s.effectiveModel, 'deepseek-v4-flash');
+    expect(s.effectiveVisionModel, 'deepseek-v4-flash-vision-exp');
+
+    // 服务商没有单独的视觉模型时，还是用原来那个
+    const o = AiSettings(providerId: 'openai', apiKey: 'k');
+    expect(o.effectiveVisionModel, o.effectiveModel);
   });
 }

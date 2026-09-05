@@ -28,6 +28,8 @@ String studyActionLabel(StudyAction action) {
       return '弱项强化';
     case StudyAction.note:
       return '备忘 / 手写';
+    case StudyAction.check:
+      return '打卡';
     case StudyAction.openWrongBook:
       return '打开错题本';
   }
@@ -47,6 +49,8 @@ String studyActionHint(StudyAction action) {
       return '按薄弱模块抽题';
     case StudyAction.note:
       return '勾选完成即可，不自动开练';
+    case StudyAction.check:
+      return '做完打个勾，不跳任何页面';
     case StudyAction.openWrongBook:
       return '跳到错题本整理';
   }
@@ -87,6 +91,7 @@ class _StudyTaskEditorSheetState extends State<_StudyTaskEditorSheet> {
   String? _category;
   late bool _timed;
   late bool _custom;
+  late RepeatRule _repeat;
 
   @override
   void initState() {
@@ -102,6 +107,7 @@ class _StudyTaskEditorSheetState extends State<_StudyTaskEditorSheet> {
     _category = i?.category ?? kGongkaoCategories.first.key;
     _timed = i?.timed ?? false;
     _custom = i?.custom ?? widget.create;
+    _repeat = i?.repeat ?? RepeatRule.once;
   }
 
   @override
@@ -134,6 +140,8 @@ class _StudyTaskEditorSheetState extends State<_StudyTaskEditorSheet> {
       timed: _timed || minutes != null,
       minutes: minutes,
       custom: _custom,
+      repeat: _custom ? _repeat : RepeatRule.once,
+      startedOn: widget.initial?.startedOn,
     );
   }
 
@@ -244,7 +252,26 @@ class _StudyTaskEditorSheetState extends State<_StudyTaskEditorSheet> {
                         ),
                       ),
                     ],
+                    // 重复只对自己加的任务有意义 —— 模板任务本来就按星期几排。
+                    if (_custom) ...[
+                      const SizedBox(height: 16),
+                      Text('重复', style: text.titleSmall),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          for (final rule in RepeatRule.values)
+                            _RepeatChip(
+                              label: rule.label,
+                              on: _repeat == rule,
+                              onTap: () => setState(() => _repeat = rule),
+                            ),
+                        ],
+                      ),
+                    ],
                     if (_action != StudyAction.note &&
+                        _action != StudyAction.check &&
                         _action != StudyAction.openWrongBook) ...[
                       const SizedBox(height: 12),
                       TextField(
@@ -444,4 +471,47 @@ Future<String?> showRenameTaskDialog(
       );
     },
   ).whenComplete(ctrl.dispose);
+}
+
+/// 重复规则的选项。跟别处的 chip 一样：选中走动作色，全圆角。
+class _RepeatChip extends StatelessWidget {
+  const _RepeatChip({
+    required this.label,
+    required this.on,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool on;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        height: 36,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        decoration: BoxDecoration(
+          color: on ? t.accent : t.surfaceAlt,
+          borderRadius: BorderRadius.circular(99),
+        ),
+        // Container 有 alignment 就会撑满宽度，Wrap 里每颗会各占一行
+        child: Center(
+          widthFactor: 1,
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 13.5,
+              fontWeight: on ? FontWeight.w700 : FontWeight.w500,
+              height: 1,
+              color: on ? t.onAccent : t.textSoft,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

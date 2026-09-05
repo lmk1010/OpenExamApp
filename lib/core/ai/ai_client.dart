@@ -129,7 +129,9 @@ class AiClient {
         {'type': 'text', 'text': prompt},
       ];
       return {
-        'model': settings.effectiveModel,
+        'model': imageBase64 == null
+            ? settings.effectiveModel
+            : settings.effectiveVisionModel,
         'max_tokens': maxTokens,
         'system': system,
         'messages': [
@@ -149,7 +151,9 @@ class AiClient {
           ];
 
     return {
-      'model': settings.effectiveModel,
+      'model': imageBase64 == null
+          ? settings.effectiveModel
+          : settings.effectiveVisionModel,
       'max_tokens': maxTokens,
       'messages': [
         {'role': 'system', 'content': system},
