@@ -570,7 +570,11 @@ class _RegionStrip extends StatelessWidget {
                         : t.text.withValues(alpha: 0.05)),
                 borderRadius: BorderRadius.circular(999),
               ),
+              // 地区名 13px、计数 11px，行高倍数也不同（1.55 / 1.45）。
+              // 居中对齐只对齐了两个行框，基线还差着 ~0.8px，数字看着往下掉。
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
                 children: [
                   Text(
                     o.label == '全部地区' ? '全部' : o.label,

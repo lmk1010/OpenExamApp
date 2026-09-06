@@ -472,6 +472,28 @@ class _RouteRow extends StatelessWidget {
 
 // ─────────────────────────────────────────── 五座岛
 
+const _isleArtHeight = 92.0;
+const _isleWidth = 130.0;
+const _islePadTop = 11.0;
+const _islePadBottom = 13.0;
+const _isleTextGap = 3.0;
+const _isleLabelSize = 14.0;
+const _isleCountSize = 11.0;
+
+/// 卡片高度 = 插画 + 内边距 + 两行字。
+///
+/// 这里原来写死 148，但两行字按主题行高算就要 14×1.4 + 11×1.45 = 35.55，
+/// 加上 92+11+3+13 是 154.55 —— 每张卡都稳定溢出 7px，debug 下满屏
+/// RenderFlex overflowed。字号还会跟系统缩放走，所以只能算，不能写死。
+double _isleCardHeight(BuildContext context) {
+  final text = Theme.of(context).textTheme;
+  final scaler = MediaQuery.textScalerOf(context);
+  final label = scaler.scale(_isleLabelSize) * (text.titleSmall?.height ?? 1.4);
+  final count = scaler.scale(_isleCountSize) * (text.bodySmall?.height ?? 1.45);
+  return (_isleArtHeight + _islePadTop + label + _isleTextGap + count + _islePadBottom)
+      .ceilToDouble();
+}
+
 /// 图在上、字在白底。亮色插画上压白字读不清，压深字又跟天空糊在一起。
 class IsleStrip extends StatelessWidget {
   const IsleStrip({
@@ -488,7 +510,7 @@ class IsleStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 148,
+      height: _isleCardHeight(context),
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: ShoreGap.page),
@@ -533,7 +555,7 @@ class _IsleCard extends StatelessWidget {
       onTap: onTap,
       onLongPress: onLong,
       child: Container(
-        width: 130,
+        width: _isleWidth,
         decoration: BoxDecoration(
           color: t.surface,
           borderRadius: BorderRadius.circular(20),
@@ -546,18 +568,18 @@ class _IsleCard extends StatelessWidget {
             if (art != null)
               Image.asset(
                 art,
-                height: 92,
-                width: 130,
+                height: _isleArtHeight,
+                width: _isleWidth,
                 fit: BoxFit.cover,
                 filterQuality: FilterQuality.medium,
                 errorBuilder: (_, __, ___) => Container(
-                  height: 92,
-                  width: 130,
+                  height: _isleArtHeight,
+                  width: _isleWidth,
                   color: t.category(meta.key).withValues(alpha: 0.14),
                 ),
               ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(12, 11, 12, 13),
+              padding: const EdgeInsets.fromLTRB(12, _islePadTop, 12, _islePadBottom),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -565,13 +587,13 @@ class _IsleCard extends StatelessWidget {
                     meta.label,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: text.titleSmall?.copyWith(fontSize: 14),
+                    style: text.titleSmall?.copyWith(fontSize: _isleLabelSize),
                   ),
-                  const SizedBox(height: 3),
+                  const SizedBox(height: _isleTextGap),
                   Text(
                     s == null ? '未开航' : '${s.done} / ${s.total}',
                     style: text.bodySmall?.copyWith(
-                      fontSize: 11,
+                      fontSize: _isleCountSize,
                       fontFeatures: AppTheme.numeric,
                     ),
                   ),
