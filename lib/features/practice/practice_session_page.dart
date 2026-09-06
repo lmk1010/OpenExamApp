@@ -233,11 +233,38 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
 
   Future<void> _select(String key) => _selectOn(_current, key);
 
+  /// 多选题选到一半的草稿。点「确定」才算作答 —— 在此之前不写 _answers，
+  /// 因为一旦写进去就等于交了这道题（判对错、进错题本、揭晓解析）。
+  final Map<String, Set<String>> _multiDraft = {};
+
   Future<void> _selectOn(Question q, String key) async {
     if (_finished || _isReview || _postReview) return;
     if (_answers.containsKey(q.id)) return;
 
-    final answer = key.toUpperCase();
+    // 多选：点一下是勾/取消，不是交卷。
+    if (q.isMulti) {
+      final draft = _multiDraft.putIfAbsent(q.id, () => <String>{});
+      setState(() {
+        final k = key.toUpperCase();
+        draft.contains(k) ? draft.remove(k) : draft.add(k);
+      });
+      HapticFeedback.selectionClick();
+      return;
+    }
+
+    await _commit(q, key.toUpperCase());
+  }
+
+  /// 把多选的草稿交上去。字母按序拼成一串，这样下游那些
+  /// `answers[q.id] == q.answer` 的比较一行都不用改。
+  Future<void> _commitMulti(Question q) async {
+    final draft = _multiDraft[q.id];
+    if (draft == null || draft.isEmpty) return;
+    final letters = draft.toList()..sort();
+    await _commit(q, letters.join());
+  }
+
+  Future<void> _commit(Question q, String answer) async {
     final correct = answer == q.answer.toUpperCase();
     final spent = DateTime.now().difference(_questionShownAt).inMilliseconds;
     _questionMs[q.id] = spent;
@@ -878,6 +905,8 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
       onNext: (_isExam && !reviewMode) || _mode == _ViewMode.scroll
           ? null
           : () => _goTo(i + 1),
+      draft: _multiDraft[q.id] ?? const {},
+      onCommitMulti: reviewMode ? null : () => _commitMulti(q),
     );
   }
 
@@ -1101,6 +1130,8 @@ class _QuestionView extends StatelessWidget {
     required this.onSelect,
     required this.onSubmit,
     this.onNext,
+    this.draft = const {},
+    this.onCommitMulti,
   });
 
   final Question question;
@@ -1141,6 +1172,10 @@ class _QuestionView extends StatelessWidget {
   /// 一个前进的入口都没有。唯一出路是左右滑，可那行提示只在**未作答**时
   /// 挂在选项下面，一答完就被解析顶掉了，等于没说。
   final VoidCallback? onNext;
+
+  /// 多选题勾了一半、还没点「确定」的那些字母。
+  final Set<String> draft;
+  final VoidCallback? onCommitMulti;
 
   @override
   Widget build(BuildContext context) {
@@ -1212,8 +1247,13 @@ class _QuestionView extends StatelessWidget {
     final rest = <Widget>[
         ...question.options.map((opt) {
           final key = opt.key.toUpperCase();
-          final chosen = selected == key;
-          final isAnswer = key == question.answer.toUpperCase();
+          // committed 之前看草稿, 之后看已交的答案。多选答案是 "ABD" 这样
+          // 一串, 所以用 contains；单选答案只有一个字母, 跟等于完全等价。
+          final committed = selected?.toUpperCase();
+          final chosen = committed != null
+              ? committed.contains(key)
+              : draft.contains(key);
+          final isAnswer = question.answer.toUpperCase().contains(key);
           // 排除只在还没作答时有意义；一旦揭晓，对错配色说明一切。
           final struck = !revealed && excluded.contains(key);
 
@@ -1231,7 +1271,7 @@ class _QuestionView extends StatelessWidget {
                 : Border.all(color: t.lineSoft, width: 1.5),
           );
 
-          if (isExam && chosen) {
+          if ((isExam || (question.isMulti && selected == null)) && chosen) {
             badgeBg = t.accent;
             badgeFg = t.onAccent;
             fg = t.text;
@@ -1430,6 +1470,22 @@ class _QuestionView extends StatelessWidget {
               ),
             ),
           ],
+        ] else if (question.isMulti && selected == null && onCommitMulti != null) ...[
+          // 多选唯一的出口。少了它, 全库 51 道多选在单选界面上无解 ——
+          // 存一个字母, 比四个字母, 怎么点都是错的。
+          const SizedBox(height: 6),
+          Text(
+            '多选题 · 选完点「确定」',
+            style: text.bodySmall?.copyWith(fontSize: 12),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: draft.isEmpty ? null : onCommitMulti,
+              child: Text(draft.isEmpty ? '确定' : '确定（已选 ${draft.length} 项）'),
+            ),
+          ),
         ] else if (!hideAnalysis && selected == null && showHints)
           Padding(
             padding: const EdgeInsets.only(top: 6),

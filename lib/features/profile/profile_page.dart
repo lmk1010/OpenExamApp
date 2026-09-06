@@ -191,7 +191,10 @@ class _ProfilePageState extends State<ProfilePage> with TabReload {
       backgroundColor: Colors.transparent,
       builder: (_) => const _ConfirmSheet(
         title: '清除练习记录',
-        message: '会删除所有答题记录、正确率和错题本，题库本身保留。此操作不可撤销。',
+        message: '答题记录、正确率、错题本、成绩报告、错因、打卡、自评难度、'
+            '复习计划和成就都会清空，回到刚装好的样子。\n\n'
+            '收藏、笔记、词语积累和申论作答保留，题库本身也保留。此操作不可撤销 —— '
+            '想留一手就先去「备份与恢复」导出一份。',
         confirm: '确认清除',
       ),
     );

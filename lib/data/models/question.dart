@@ -52,6 +52,7 @@ class Question {
     this.orderNum = 0,
     this.materialId = '',
     this.material = '',
+    this.isMulti = false,
   });
 
   final String id;
@@ -76,6 +77,12 @@ class Question {
 
   /// 材料正文（HTML）。从 materials 表联查填进来，不落在 questions 行里。
   final String material;
+
+  /// 多选题。答案形如 ABCD，按字母序存。
+  ///
+  /// 全库只有 51 道（都在常识判断），但在单选界面上它们**永远判错** ——
+  /// 存进去的是一个字母，比的是四个字母，怎么点都不对，还会全部涌进错题本。
+  final bool isMulti;
 
   bool get hasMaterial => material.trim().isNotEmpty;
 
@@ -132,6 +139,7 @@ class Question {
       source: '${row['source'] ?? 'builtin'}',
       orderNum: int.tryParse('${row['order_num'] ?? 0}') ?? 0,
       materialId: '${row['material_id'] ?? ''}',
+      isMulti: '${row['type'] ?? 'single'}' == 'multiple',
       // 联查来的列，普通 questions 查询没有它，取不到就是空。
       material: '${row['material'] ?? ''}',
     );
@@ -152,6 +160,7 @@ class Question {
         'year': year,
         'difficulty': difficulty,
         'source': source,
+        if (isMulti) 'isMulti': true,
         if (materialId.isNotEmpty) 'materialId': materialId,
         if (material.isNotEmpty) 'material': material,
       };
@@ -186,6 +195,7 @@ class Question {
       orderNum: int.tryParse('${json['orderNum'] ?? json['order_num'] ?? 0}') ?? 0,
       materialId: '${json['materialId'] ?? json['material_id'] ?? ''}',
       material: '${json['material'] ?? ''}',
+      isMulti: json['isMulti'] == true,
     );
   }
 
@@ -212,6 +222,7 @@ class Question {
         orderNum: orderNum,
         materialId: materialId ?? this.materialId,
         material: material,
+        isMulti: isMulti,
       );
 
   Question copyWith({String? source, String? material}) => Question(
@@ -232,6 +243,7 @@ class Question {
         orderNum: orderNum,
         materialId: materialId,
         material: material ?? this.material,
+        isMulti: isMulti,
       );
 }
 

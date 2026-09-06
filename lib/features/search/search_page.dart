@@ -463,7 +463,7 @@ class _HistoryView extends StatelessWidget {
         const SizedBox(height: 12),
         chips(_suggestions),
         const SizedBox(height: 28),
-        Text('搜索会扫描全部 15936 道题的题干与解析，命中的关键词会在结果里高亮。', style: text.bodySmall),
+        Text('搜索会扫描全库题目的题干与解析，命中的关键词会在结果里高亮。', style: text.bodySmall),
       ],
     );
   }

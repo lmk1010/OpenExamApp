@@ -208,7 +208,7 @@ class _BackupPageState extends State<BackupPage> {
           ),
           const SizedBox(height: 22),
           Text(
-            '备份文件不含题库（15936 道题已随 App 内置），所以体积很小，'
+            '备份文件不含题库（题目已随 App 内置），所以体积很小，'
             '可以直接发到微信或存进网盘。',
             style: text.bodySmall,
           ),

@@ -120,7 +120,10 @@ CREATE TABLE questions (
   source TEXT DEFAULT 'builtin',
   has_image INTEGER DEFAULT 0,
   order_num INTEGER DEFAULT 0,
-  material_id TEXT DEFAULT ''
+  material_id TEXT DEFAULT '',
+  /* 'single' | 'multiple'。上游一直标着，只是以前没带过来 —— 于是 51 道
+     答案形如 ABCD 的多选题在单选界面上永远判错，怎么点都是错的。 */
+  type TEXT NOT NULL DEFAULT 'single'
 );
 CREATE INDEX idx_q_cat ON questions(category);
 CREATE INDEX idx_q_source ON questions(source);
@@ -268,13 +271,19 @@ def main() -> None:
                 1 if "oeimg://" in blob else 0,
                 q["order_num"] or 0,
                 material_id,
+                # 答案多于一个字母就按多选算, 不完全信 type 列 ——
+                # 上游有 18 道标了 multiple 但答案只有一个字母。
+                "multiple"
+                if (q["type"] == "multiple" and len(answer) > 1)
+                else "single",
             )
         )
 
     out.executemany(
         "INSERT INTO questions (id, content, content_html, options, answer, category,"
         " sub_category, analysis, analysis_html, paper_id, paper_title, year, difficulty,"
-        " source, has_image, order_num, material_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+        " source, has_image, order_num, material_id, type)"
+        " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
         rows,
     )
 
@@ -316,6 +325,7 @@ def main() -> None:
         shutil.copyfileobj(fin, fout)
 
     print(f"questions : {len(rows)} (skipped {skipped})")
+    print(f"multiple  : {sum(1 for r in rows if r[17] == 'multiple')}")
     print(f"materials : {len(kept)} groups, {sum(1 for r in rows if r[16])} questions attached")
     print(f"with image: {sum(1 for r in rows if r[14])}")
     print(f"images    : {len(used) - missing} embedded, {missing} missing, "

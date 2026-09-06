@@ -857,12 +857,13 @@ class AppDatabase {
   // ------------------------------------------------------------------ backup
 
   /// Everything the user created (not the bank itself) as one JSON map.
-  /// The 15936 questions are already in the app, so a backup only needs the
+  /// The question bank ships with the app, so a backup only needs the
   /// answers, marks, tags, notes, reasons, plans and reports.
   Future<Map<String, dynamic>> exportUserData() async {
     final db = await database;
     return {
-      'version': 1,
+      // 2 起带上 vocab / essay。老备份没有这几个键，put() 遇到缺键当空处理。
+      'version': 2,
       'exportedAt': DateTime.now().toIso8601String(),
       'logs': await db.query('practice_logs'),
       'marks': await db.query('marks'),
@@ -874,6 +875,11 @@ class AppDatabase {
       'reports': await db.query('exam_reports'),
       'feedback': await db.query('feedback'),
       'badges': await db.query('badges'),
+      // 词语积累和申论作答以前不在备份里 —— 每天早上攒的词、写过的申论，
+      // 换台手机就全没了。
+      'vocab': await db.query('vocab'),
+      'essayPrompts': await db.query('essay_prompts'),
+      'essayAttempts': await db.query('essay_attempts'),
     };
   }
 
@@ -883,14 +889,22 @@ class AppDatabase {
     final db = await database;
     var restored = 0;
 
-    Future<void> put(String table, String key, {bool wipe = false}) async {
+    /// [keepId] —— practice_logs / exam_reports / feedback 的 id 是自增的，
+    /// 带着旧 id 插会撞主键，所以丢掉让它重新发号。申论那两张表的 id 是 TEXT
+    /// 主键（作答要靠它指回题目），丢了就断了。
+    Future<void> put(
+      String table,
+      String key, {
+      bool wipe = false,
+      bool keepId = false,
+    }) async {
       final rows = (data[key] as List?) ?? const [];
       if (wipe && rows.isNotEmpty) await db.delete(table);
       final batch = db.batch();
       for (final row in rows) {
         if (row is! Map) continue;
         final map = Map<String, Object?>.from(row);
-        map.remove('id');
+        if (!keepId) map.remove('id');
         batch.insert(table, map, conflictAlgorithm: ConflictAlgorithm.replace);
         restored++;
       }
@@ -907,6 +921,9 @@ class AppDatabase {
     await put('exam_reports', 'reports', wipe: true);
     await put('feedback', 'feedback', wipe: true);
     await put('badges', 'badges');
+    await put('vocab', 'vocab');
+    await put('essay_prompts', 'essayPrompts', keepId: true);
+    await put('essay_attempts', 'essayAttempts', keepId: true);
     _imageCache.clear();
     _imageCacheBytes = 0;
     return restored;
@@ -1679,9 +1696,30 @@ class AppDatabase {
     await db.delete('practice_logs', where: 'question_id = ?', whereArgs: [questionId]);
   }
 
+  /// 把「练习」这件事产生的一切抹掉，回到刚装好的样子。
+  ///
+  /// 原来只 delete 了 practice_logs，可弹窗上写的是「删除所有答题记录、正确率
+  /// 和错题本」—— 清完之后练习历史照样列着、成就照样亮着、打卡连续天数照样在，
+  /// 文案承诺大于实际。要清就清干净。
+  ///
+  /// 收藏、笔记、词语、申论不在此列：那是你自己写的东西，不是练习痕迹。
   Future<void> clearHistory() async {
     final db = await database;
-    await db.delete('practice_logs');
+    final batch = db.batch();
+    for (final table in const [
+      'practice_logs', // 答题记录，正确率和错题本都是从它算出来的
+      'exam_reports', // 每场练习/模考的成绩报告
+      'wrong_reasons', // 错因标记
+      'daily_checkin', // 每日打卡
+      'difficulty', // 自评难度
+      'review_plans', // 四天专项计划
+      'badges', // 成就
+    ]) {
+      batch.delete(table);
+    }
+    // 「上次没做完，继续吗」的断点快照。
+    batch.delete('meta', where: 'key = ?', whereArgs: [_resumeKey]);
+    await batch.commit(noResult: true);
   }
 
   Future<int> countAnswers() async {
