@@ -874,6 +874,10 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
       onEditNote: _editNote,
       onSelect: (key) => _selectOn(q, key),
       onSubmit: _submit,
+      // 考试模式选完就自己跳、整卷模式本来就是往下滚，都不需要这颗按钮。
+      onNext: (_isExam && !reviewMode) || _mode == _ViewMode.scroll
+          ? null
+          : () => _goTo(i + 1),
     );
   }
 
@@ -1096,6 +1100,7 @@ class _QuestionView extends StatelessWidget {
     required this.onEditNote,
     required this.onSelect,
     required this.onSubmit,
+    this.onNext,
   });
 
   final Question question;
@@ -1129,6 +1134,13 @@ class _QuestionView extends StatelessWidget {
   final VoidCallback onEditNote;
   final ValueChanged<String> onSelect;
   final VoidCallback onSubmit;
+
+  /// 答完之后往下走。
+  ///
+  /// 答对会自动跳，答错则停在解析页 —— 而这一页滚到底只有「这题对我」，
+  /// 一个前进的入口都没有。唯一出路是左右滑，可那行提示只在**未作答**时
+  /// 挂在选项下面，一答完就被解析顶掉了，等于没说。
+  final VoidCallback? onNext;
 
   @override
   Widget build(BuildContext context) {
@@ -1407,6 +1419,17 @@ class _QuestionView extends StatelessWidget {
           const SizedBox(height: 10),
           _PastAttempts(questionId: question.id, answer: question.answer),
           _DifficultyPicker(level: difficulty, onPick: onDifficulty),
+          // 最后一题下面本来就有「交卷」，不用再顶一颗。
+          if (onNext != null && !isLast) ...[
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: onNext,
+                child: const Text('下一题'),
+              ),
+            ),
+          ],
         ] else if (!hideAnalysis && selected == null && showHints)
           Padding(
             padding: const EdgeInsets.only(top: 6),
@@ -1666,7 +1689,13 @@ class _ResultView extends StatelessWidget {
       ..sort((a, b) => totals[b]!.compareTo(totals[a]!));
 
     return Scaffold(
-      appBar: AppBar(automaticallyImplyLeading: false, title: const Text('练习结果')),
+      // 计时的那一档（整卷模考 / 限时练习）交完卷说「练习结果」太轻了 ——
+      // 落库时本来就按 kind: exam 记着，标题跟着这条线走。
+      // 不写「模考成绩」是因为 20 题的限时练习也走这一档，撑不起「模考」。
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        title: Text(session._isExam ? '本场成绩' : '练习结果'),
+      ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 8, AppTheme.gutter, 24),
         children: [

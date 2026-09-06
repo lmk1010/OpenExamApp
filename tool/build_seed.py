@@ -32,6 +32,24 @@ OUT_GZ = os.path.join(APP, "assets", "seed", "openexam_seed.db.gz")
 ASSET_REF = re.compile(r"openexam-asset://question-assets/([A-Za-z0-9._-]+)")
 TAG = re.compile(r"<[^>]+>")
 
+# 每条解析都以【言语理解/yueduan】这样一个内部标签开头 —— 18686 条无一例外，
+# 而且斜杠后面那截跟 sub_category 列一字不差。分类页头上已经写着「言语理解」，
+# 这里再挂一遍拼音 slug 只是把调试信息晒给用户看。
+ANALYSIS_TAG = re.compile(r"^(\s*(?:<[^>]+>\s*)*)【[^】/]*/[A-Za-z_]+】\s*")
+
+# 填空题的空，上游写成 <u> 一串空格 </u>。app 的富文本渲染器把所有标签一律
+# 剥成纯 Text（没有下划线这一说），plain_text 更是连空格都 strip 掉 —— 于是
+# 空在题面上只剩一片空白，在列表预览里干脆消失：有 20 道题的空正好在开头,
+# 预览里就成了「的布局模式早已被实践证明是行不通的」这种被砍了头的句子。
+#
+# 换成下划线字符。这不是新发明 —— 题库里本来就有一千多道题直接用 8~9 个
+# 半角下划线表示空，这里只是把两种写法统一过来。
+BLANK_UNDERLINE = re.compile(r"<u>\s*</u>", re.IGNORECASE)
+
+
+def fill_blanks(html: str) -> str:
+    return BLANK_UNDERLINE.sub("________", html) if html else html
+
 
 def resolve_source_db() -> str:
     """The desktop repo ships the seed gzipped; decompress to a temp copy."""
@@ -180,14 +198,19 @@ def main() -> None:
     materials: dict[str, tuple[str, str]] = {}
 
     for q in src.execute(sql):
-        content_html = rewrite_assets(q["content_html"] or q["content"] or "", used)
-        analysis_html = rewrite_assets(q["analysis_html"] or q["analysis"] or "", used)
+        content_html = fill_blanks(
+            rewrite_assets(q["content_html"] or q["content"] or "", used)
+        )
+        analysis_html = ANALYSIS_TAG.sub(
+            r"\1",
+            fill_blanks(rewrite_assets(q["analysis_html"] or q["analysis"] or "", used)),
+        )
 
         # 材料。资料分析 2691 题里 2679 题挂着材料, 而且材料主体是统计表图片,
         # 所以这里必须跟着 rewrite_assets 走一遍, 图片才会被收进 images 表 ——
         # 漏了这一步, 题面就只剩一句光秃秃的设问, 根本没法做。
         material_id = (q["material_group_id"] or "").strip()
-        material_html = rewrite_assets(q["material_html"] or "", used)
+        material_html = fill_blanks(rewrite_assets(q["material_html"] or "", used))
         if material_id and material_html:
             materials.setdefault(material_id, (material_html, q["paper_id"] or ""))
         else:
@@ -203,7 +226,9 @@ def main() -> None:
         for opt in raw_options:
             if not isinstance(opt, dict):
                 continue
-            html = rewrite_assets(opt.get("content") or opt.get("text") or "", used)
+            html = fill_blanks(
+                rewrite_assets(opt.get("content") or opt.get("text") or "", used)
+            )
             options.append(
                 {
                     "key": (opt.get("key") or "").upper(),
