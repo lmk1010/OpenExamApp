@@ -19,9 +19,11 @@ class AppDatabase {
   static const _legacyDbFile = 'openexam_local.db';
   static const _seedAsset = 'assets/seed/openexam_seed.db.gz';
 
-  Database? _db;
+  /// 缓存的是「打开中」的 Future 而不是打开好的库：启动时 main 和首页会同时
+  /// 要库，缓存 Database 的话两边都会看到 null，于是把 82MB 的种子解包两遍。
+  Future<Database>? _opening;
 
-  Future<Database> get database async => _db ??= await _open();
+  Future<Database> get database => _opening ??= _open();
 
   Future<Database> _open() async {
     final dir = await getDatabasesPath();
