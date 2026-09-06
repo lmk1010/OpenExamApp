@@ -26,6 +26,13 @@ class VocabWord {
   /// 易混词，用顿号分隔。
   final String confusable;
 
+  /// 拆成一个个词。种子里写的是「一挥而就、一气呵成」这种顿号串。
+  List<String> get confusableList => confusable
+      .split(RegExp(r'[、,，/\s]+'))
+      .map((e) => e.trim())
+      .where((e) => e.isNotEmpty)
+      .toList();
+
   /// builtin = 内置词表；wrong = 从做错的题里自动收的。
   final String source;
 

@@ -430,3 +430,25 @@ class ReviewPlan {
     '掺进同类新题一起做，验证是不是真会了',
   ];
 }
+
+/// 一个词在真题里被考过多少次。数据来自逻辑填空的选项 —— 那些选项本身
+/// 就是词，一道题四个，数出来的就是真实词频，不是谁拍脑袋定的「高频」。
+class WordFreq {
+  const WordFreq({
+    required this.word,
+    required this.count,
+    this.sampleQuestionId = '',
+  });
+
+  final String word;
+  final int count;
+
+  /// 随便挑的一道考过它的题，点开就能看真题里怎么用。
+  final String sampleQuestionId;
+
+  factory WordFreq.fromRow(Map<String, Object?> row) => WordFreq(
+        word: '${row['word'] ?? ''}',
+        count: int.tryParse('${row['count'] ?? 0}') ?? 0,
+        sampleQuestionId: '${row['sample_question_id'] ?? ''}',
+      );
+}

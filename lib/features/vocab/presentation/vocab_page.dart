@@ -5,13 +5,19 @@ import 'package:openexam_app/core/theme/app_tokens.dart';
 import 'package:openexam_app/core/ui/shore.dart';
 import 'package:openexam_app/core/ui/shore_art.dart';
 import 'package:openexam_app/core/ui/ui_kit.dart';
+import 'package:openexam_app/data/db/app_database.dart';
+import 'package:openexam_app/data/models/question.dart';
 import 'package:openexam_app/features/vocab/data/vocab_repository.dart';
 import 'package:openexam_app/features/vocab/domain/vocab_word.dart';
 
-/// 词语积累。一次一张卡：先只给词，想过了再翻开对释义。
+/// 词语。四件事收在一个入口里，不摊成一排图标。
 ///
-/// 不做选择题。逻辑填空考的是"这个词能不能用在这儿"，
-/// 给四个选项反而会让人靠排除法蒙对，背的时候必须自己先想。
+/// 今日：一次一张卡，先只给词，想过了再翻开对释义。不做选择题 —— 逻辑填空
+///       考的是"这个词能不能用在这儿"，给四个选项会让人靠排除法蒙对。
+/// 高频：从 2077 道逻辑填空的选项统计出来的词频，不是谁拍脑袋定的"高频"。
+///       兼做查词：搜索框搜的是整张四千词的表。
+/// 辨析：一蹴而就 / 一挥而就 / 一气呵成 单看释义永远分不清，得摆在一起。
+/// 我的：做错的题自动收进来的生词，加上手动加的。
 class VocabPage extends StatefulWidget {
   const VocabPage({super.key});
 
@@ -19,7 +25,17 @@ class VocabPage extends StatefulWidget {
   State<VocabPage> createState() => _VocabPageState();
 }
 
+enum _Tab { today, top, confuse, mine }
+
+const _tabLabels = {
+  _Tab.today: '今日',
+  _Tab.top: '高频',
+  _Tab.confuse: '辨析',
+  _Tab.mine: '我的',
+};
+
 class _VocabPageState extends State<VocabPage> {
+  _Tab _tab = _Tab.today;
   bool _loading = true;
   List<VocabWord> _deck = const [];
   int _index = 0;
@@ -57,6 +73,33 @@ class _VocabPageState extends State<VocabPage> {
     });
   }
 
+  Widget _body() {
+    switch (_tab) {
+      case _Tab.today:
+        if (_loading) return const LoadingState();
+        if (_deck.isEmpty) {
+          return _Done(right: 0, total: 0, onAgain: _load, empty: true);
+        }
+        if (_index >= _deck.length) {
+          return _Done(right: _right, total: _deck.length, onAgain: _load);
+        }
+        return _Card(
+          word: _deck[_index],
+          flipped: _flipped,
+          progress: _index / _deck.length,
+          onFlip: () => setState(() => _flipped = true),
+          onAnswer: _answer,
+        );
+      case _Tab.top:
+        return const _TopWordsView();
+      case _Tab.confuse:
+        return const _ConfusableView();
+      case _Tab.mine:
+        // 背完一轮回来, 我的词表要跟着更新
+        return _MyWordsView(onChanged: _load);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
@@ -68,9 +111,12 @@ class _VocabPageState extends State<VocabPage> {
           onPressed: () => Navigator.of(context).maybePop(),
         ),
         titleSpacing: 0,
-        title: const Text('词语积累'),
+        title: const Text('词语'),
         actions: [
-          if (!_loading && _deck.isNotEmpty && _index < _deck.length)
+          if (_tab == _Tab.today &&
+              !_loading &&
+              _deck.isNotEmpty &&
+              _index < _deck.length)
             Padding(
               padding: const EdgeInsets.only(right: AppTheme.gutter),
               child: Center(
@@ -84,19 +130,12 @@ class _VocabPageState extends State<VocabPage> {
             ),
         ],
       ),
-      body: _loading
-          ? const LoadingState()
-          : _deck.isEmpty
-              ? _Done(right: 0, total: 0, onAgain: _load, empty: true)
-              : _index >= _deck.length
-                  ? _Done(right: _right, total: _deck.length, onAgain: _load)
-                  : _Card(
-                      word: _deck[_index],
-                      flipped: _flipped,
-                      progress: _index / _deck.length,
-                      onFlip: () => setState(() => _flipped = true),
-                      onAnswer: _answer,
-                    ),
+      body: Column(
+        children: [
+          _TabBar(value: _tab, onPick: (v) => setState(() => _tab = v)),
+          Expanded(child: _body()),
+        ],
+      ),
     );
   }
 }
@@ -353,6 +392,629 @@ class _Done extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────── 分栏
+
+class _TabBar extends StatelessWidget {
+  const _TabBar({required this.value, required this.onPick});
+
+  final _Tab value;
+  final ValueChanged<_Tab> onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+    return SizedBox(
+      height: 40,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.fromLTRB(
+          AppTheme.gutter,
+          0,
+          AppTheme.gutter,
+          0,
+        ),
+        children: [
+          for (final tab in _Tab.values) ...[
+            GestureDetector(
+              onTap: () => onPick(tab),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 140),
+                margin: const EdgeInsets.only(right: 7),
+                padding: const EdgeInsets.symmetric(horizontal: 15),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: tab == value
+                      ? t.brand
+                      : t.text.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  _tabLabels[tab]!,
+                  style: text.bodyMedium?.copyWith(
+                    fontSize: 13,
+                    color: tab == value ? Colors.white : t.textSoft,
+                    fontWeight:
+                        tab == value ? FontWeight.w700 : FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────── 高频 / 查词
+
+/// 考得最多的词排在最前。搜索框搜的是整张四千词的表，所以这一栏
+/// 同时也是「查词」—— 不必再单开一个入口。
+class _TopWordsView extends StatefulWidget {
+  const _TopWordsView();
+
+  @override
+  State<_TopWordsView> createState() => _TopWordsViewState();
+}
+
+class _TopWordsViewState extends State<_TopWordsView> {
+  final _search = TextEditingController();
+  bool _loading = true;
+  String _query = '';
+  List<WordFreq> _words = const [];
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
+  Future<void> _load() async {
+    final db = AppDatabase.instance;
+    final list = _query.isEmpty
+        ? await db.topWords()
+        : await db.searchWords(_query);
+    if (!mounted) return;
+    setState(() {
+      _words = list;
+      _loading = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 4, AppTheme.gutter, 10),
+          child: Container(
+            height: 42,
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            decoration: BoxDecoration(
+              color: t.surface,
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(color: t.lineSoft),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.search, size: 18, color: t.muted),
+                const SizedBox(width: 9),
+                Expanded(
+                  child: TextField(
+                    controller: _search,
+                    style: text.bodyMedium?.copyWith(color: t.text, fontSize: 14),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      border: InputBorder.none,
+                      hintText: '查一个词，比如「一以贯之」',
+                      hintStyle: text.bodySmall?.copyWith(fontSize: 13),
+                    ),
+                    onChanged: (v) {
+                      setState(() => _query = v.trim());
+                      _load();
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        if (_loading)
+          const Expanded(child: LoadingState())
+        else if (_words.isEmpty)
+          Expanded(
+            child: EmptyState(
+              icon: Icons.search_off,
+              title: _query.isEmpty ? '这版题库还没带词频' : '没有考过这个词',
+              art: EmptyArt.search,
+              message: _query.isEmpty
+                  ? '词频是从逻辑填空的选项统计出来的，重装一次 App 就有了。'
+                  : '换个说法试试，或者它确实没在真题里出现过。',
+            ),
+          )
+        else
+          Expanded(
+            child: ListView.separated(
+              padding: const EdgeInsets.fromLTRB(
+                AppTheme.gutter,
+                0,
+                AppTheme.gutter,
+                24,
+              ),
+              itemCount: _words.length,
+              separatorBuilder: (_, __) => Divider(height: 1, color: t.lineSoft),
+              itemBuilder: (_, i) => _WordRow(entry: _words[i]),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _WordRow extends StatelessWidget {
+  const _WordRow({required this.entry});
+
+  final WordFreq entry;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (_) => _WordSheet(entry: entry),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                entry.word,
+                style: text.titleSmall?.copyWith(fontSize: 15),
+              ),
+            ),
+            Text(
+              '考过 ${entry.count} 次',
+              style: text.bodySmall?.copyWith(
+                fontSize: 12,
+                fontFeatures: AppTheme.numeric,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Icon(Icons.chevron_right, size: 18, color: t.muted),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 点开一个词看什么？——看真题里它怎么用。
+///
+/// 不查词典：词典只告诉你"是什么意思"，逻辑填空考的是"能不能用在这儿"。
+/// 直接把考过它的题摆出来，语感是从这里来的。
+class _WordSheet extends StatefulWidget {
+  const _WordSheet({required this.entry});
+
+  final WordFreq entry;
+
+  @override
+  State<_WordSheet> createState() => _WordSheetState();
+}
+
+class _WordSheetState extends State<_WordSheet> {
+  bool _loading = true;
+  List<Question> _questions = const [];
+  VocabWord? _known;
+  bool _added = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final qs = await AppDatabase.instance.questionsUsing(widget.entry.word);
+    final known =
+        await VocabRepository.instance.byWords([widget.entry.word]);
+    if (!mounted) return;
+    setState(() {
+      _questions = qs;
+      _known = known[widget.entry.word];
+      _loading = false;
+    });
+  }
+
+  Future<void> _add() async {
+    await VocabRepository.instance.collect([
+      VocabWord(
+        word: widget.entry.word,
+        meaning: '',
+        source: 'manual',
+        addedAt: DateTime.now(),
+      ),
+    ]);
+    if (!mounted) return;
+    setState(() => _added = true);
+    HapticFeedback.lightImpact();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+    final inDeck = _known != null || _added;
+    return DraggableScrollableSheet(
+      initialChildSize: 0.72,
+      minChildSize: 0.4,
+      maxChildSize: 0.94,
+      expand: false,
+      builder: (context, controller) => Container(
+        decoration: BoxDecoration(
+          color: t.bg,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: ListView(
+          controller: controller,
+          padding: const EdgeInsets.fromLTRB(
+            AppTheme.gutter,
+            18,
+            AppTheme.gutter,
+            28,
+          ),
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text(
+                  widget.entry.word,
+                  style: text.titleLarge?.copyWith(fontSize: 22),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  '真题里考过 ${widget.entry.count} 次',
+                  style: text.bodySmall?.copyWith(
+                    fontSize: 12,
+                    fontFeatures: AppTheme.numeric,
+                  ),
+                ),
+              ],
+            ),
+            if (_known?.meaning.isNotEmpty ?? false) ...[
+              const SizedBox(height: 12),
+              Text(_known!.meaning, style: text.bodyMedium?.copyWith(color: t.text)),
+              if (_known!.usage.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                Text(_known!.usage, style: text.bodySmall?.copyWith(fontSize: 13)),
+              ],
+            ],
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: inDeck
+                  ? OutlinedButton(
+                      onPressed: null,
+                      child: const Text('已在我的词表里'),
+                    )
+                  : FilledButton(
+                      onPressed: _add,
+                      child: const Text('加进我的词表'),
+                    ),
+            ),
+            const SizedBox(height: 22),
+            Text(
+              '考过这个词的题',
+              style: text.titleSmall?.copyWith(fontSize: 14),
+            ),
+            const SizedBox(height: 10),
+            if (_loading)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 30),
+                child: LoadingState(),
+              )
+            else if (_questions.isEmpty)
+              Text(
+                '这一版题库里没找到原题。',
+                style: text.bodySmall?.copyWith(fontSize: 13),
+              )
+            else
+              for (final q in _questions.take(6)) ...[
+                Container(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: t.surface,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        q.content,
+                        maxLines: 4,
+                        overflow: TextOverflow.ellipsis,
+                        style: text.bodyMedium?.copyWith(
+                          color: t.text,
+                          fontSize: 14,
+                          height: 1.6,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '${q.paperTitle} · 正确答案 ${q.answer}',
+                        style: text.bodySmall?.copyWith(fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────── 辨析
+
+/// 一蹴而就 / 一挥而就 / 一气呵成 —— 单看释义永远分不清，得摆在一起看。
+/// 所以这一栏不是词表，是「一组一组」的对照卡。
+class _ConfusableView extends StatefulWidget {
+  const _ConfusableView();
+
+  @override
+  State<_ConfusableView> createState() => _ConfusableViewState();
+}
+
+class _ConfusableViewState extends State<_ConfusableView> {
+  bool _loading = true;
+  List<VocabWord> _words = const [];
+  Map<String, VocabWord> _byWord = const {};
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final repo = VocabRepository.instance;
+    await repo.ensureSeeded();
+    final words = await repo.confusableGroups();
+    // 易混词自己的释义也要一并取出来 —— 只显示词名等于没对比。
+    final peers = <String>{
+      for (final w in words) ...w.confusableList,
+    };
+    final byWord = await repo.byWords([...peers, ...words.map((w) => w.word)]);
+    if (!mounted) return;
+    setState(() {
+      _words = words;
+      _byWord = byWord;
+      _loading = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+    if (_loading) return const LoadingState();
+    if (_words.isEmpty) {
+      return const EmptyState(
+        icon: Icons.compare_arrows,
+        title: '还没有易混词',
+        art: EmptyArt.vocab,
+        message: '内置词表里标了易混词的条目会出现在这里。',
+      );
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(
+        AppTheme.gutter,
+        4,
+        AppTheme.gutter,
+        24,
+      ),
+      itemCount: _words.length,
+      itemBuilder: (_, i) {
+        final w = _words[i];
+        final peers = w.confusableList
+            .map((p) => _byWord[p])
+            .whereType<VocabWord>()
+            .toList();
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: t.surface,
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _ConfuseLine(word: w, highlight: true),
+              for (final p in peers) ...[
+                Divider(height: 22, color: t.lineSoft),
+                _ConfuseLine(word: p, highlight: false),
+              ],
+              if (peers.isEmpty) ...[
+                const SizedBox(height: 8),
+                Text(
+                  '易混：${w.confusable}',
+                  style: text.bodySmall?.copyWith(fontSize: 12.5),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _ConfuseLine extends StatelessWidget {
+  const _ConfuseLine({required this.word, required this.highlight});
+
+  final VocabWord word;
+  final bool highlight;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          word.word,
+          style: text.titleSmall?.copyWith(
+            fontSize: 15,
+            color: highlight ? t.brand : t.text,
+          ),
+        ),
+        if (word.meaning.isNotEmpty) ...[
+          const SizedBox(height: 4),
+          Text(
+            word.meaning,
+            style: text.bodyMedium?.copyWith(color: t.text, fontSize: 14),
+          ),
+        ],
+        if (word.usage.isNotEmpty) ...[
+          const SizedBox(height: 3),
+          // 用法才是分辨的依据：褒贬、搭配、常见误用。
+          Text(word.usage, style: text.bodySmall?.copyWith(fontSize: 12.5)),
+        ],
+      ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────── 我的
+
+/// 做错的题里自动收进来的词，加上从高频表手动加的。
+class _MyWordsView extends StatefulWidget {
+  const _MyWordsView({required this.onChanged});
+
+  final VoidCallback onChanged;
+
+  @override
+  State<_MyWordsView> createState() => _MyWordsViewState();
+}
+
+class _MyWordsViewState extends State<_MyWordsView> {
+  bool _loading = true;
+  List<VocabWord> _words = const [];
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final list = await VocabRepository.instance.all();
+    if (!mounted) return;
+    setState(() {
+      _words = list;
+      _loading = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+    if (_loading) return const LoadingState();
+    if (_words.isEmpty) {
+      return const EmptyState(
+        icon: Icons.style_outlined,
+        title: '词表还是空的',
+        art: EmptyArt.vocab,
+        message: '逻辑填空做错的题，那对词会自动收进来；也可以在「高频」里手动加。',
+      );
+    }
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(
+        AppTheme.gutter,
+        4,
+        AppTheme.gutter,
+        24,
+      ),
+      itemCount: _words.length,
+      separatorBuilder: (_, __) => Divider(height: 1, color: t.lineSoft),
+      itemBuilder: (_, i) {
+        final w = _words[i];
+        return Dismissible(
+          key: ValueKey(w.word),
+          direction: DismissDirection.endToStart,
+          background: Container(
+            alignment: Alignment.centerRight,
+            padding: const EdgeInsets.only(right: 18),
+            color: t.dangerSoft,
+            child: Icon(Icons.delete_outline, size: 20, color: t.danger),
+          ),
+          onDismissed: (_) async {
+            await VocabRepository.instance.remove(w.word);
+            setState(() => _words = [..._words]..removeAt(i));
+            widget.onChanged();
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 13),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        w.word,
+                        style: text.titleSmall?.copyWith(fontSize: 15),
+                      ),
+                    ),
+                    // 从做错的题里收来的, 标出来 —— 这些是你自己的坑。
+                    if (w.source == 'wrong')
+                      Text(
+                        '做错收的',
+                        style: text.bodySmall?.copyWith(
+                          fontSize: 11.5,
+                          color: t.danger,
+                        ),
+                      ),
+                  ],
+                ),
+                if (w.meaning.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    w.meaning,
+                    style: text.bodyMedium?.copyWith(color: t.text, fontSize: 14),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

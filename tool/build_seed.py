@@ -142,6 +142,17 @@ CREATE TABLE materials (
   source TEXT NOT NULL DEFAULT ''
 );
 
+/* 高频词表。从 2077 道逻辑填空的选项里统计出来 —— 那些选项本身就是词，
+   一道题四个词，不需要分词也不需要词典，数出来的就是真题里的词频。
+   4000 多个词、才几百 KB，全存；「高频」是 UI 那边按 count 卡的线。
+   sample_question_id 让「这个词考过什么样的题」一点就能跳过去。 */
+CREATE TABLE word_freq (
+  word TEXT PRIMARY KEY,
+  count INTEGER NOT NULL,
+  sample_question_id TEXT NOT NULL DEFAULT ''
+);
+CREATE INDEX idx_word_freq_count ON word_freq(count DESC);
+
 CREATE TABLE images (
   name TEXT PRIMARY KEY,
   bytes BLOB NOT NULL
@@ -312,6 +323,25 @@ def main() -> None:
         total_bytes += len(data)
         out.execute("INSERT OR REPLACE INTO images (name, bytes) VALUES (?, ?)", (base, data))
 
+    # 高频词表。只数逻辑填空 —— 别的题型选项是句子, 拆出来的是碎片不是词。
+    freq: dict[str, int] = {}
+    freq_sample: dict[str, str] = {}
+    word_re = re.compile(r"^[\u4e00-\u9fa5]{2,4}$")
+    for r in rows:
+        if r[6] != "xuanci":
+            continue
+        for opt in json.loads(r[3]):
+            # 多空题的选项形如「疾风骤雨 击落」, 按分隔符拆开;
+            # 每段必须整体是 2-4 个汉字, 半个词或带标点的一概不要。
+            for piece in re.split(r"[\s、,，/]+", opt.get("text") or ""):
+                if word_re.match(piece):
+                    freq[piece] = freq.get(piece, 0) + 1
+                    freq_sample.setdefault(piece, r[0])
+    out.executemany(
+        "INSERT INTO word_freq (word, count, sample_question_id) VALUES (?,?,?)",
+        [(w, n, freq_sample[w]) for w, n in freq.items()],
+    )
+
     out.execute(
         "INSERT OR REPLACE INTO meta (key, value) VALUES ('seed_version', ?)",
         (args.seed_version,),
@@ -325,6 +355,7 @@ def main() -> None:
         shutil.copyfileobj(fin, fout)
 
     print(f"questions : {len(rows)} (skipped {skipped})")
+    print(f"word freq : {len(freq)} words, {sum(1 for n in freq.values() if n >= 10)} seen 10+ times")
     print(f"multiple  : {sum(1 for r in rows if r[17] == 'multiple')}")
     print(f"materials : {len(kept)} groups, {sum(1 for r in rows if r[16])} questions attached")
     print(f"with image: {sum(1 for r in rows if r[14])}")

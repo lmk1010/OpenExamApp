@@ -109,6 +109,34 @@ class VocabRepository {
     return rows.map(VocabWord.fromRow).toList();
   }
 
+  /// 有易混词的那些。逻辑填空真正难的不是不认识某个词，是分不清
+  /// 一蹴而就 / 一挥而就 / 一气呵成 —— 单看释义永远分不清，得摆在一起看。
+  Future<List<VocabWord>> confusableGroups({int limit = 200}) async {
+    final db = await _db;
+    final rows = await db.query(
+      'vocab',
+      where: "confusable IS NOT NULL AND confusable <> ''",
+      orderBy: 'word ASC',
+      limit: limit,
+    );
+    return rows.map(VocabWord.fromRow).toList();
+  }
+
+  /// 按词名取一条，用于辨析里把易混词的释义也一并显示出来。
+  Future<Map<String, VocabWord>> byWords(Iterable<String> words) async {
+    final list = words.toSet().toList();
+    if (list.isEmpty) return const {};
+    final db = await _db;
+    final rows = await db.query(
+      'vocab',
+      where: 'word IN (${List.filled(list.length, '?').join(',')})',
+      whereArgs: list,
+    );
+    return {
+      for (final r in rows.map(VocabWord.fromRow)) r.word: r,
+    };
+  }
+
   Future<void> remove(String word) async {
     final db = await _db;
     await db.delete('vocab', where: 'word = ?', whereArgs: [word]);

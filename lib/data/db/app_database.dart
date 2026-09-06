@@ -98,6 +98,19 @@ class AppDatabase {
     ''');
     await db.execute('CREATE INDEX IF NOT EXISTS idx_vocab_due ON vocab(due_at)');
 
+    // 高频词表。种子库里带着（从逻辑填空的选项统计），老库没有就建个空的，
+    // 页面自己会显示「这版题库还没带词频」而不是崩。
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS word_freq (
+        word TEXT PRIMARY KEY,
+        count INTEGER NOT NULL,
+        sample_question_id TEXT NOT NULL DEFAULT ''
+      )
+    ''');
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_word_freq_count ON word_freq(count DESC)',
+    );
+
     // 一材多题：资料分析和篇章阅读是一段材料后面跟三到五问。
     // 材料存一份、题指过去，不是每题复制一遍 —— 一段材料上千字，
     // 五题复制五遍既浪费又会在改错时改漏。
@@ -1012,6 +1025,53 @@ class AppDatabase {
       },
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
+  }
+
+  // --------------------------------------------------------------- 高频词
+
+  /// 逻辑填空考过的词，按考的次数排。
+  ///
+  /// [minCount] 卡「高频」的线：≥10 次的有 416 个，够背一阵；调到 1 就是
+  /// 整张词表（4000 多个），查词时用。
+  Future<List<WordFreq>> topWords({int minCount = 10, int limit = 500}) async {
+    final db = await database;
+    final rows = await db.query(
+      'word_freq',
+      where: 'count >= ?',
+      whereArgs: [minCount],
+      orderBy: 'count DESC, word ASC',
+      limit: limit,
+    );
+    return rows.map(WordFreq.fromRow).toList();
+  }
+
+  /// 查词。先精确后前缀再包含 —— 输「一以」要先看到「一以贯之」。
+  Future<List<WordFreq>> searchWords(String query, {int limit = 60}) async {
+    final q = query.trim();
+    if (q.isEmpty) return const [];
+    final db = await database;
+    final rows = await db.rawQuery(
+      '''
+      SELECT * FROM word_freq
+      WHERE word LIKE ?
+      ORDER BY (word = ?) DESC, (word LIKE ?) DESC, count DESC
+      LIMIT ?
+      ''',
+      ['%$q%', q, '$q%', limit],
+    );
+    return rows.map(WordFreq.fromRow).toList();
+  }
+
+  /// 这个词在哪些题里考过。逻辑填空的选项就是词，所以直接对选项做匹配。
+  Future<List<Question>> questionsUsing(String word, {int limit = 20}) async {
+    final db = await database;
+    final rows = await db.query(
+      'questions',
+      where: "sub_category = 'xuanci' AND options LIKE ?",
+      whereArgs: ['%$word%'],
+      limit: limit,
+    );
+    return _withMaterials(rows.map(_fromRow).toList());
   }
 
   Future<void> clearResume() async {
