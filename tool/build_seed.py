@@ -101,11 +101,25 @@ CREATE TABLE questions (
   difficulty INTEGER DEFAULT 2,
   source TEXT DEFAULT 'builtin',
   has_image INTEGER DEFAULT 0,
-  order_num INTEGER DEFAULT 0
+  order_num INTEGER DEFAULT 0,
+  material_id TEXT DEFAULT ''
 );
 CREATE INDEX idx_q_cat ON questions(category);
 CREATE INDEX idx_q_source ON questions(source);
 CREATE INDEX idx_q_paper ON questions(paper_id);
+CREATE INDEX idx_q_material ON questions(material_id);
+
+/* 一材多题：资料分析和篇章阅读是一段材料后面跟三到五问。材料存一份、题指
+   过去 —— 一段材料上千字, 五题复制五遍既浪费又会在改错时改漏。
+   建表语句跟 app 里 _ensureRuntimeTables 那份保持一致, 否则老库升级上来的
+   结构和新装的对不上。 */
+CREATE TABLE materials (
+  id TEXT PRIMARY KEY,
+  content TEXT NOT NULL DEFAULT '',
+  content_html TEXT NOT NULL DEFAULT '',
+  paper_id TEXT NOT NULL DEFAULT '',
+  source TEXT NOT NULL DEFAULT ''
+);
 
 CREATE TABLE images (
   name TEXT PRIMARY KEY,
@@ -136,7 +150,8 @@ CREATE TABLE meta (
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--limit", type=int, default=0, help="cap questions (dev builds)")
-    parser.add_argument("--seed-version", default="3")
+    # 4 = 带上了一材多题的材料（资料分析的统计表全在这里）。
+    parser.add_argument("--seed-version", default="4")
     args = parser.parse_args()
 
     src = sqlite3.connect(resolve_source_db())
@@ -161,10 +176,22 @@ def main() -> None:
     used: set[str] = set()
     rows = []
     skipped = 0
+    # material_group_id -> (content_html, paper_id)。同一组只存一份。
+    materials: dict[str, tuple[str, str]] = {}
 
     for q in src.execute(sql):
         content_html = rewrite_assets(q["content_html"] or q["content"] or "", used)
         analysis_html = rewrite_assets(q["analysis_html"] or q["analysis"] or "", used)
+
+        # 材料。资料分析 2691 题里 2679 题挂着材料, 而且材料主体是统计表图片,
+        # 所以这里必须跟着 rewrite_assets 走一遍, 图片才会被收进 images 表 ——
+        # 漏了这一步, 题面就只剩一句光秃秃的设问, 根本没法做。
+        material_id = (q["material_group_id"] or "").strip()
+        material_html = rewrite_assets(q["material_html"] or "", used)
+        if material_id and material_html:
+            materials.setdefault(material_id, (material_html, q["paper_id"] or ""))
+        else:
+            material_id = ""
 
         try:
             raw_options = json.loads(q["options"] or "[]")
@@ -192,7 +219,11 @@ def main() -> None:
             continue
 
         paper = papers.get(q["paper_id"])
-        blob = f"{content_html}{analysis_html}" + "".join(o["html"] for o in options)
+        # 材料也算进 has_image —— 资料分析的图全在材料里, 不算的话这些题会被
+        # 当成纯文字题。
+        blob = f"{content_html}{analysis_html}{material_html}" + "".join(
+            o["html"] for o in options
+        )
         rows.append(
             (
                 q["id"],
@@ -211,14 +242,28 @@ def main() -> None:
                 "builtin",
                 1 if "oeimg://" in blob else 0,
                 q["order_num"] or 0,
+                material_id,
             )
         )
 
     out.executemany(
         "INSERT INTO questions (id, content, content_html, options, answer, category,"
         " sub_category, analysis, analysis_html, paper_id, paper_title, year, difficulty,"
-        " source, has_image, order_num) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+        " source, has_image, order_num, material_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
         rows,
+    )
+
+    # 只留真被题引用到的材料 —— 上面那些 skipped 的题（选项坏了/没答案）
+    # 可能是某组里唯一一道，材料留着就是死数据。
+    kept = {r[16] for r in rows if r[16]}
+    out.executemany(
+        "INSERT INTO materials (id, content, content_html, paper_id, source)"
+        " VALUES (?,?,?,?,'builtin')",
+        [
+            (mid, plain_text(html), html, paper_id)
+            for mid, (html, paper_id) in materials.items()
+            if mid in kept
+        ],
     )
 
     missing = 0
@@ -246,6 +291,7 @@ def main() -> None:
         shutil.copyfileobj(fin, fout)
 
     print(f"questions : {len(rows)} (skipped {skipped})")
+    print(f"materials : {len(kept)} groups, {sum(1 for r in rows if r[16])} questions attached")
     print(f"with image: {sum(1 for r in rows if r[14])}")
     print(f"images    : {len(used) - missing} embedded, {missing} missing, "
           f"{total_bytes / 1e6:.1f} MB raw")
