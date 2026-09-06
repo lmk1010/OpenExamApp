@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:openexam_app/features/shell/tab_reload.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
@@ -27,7 +28,15 @@ class WrongBookPage extends StatefulWidget {
   State<WrongBookPage> createState() => _WrongBookPageState();
 }
 
-class _WrongBookPageState extends State<WrongBookPage> {
+class _WrongBookPageState extends State<WrongBookPage> with TabReload {
+  @override
+  AppTab get tab => AppTab.wrong;
+
+  /// 切回这一栏就重读一遍 —— IndexedStack 会把页面一直留着，
+  /// 不重读的话显示的还是进 app 那一刻的数字。
+  @override
+  Future<void> onTabShown() => _reload(silent: true);
+
   bool _loading = true;
   List<Question> _wrong = const [];
   Map<String, String> _reasons = const {};
@@ -58,8 +67,9 @@ class _WrongBookPageState extends State<WrongBookPage> {
     _reload();
   }
 
-  Future<void> _reload() async {
-    if (!_loading) setState(() => _loading = true);
+  /// [silent] 时不把整页打回 Loading —— 切个 tab 闪一下白屏，比数字旧还难受。
+  Future<void> _reload({bool silent = false}) async {
+    if (!_loading && !silent) setState(() => _loading = true);
     final wrong = await AppDatabase.instance.fetchWrong(limit: 200);
     final reasons = await AppDatabase.instance.wrongReasons();
     final counts = await AppDatabase.instance.wrongCounts();

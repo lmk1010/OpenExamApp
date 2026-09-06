@@ -28,6 +28,7 @@ import 'package:openexam_app/features/shell/app_shell.dart';
 import 'package:openexam_app/core/ui/shore.dart';
 import 'package:openexam_app/core/ui/shore_art.dart';
 import 'package:openexam_app/features/practice/shore_home.dart';
+import 'package:openexam_app/features/shell/tab_reload.dart';
 import 'package:openexam_app/features/stats/stats_page.dart';
 import 'package:openexam_app/features/vocab/data/vocab_repository.dart';
 import 'package:openexam_app/features/vocab/presentation/vocab_page.dart';
@@ -42,7 +43,15 @@ class ProfilePage extends StatefulWidget {
   State<ProfilePage> createState() => _ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> {
+class _ProfilePageState extends State<ProfilePage> with TabReload {
+  @override
+  AppTab get tab => AppTab.profile;
+
+  /// 切回这一栏就重读一遍 —— IndexedStack 会把页面一直留着，
+  /// 不重读的话显示的还是进 app 那一刻的数字。
+  @override
+  Future<void> onTabShown() => _reload();
+
   /// 「AI 设置」那行显示已配置/未配置。
   bool _aiConfigured = false;
 

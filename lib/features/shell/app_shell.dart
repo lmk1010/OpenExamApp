@@ -8,6 +8,7 @@ import 'package:openexam_app/features/bank/bank_page.dart';
 import 'package:openexam_app/features/plan/presentation/pages/study_plan_page.dart';
 import 'package:openexam_app/features/practice/practice_home_page.dart';
 import 'package:openexam_app/features/profile/profile_page.dart';
+import 'package:openexam_app/features/shell/tab_reload.dart';
 import 'package:openexam_app/features/wrong/wrong_book_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -65,6 +66,21 @@ class _AppShellState extends State<AppShell> {
     setState(() => _index = AppShell.jumpTo.value);
   }
 
+  /// 跟下面两组 tab、以及 build 里那两组 pages 一一对应，改一处必须改三处。
+  static const _phoneOrder = [
+    AppTab.practice,
+    AppTab.bank,
+    AppTab.wrong,
+    AppTab.profile,
+  ];
+  static const _wideOrder = [
+    AppTab.practice,
+    AppTab.plan,
+    AppTab.bank,
+    AppTab.wrong,
+    AppTab.profile,
+  ];
+
   static const _phoneTabs = [
     (icon: AppIcon.practice, label: '练习'),
     (icon: AppIcon.papers, label: '题库'),
@@ -109,6 +125,14 @@ class _AppShellState extends State<AppShell> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) setState(() => _index = safeIndex);
       });
+    }
+
+    // 告诉页面「你露面了，去把数据重读一遍」。IndexedStack 把它们全保活着，
+    // 不说一声的话它们会一直显示进 app 那一刻的数字（见 tab_reload.dart）。
+    // 只能在帧后改 —— 监听方会 setState，build 期间通知是要报错的。
+    final shown = (wide ? _wideOrder : _phoneOrder)[safeIndex];
+    if (activeTab.value != shown) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => activeTab.value = shown);
     }
 
     final body = IndexedStack(index: safeIndex, children: pages);

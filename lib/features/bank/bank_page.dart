@@ -10,6 +10,7 @@ import 'package:openexam_app/core/ui/glass.dart';
 import 'package:openexam_app/core/ui/stroke_icons.dart';
 import 'package:openexam_app/core/ui/ui_kit.dart';
 import 'package:openexam_app/data/db/app_database.dart';
+import 'package:openexam_app/features/shell/tab_reload.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:openexam_app/features/bank/paper_page.dart';
 import 'package:openexam_app/features/reports/reports_page.dart';
@@ -23,7 +24,15 @@ class BankPage extends StatefulWidget {
   State<BankPage> createState() => _BankPageState();
 }
 
-class _BankPageState extends State<BankPage> {
+class _BankPageState extends State<BankPage> with TabReload {
+  @override
+  AppTab get tab => AppTab.bank;
+
+  /// 切回这一栏就重读一遍 —— IndexedStack 会把页面一直留着，
+  /// 不重读的话显示的还是进 app 那一刻的数字。
+  @override
+  Future<void> onTabShown() => _reload();
+
   final _search = TextEditingController();
 
   bool _loading = true;
@@ -549,8 +558,16 @@ class _RegionStrip extends StatelessWidget {
       height: 34,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        // 右边留一段，最后一个 chip 不会被屏幕边缘齐刷刷切断
-        padding: const EdgeInsets.only(right: 24),
+        // 左边跟标题、搜索框、年份行对齐到同一条 gutter 上 —— 少了这一段，
+        // 整条 chip 会比页面上所有其他东西往左突出 20px。
+        // 右边多留一截，最后一个 chip 不会被屏幕边缘齐刷刷切断。
+        // 这两个数跟 FilterBar 是同一组，改一个必须改另一个。
+        padding: const EdgeInsets.fromLTRB(
+          AppTheme.gutter,
+          0,
+          AppTheme.gutter + 24,
+          0,
+        ),
         itemCount: options.length,
         separatorBuilder: (_, __) => const SizedBox(width: 7),
         itemBuilder: (_, i) {

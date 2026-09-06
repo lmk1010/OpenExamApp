@@ -19,6 +19,7 @@ import 'package:openexam_app/features/practice/practice_session_page.dart';
 import 'package:openexam_app/features/practice/shore_home.dart';
 import 'package:openexam_app/features/essay/presentation/essay_page.dart';
 import 'package:openexam_app/features/shell/app_shell.dart';
+import 'package:openexam_app/features/shell/tab_reload.dart';
 import 'package:openexam_app/features/vocab/presentation/vocab_page.dart';
 import 'package:openexam_app/features/search/search_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -30,7 +31,15 @@ class PracticeHomePage extends StatefulWidget {
   State<PracticeHomePage> createState() => _PracticeHomePageState();
 }
 
-class _PracticeHomePageState extends State<PracticeHomePage> {
+class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
+  @override
+  AppTab get tab => AppTab.practice;
+
+  /// 切回这一栏就重读一遍 —— IndexedStack 会把页面一直留着，
+  /// 不重读的话显示的还是进 app 那一刻的数字。
+  @override
+  Future<void> onTabShown() => _reload();
+
   bool _loading = true;
   int _total = 0;
   int _wrong = 0;
