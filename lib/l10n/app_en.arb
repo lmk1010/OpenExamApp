@@ -1027,5 +1027,12 @@
   "essayWords": "{n} words",
   "essayWordsOfLimit": "{n} / {limit} words",
   "essayOverLimit": " · over",
-  "essayOutOf": "out of {max}"
+  "essayOutOf": "out of {max}",
+  "planDoneToday": "\"{name}\" is done for today",
+  "planDayPending": "\"{name}\" day {day} still to do",
+  "tabPractice": "Practice",
+  "tabPlan": "Plan",
+  "navExpand": "Expand navigation",
+  "navCollapse": "Collapse navigation",
+  "shoreStreak": "Lighthouse lit for {days} days"
 }

@@ -2728,5 +2728,36 @@
         "type": "String"
       }
     }
+  },
+  "planDoneToday": "「{name}」今天已完成",
+  "@planDoneToday": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "planDayPending": "「{name}」第 {day} 天还没做",
+  "@planDayPending": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "tabPractice": "练习",
+  "tabPlan": "计划",
+  "navExpand": "展开导航",
+  "navCollapse": "收起导航",
+  "shoreStreak": "灯塔亮了 {days} 天",
+  "@shoreStreak": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
   }
 }

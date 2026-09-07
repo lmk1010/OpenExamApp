@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/constants/app_constants.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
 import 'package:openexam_app/core/ui/ambient.dart';
@@ -81,21 +82,22 @@ class _AppShellState extends State<AppShell> {
     AppTab.profile,
   ];
 
-  static const _phoneTabs = [
-    (icon: AppIcon.practice, label: '练习'),
-    (icon: AppIcon.papers, label: '题库'),
-    (icon: AppIcon.wrongBook, label: '错题本'),
-    (icon: AppIcon.profile, label: '我的'),
-  ];
+  /// 图标是常量，标签跟着语言走，所以整张表得在 build 里现造。
+  static List<({AppIcon icon, String label})> _phoneTabs(BuildContext c) => [
+        (icon: AppIcon.practice, label: AppL.of(c).tabPractice),
+        (icon: AppIcon.papers, label: AppL.of(c).bankTab),
+        (icon: AppIcon.wrongBook, label: AppL.of(c).wrongBookTitle),
+        (icon: AppIcon.profile, label: AppL.of(c).profileTab),
+      ];
 
   /// 平板侧栏多一栏「计划」——空间够，打开就能管 Todo。
-  static const _wideTabs = [
-    (icon: AppIcon.practice, label: '练习'),
-    (icon: AppIcon.plan, label: '计划'),
-    (icon: AppIcon.papers, label: '题库'),
-    (icon: AppIcon.wrongBook, label: '错题本'),
-    (icon: AppIcon.profile, label: '我的'),
-  ];
+  static List<({AppIcon icon, String label})> _wideTabs(BuildContext c) => [
+        (icon: AppIcon.practice, label: AppL.of(c).tabPractice),
+        (icon: AppIcon.plan, label: AppL.of(c).tabPlan),
+        (icon: AppIcon.papers, label: AppL.of(c).bankTab),
+        (icon: AppIcon.wrongBook, label: AppL.of(c).wrongBookTitle),
+        (icon: AppIcon.profile, label: AppL.of(c).profileTab),
+      ];
 
   @override
   Widget build(BuildContext context) {
@@ -103,7 +105,7 @@ class _AppShellState extends State<AppShell> {
     final wide = context.isWide;
     AppShell.wideNav = wide;
 
-    final tabs = wide ? _wideTabs : _phoneTabs;
+    final tabs = wide ? _wideTabs(context) : _phoneTabs(context);
     final pages = wide
         ? const [
             PracticeHomePage(),
@@ -238,7 +240,7 @@ class _RailReveal extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tokens;
     return Tooltip(
-      message: '展开导航',
+      message: AppL.of(context).navExpand,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
@@ -338,10 +340,10 @@ class _NavRail extends StatelessWidget {
                   ),
                 ),
               ),
-            const Spacer(),
+            Spacer(),
             // Chevron only — no "隐藏" label eating the content ratio.
             Tooltip(
-              message: '收起导航',
+              message: AppL.of(context).navCollapse,
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap: onHide,

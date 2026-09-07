@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
@@ -168,7 +169,7 @@ class VoyageCard extends StatelessWidget {
                         Container(height: 150, color: t.brandSoft),
                   ),
                   // 插画没入水里，不是被一条直线切断
-                  const Positioned(
+                  Positioned(
                     left: 0, right: 0, bottom: -1, child: Waterline(),
                   ),
                   if (streak > 0)
@@ -176,15 +177,15 @@ class VoyageCard extends StatelessWidget {
                       left: 12,
                       top: 12,
                       child: _Pill(
-                        icon: const _LighthouseGlyph(),
-                        label: '灯塔亮了 $streak 天',
+                        icon: _LighthouseGlyph(),
+                        label: AppL.of(context).shoreStreak(streak),
                       ),
                     ),
                   if (daysLeft != null)
                     Positioned(
                       right: 12,
                       top: 12,
-                      child: _Pill(label: '离岸 $daysLeft 天'),
+                      child: _Pill(label: AppL.of(context).profileDaysLeft(daysLeft!)),
                     ),
                 ],
               ),

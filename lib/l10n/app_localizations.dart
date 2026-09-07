@@ -6275,6 +6275,48 @@ abstract class AppL {
   /// In zh, this message translates to:
   /// **'满分 {max}'**
   String essayOutOf(String max);
+
+  /// No description provided for @planDoneToday.
+  ///
+  /// In zh, this message translates to:
+  /// **'「{name}」今天已完成'**
+  String planDoneToday(String name);
+
+  /// No description provided for @planDayPending.
+  ///
+  /// In zh, this message translates to:
+  /// **'「{name}」第 {day} 天还没做'**
+  String planDayPending(String name, int day);
+
+  /// No description provided for @tabPractice.
+  ///
+  /// In zh, this message translates to:
+  /// **'练习'**
+  String get tabPractice;
+
+  /// No description provided for @tabPlan.
+  ///
+  /// In zh, this message translates to:
+  /// **'计划'**
+  String get tabPlan;
+
+  /// No description provided for @navExpand.
+  ///
+  /// In zh, this message translates to:
+  /// **'展开导航'**
+  String get navExpand;
+
+  /// No description provided for @navCollapse.
+  ///
+  /// In zh, this message translates to:
+  /// **'收起导航'**
+  String get navCollapse;
+
+  /// No description provided for @shoreStreak.
+  ///
+  /// In zh, this message translates to:
+  /// **'灯塔亮了 {days} 天'**
+  String shoreStreak(int days);
 }
 
 class _AppLDelegate extends LocalizationsDelegate<AppL> {

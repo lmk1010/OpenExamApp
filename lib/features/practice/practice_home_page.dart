@@ -960,7 +960,9 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
     final head = <Widget>[
       SizedBox(height: ShoreGap.top),
       ShoreHeader(
-        kicker: '${now.month} 月 ${now.day} 日 · ${_weekdayCn(now)}',
+        // 日期和星期交给 MaterialLocalizations —— 每种语言的顺序、
+        // 分隔符、星期缩写都不一样，自己拼一张中文星期表只对中文成立。
+        kicker: MaterialLocalizations.of(context).formatMediumDate(now),
         title: _greeting(now),
         actions: [
           // 工具箱一直埋在「我的」里，四个词语功能还都缩在词语页的 tab 后面，
@@ -1022,8 +1024,8 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
         _HintRow(
           icon: AppIcon.replay,
           text: plan.doneToday
-              ? '「${plan.label}」今天已完成'
-              : '「${plan.label}」第 ${plan.nextDay} 天还没做',
+              ? AppL.of(context).planDoneToday(plan.label)
+              : AppL.of(context).planDayPending(plan.label, plan.nextDay),
           onTap: () => AppShell.jumpTo.value = AppShell.wrongBookTab,
         ),
       ],
@@ -1098,10 +1100,6 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
     return AppL.of(context).homeGreetFinish;
   }
 }
-
-String _weekdayCn(DateTime d) =>
-    const ['周一', '周二', '周三', '周四', '周五', '周六', '周日'][d.weekday - 1];
-
 
 /// 没排航线时的占位。空态给一句话和一个动作，不给一张空卡。
 class _EmptyRoute extends StatelessWidget {

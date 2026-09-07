@@ -3543,4 +3543,31 @@ class AppLZh extends AppL {
   String essayOutOf(String max) {
     return '满分 $max';
   }
+
+  @override
+  String planDoneToday(String name) {
+    return '「$name」今天已完成';
+  }
+
+  @override
+  String planDayPending(String name, int day) {
+    return '「$name」第 $day 天还没做';
+  }
+
+  @override
+  String get tabPractice => '练习';
+
+  @override
+  String get tabPlan => '计划';
+
+  @override
+  String get navExpand => '展开导航';
+
+  @override
+  String get navCollapse => '收起导航';
+
+  @override
+  String shoreStreak(int days) {
+    return '灯塔亮了 $days 天';
+  }
 }

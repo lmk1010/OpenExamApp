@@ -3649,4 +3649,31 @@ class AppLEn extends AppL {
   String essayOutOf(String max) {
     return 'out of $max';
   }
+
+  @override
+  String planDoneToday(String name) {
+    return '\"$name\" is done for today';
+  }
+
+  @override
+  String planDayPending(String name, int day) {
+    return '\"$name\" day $day still to do';
+  }
+
+  @override
+  String get tabPractice => 'Practice';
+
+  @override
+  String get tabPlan => 'Plan';
+
+  @override
+  String get navExpand => 'Expand navigation';
+
+  @override
+  String get navCollapse => 'Collapse navigation';
+
+  @override
+  String shoreStreak(int days) {
+    return 'Lighthouse lit for $days days';
+  }
 }
