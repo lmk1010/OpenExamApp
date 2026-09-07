@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
@@ -69,7 +70,7 @@ class _PaperPageState extends State<PaperPage> {
     if (!mounted) return;
     if (questions.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('这里没有题目')),
+        SnackBar(content: Text(AppL.of(context).paperNoQuestions)),
       );
       return;
     }
@@ -90,7 +91,7 @@ class _PaperPageState extends State<PaperPage> {
     if (!mounted) return;
     if (questions.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('这里没有题目')),
+        SnackBar(content: Text(AppL.of(context).paperNoQuestions)),
       );
       return;
     }
@@ -102,7 +103,7 @@ class _PaperPageState extends State<PaperPage> {
           reviewAnswers: {
             for (final q in questions) q.id: q.answer.trim().toUpperCase(),
           },
-          title: title ?? '速览 · ${widget.title}',
+          title: title ?? AppL.of(context).paperSkim(widget.title),
         ),
       ),
     );
@@ -121,22 +122,22 @@ class _PaperPageState extends State<PaperPage> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, size: 21),
+          icon: Icon(Icons.arrow_back, size: 21),
           onPressed: () => Navigator.of(context).maybePop(),
         ),
         titleSpacing: 0,
-        title: const Text('试卷'),
+        title: Text(AppL.of(context).bankPapers),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (_) => ReportsPage(
                   paperId: widget.paperId,
-                  pageTitle: '本卷历史',
+                  pageTitle: AppL.of(context).paperHistory,
                 ),
               ),
             ),
-            child: const Text('历史'),
+            child: Text(AppL.of(context).paperHistoryShort),
           ),
         ],
       ),
@@ -152,7 +153,7 @@ class _PaperPageState extends State<PaperPage> {
               padding: const EdgeInsets.only(bottom: 30),
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(
+                  padding: EdgeInsets.fromLTRB(
                     AppTheme.gutter,
                     18,
                     AppTheme.gutter,
@@ -184,14 +185,14 @@ class _PaperPageState extends State<PaperPage> {
                                   MaterialPageRoute(
                                     builder: (_) => ReportsPage(
                                       paperId: widget.paperId,
-                                      pageTitle: '本卷历史',
+                                      pageTitle: AppL.of(context).paperHistory,
                                     ),
                                   ),
                                 ),
                                 child: Padding(
-                                  padding: const EdgeInsets.only(left: 8),
+                                  padding: EdgeInsets.only(left: 8),
                                   child: Text(
-                                    '历史',
+                                    AppL.of(context).paperHistoryShort,
                                     style: text.labelMedium?.copyWith(
                                       color: context.tokens.brand,
                                     ),
@@ -203,27 +204,33 @@ class _PaperPageState extends State<PaperPage> {
                       ),
                       const SizedBox(height: 9),
                       Text(
-                        '${widget.year > 0 ? '${widget.year} 年 · ' : ''}'
-                        '${widget.total} 题'
-                        '${done > 0 ? ' · 已练 $done · 正确率 $rate%' : ''}',
+                        // 前缀和后缀都是可选的，在 Dart 里拼。
+                        (widget.year > 0
+                                ? AppL.of(context)
+                                    .paperYearPrefix('${widget.year}')
+                                : '') +
+                            AppL.of(context).countQuestions(widget.total) +
+                            (done > 0
+                                ? AppL.of(context).paperDoneSuffix(done, rate)
+                                : ''),
                         style: text.bodySmall?.copyWith(fontSize: 13),
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14),
                       Meter(value: widget.total == 0 ? 0 : done / widget.total, height: 4),
                     ],
                   ),
                 ),
                 // Four ways into the paper: timed run, continue, wrongs, browse.
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
+                  padding: EdgeInsets.symmetric(horizontal: AppTheme.gutter),
                   child: Column(
                     children: [
                       Row(
                         children: [
                           _Action(
                             icon: AppIcon.timer,
-                            label: '整卷模考',
-                            meta: '120 分钟',
+                            label: AppL.of(context).paperFullMock,
+                            meta: AppL.of(context).paperMockMinutes,
                             primary: true,
                             onTap: () async {
                               final all = await AppDatabase.instance
@@ -231,11 +238,11 @@ class _PaperPageState extends State<PaperPage> {
                               await _run(all, limit: const Duration(minutes: 120));
                             },
                           ),
-                          const SizedBox(width: 10),
+                          SizedBox(width: 10),
                           _Action(
                             icon: AppIcon.practice,
-                            label: '继续未做',
-                            meta: _unanswered == 0 ? '已做完' : '$_unanswered 题',
+                            label: AppL.of(context).paperResume,
+                            meta: _unanswered == 0 ? AppL.of(context).paperAllDone : AppL.of(context).countQuestions(_unanswered),
                             enabled: _unanswered > 0,
                             onTap: () async {
                               final blank =
@@ -249,13 +256,13 @@ class _PaperPageState extends State<PaperPage> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 10),
+                      SizedBox(height: 10),
                       Row(
                         children: [
                           _Action(
                             icon: AppIcon.wrongBook,
-                            label: '本卷错题',
-                            meta: _wrong == 0 ? '暂无' : '$_wrong 题',
+                            label: AppL.of(context).paperWrong,
+                            meta: _wrong == 0 ? AppL.of(context).commonNone : AppL.of(context).countQuestions(_wrong),
                             enabled: _wrong > 0,
                             onTap: () async {
                               final wrong = await AppDatabase.instance
@@ -263,11 +270,11 @@ class _PaperPageState extends State<PaperPage> {
                               await _run(wrong);
                             },
                           ),
-                          const SizedBox(width: 10),
+                          SizedBox(width: 10),
                           _Action(
                             icon: AppIcon.papers,
-                            label: '速览答案',
-                            meta: '整卷解析',
+                            label: AppL.of(context).paperSkimAnswers,
+                            meta: AppL.of(context).paperAllAnalysis,
                             onTap: () async {
                               final all = await AppDatabase.instance
                                   .fetchByPaper(widget.paperId);
@@ -279,10 +286,10 @@ class _PaperPageState extends State<PaperPage> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 28),
+                SizedBox(height: 28),
                 ShoreSection(
-                  title: '模块构成',
-                  caption: '点一行只练这块',
+                  title: AppL.of(context).paperModules,
+                  caption: AppL.of(context).paperModulesHint,
                   child: ShoreCard(
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     child: Column(children: [
@@ -291,45 +298,46 @@ class _PaperPageState extends State<PaperPage> {
                   _ModuleRow(
                     stat: _stats[i],
                     onTap: () async {
+                      // 标题在 await 之后才用，先取出来。
+                      final title = AppL.of(context).paperModuleYear(
+                        categoryLabel(_stats[i].category),
+                        '${widget.year}',
+                      );
                       final list = await AppDatabase.instance.fetchByPaperCategory(
                         widget.paperId,
                         _stats[i].category,
                       );
-                      await _run(
-                        list,
-                        title: '${categoryLabel(_stats[i].category)} · ${widget.year} 年',
-                      );
+                      await _run(list, title: title);
                     },
                     onLongPress: () async {
+                      final title = AppL.of(context)
+                          .paperSkim(categoryLabel(_stats[i].category));
                       final list = await AppDatabase.instance.fetchByPaperCategory(
                         widget.paperId,
                         _stats[i].category,
                       );
-                      await _browse(
-                        list,
-                        title: '速览 · ${categoryLabel(_stats[i].category)}',
-                      );
+                      await _browse(list, title: title);
                     },
                   ),
                 ],
                 if (_stats.isEmpty)
                   Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.all(16),
                     child: Text(
-                      '这套卷子还没有题目 —— 导入时缺少题型标注会这样',
+                      AppL.of(context).paperNoTypes,
                       style: text.bodySmall,
                     ),
                   ),
                     ]),
                   ),
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
+                  padding: EdgeInsets.symmetric(horizontal: AppTheme.gutter),
                   child: Text(
                     done == 0
-                        ? '建议先按模块练，熟悉题型后再整卷限时。'
-                        : '整卷模考按 120 分钟计时，中途可用答题卡跳题。',
+                        ? AppL.of(context).paperTipModules
+                        : AppL.of(context).paperTipMock,
                     style: text.bodySmall,
                   ),
                 ),
@@ -454,11 +462,11 @@ class _ModuleRow extends StatelessWidget {
                 height: 4,
               ),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: 12),
             SizedBox(
               width: 58,
               child: Text(
-                started ? '${stat.done}/${stat.total}' : '${stat.total} 题',
+                started ? '${stat.done}/${stat.total}' : AppL.of(context).countQuestions(stat.total),
                 textAlign: TextAlign.right,
                 style: text.bodySmall,
               ),

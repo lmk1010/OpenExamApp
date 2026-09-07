@@ -5063,6 +5063,282 @@ abstract class AppL {
   /// In zh, this message translates to:
   /// **'用户导入'**
   String get importedPaperTitle;
+
+  /// No description provided for @paperYearPrefix.
+  ///
+  /// In zh, this message translates to:
+  /// **'{year} 年 · '**
+  String paperYearPrefix(String year);
+
+  /// No description provided for @paperDoneSuffix.
+  ///
+  /// In zh, this message translates to:
+  /// **' · 已练 {done} · 正确率 {rate}%'**
+  String paperDoneSuffix(int done, int rate);
+
+  /// No description provided for @paperNoQuestions.
+  ///
+  /// In zh, this message translates to:
+  /// **'这里没有题目'**
+  String get paperNoQuestions;
+
+  /// No description provided for @paperSkim.
+  ///
+  /// In zh, this message translates to:
+  /// **'速览 · {title}'**
+  String paperSkim(String title);
+
+  /// No description provided for @paperHistory.
+  ///
+  /// In zh, this message translates to:
+  /// **'本卷历史'**
+  String get paperHistory;
+
+  /// No description provided for @paperHistoryShort.
+  ///
+  /// In zh, this message translates to:
+  /// **'历史'**
+  String get paperHistoryShort;
+
+  /// No description provided for @paperFullMock.
+  ///
+  /// In zh, this message translates to:
+  /// **'整卷模考'**
+  String get paperFullMock;
+
+  /// No description provided for @paperMockMinutes.
+  ///
+  /// In zh, this message translates to:
+  /// **'120 分钟'**
+  String get paperMockMinutes;
+
+  /// No description provided for @paperResume.
+  ///
+  /// In zh, this message translates to:
+  /// **'继续未做'**
+  String get paperResume;
+
+  /// No description provided for @paperAllDone.
+  ///
+  /// In zh, this message translates to:
+  /// **'已做完'**
+  String get paperAllDone;
+
+  /// No description provided for @paperWrong.
+  ///
+  /// In zh, this message translates to:
+  /// **'本卷错题'**
+  String get paperWrong;
+
+  /// No description provided for @commonNone.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无'**
+  String get commonNone;
+
+  /// No description provided for @paperSkimAnswers.
+  ///
+  /// In zh, this message translates to:
+  /// **'速览答案'**
+  String get paperSkimAnswers;
+
+  /// No description provided for @paperAllAnalysis.
+  ///
+  /// In zh, this message translates to:
+  /// **'整卷解析'**
+  String get paperAllAnalysis;
+
+  /// No description provided for @paperModules.
+  ///
+  /// In zh, this message translates to:
+  /// **'模块构成'**
+  String get paperModules;
+
+  /// No description provided for @paperModulesHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'点一行只练这块'**
+  String get paperModulesHint;
+
+  /// No description provided for @paperModuleYear.
+  ///
+  /// In zh, this message translates to:
+  /// **'{name} · {year} 年'**
+  String paperModuleYear(String name, String year);
+
+  /// No description provided for @paperNoTypes.
+  ///
+  /// In zh, this message translates to:
+  /// **'这套卷子还没有题目 —— 导入时缺少题型标注会这样'**
+  String get paperNoTypes;
+
+  /// No description provided for @paperTipModules.
+  ///
+  /// In zh, this message translates to:
+  /// **'建议先按模块练，熟悉题型后再整卷限时。'**
+  String get paperTipModules;
+
+  /// No description provided for @paperTipMock.
+  ///
+  /// In zh, this message translates to:
+  /// **'整卷模考按 120 分钟计时，中途可用答题卡跳题。'**
+  String get paperTipMock;
+
+  /// No description provided for @healthCleanAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'清理全部重复'**
+  String get healthCleanAll;
+
+  /// No description provided for @healthCleanAllBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'{groups} 组卷内重复，每组留一道，共删掉 {removed} 道。'**
+  String healthCleanAllBody(int groups, int removed);
+
+  /// No description provided for @healthClean.
+  ///
+  /// In zh, this message translates to:
+  /// **'清理'**
+  String get healthClean;
+
+  /// No description provided for @healthTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'题库体检'**
+  String get healthTitle;
+
+  /// No description provided for @healthAllGood.
+  ///
+  /// In zh, this message translates to:
+  /// **'没查出问题'**
+  String get healthAllGood;
+
+  /// No description provided for @healthEmptyBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'导入题目之后，这里会告诉你哪些题有毛病。'**
+  String get healthEmptyBody;
+
+  /// No description provided for @healthAllGoodBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'每道题都有答案、有选项，卷内也没有收重。'**
+  String get healthAllGoodBody;
+
+  /// No description provided for @healthNoAnswer.
+  ///
+  /// In zh, this message translates to:
+  /// **'没有答案'**
+  String get healthNoAnswer;
+
+  /// No description provided for @healthNoAnswerCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 题 · 这些题做了也判不了对错'**
+  String healthNoAnswerCount(int count);
+
+  /// No description provided for @healthFillAnswer.
+  ///
+  /// In zh, this message translates to:
+  /// **'补答案'**
+  String get healthFillAnswer;
+
+  /// No description provided for @healthBrokenOptions.
+  ///
+  /// In zh, this message translates to:
+  /// **'选项残缺'**
+  String get healthBrokenOptions;
+
+  /// No description provided for @healthBrokenCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 题 · 不足两个选项，多半是解析出错'**
+  String healthBrokenCount(int count);
+
+  /// No description provided for @healthDupes.
+  ///
+  /// In zh, this message translates to:
+  /// **'重复的题'**
+  String get healthDupes;
+
+  /// No description provided for @healthDupesCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 组 · 同一份卷里收了两遍'**
+  String healthDupesCount(int count);
+
+  /// No description provided for @healthCleanAllShort.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部清理'**
+  String get healthCleanAllShort;
+
+  /// No description provided for @healthCopies.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 份'**
+  String healthCopies(int count);
+
+  /// No description provided for @healthKeepOne.
+  ///
+  /// In zh, this message translates to:
+  /// **'只留一道'**
+  String get healthKeepOne;
+
+  /// No description provided for @healthByCategory.
+  ///
+  /// In zh, this message translates to:
+  /// **'各科多少题'**
+  String get healthByCategory;
+
+  /// No description provided for @healthUnitQuestions.
+  ///
+  /// In zh, this message translates to:
+  /// **'道题'**
+  String get healthUnitQuestions;
+
+  /// No description provided for @healthUnitCategories.
+  ///
+  /// In zh, this message translates to:
+  /// **'个科目'**
+  String get healthUnitCategories;
+
+  /// No description provided for @healthUnitProblems.
+  ///
+  /// In zh, this message translates to:
+  /// **'处待修'**
+  String get healthUnitProblems;
+
+  /// No description provided for @healthMore.
+  ///
+  /// In zh, this message translates to:
+  /// **'还有 {count} 处，修完这批再刷新'**
+  String healthMore(int count);
+
+  /// No description provided for @healthEmptyStem.
+  ///
+  /// In zh, this message translates to:
+  /// **'（空题干）'**
+  String get healthEmptyStem;
+
+  /// No description provided for @healthDelete.
+  ///
+  /// In zh, this message translates to:
+  /// **'删掉'**
+  String get healthDelete;
+
+  /// No description provided for @healthWhichAnswer.
+  ///
+  /// In zh, this message translates to:
+  /// **'正确答案是哪个'**
+  String get healthWhichAnswer;
+
+  /// No description provided for @healthWhichAnswerHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'选错了也不要紧，之后在做题页还能改。'**
+  String get healthWhichAnswerHint;
 }
 
 class _AppLDelegate extends LocalizationsDelegate<AppL> {

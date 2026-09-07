@@ -2238,5 +2238,130 @@
       }
     }
   },
-  "importedPaperTitle": "用户导入"
+  "importedPaperTitle": "用户导入",
+  "paperYearPrefix": "{year} 年 · ",
+  "@paperYearPrefix": {
+    "placeholders": {
+      "year": {
+        "type": "String"
+      }
+    }
+  },
+  "paperDoneSuffix": " · 已练 {done} · 正确率 {rate}%",
+  "@paperDoneSuffix": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "rate": {
+        "type": "int"
+      }
+    }
+  },
+  "paperNoQuestions": "这里没有题目",
+  "paperSkim": "速览 · {title}",
+  "@paperSkim": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "paperHistory": "本卷历史",
+  "paperHistoryShort": "历史",
+  "paperFullMock": "整卷模考",
+  "paperMockMinutes": "120 分钟",
+  "paperResume": "继续未做",
+  "paperAllDone": "已做完",
+  "paperWrong": "本卷错题",
+  "commonNone": "暂无",
+  "paperSkimAnswers": "速览答案",
+  "paperAllAnalysis": "整卷解析",
+  "paperModules": "模块构成",
+  "paperModulesHint": "点一行只练这块",
+  "paperModuleYear": "{name} · {year} 年",
+  "@paperModuleYear": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "year": {
+        "type": "String"
+      }
+    }
+  },
+  "paperNoTypes": "这套卷子还没有题目 —— 导入时缺少题型标注会这样",
+  "paperTipModules": "建议先按模块练，熟悉题型后再整卷限时。",
+  "paperTipMock": "整卷模考按 120 分钟计时，中途可用答题卡跳题。",
+  "healthCleanAll": "清理全部重复",
+  "healthCleanAllBody": "{groups} 组卷内重复，每组留一道，共删掉 {removed} 道。",
+  "@healthCleanAllBody": {
+    "placeholders": {
+      "groups": {
+        "type": "int"
+      },
+      "removed": {
+        "type": "int"
+      }
+    }
+  },
+  "healthClean": "清理",
+  "healthTitle": "题库体检",
+  "healthAllGood": "没查出问题",
+  "healthEmptyBody": "导入题目之后，这里会告诉你哪些题有毛病。",
+  "healthAllGoodBody": "每道题都有答案、有选项，卷内也没有收重。",
+  "healthNoAnswer": "没有答案",
+  "healthNoAnswerCount": "{count} 题 · 这些题做了也判不了对错",
+  "@healthNoAnswerCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "healthFillAnswer": "补答案",
+  "healthBrokenOptions": "选项残缺",
+  "healthBrokenCount": "{count} 题 · 不足两个选项，多半是解析出错",
+  "@healthBrokenCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "healthDupes": "重复的题",
+  "healthDupesCount": "{count} 组 · 同一份卷里收了两遍",
+  "@healthDupesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "healthCleanAllShort": "全部清理",
+  "healthCopies": "{count} 份",
+  "@healthCopies": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "healthKeepOne": "只留一道",
+  "healthByCategory": "各科多少题",
+  "healthUnitQuestions": "道题",
+  "healthUnitCategories": "个科目",
+  "healthUnitProblems": "处待修",
+  "healthMore": "还有 {count} 处，修完这批再刷新",
+  "@healthMore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "healthEmptyStem": "（空题干）",
+  "healthDelete": "删掉",
+  "healthWhichAnswer": "正确答案是哪个",
+  "healthWhichAnswerHint": "选错了也不要紧，之后在做题页还能改。"
 }

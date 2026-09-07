@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
@@ -85,17 +86,16 @@ class _BankHealthPageState extends State<BankHealthPage> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('清理全部重复'),
-        content: Text('${_dupes.length} 组卷内重复，每组留一道，'
-            '共删掉 ${_dupes.fold<int>(0, (s, g) => s + g.length - 1)} 道。'),
+        title: Text(AppL.of(context).healthCleanAll),
+        content: Text(AppL.of(context).healthCleanAllBody(_dupes.length, _dupes.fold<int>(0, (s, g) => s + g.length - 1))),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('取消'),
+            child: Text(AppL.of(context).commonCancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('清理'),
+            child: Text(AppL.of(context).healthClean),
           ),
         ],
       ),
@@ -119,14 +119,14 @@ class _BankHealthPageState extends State<BankHealthPage> {
       body: SafeArea(
         child: ReadableWidth(
           child: _loading
-              ? const LoadingState()
+              ? LoadingState()
               : ListView(
                   padding: EdgeInsets.only(
                     bottom: MediaQuery.paddingOf(context).bottom + 28,
                   ),
                   children: [
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(
+                      padding: EdgeInsets.fromLTRB(
                           AppTheme.gutter, 8, AppTheme.gutter, 10),
                       child: Row(
                         children: [
@@ -134,14 +134,14 @@ class _BankHealthPageState extends State<BankHealthPage> {
                             icon: Icons.arrow_back,
                             onTap: () => Navigator.of(context).maybePop(),
                           ),
-                          const SizedBox(width: 4),
-                          Text('题库体检', style: text.titleMedium),
+                          SizedBox(width: 4),
+                          Text(AppL.of(context).healthTitle, style: text.titleMedium),
                         ],
                       ),
                     ),
 
                     Padding(
-                      padding: const EdgeInsets.symmetric(
+                      padding: EdgeInsets.symmetric(
                           horizontal: AppTheme.gutter),
                       child: _Summary(
                         total: _total,
@@ -151,26 +151,26 @@ class _BankHealthPageState extends State<BankHealthPage> {
                     ),
 
                     if (_problems == 0) ...[
-                      const SizedBox(height: 26),
+                      SizedBox(height: 26),
                       EmptyState(
                         icon: Icons.verified_outlined,
-                        title: _total == 0 ? '题库还是空的' : '没查出问题',
+                        title: _total == 0 ? AppL.of(context).cmEmptyTitle : AppL.of(context).healthAllGood,
                         message: _total == 0
-                            ? '导入题目之后，这里会告诉你哪些题有毛病。'
-                            : '每道题都有答案、有选项，卷内也没有收重。',
+                            ? AppL.of(context).healthEmptyBody
+                            : AppL.of(context).healthAllGoodBody,
                       ),
                     ],
 
                     if (_noAnswer.isNotEmpty) ...[
-                      const SizedBox(height: 22),
+                      SizedBox(height: 22),
                       SectionHeader(
-                        title: '没有答案',
-                        caption: '${_noAnswer.length} 题 · 这些题做了也判不了对错',
+                        title: AppL.of(context).healthNoAnswer,
+                        caption: AppL.of(context).healthNoAnswerCount(_noAnswer.length),
                       ),
                       for (final q in _noAnswer.take(50))
                         _ProblemRow(
                           question: q,
-                          actionLabel: '补答案',
+                          actionLabel: AppL.of(context).healthFillAnswer,
                           onAction: () => _fixAnswer(q),
                           onDelete: () => _delete(q),
                         ),
@@ -179,10 +179,10 @@ class _BankHealthPageState extends State<BankHealthPage> {
                     ],
 
                     if (_broken.isNotEmpty) ...[
-                      const SizedBox(height: 22),
+                      SizedBox(height: 22),
                       SectionHeader(
-                        title: '选项残缺',
-                        caption: '${_broken.length} 题 · 不足两个选项，多半是解析出错',
+                        title: AppL.of(context).healthBrokenOptions,
+                        caption: AppL.of(context).healthBrokenCount(_broken.length),
                       ),
                       for (final q in _broken.take(50))
                         _ProblemRow(
@@ -193,18 +193,18 @@ class _BankHealthPageState extends State<BankHealthPage> {
                     ],
 
                     if (_dupes.isNotEmpty) ...[
-                      const SizedBox(height: 22),
+                      SizedBox(height: 22),
                       SectionHeader(
-                        title: '重复的题',
-                        caption: '${_dupes.length} 组 · 同一份卷里收了两遍',
-                        trailing: '全部清理',
+                        title: AppL.of(context).healthDupes,
+                        caption: AppL.of(context).healthDupesCount(_dupes.length),
+                        trailing: AppL.of(context).healthCleanAllShort,
                         onTapTrailing: _dedupeAll,
                       ),
                       for (final g in _dupes.take(30))
                         _ProblemRow(
                           question: g.first,
-                          badge: '${g.length} 份',
-                          actionLabel: '只留一道',
+                          badge: AppL.of(context).healthCopies(g.length),
+                          actionLabel: AppL.of(context).healthKeepOne,
                           onAction: () => _dedupe(g),
                         ),
                       if (_dupes.length > 30) _More(n: _dupes.length - 30),
@@ -212,7 +212,7 @@ class _BankHealthPageState extends State<BankHealthPage> {
 
                     if (_stats.isNotEmpty) ...[
                       const SizedBox(height: 26),
-                      const SectionHeader(title: '各科多少题'),
+                      SectionHeader(title: AppL.of(context).healthByCategory),
                       for (final s in _stats)
                         _CategoryBar(
                           stat: s,
@@ -245,7 +245,7 @@ class _Summary extends StatelessWidget {
     final t = context.tokens;
 
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: t.surface,
         borderRadius: BorderRadius.circular(22),
@@ -253,11 +253,11 @@ class _Summary extends StatelessWidget {
       ),
       child: Row(
         children: [
-          _Figure(value: '$total', label: '道题'),
-          _Figure(value: '$categories', label: '个科目'),
+          _Figure(value: '$total', label: AppL.of(context).healthUnitQuestions),
+          _Figure(value: '$categories', label: AppL.of(context).healthUnitCategories),
           _Figure(
             value: '$problems',
-            label: '处待修',
+            label: AppL.of(context).healthUnitProblems,
             tint: problems == 0 ? t.success : t.danger,
           ),
         ],
@@ -309,9 +309,9 @@ class _More extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tokens;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 8, AppTheme.gutter, 0),
+      padding: EdgeInsets.fromLTRB(AppTheme.gutter, 8, AppTheme.gutter, 0),
       child: Text(
-        '还有 $n 处，修完这批再刷新',
+        AppL.of(context).healthMore(n),
         style: Theme.of(context)
             .textTheme
             .bodySmall
@@ -343,13 +343,13 @@ class _ProblemRow extends StatelessWidget {
     final text = Theme.of(context).textTheme;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(
+      padding: EdgeInsets.symmetric(
           horizontal: AppTheme.gutter, vertical: 11),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            question.content.trim().isEmpty ? '（空题干）' : question.content,
+            question.content.trim().isEmpty ? AppL.of(context).healthEmptyStem : question.content,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: text.bodyLarge?.copyWith(fontSize: 14.5, height: 1.45),
@@ -368,11 +368,11 @@ class _ProblemRow extends StatelessWidget {
                 Text(badge!,
                     style: text.bodySmall?.copyWith(color: t.danger)),
               ],
-              const Spacer(),
+              Spacer(),
               if (onDelete != null)
                 TextButton(
                   onPressed: onDelete,
-                  child: Text('删掉',
+                  child: Text(AppL.of(context).healthDelete,
                       style: text.labelMedium?.copyWith(color: t.textSoft)),
                 ),
               if (actionLabel != null && onAction != null)
@@ -462,7 +462,7 @@ class _AnswerSheet extends StatelessWidget {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         border: Border(top: BorderSide(color: t.lineSoft)),
       ),
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 10),
+      padding: EdgeInsets.fromLTRB(20, 18, 20, 10),
       child: SafeArea(
         top: false,
         child: SingleChildScrollView(
@@ -470,7 +470,7 @@ class _AnswerSheet extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('正确答案是哪个', style: text.titleMedium),
+              Text(AppL.of(context).healthWhichAnswer, style: text.titleMedium),
               const SizedBox(height: 10),
               Text(
                 question.content,
@@ -510,9 +510,9 @@ class _AnswerSheet extends StatelessWidget {
                     ),
                   ),
                 ),
-              const SizedBox(height: 6),
+              SizedBox(height: 6),
               Text(
-                '选错了也不要紧，之后在做题页还能改。',
+                AppL.of(context).healthWhichAnswerHint,
                 style: text.bodySmall?.copyWith(color: t.textSoft),
               ),
               const SizedBox(height: 6),

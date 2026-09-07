@@ -2860,4 +2860,162 @@ class AppLZh extends AppL {
 
   @override
   String get importedPaperTitle => '用户导入';
+
+  @override
+  String paperYearPrefix(String year) {
+    return '$year 年 · ';
+  }
+
+  @override
+  String paperDoneSuffix(int done, int rate) {
+    return ' · 已练 $done · 正确率 $rate%';
+  }
+
+  @override
+  String get paperNoQuestions => '这里没有题目';
+
+  @override
+  String paperSkim(String title) {
+    return '速览 · $title';
+  }
+
+  @override
+  String get paperHistory => '本卷历史';
+
+  @override
+  String get paperHistoryShort => '历史';
+
+  @override
+  String get paperFullMock => '整卷模考';
+
+  @override
+  String get paperMockMinutes => '120 分钟';
+
+  @override
+  String get paperResume => '继续未做';
+
+  @override
+  String get paperAllDone => '已做完';
+
+  @override
+  String get paperWrong => '本卷错题';
+
+  @override
+  String get commonNone => '暂无';
+
+  @override
+  String get paperSkimAnswers => '速览答案';
+
+  @override
+  String get paperAllAnalysis => '整卷解析';
+
+  @override
+  String get paperModules => '模块构成';
+
+  @override
+  String get paperModulesHint => '点一行只练这块';
+
+  @override
+  String paperModuleYear(String name, String year) {
+    return '$name · $year 年';
+  }
+
+  @override
+  String get paperNoTypes => '这套卷子还没有题目 —— 导入时缺少题型标注会这样';
+
+  @override
+  String get paperTipModules => '建议先按模块练，熟悉题型后再整卷限时。';
+
+  @override
+  String get paperTipMock => '整卷模考按 120 分钟计时，中途可用答题卡跳题。';
+
+  @override
+  String get healthCleanAll => '清理全部重复';
+
+  @override
+  String healthCleanAllBody(int groups, int removed) {
+    return '$groups 组卷内重复，每组留一道，共删掉 $removed 道。';
+  }
+
+  @override
+  String get healthClean => '清理';
+
+  @override
+  String get healthTitle => '题库体检';
+
+  @override
+  String get healthAllGood => '没查出问题';
+
+  @override
+  String get healthEmptyBody => '导入题目之后，这里会告诉你哪些题有毛病。';
+
+  @override
+  String get healthAllGoodBody => '每道题都有答案、有选项，卷内也没有收重。';
+
+  @override
+  String get healthNoAnswer => '没有答案';
+
+  @override
+  String healthNoAnswerCount(int count) {
+    return '$count 题 · 这些题做了也判不了对错';
+  }
+
+  @override
+  String get healthFillAnswer => '补答案';
+
+  @override
+  String get healthBrokenOptions => '选项残缺';
+
+  @override
+  String healthBrokenCount(int count) {
+    return '$count 题 · 不足两个选项，多半是解析出错';
+  }
+
+  @override
+  String get healthDupes => '重复的题';
+
+  @override
+  String healthDupesCount(int count) {
+    return '$count 组 · 同一份卷里收了两遍';
+  }
+
+  @override
+  String get healthCleanAllShort => '全部清理';
+
+  @override
+  String healthCopies(int count) {
+    return '$count 份';
+  }
+
+  @override
+  String get healthKeepOne => '只留一道';
+
+  @override
+  String get healthByCategory => '各科多少题';
+
+  @override
+  String get healthUnitQuestions => '道题';
+
+  @override
+  String get healthUnitCategories => '个科目';
+
+  @override
+  String get healthUnitProblems => '处待修';
+
+  @override
+  String healthMore(int count) {
+    return '还有 $count 处，修完这批再刷新';
+  }
+
+  @override
+  String get healthEmptyStem => '（空题干）';
+
+  @override
+  String get healthDelete => '删掉';
+
+  @override
+  String get healthWhichAnswer => '正确答案是哪个';
+
+  @override
+  String get healthWhichAnswerHint => '选错了也不要紧，之后在做题页还能改。';
 }

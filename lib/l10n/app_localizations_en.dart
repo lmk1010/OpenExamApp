@@ -2938,4 +2938,168 @@ class AppLEn extends AppL {
 
   @override
   String get importedPaperTitle => 'Imported';
+
+  @override
+  String paperYearPrefix(String year) {
+    return '$year · ';
+  }
+
+  @override
+  String paperDoneSuffix(int done, int rate) {
+    return ' · $done done · $rate% correct';
+  }
+
+  @override
+  String get paperNoQuestions => 'No questions here';
+
+  @override
+  String paperSkim(String title) {
+    return 'Skim · $title';
+  }
+
+  @override
+  String get paperHistory => 'This paper\'s history';
+
+  @override
+  String get paperHistoryShort => 'History';
+
+  @override
+  String get paperFullMock => 'Full mock';
+
+  @override
+  String get paperMockMinutes => '120 minutes';
+
+  @override
+  String get paperResume => 'Continue';
+
+  @override
+  String get paperAllDone => 'All done';
+
+  @override
+  String get paperWrong => 'Mistakes in this paper';
+
+  @override
+  String get commonNone => 'None';
+
+  @override
+  String get paperSkimAnswers => 'Skim the answers';
+
+  @override
+  String get paperAllAnalysis => 'Explanations for the whole paper';
+
+  @override
+  String get paperModules => 'What\'s in it';
+
+  @override
+  String get paperModulesHint => 'Tap a row to practise just that part';
+
+  @override
+  String paperModuleYear(String name, String year) {
+    return '$name · $year';
+  }
+
+  @override
+  String get paperNoTypes =>
+      'No questions in this paper — usually means the import had no type labels';
+
+  @override
+  String get paperTipModules =>
+      'Practise module by module first; take the whole paper against the clock once the types are familiar.';
+
+  @override
+  String get paperTipMock =>
+      'The full mock runs 120 minutes; use the answer sheet to jump around.';
+
+  @override
+  String get healthCleanAll => 'Clean up every duplicate';
+
+  @override
+  String healthCleanAllBody(int groups, int removed) {
+    return '$groups duplicate groups within papers; one is kept from each and $removed are deleted.';
+  }
+
+  @override
+  String get healthClean => 'Clean up';
+
+  @override
+  String get healthTitle => 'Bank check-up';
+
+  @override
+  String get healthAllGood => 'Nothing wrong found';
+
+  @override
+  String get healthEmptyBody =>
+      'Import questions and this page tells you which ones are broken.';
+
+  @override
+  String get healthAllGoodBody =>
+      'Every question has an answer and options, and no paper collected the same one twice.';
+
+  @override
+  String get healthNoAnswer => 'No answer';
+
+  @override
+  String healthNoAnswerCount(int count) {
+    return '$count · answering these can\'t be marked right or wrong';
+  }
+
+  @override
+  String get healthFillAnswer => 'Fill the answer in';
+
+  @override
+  String get healthBrokenOptions => 'Broken options';
+
+  @override
+  String healthBrokenCount(int count) {
+    return '$count · fewer than two options, usually a parsing failure';
+  }
+
+  @override
+  String get healthDupes => 'Duplicates';
+
+  @override
+  String healthDupesCount(int count) {
+    return '$count groups · collected twice within one paper';
+  }
+
+  @override
+  String get healthCleanAllShort => 'Clean all';
+
+  @override
+  String healthCopies(int count) {
+    return '$count copies';
+  }
+
+  @override
+  String get healthKeepOne => 'Keep one';
+
+  @override
+  String get healthByCategory => 'How many in each';
+
+  @override
+  String get healthUnitQuestions => 'questions';
+
+  @override
+  String get healthUnitCategories => 'categories';
+
+  @override
+  String get healthUnitProblems => 'to fix';
+
+  @override
+  String healthMore(int count) {
+    return '$count more — fix these and refresh';
+  }
+
+  @override
+  String get healthEmptyStem => '(empty question)';
+
+  @override
+  String get healthDelete => 'Delete it';
+
+  @override
+  String get healthWhichAnswer => 'Which one is correct';
+
+  @override
+  String get healthWhichAnswerHint =>
+      'Pick the wrong one and it\'s fine — you can change it later while practising.';
 }
