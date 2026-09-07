@@ -2933,5 +2933,104 @@
     }
   },
   "examSharedBank": "题库是共用的。换一份只是换一副眼镜 —— 题、错题本、练习记录都还在，不会因为切换丢东西。",
-  "examTwoProfiles": "同时备两门考试的话，右上角 ＋ 建第二份，各留各的模块。"
+  "examTwoProfiles": "同时备两门考试的话，右上角 ＋ 建第二份，各留各的模块。",
+  "sessionHistoryPicked": "{when}做过，当时选了 {answer}",
+  "@sessionHistoryPicked": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      },
+      "answer": {
+        "type": "String"
+      }
+    }
+  },
+  "sessionHistoryRight": "（对）",
+  "sessionHistoryWrong": "（错）",
+  "sessionHistoryMissedN": " · 一共错过 {count} 次",
+  "@sessionHistoryMissedN": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionHistoryWasRight": "{when}做过，当时做对了",
+  "@sessionHistoryWasRight": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "sessionHistoryWasWrong": "{when}做错过这道题",
+  "@sessionHistoryWasWrong": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "sessionAvgSeconds": "每题 {secs} 秒",
+  "@sessionAvgSeconds": {
+    "placeholders": {
+      "secs": {
+        "type": "String"
+      }
+    }
+  },
+  "sessionYourAnswer": "你的答案 {yours} · 正确答案 {right}",
+  "@sessionYourAnswer": {
+    "placeholders": {
+      "yours": {
+        "type": "String"
+      },
+      "right": {
+        "type": "String"
+      }
+    }
+  },
+  "sessionBlankAnswer": "未作答",
+  "sessionDoneTimes": "{count} 次做过",
+  "@sessionDoneTimes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionMissedN": " · 错过 {count} 次",
+  "@sessionMissedN": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionAllRight": " · 全对",
+  "sessionLastOn": " · 上次 {date}",
+  "@sessionLastOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "sessionNoteExample": "例如：看到\"至少\"先想最不利原则",
+  "sessionYearSuffix": " · {year} 年",
+  "@sessionYearSuffix": {
+    "placeholders": {
+      "year": {
+        "type": "String"
+      }
+    }
+  },
+  "minutesCount": "{count} 分钟",
+  "@minutesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

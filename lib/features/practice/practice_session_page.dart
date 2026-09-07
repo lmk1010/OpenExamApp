@@ -1276,7 +1276,7 @@ class _QuestionView extends StatelessWidget {
                     style: text.bodySmall?.copyWith(color: accent),
                   ),
                   if (question.year > 0)
-                    Text(' · ${question.year} 年', style: text.bodySmall),
+                    Text(AppL.of(context).sessionYearSuffix('${question.year}'), style: text.bodySmall),
                   SizedBox(width: 6),
                   Icon(Icons.lightbulb_outline, size: 13, color: t.muted),
                   Text(
@@ -1740,11 +1740,20 @@ class _HistoryState extends State<_History> {
               const SizedBox(width: 7),
               Expanded(
                 child: Text(
+                  // 三段拼：主句 + 对错 + 可选的累计错次。
                   widget.answered
-                      ? '$when做过，当时选了 ${last.answer}'
-                          '${last.correct ? '（对）' : '（错）'}'
-                          '${wrongTimes > 1 ? ' · 一共错过 $wrongTimes 次' : ''}'
-                      : (last.correct ? '$when做过，当时做对了' : '$when做错过这道题'),
+                      ? AppL.of(context)
+                              .sessionHistoryPicked(when, last.answer) +
+                          (last.correct
+                              ? AppL.of(context).sessionHistoryRight
+                              : AppL.of(context).sessionHistoryWrong) +
+                          (wrongTimes > 1
+                              ? AppL.of(context)
+                                  .sessionHistoryMissedN(wrongTimes)
+                              : '')
+                      : (last.correct
+                          ? AppL.of(context).sessionHistoryWasRight(when)
+                          : AppL.of(context).sessionHistoryWasWrong(when)),
                   style: text.bodySmall?.copyWith(
                     fontSize: 12.5,
                     color: last.correct ? t.muted : t.danger,
@@ -1878,7 +1887,13 @@ class _ResultView extends StatelessWidget {
                             Text(
                               answers.isEmpty
                                   ? AppL.of(context).sessionPerQuestionNone
-                                  : '每题 ${(session._questionMs.values.fold<int>(0, (a, b) => a + b) / answers.length / 1000).toStringAsFixed(1)} 秒',
+                                  : AppL.of(context).sessionAvgSeconds(
+                                      (session._questionMs.values.fold<int>(
+                                                  0, (a, b) => a + b) /
+                                              answers.length /
+                                              1000)
+                                          .toStringAsFixed(1),
+                                    ),
                               style: text.bodySmall?.copyWith(fontSize: 13),
                             ),
                             if (answers.length < total) ...[
@@ -1994,7 +2009,11 @@ class _ResultView extends StatelessWidget {
                 title: wrong[i].content,
                 maxLines: 3,
                 subtitle:
-                    '你的答案 ${answers[wrong[i].id] ?? '未作答'} · 正确答案 ${wrong[i].answer.toUpperCase()}',
+                    AppL.of(context).sessionYourAnswer(
+                      answers[wrong[i].id] ??
+                          AppL.of(context).sessionBlankAnswer,
+                      wrong[i].answer.toUpperCase(),
+                    ),
                 leading: QuestionThumb(
                   markup: wrong[i].bodyMarkup,
                   icon: categoryIcon(wrong[i].category),
@@ -2105,10 +2124,10 @@ class _NoteSheetState extends State<_NoteSheet> {
                 maxLines: 5,
                 minLines: 3,
                 style: text.bodyMedium?.copyWith(color: t.text, fontSize: 15),
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   isDense: true,
                   border: InputBorder.none,
-                  hintText: '例如：看到"至少"先想最不利原则',
+                  hintText: AppL.of(context).sessionNoteExample,
                 ),
               ),
             ),
@@ -2925,9 +2944,13 @@ class _PastAttemptsState extends State<_PastAttempts> {
               const SizedBox(width: 7),
               Expanded(
                 child: Text(
-                  '${past.length} 次做过'
-                  '${wrong > 0 ? ' · 错过 $wrong 次' : ' · 全对'}'
-                  ' · 上次 ${past.first.at.month}/${past.first.at.day}',
+                  AppL.of(context).sessionDoneTimes(past.length) +
+                      (wrong > 0
+                          ? AppL.of(context).sessionMissedN(wrong)
+                          : AppL.of(context).sessionAllRight) +
+                      AppL.of(context).sessionLastOn(
+                        '${past.first.at.month}/${past.first.at.day}',
+                      ),
                   style: text.bodySmall?.copyWith(fontSize: 12.5),
                 ),
               ),

@@ -6659,6 +6659,102 @@ abstract class AppL {
   /// In zh, this message translates to:
   /// **'同时备两门考试的话，右上角 ＋ 建第二份，各留各的模块。'**
   String get examTwoProfiles;
+
+  /// No description provided for @sessionHistoryPicked.
+  ///
+  /// In zh, this message translates to:
+  /// **'{when}做过，当时选了 {answer}'**
+  String sessionHistoryPicked(String when, String answer);
+
+  /// No description provided for @sessionHistoryRight.
+  ///
+  /// In zh, this message translates to:
+  /// **'（对）'**
+  String get sessionHistoryRight;
+
+  /// No description provided for @sessionHistoryWrong.
+  ///
+  /// In zh, this message translates to:
+  /// **'（错）'**
+  String get sessionHistoryWrong;
+
+  /// No description provided for @sessionHistoryMissedN.
+  ///
+  /// In zh, this message translates to:
+  /// **' · 一共错过 {count} 次'**
+  String sessionHistoryMissedN(int count);
+
+  /// No description provided for @sessionHistoryWasRight.
+  ///
+  /// In zh, this message translates to:
+  /// **'{when}做过，当时做对了'**
+  String sessionHistoryWasRight(String when);
+
+  /// No description provided for @sessionHistoryWasWrong.
+  ///
+  /// In zh, this message translates to:
+  /// **'{when}做错过这道题'**
+  String sessionHistoryWasWrong(String when);
+
+  /// No description provided for @sessionAvgSeconds.
+  ///
+  /// In zh, this message translates to:
+  /// **'每题 {secs} 秒'**
+  String sessionAvgSeconds(String secs);
+
+  /// No description provided for @sessionYourAnswer.
+  ///
+  /// In zh, this message translates to:
+  /// **'你的答案 {yours} · 正确答案 {right}'**
+  String sessionYourAnswer(String yours, String right);
+
+  /// No description provided for @sessionBlankAnswer.
+  ///
+  /// In zh, this message translates to:
+  /// **'未作答'**
+  String get sessionBlankAnswer;
+
+  /// No description provided for @sessionDoneTimes.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 次做过'**
+  String sessionDoneTimes(int count);
+
+  /// No description provided for @sessionMissedN.
+  ///
+  /// In zh, this message translates to:
+  /// **' · 错过 {count} 次'**
+  String sessionMissedN(int count);
+
+  /// No description provided for @sessionAllRight.
+  ///
+  /// In zh, this message translates to:
+  /// **' · 全对'**
+  String get sessionAllRight;
+
+  /// No description provided for @sessionLastOn.
+  ///
+  /// In zh, this message translates to:
+  /// **' · 上次 {date}'**
+  String sessionLastOn(String date);
+
+  /// No description provided for @sessionNoteExample.
+  ///
+  /// In zh, this message translates to:
+  /// **'例如：看到\"至少\"先想最不利原则'**
+  String get sessionNoteExample;
+
+  /// No description provided for @sessionYearSuffix.
+  ///
+  /// In zh, this message translates to:
+  /// **' · {year} 年'**
+  String sessionYearSuffix(String year);
+
+  /// No description provided for @minutesCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 分钟'**
+  String minutesCount(int count);
 }
 
 class _AppLDelegate extends LocalizationsDelegate<AppL> {

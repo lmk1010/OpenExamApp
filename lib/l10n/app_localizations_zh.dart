@@ -3773,4 +3773,74 @@ class AppLZh extends AppL {
 
   @override
   String get examTwoProfiles => '同时备两门考试的话，右上角 ＋ 建第二份，各留各的模块。';
+
+  @override
+  String sessionHistoryPicked(String when, String answer) {
+    return '$when做过，当时选了 $answer';
+  }
+
+  @override
+  String get sessionHistoryRight => '（对）';
+
+  @override
+  String get sessionHistoryWrong => '（错）';
+
+  @override
+  String sessionHistoryMissedN(int count) {
+    return ' · 一共错过 $count 次';
+  }
+
+  @override
+  String sessionHistoryWasRight(String when) {
+    return '$when做过，当时做对了';
+  }
+
+  @override
+  String sessionHistoryWasWrong(String when) {
+    return '$when做错过这道题';
+  }
+
+  @override
+  String sessionAvgSeconds(String secs) {
+    return '每题 $secs 秒';
+  }
+
+  @override
+  String sessionYourAnswer(String yours, String right) {
+    return '你的答案 $yours · 正确答案 $right';
+  }
+
+  @override
+  String get sessionBlankAnswer => '未作答';
+
+  @override
+  String sessionDoneTimes(int count) {
+    return '$count 次做过';
+  }
+
+  @override
+  String sessionMissedN(int count) {
+    return ' · 错过 $count 次';
+  }
+
+  @override
+  String get sessionAllRight => ' · 全对';
+
+  @override
+  String sessionLastOn(String date) {
+    return ' · 上次 $date';
+  }
+
+  @override
+  String get sessionNoteExample => '例如：看到\"至少\"先想最不利原则';
+
+  @override
+  String sessionYearSuffix(String year) {
+    return ' · $year 年';
+  }
+
+  @override
+  String minutesCount(int count) {
+    return '$count 分钟';
+  }
 }

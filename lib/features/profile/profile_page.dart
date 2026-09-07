@@ -247,7 +247,7 @@ class _ProfilePageState extends State<ProfilePage> with TabReload {
                 ),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: Text('清除练习记录',
+                  title: Text(AppL.of(context).profileClearTitle,
                       style: text.titleSmall?.copyWith(color: t.danger)),
                   subtitle: Text(AppL.of(context).profileClearHint,
                       style: text.bodySmall),
@@ -621,7 +621,11 @@ class _VoyageTotal extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tokens;
     final text = Theme.of(context).textTheme;
-    final initial = name.isEmpty ? '考' : name.characters.first;
+    // 名字为空时取当前语言默认称呼的首字 —— 写死一个「考」，
+    // 英文界面上会冒出一个孤零零的汉字。
+    final initial = (name.isEmpty ? AppL.of(context).profileDefaultName : name)
+        .characters
+        .first;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: ShoreGap.page),
@@ -720,9 +724,9 @@ class _VoyageTotal extends StatelessWidget {
                             fontFeatures: AppTheme.numeric,
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        SizedBox(width: 8),
                         Text(
-                          '题',
+                          AppL.of(context).dxColQuestions,
                           style: text.titleSmall?.copyWith(
                             fontSize: 14,
                             color: t.muted,
@@ -1054,11 +1058,11 @@ class _GoalSheet extends StatelessWidget {
               behavior: HitTestBehavior.opaque,
               onTap: () => Navigator.of(context).pop(n),
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 14),
+                padding: EdgeInsets.symmetric(vertical: 14),
                 child: Row(
                   children: [
                     Text(
-                      '$n 题',
+                      AppL.of(context).countQuestions(n),
                       style: text.titleSmall?.copyWith(
                         color: n == current ? t.brand : t.text,
                         fontFeatures: AppTheme.numeric,
@@ -1097,11 +1101,11 @@ class _CountSheet extends StatelessWidget {
               behavior: HitTestBehavior.opaque,
               onTap: () => Navigator.of(context).pop(n),
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 15),
+                padding: EdgeInsets.symmetric(vertical: 15),
                 child: Row(
                   children: [
                     Text(
-                      '$n 题',
+                      AppL.of(context).countQuestions(n),
                       style: text.titleSmall?.copyWith(
                         color: n == current ? t.brand : t.text,
                         fontFeatures: AppTheme.numeric,
@@ -1290,7 +1294,7 @@ class _PracticePrefsPageState extends State<PracticePrefsPage> {
           autofocus: true,
           keyboardType: TextInputType.number,
           decoration: InputDecoration(
-            suffixText: count ? '题' : '分钟',
+            suffixText: count ? AppL.of(context).dxColQuestions : AppL.of(context).tipsUnitMinutes,
             border: const OutlineInputBorder(),
             isDense: true,
           ),
@@ -1344,7 +1348,7 @@ class _PracticePrefsPageState extends State<PracticePrefsPage> {
                             icon: Icons.arrow_back,
                             onTap: () => Navigator.of(context).maybePop(),
                           ),
-                          const SizedBox(width: 4),
+                          SizedBox(width: 4),
                           Text(AppL.of(context).profilePrefs, style: text.titleMedium),
                         ],
                       ),
@@ -1352,7 +1356,7 @@ class _PracticePrefsPageState extends State<PracticePrefsPage> {
                     _SettingRow(
                       icon: AppIcon.target,
                       title: AppL.of(context).profileDailyGoal,
-                      value: '$_goal 题',
+                      value: AppL.of(context).countQuestions(_goal),
                       onTap: () async {
                         final picked = await showModalBottomSheet<int>(
                           context: context,
@@ -1368,7 +1372,7 @@ class _PracticePrefsPageState extends State<PracticePrefsPage> {
                     _SettingRow(
                       icon: AppIcon.stack,
                       title: AppL.of(context).profileSetSizeShort,
-                      value: '$_count 题',
+                      value: AppL.of(context).countQuestions(_count),
                       onTap: () async {
                         final picked = await showModalBottomSheet<int>(
                           context: context,
@@ -1409,7 +1413,7 @@ class _PracticePrefsPageState extends State<PracticePrefsPage> {
                           if (mounted) setState(() => _province = picked);
                         },
                       ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12),
                     SectionHeader(
                       title: AppL.of(context).profileMock,
                       caption: AppL.of(context).profileMockHint,
@@ -1417,13 +1421,13 @@ class _PracticePrefsPageState extends State<PracticePrefsPage> {
                     _SettingRow(
                       icon: AppIcon.stack,
                       title: AppL.of(context).profileMockCountShort,
-                      value: '${profile.mockCount} 题',
+                      value: AppL.of(context).countQuestions(profile.mockCount),
                       onTap: () => _editMock(count: true),
                     ),
                     _SettingRow(
                       icon: AppIcon.timer,
                       title: AppL.of(context).profileMockMinutesShort,
-                      value: '${profile.mockMinutes} 分钟',
+                      value: AppL.of(context).minutesCount(profile.mockMinutes),
                       onTap: () => _editMock(count: false),
                     ),
                   ],

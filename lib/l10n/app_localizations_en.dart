@@ -3889,4 +3889,75 @@ class AppLEn extends AppL {
   @override
   String get examTwoProfiles =>
       'Studying for two exams at once? Tap ＋ and keep a separate set of modules for each.';
+
+  @override
+  String sessionHistoryPicked(String when, String answer) {
+    return '$when you picked $answer';
+  }
+
+  @override
+  String get sessionHistoryRight => ' — correct';
+
+  @override
+  String get sessionHistoryWrong => ' — wrong';
+
+  @override
+  String sessionHistoryMissedN(int count) {
+    return ' · missed $count times in all';
+  }
+
+  @override
+  String sessionHistoryWasRight(String when) {
+    return '$when you got this right';
+  }
+
+  @override
+  String sessionHistoryWasWrong(String when) {
+    return '$when you missed this one';
+  }
+
+  @override
+  String sessionAvgSeconds(String secs) {
+    return '${secs}s per question';
+  }
+
+  @override
+  String sessionYourAnswer(String yours, String right) {
+    return 'You: $yours · answer: $right';
+  }
+
+  @override
+  String get sessionBlankAnswer => 'blank';
+
+  @override
+  String sessionDoneTimes(int count) {
+    return 'done $count times';
+  }
+
+  @override
+  String sessionMissedN(int count) {
+    return ' · missed $count';
+  }
+
+  @override
+  String get sessionAllRight => ' · all correct';
+
+  @override
+  String sessionLastOn(String date) {
+    return ' · last on $date';
+  }
+
+  @override
+  String get sessionNoteExample =>
+      'e.g. when you see \"at least\", think worst case first';
+
+  @override
+  String sessionYearSuffix(String year) {
+    return ' · $year';
+  }
+
+  @override
+  String minutesCount(int count) {
+    return '$count minutes';
+  }
 }

@@ -1091,5 +1091,21 @@
   "examGenericOnly": "Common modules only",
   "examExtrasOn": "{count} extra modules on",
   "examSharedBank": "The bank is shared. Switching profiles just changes the glasses — questions, mistakes and history all stay put.",
-  "examTwoProfiles": "Studying for two exams at once? Tap ＋ and keep a separate set of modules for each."
+  "examTwoProfiles": "Studying for two exams at once? Tap ＋ and keep a separate set of modules for each.",
+  "sessionHistoryPicked": "{when} you picked {answer}",
+  "sessionHistoryRight": " — correct",
+  "sessionHistoryWrong": " — wrong",
+  "sessionHistoryMissedN": " · missed {count} times in all",
+  "sessionHistoryWasRight": "{when} you got this right",
+  "sessionHistoryWasWrong": "{when} you missed this one",
+  "sessionAvgSeconds": "{secs}s per question",
+  "sessionYourAnswer": "You: {yours} · answer: {right}",
+  "sessionBlankAnswer": "blank",
+  "sessionDoneTimes": "done {count} times",
+  "sessionMissedN": " · missed {count}",
+  "sessionAllRight": " · all correct",
+  "sessionLastOn": " · last on {date}",
+  "sessionNoteExample": "e.g. when you see \"at least\", think worst case first",
+  "sessionYearSuffix": " · {year}",
+  "minutesCount": "{count} minutes"
 }
