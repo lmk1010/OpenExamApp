@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/features/shell/tab_reload.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:openexam_app/core/constants/categories.dart';
@@ -95,8 +96,8 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
     ScaffoldMessenger.of(context)
       ..clearSnackBars()
       ..showSnackBar(
-        const SnackBar(
-          content: Text('已移出错题本'),
+        SnackBar(
+          content: Text(AppL.of(context).wrongRemoved),
           duration: Duration(milliseconds: 1200),
         ),
       );
@@ -132,8 +133,8 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
         ScaffoldMessenger.of(context)
           ..clearSnackBars()
           ..showSnackBar(
-            const SnackBar(
-              content: Text('已收藏'),
+            SnackBar(
+              content: Text(AppL.of(context).wrongSaved),
               duration: Duration(milliseconds: 1100),
             ),
           );
@@ -150,12 +151,15 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
   /// paste into notes. Offline app, so the file goes wherever the user says.
   Future<void> _export(List<Question> questions) async {
     if (questions.isEmpty) return;
+    // 这一串在 await 之后还要用文案，先把本地化对象取出来 ——
+    // 跨 await 再摸 context 是 use_build_context_synchronously。
+    final l = AppL.of(context);
     final notes = await AppDatabase.instance.notes();
     final buffer = StringBuffer()
-      ..writeln('# 错题本')
+      ..writeln(l.wrongExportHeading)
       ..writeln()
-      ..writeln('导出时间：${DateTime.now().toString().substring(0, 16)}')
-      ..writeln('共 ${questions.length} 题')
+      ..writeln(l.wrongExportedAt(DateTime.now().toString().substring(0, 16)))
+      ..writeln(l.wrongExportTotal(questions.length))
       ..writeln();
 
     for (var i = 0; i < questions.length; i++) {
@@ -165,10 +169,10 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
             '${q.year > 0 ? ' · ${q.year} 年' : ''}')
         ..writeln()
         ..writeln(q.content);
-      if (q.hasImage) buffer.writeln('（本题含图，导出文件不含图片）');
+      if (q.hasImage) buffer.writeln(l.wrongExportHasImage);
       buffer.writeln();
       for (final o in q.options) {
-        buffer.writeln('- ${o.key}. ${o.text.isEmpty ? '（图片选项）' : o.text}');
+        buffer.writeln('- ${o.key}. ${o.text.isEmpty ? l.wrongExportImageOption : o.text}');
       }
       buffer
         ..writeln()
@@ -180,13 +184,13 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
       if (q.analysis.isNotEmpty) {
         buffer
           ..writeln()
-          ..writeln('解析：${q.analysis}');
+          ..writeln(l.wrongExportAnalysis(q.analysis));
       }
       final note = notes[q.id];
       if (note != null && note.isNotEmpty) {
         buffer
           ..writeln()
-          ..writeln('我的笔记：$note');
+          ..writeln(l.wrongExportNote(note));
       }
       buffer
         ..writeln()
@@ -212,12 +216,12 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
       ScaffoldMessenger.of(context)
         ..clearSnackBars()
         ..showSnackBar(SnackBar(
-          content: Text(path == null ? '已保存到 App 文档目录：$name' : '已导出 $name'),
+          content: Text(path == null ? l.wrongExportSavedDocs(name) : l.wrongExportSaved(name)),
         ));
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('导出失败：$e')),
+        SnackBar(content: Text(l.wrongExportFailed('$e'))),
       );
     }
   }
@@ -326,7 +330,7 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
             for (final q in questions)
               q.id: mine[q.id] ?? q.answer.trim().toUpperCase(),
           },
-          title: '错题速览',
+          title: AppL.of(context).wrongQuickLook,
         ),
       ),
     );
@@ -389,15 +393,15 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
             child: Row(
               children: [
                 StrokeIcon(AppIcon.chart, size: 19, color: t.brand),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('弱点诊断', style: text.titleSmall?.copyWith(fontSize: 15)),
-                      const SizedBox(height: 4),
+                      Text(AppL.of(context).diagnosisTitle, style: text.titleSmall?.copyWith(fontSize: 15)),
+                      SizedBox(height: 4),
                       Text(
-                        '拿你的速度和正确率去比 161 套真题的基准',
+                        AppL.of(context).wrongDiagnosisHint,
                         style: text.bodySmall,
                       ),
                     ],
@@ -420,7 +424,7 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
                 behavior: HitTestBehavior.opaque,
                 onTap: _reviewToday,
                 child: Container(
-                  padding: const EdgeInsets.fromLTRB(20, 18, 14, 18),
+                  padding: EdgeInsets.fromLTRB(20, 18, 14, 18),
                   decoration: BoxDecoration(
                     color: t.accentSoft,
                     borderRadius: BorderRadius.circular(22),
@@ -432,13 +436,13 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              '今日复盘',
+                              AppL.of(context).wrongTodayReview,
                               style: text.titleSmall?.copyWith(fontSize: 16),
                             ),
-                            const SizedBox(height: 5),
+                            SizedBox(height: 5),
                             Text(
                               repeat > 0
-                                  ? '先啃错过两次以上的 $repeat 题'
+                                  ? AppL.of(context).wrongRepeatFirst(repeat)
                                   : '挑 ${_wrong.length > 20 ? 20 : _wrong.length} 题重做',
                               style: text.bodySmall?.copyWith(
                                 color: t.onAccentSoft,
@@ -449,7 +453,7 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
                       ),
                       const SizedBox(width: 10),
                       Container(
-                        padding: const EdgeInsets.symmetric(
+                        padding: EdgeInsets.symmetric(
                           horizontal: 20,
                           vertical: 11,
                         ),
@@ -458,7 +462,7 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
                           borderRadius: BorderRadius.circular(99),
                         ),
                         child: Text(
-                          '开始',
+                          AppL.of(context).commonStart,
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
@@ -482,9 +486,9 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
                 child: Column(
                   children: [
                     StrokeIcon(AppIcon.papers, size: 20, color: t.brand),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     Text(
-                      '速览解析',
+                      AppL.of(context).wrongBrowseAnalysis,
                       style: text.labelMedium?.copyWith(
                         color: t.brand,
                         fontSize: 12,
@@ -517,7 +521,7 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
         ),
       if (untagged > 0)
         Padding(
-          padding: const EdgeInsets.fromLTRB(
+          padding: EdgeInsets.fromLTRB(
             AppTheme.gutter,
             12,
             AppTheme.gutter,
@@ -529,10 +533,10 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
             child: Row(
               children: [
                 StrokeIcon(AppIcon.info, size: 16, color: t.muted),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    '$untagged 题还没标错因，标了才知道是粗心还是不会',
+                    AppL.of(context).wrongUntagged(untagged),
                     style: text.bodySmall,
                   ),
                 ),
@@ -543,18 +547,18 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
         ),
 
       if (reasonCounts.isNotEmpty) ...[
-        header('还在反复犯的'),
+        header(AppL.of(context).wrongRepeating),
       Padding(
-        padding: const EdgeInsets.fromLTRB(
+        padding: EdgeInsets.fromLTRB(
           AppTheme.gutter,
           0,
           AppTheme.gutter,
           10,
         ),
-        child: Text('长按一类可以开四天专项计划', style: text.bodySmall),
+        child: Text(AppL.of(context).wrongLongPressHint, style: text.bodySmall),
       ),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
+          padding: EdgeInsets.symmetric(horizontal: AppTheme.gutter),
           child: Wrap(
             spacing: 9,
             runSpacing: 9,
@@ -573,7 +577,7 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
                   ),
               if (untagged > 0)
                 _ReasonChip(
-                  label: '未标错因',
+                  label: AppL.of(context).wrongNoReason,
                   count: untagged,
                   onTap: () => _focus(reason: '_none'),
                 ),
@@ -582,7 +586,7 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
         ),
       ],
 
-      header('按题型', action: '全部 ›', onAction: () => _focus()),
+      header(AppL.of(context).wrongByType, action: AppL.of(context).commonAllArrow, onAction: () => _focus()),
       for (final e in worst)
         _DistRow(
           label: categoryLabel(e.key),
@@ -601,7 +605,7 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
       const SizedBox(height: 26),
       if (!context.isExpanded)
       Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
+        padding: EdgeInsets.symmetric(horizontal: AppTheme.gutter),
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: () => setState(() => _listMode = true),
@@ -609,7 +613,7 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                '逐题查看全部 ${_wrong.length} 题',
+                AppL.of(context).wrongViewAll(_wrong.length),
                 style: text.bodySmall?.copyWith(color: t.brand),
               ),
               const SizedBox(width: 4),
@@ -637,7 +641,7 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
       papers.putIfAbsent(
         key,
         () => (
-          title: q.paperTitle.isEmpty ? '未归卷题目' : q.paperTitle,
+          title: q.paperTitle.isEmpty ? AppL.of(context).wrongNoPaper : q.paperTitle,
           year: q.year,
           items: <Question>[],
         ),
@@ -684,11 +688,11 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
           SizedBox(
             width: 400,
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(0, 18, 0, 30),
+              padding: EdgeInsets.fromLTRB(0, 18, 0, 30),
               children: [
                 PageTitleBar(
-                  title: '错题本',
-                  meta: '${_wrong.length} 题待消灭',
+                  title: AppL.of(context).wrongBookTitle,
+                  meta: AppL.of(context).wrongToClear(_wrong.length),
                   top: 0,
                   bottom: 16,
                 ),
@@ -703,10 +707,10 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
               backgroundColor: t.surface,
               onRefresh: _reload,
               child: ListView(
-                padding: const EdgeInsets.only(top: 18, bottom: 30),
+                padding: EdgeInsets.only(top: 18, bottom: 30),
                 children: [
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(
+                    padding: EdgeInsets.fromLTRB(
                       AppTheme.gutter,
                       0,
                       AppTheme.gutter,
@@ -717,19 +721,19 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
                         Expanded(
                           child: Text(
                             shown.length == _wrong.length
-                                ? '全部错题'
-                                : '筛出 ${shown.length} 题',
+                                ? AppL.of(context).wrongAll
+                                : AppL.of(context).wrongFiltered(shown.length),
                             style: text.titleSmall,
                           ),
                         ),
                         _IconAction(
                           icon: AppIcon.replay,
-                          tip: '重练当前筛选的题',
+                          tip: AppL.of(context).wrongRedoFiltered,
                           onTap: () => _practise(shown.take(20).toList()),
                         ),
                         _IconAction(
                           icon: AppIcon.download,
-                          tip: '导出当前列表为 Markdown',
+                          tip: AppL.of(context).wrongExportMarkdown,
                           onTap: () => _export(shown),
                         ),
                       ],
@@ -767,13 +771,13 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
           bottom: MediaQuery.paddingOf(context).bottom + 150,
         ),
         children: [
-          const SizedBox(height: ShoreGap.top),
+          SizedBox(height: ShoreGap.top),
           ShoreHeader(
             kicker: _wrong.isEmpty
-                ? '答错的题会自动收进来'
+                ? AppL.of(context).wrongEmptyHint
                 : (_listMode
-                    ? '${_wrong.length} 题 · 长按可标错因'
-                    : '${_wrong.length} 题待消灭'),
+                    ? AppL.of(context).wrongCountWithHint(_wrong.length)
+                    : AppL.of(context).wrongToClear(_wrong.length)),
             title: '错题本',
             actions: [
               if (_wrong.isNotEmpty) ...[

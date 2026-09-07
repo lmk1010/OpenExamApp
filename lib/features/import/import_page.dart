@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
 import 'package:openexam_app/core/ui/shore_art.dart';
@@ -33,13 +34,15 @@ class _ImportPageState extends State<ImportPage> {
       MaterialPageRoute(builder: (_) => const DocImportPage()),
     );
     if (added != null && added > 0 && mounted) {
+      final l = AppL.of(context);
       ScaffoldMessenger.of(context)
         ..clearSnackBars()
-        ..showSnackBar(SnackBar(content: Text('已导入 $added 道题')));
+        ..showSnackBar(SnackBar(content: Text(l.importScanDone(added))));
     }
   }
 
   Future<void> _pickAndImport() async {
+    final l = AppL.of(context);
     setState(() => _busy = true);
     try {
       final result = await FilePicker.platform.pickFiles(
@@ -57,12 +60,12 @@ class _ImportPageState extends State<ImportPage> {
         bytes = await File(file.path!).readAsBytes();
       }
       if (bytes == null) {
-        _fail('读不到这个文件，换一个试试');
+        _fail(l.importUnreadable);
         return;
       }
       final bundle = QuestionImporter.parseFile(bytes, fileName: file.name);
       if (bundle.isEmpty) {
-        _fail('这个文件里没找到题目，看看下面的格式说明');
+        _fail(l.importNoQuestions);
         return;
       }
 
@@ -98,7 +101,7 @@ class _ImportPageState extends State<ImportPage> {
             '${existing > 0 ? '（其中 $existing 题为覆盖更新）' : ''}';
       });
     } catch (e) {
-      _fail('导入失败：$e');
+      _fail(l.importFailed('$e'));
     }
   }
 
@@ -125,6 +128,7 @@ class _ImportPageState extends State<ImportPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppL.of(context);
     final t = context.tokens;
     final text = Theme.of(context).textTheme;
 
@@ -137,8 +141,8 @@ class _ImportPageState extends State<ImportPage> {
         // 两条路，各一张卡。上面那张是主路：拍照或选 PDF，AI 逐页认。
         _Way(
           art: ShoreArt.icoNote,
-          title: '拍照 / PDF',
-          desc: '试卷、截图、买来的 PDF，AI 逐页认成题目',
+          title: l.importWayScanTitle,
+          desc: l.importWayScanDesc,
           primary: true,
           onTap: _busy ? null : _scan,
         ),
@@ -148,15 +152,15 @@ class _ImportPageState extends State<ImportPage> {
         // 转成图再让模型认一遍，慢、贵、还更容易认错。
         _Way(
           art: ShoreArt.icoNote,
-          title: 'Word / Excel / 文本',
-          desc: 'docx、xlsx、csv、txt，AI 直接读文字认成题目',
+          title: l.importWayDocTitle,
+          desc: l.importWayDocDesc,
           onTap: _busy ? null : _openDocImport,
         ),
         const SizedBox(height: 12),
         _Way(
           art: ShoreArt.icoHistory,
-          title: '题目文件',
-          desc: 'JSON / CSV，带图的打包成 zip',
+          title: l.importWayFileTitle,
+          desc: l.importWayFileDesc,
           onTap: _busy ? null : _pickAndImport,
         ),
 

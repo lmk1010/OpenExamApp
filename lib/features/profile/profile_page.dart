@@ -82,7 +82,9 @@ class _ProfilePageState extends State<ProfilePage> with TabReload {
   int _badges = 0;
   int _badgeTotal = 0;
   List<int> _week = const [0, 0, 0, 0, 0, 0, 0];
-  String _name = '备考中';
+  /// 空串 = 用户没起过名字，显示时兜底成本地化的默认称呼。
+  /// 不能在字段初始化器里取 AppL —— 那时候还没有 context。
+  String _name = '';
   DateTime? _examDate;
 
   @override
@@ -141,7 +143,7 @@ class _ProfilePageState extends State<ProfilePage> with TabReload {
       _week = week;
       _vocabDue = vocab.due;
       _goal = prefs.getInt(Prefs.dailyGoal) ?? 30;
-      _name = prefs.getString(Prefs.nickname) ?? '备考中';
+      _name = prefs.getString(Prefs.nickname) ?? '';
       final examRaw = prefs.getString(Prefs.examDate);
       _examDate = examRaw == null ? null : DateTime.tryParse(examRaw);
       _loading = false;
@@ -153,7 +155,9 @@ class _ProfilePageState extends State<ProfilePage> with TabReload {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _NameSheet(current: _name),
+      builder: (_) => _NameSheet(
+        current: _name.isEmpty ? AppL.of(context).profileDefaultName : _name,
+      ),
     );
     if (name == null) return;
     final prefs = await SharedPreferences.getInstance();
@@ -171,13 +175,10 @@ class _ProfilePageState extends State<ProfilePage> with TabReload {
     final ok = await showModalBottomSheet<bool>(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (_) => const _ConfirmSheet(
-        title: '清除练习记录',
-        message: '答题记录、正确率、错题本、成绩报告、错因、打卡、自评难度、'
-            '复习计划和成就都会清空，回到刚装好的样子。\n\n'
-            '收藏、笔记、词语积累和申论作答保留，题库本身也保留。此操作不可撤销 —— '
-            '想留一手就先去「备份与恢复」导出一份。',
-        confirm: '确认清除',
+      builder: (_) => _ConfirmSheet(
+        title: AppL.of(context).profileClearTitle,
+        message: AppL.of(context).profileClearBody,
+        confirm: AppL.of(context).profileClearConfirm,
       ),
     );
     if (ok != true) return;
@@ -186,7 +187,7 @@ class _ProfilePageState extends State<ProfilePage> with TabReload {
     await _reload();
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('练习记录已清除')),
+      SnackBar(content: Text(AppL.of(context).profileClearDone)),
     );
   }
 
@@ -214,19 +215,18 @@ class _ProfilePageState extends State<ProfilePage> with TabReload {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('关于 OpenExam · $_total 题在库',
+                Text(AppL.of(context).profileAboutTitle(_total),
                     style: text.titleMedium),
                 const SizedBox(height: 8),
                 Text(
-                  '本地优先的刷题工具，与 OpenExam 桌面端同源。\n\n'
-                  '商业题库请自行合法导入，App 不会爬取第三方付费内容。',
+                  AppL.of(context).profileAboutBody,
                   style: text.bodySmall,
                 ),
                 const SizedBox(height: 16),
                 Divider(color: t.lineSoft, height: 1),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: Text('重看引导', style: text.titleSmall),
+                  title: Text(AppL.of(context).profileReplayOnboarding, style: text.titleSmall),
                   onTap: () async {
                     Navigator.of(ctx).pop();
                     await Navigator.of(context).push(
@@ -243,7 +243,7 @@ class _ProfilePageState extends State<ProfilePage> with TabReload {
                   contentPadding: EdgeInsets.zero,
                   title: Text('清除练习记录',
                       style: text.titleSmall?.copyWith(color: t.danger)),
-                  subtitle: Text('答题记录、错题本、成绩报告都会清空',
+                  subtitle: Text(AppL.of(context).profileClearHint,
                       style: text.bodySmall),
                   onTap: () {
                     Navigator.of(ctx).pop();
@@ -287,9 +287,9 @@ class _ProfilePageState extends State<ProfilePage> with TabReload {
         const SizedBox(height: ShoreGap.top),
         ShoreHeader(
           kicker: days == null
-              ? '备考中'
-              : (days > 0 ? '离岸 $days 天' : '就在今天'),
-          title: '我的',
+              ? AppL.of(context).profileDefaultName
+              : (days > 0 ? AppL.of(context).profileDaysLeft(days) : AppL.of(context).profileToday),
+          title: AppL.of(context).profileTab,
           actions: [
             ShoreRoundButton(
               icon: StrokeIcon(AppIcon.auto, size: 19, color: t.textSoft),
@@ -301,7 +301,7 @@ class _ProfilePageState extends State<ProfilePage> with TabReload {
         // 航程总览：跟首页的航程卡同一套语言，只是统计全程不是今天。
         // 上一版三个数字并排一样大，没有主次，看完不知道该记住哪个。
         _VoyageTotal(
-          name: _name,
+          name: _name.isEmpty ? AppL.of(context).profileDefaultName : _name,
           answers: _answers,
           rate: _rate,
           weekTotal: weekTotal,
@@ -321,26 +321,26 @@ class _ProfilePageState extends State<ProfilePage> with TabReload {
                 children: [
                   _QuickTile(
                     art: ShoreArt.icoAchieve,
-                    label: '成就',
+                    label: AppL.of(context).profileBadges,
                     badge: _badges == 0 ? null : '$_badges/$_badgeTotal',
                     onTap: () => _open(const AchievementsPage()),
                   ),
                   if (ExamProfileStore.current.has(ExamFeature.vocab))
                     _QuickTile(
                       art: ShoreArt.icoVocab,
-                      label: '词语',
+                      label: AppL.of(context).profileVocab,
                       badge: _vocabDue == 0 ? null : '$_vocabDue',
                       onTap: () => _open(const VocabPage()),
                     ),
                   _QuickTile(
                     art: ShoreArt.icoNote,
-                    label: '笔记',
+                    label: AppL.of(context).profileNotes,
                     badge: _notes == 0 ? null : '$_notes',
                     onTap: () => _open(const NotesPage()),
                   ),
                   _QuickTile(
                     art: ShoreArt.icoMark,
-                    label: '收藏',
+                    label: AppL.of(context).profileMarks,
                     badge: _marked == 0 ? null : '$_marked',
                     onTap: () => _open(const MarkedPage()),
                   ),
@@ -350,24 +350,24 @@ class _ProfilePageState extends State<ProfilePage> with TabReload {
                 children: [
                   _QuickTile(
                     art: ShoreArt.icoHistory,
-                    label: '记录',
+                    label: AppL.of(context).profileReports,
                     badge: _reports == 0 ? null : '$_reports',
                     onTap: () => _open(const ReportsPage()),
                   ),
                   _QuickTile(
                     art: ShoreArt.icoStats,
-                    label: '统计',
+                    label: AppL.of(context).profileStats,
                     onTap: () => _open(const StatsPage()),
                   ),
                   if (ExamProfileStore.current.has(ExamFeature.tips))
                     _QuickTile(
                       art: ShoreArt.icoTips,
-                      label: '技巧',
+                      label: AppL.of(context).profileTips,
                       onTap: () => _open(const TipsPage()),
                     ),
                   _QuickTile(
                     art: ShoreArt.icoFix,
-                    label: '纠错',
+                    label: AppL.of(context).profileFeedback,
                     badge: _feedback == 0 ? null : '$_feedback',
                     onTap: () => _open(const FeedbackPage()),
                   ),
@@ -379,18 +379,18 @@ class _ProfilePageState extends State<ProfilePage> with TabReload {
 
         // ── 备考 ───────────────────────────────────────────────
         SectionCard(
-          title: '备考',
+          title: AppL.of(context).profileSectionExam,
           child: Column(children: [
         _SettingRow(
           icon: AppIcon.papers,
-          title: '界面模块',
-          value: '${ExamProfileStore.current.features.length} 项开启',
+          title: AppL.of(context).profileFeatures,
+          value: AppL.of(context).profileFeaturesOn(ExamProfileStore.current.features.length),
           // _open 回来会走 _reload，名字改了这一行跟着更新
           onTap: () => _open(const ExamProfilePage()),
         ),
         _SettingRow(
           icon: AppIcon.plan,
-          title: '复习计划',
+          title: AppL.of(context).profilePlan,
           onTap: () {
             final planTab = AppShell.planTab;
             if (planTab != null) {
@@ -402,8 +402,8 @@ class _ProfilePageState extends State<ProfilePage> with TabReload {
         ),
         _SettingRow(
           icon: AppIcon.target,
-          title: '练习偏好',
-          value: '每日 $_goal 题',
+          title: AppL.of(context).profilePrefs,
+          value: AppL.of(context).profileDailyGoalValue(_goal),
           onTap: () => _open(const PracticePrefsPage()),
         ),
 
@@ -412,29 +412,29 @@ class _ProfilePageState extends State<ProfilePage> with TabReload {
 
         // ── 题库 ───────────────────────────────────────────────
         SectionCard(
-          title: '题库',
+          title: AppL.of(context).profileSectionBank,
           child: Column(children: [
         _SettingRow(
           icon: AppIcon.import,
-          title: '导入题目',
-          value: _imported == 0 ? null : '$_imported 题',
+          title: AppL.of(context).profileImport,
+          value: _imported == 0 ? null : AppL.of(context).profileImportedCount(_imported),
           onTap: () => _open(const ImportPage(standalone: true)),
           active: _detail is ImportPage,
         ),
         _SettingRow(
           icon: AppIcon.logic,
-          title: '题库管理',
+          title: AppL.of(context).profileBankManage,
           onTap: () => _open(const CategoryManagePage()),
         ),
         _SettingRow(
           icon: AppIcon.health,
-          title: '题库体检',
+          title: AppL.of(context).profileBankHealth,
           onTap: () => _open(const BankHealthPage()),
           active: _detail is BankHealthPage,
         ),
         _SettingRow(
           icon: AppIcon.backup,
-          title: '备份与恢复',
+          title: AppL.of(context).profileBackup,
           onTap: () => _open(const BackupPage()),
           active: _detail is BackupPage,
         ),
@@ -444,14 +444,14 @@ class _ProfilePageState extends State<ProfilePage> with TabReload {
 
         // ── 应用 ───────────────────────────────────────────────
         SectionCard(
-          title: '应用',
+          title: AppL.of(context).profileSectionApp,
           child: Column(children: [
             _ThemeRow(),
             const _LanguageRow(),
         _SettingRow(
           icon: AppIcon.spark,
-          title: 'AI 设置',
-          value: _aiConfigured ? '已配置' : null,
+          title: AppL.of(context).profileAiSettings,
+          value: _aiConfigured ? AppL.of(context).profileConfigured : null,
           onTap: () async {
             await Navigator.of(context)
                 .push(MaterialPageRoute(builder: (_) => const AiSettingsPage()));
@@ -460,27 +460,24 @@ class _ProfilePageState extends State<ProfilePage> with TabReload {
         ),
         _SettingRow(
           icon: AppIcon.chart,
-          title: 'AI 用量',
+          title: AppL.of(context).profileAiUsage,
           onTap: () => _open(const AiUsagePage()),
         ),
         _SettingRow(
           icon: AppIcon.privacy,
-          title: '数据与隐私',
+          title: AppL.of(context).profilePrivacy,
           onTap: () => showModalBottomSheet<void>(
             context: context,
             backgroundColor: Colors.transparent,
-            builder: (_) => const _InfoSheet(
-              title: '数据与隐私',
-              body: '题库、答题记录、统计与错题本都存在本机的 SQLite 数据库里，'
-                  '不上传服务器、不做任何埋点、没有账号体系。\n\n'
-                  '唯一会联网的是 AI 功能（申论批改、拍照识题）：只有你主动触发时才发请求，'
-                  '直接发往你自己填的服务商，API Key 存在本机。不配置就完全离线。',
+            builder: (_) => _InfoSheet(
+              title: AppL.of(context).profilePrivacy,
+              body: AppL.of(context).profilePrivacyBody,
             ),
           ),
         ),
         _SettingRow(
           icon: AppIcon.info,
-          title: '关于',
+          title: AppL.of(context).profileAbout,
           value: 'v1.0.1',
           onTap: _openAbout,
         ),
@@ -730,8 +727,8 @@ class _VoyageTotal extends StatelessWidget {
                     const SizedBox(height: 10),
                     Text(
                       answers == 0
-                          ? '还没开始记，划一组就有数了'
-                          : '正确率 $rate% · 本周 $weekTotal 题',
+                          ? AppL.of(context).profileNoStatsYet
+                          : AppL.of(context).profileStatsLine(rate, weekTotal),
                       style: text.bodySmall?.copyWith(fontSize: 13),
                     ),
                   ],
@@ -811,10 +808,10 @@ class _ThemeRow extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     final controller = ThemeController.instance;
 
-    const modes = [
-      (mode: ThemeMode.system, icon: AppIcon.auto, label: '自动'),
-      (mode: ThemeMode.light, icon: AppIcon.sun, label: '浅色'),
-      (mode: ThemeMode.dark, icon: AppIcon.moon, label: '深色'),
+    final modes = [
+      (mode: ThemeMode.system, icon: AppIcon.auto, label: AppL.of(context).profileThemeAuto),
+      (mode: ThemeMode.light, icon: AppIcon.sun, label: AppL.of(context).profileThemeLight),
+      (mode: ThemeMode.dark, icon: AppIcon.moon, label: AppL.of(context).profileThemeDark),
     ];
 
     return AnimatedBuilder(
@@ -830,7 +827,7 @@ class _ThemeRow extends StatelessWidget {
               weight: 1.8,
             ),
             const SizedBox(width: 14),
-            Expanded(child: Text('主题', style: text.bodyLarge)),
+            Expanded(child: Text(AppL.of(context).profileTheme, style: text.bodyLarge)),
             Container(
               padding: const EdgeInsets.all(3),
               decoration: BoxDecoration(
@@ -920,7 +917,7 @@ class _NameSheetState extends State<_NameSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('改个称呼', style: text.titleMedium),
+            Text(AppL.of(context).profileRename, style: text.titleMedium),
             const SizedBox(height: 14),
             Container(
               height: 46,
@@ -932,11 +929,11 @@ class _NameSheetState extends State<_NameSheet> {
                   autofocus: true,
                   maxLength: 12,
                   style: text.titleSmall,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     isDense: true,
                     counterText: '',
                     border: InputBorder.none,
-                    hintText: '例如：上岸倒计时',
+                    hintText: AppL.of(context).profileRenameHint,
                   ),
                   onSubmitted: (v) => Navigator.of(context).pop(v.trim()),
                 ),
@@ -948,9 +945,9 @@ class _NameSheetState extends State<_NameSheet> {
               child: FilledButton(
                 onPressed: () {
                   final value = _controller.text.trim();
-                  Navigator.of(context).pop(value.isEmpty ? '备考中' : value);
+                  Navigator.of(context).pop(value.isEmpty ? AppL.of(context).profileDefaultName : value);
                 },
-                child: const Text('保存'),
+                child: Text(AppL.of(context).commonSave),
               ),
             ),
           ],
@@ -975,9 +972,9 @@ class _ProvinceSheet extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('报考地区', style: text.titleMedium),
+          Text(AppL.of(context).profileRegion, style: text.titleMedium),
           const SizedBox(height: 6),
-          Text('用来优先推荐对应的真题卷', style: text.bodySmall),
+          Text(AppL.of(context).profileRegionHint, style: text.bodySmall),
           const SizedBox(height: 14),
           ConstrainedBox(
             constraints: BoxConstraints(
@@ -1043,9 +1040,9 @@ class _GoalSheet extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('每日目标', style: text.titleMedium),
+          Text(AppL.of(context).profileDailyGoal, style: text.titleMedium),
           const SizedBox(height: 6),
-          Text('在职备考建议 20–30 题，全职冲刺 60 题以上', style: text.bodySmall),
+          Text(AppL.of(context).profileDailyGoalHint, style: text.bodySmall),
           for (final n in const [10, 20, 30, 50, 80, 100])
             GestureDetector(
               behavior: HitTestBehavior.opaque,
@@ -1087,7 +1084,7 @@ class _CountSheet extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('默认每组题量', style: text.titleMedium),
+          Text(AppL.of(context).profileSetSize, style: text.titleMedium),
           const SizedBox(height: 4),
           for (final n in const [10, 20, 30, 50])
             GestureDetector(
@@ -1138,7 +1135,7 @@ class _InfoSheet extends StatelessWidget {
             width: double.infinity,
             child: FilledButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('知道了'),
+              child: Text(AppL.of(context).commonGotIt),
             ),
           ),
         ],
@@ -1176,7 +1173,7 @@ class _ConfirmSheet extends StatelessWidget {
               Expanded(
                 child: OutlinedButton(
                   onPressed: () => Navigator.of(context).pop(false),
-                  child: const Text('取消'),
+                  child: Text(AppL.of(context).commonCancel),
                 ),
               ),
               const SizedBox(width: 12),
@@ -1265,7 +1262,7 @@ class _PracticePrefsPageState extends State<PracticePrefsPage> {
       initialDate: _examDate ?? now.add(const Duration(days: 60)),
       firstDate: now.subtract(const Duration(days: 1)),
       lastDate: now.add(const Duration(days: 1500)),
-      helpText: '选择考试日期',
+      helpText: AppL.of(context).profilePickExamDate,
     );
     if (picked == null) return;
     final prefs = await SharedPreferences.getInstance();
@@ -1281,7 +1278,7 @@ class _PracticePrefsPageState extends State<PracticePrefsPage> {
     final result = await showDialog<int>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(count ? '模考题量' : '模考时长'),
+        title: Text(count ? AppL.of(context).profileMockCount : AppL.of(context).profileMockMinutes),
         content: TextField(
           controller: ctrl,
           autofocus: true,
@@ -1295,12 +1292,12 @@ class _PracticePrefsPageState extends State<PracticePrefsPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('取消'),
+            child: Text(AppL.of(context).commonCancel),
           ),
           TextButton(
             onPressed: () =>
                 Navigator.of(ctx).pop(int.tryParse(ctrl.text.trim())),
-            child: const Text('确定'),
+            child: Text(AppL.of(context).commonConfirm),
           ),
         ],
       ),
@@ -1342,13 +1339,13 @@ class _PracticePrefsPageState extends State<PracticePrefsPage> {
                             onTap: () => Navigator.of(context).maybePop(),
                           ),
                           const SizedBox(width: 4),
-                          Text('练习偏好', style: text.titleMedium),
+                          Text(AppL.of(context).profilePrefs, style: text.titleMedium),
                         ],
                       ),
                     ),
                     _SettingRow(
                       icon: AppIcon.target,
-                      title: '每日目标',
+                      title: AppL.of(context).profileDailyGoal,
                       value: '$_goal 题',
                       onTap: () async {
                         final picked = await showModalBottomSheet<int>(
@@ -1364,7 +1361,7 @@ class _PracticePrefsPageState extends State<PracticePrefsPage> {
                     ),
                     _SettingRow(
                       icon: AppIcon.stack,
-                      title: '每组题量',
+                      title: AppL.of(context).profileSetSizeShort,
                       value: '$_count 题',
                       onTap: () async {
                         final picked = await showModalBottomSheet<int>(
@@ -1380,16 +1377,16 @@ class _PracticePrefsPageState extends State<PracticePrefsPage> {
                     ),
                     _SettingRow(
                       icon: AppIcon.calendar,
-                      title: '考试日期',
+                      title: AppL.of(context).profileExamDate,
                       value: days == null
                           ? null
-                          : (days > 0 ? '还有 $days 天' : '就在今天'),
+                          : (days > 0 ? AppL.of(context).profileDaysRemaining(days) : AppL.of(context).profileToday),
                       onTap: _pickExamDate,
                     ),
                     if (profile.has(ExamFeature.provinces))
                       _SettingRow(
                         icon: AppIcon.region,
-                        title: '报考地区',
+                        title: AppL.of(context).profileRegion,
                         value: _province,
                         onTap: () async {
                           final picked =
@@ -1407,19 +1404,19 @@ class _PracticePrefsPageState extends State<PracticePrefsPage> {
                         },
                       ),
                     const SizedBox(height: 12),
-                    const SectionHeader(
-                      title: '限时模考',
-                      caption: '按自己那门考试的节奏',
+                    SectionHeader(
+                      title: AppL.of(context).profileMock,
+                      caption: AppL.of(context).profileMockHint,
                     ),
                     _SettingRow(
                       icon: AppIcon.stack,
-                      title: '题量',
+                      title: AppL.of(context).profileMockCountShort,
                       value: '${profile.mockCount} 题',
                       onTap: () => _editMock(count: true),
                     ),
                     _SettingRow(
                       icon: AppIcon.timer,
-                      title: '时长',
+                      title: AppL.of(context).profileMockMinutesShort,
                       value: '${profile.mockMinutes} 分钟',
                       onTap: () => _editMock(count: false),
                     ),

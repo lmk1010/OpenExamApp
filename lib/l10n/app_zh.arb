@@ -71,5 +71,273 @@
   "settingsLanguageSystem": "跟随系统",
   "settingsLanguageSystemHint": "按手机的语言自动切换",
   "onboardNext": "下一个",
-  "onboardFinish": "开始划"
+  "onboardFinish": "开始划",
+  "importScanDone": "已导入 {count} 道题",
+  "@importScanDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importUnreadable": "读不到这个文件，换一个试试",
+  "importNoQuestions": "这个文件里没找到题目，看看下面的格式说明",
+  "importFailed": "导入失败：{error}",
+  "@importFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "importWayScanTitle": "拍照 / PDF",
+  "importWayScanDesc": "试卷、截图、买来的 PDF，AI 逐页认成题目",
+  "importWayDocTitle": "Word / Excel / 文本",
+  "importWayDocDesc": "docx、xlsx、csv、txt，AI 直接读文字认成题目",
+  "importWayFileTitle": "题目文件",
+  "importWayFileDesc": "JSON / CSV，带图的打包成 zip",
+  "profileDefaultName": "备考中",
+  "profileClearTitle": "清除练习记录",
+  "profileClearBody": "答题记录、正确率、错题本、成绩报告、错因、打卡、自评难度、复习计划和成就都会清空，回到刚装好的样子。\\n\\n收藏、笔记、词语积累和申论作答保留，题库本身也保留。此操作不可撤销 —— 想留一手就先去「备份与恢复」导出一份。",
+  "profileClearConfirm": "确认清除",
+  "profileClearDone": "练习记录已清除",
+  "profileAboutTitle": "关于 OpenExam · {count} 题在库",
+  "@profileAboutTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "profileAboutBody": "本地优先的刷题工具，与 OpenExam 桌面端同源。\\n\\n商业题库请自行合法导入，App 不会爬取第三方付费内容。",
+  "profileReplayOnboarding": "重看引导",
+  "profileClearHint": "答题记录、错题本、成绩报告都会清空",
+  "profileDaysLeft": "离岸 {days} 天",
+  "@profileDaysLeft": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "profileToday": "就在今天",
+  "profileTab": "我的",
+  "profileBadges": "成就",
+  "profileVocab": "词语",
+  "profileNotes": "笔记",
+  "profileMarks": "收藏",
+  "profileReports": "记录",
+  "profileStats": "统计",
+  "profileTips": "技巧",
+  "profileFeedback": "纠错",
+  "profileSectionExam": "备考",
+  "profileFeatures": "界面模块",
+  "profileFeaturesOn": "{count} 项开启",
+  "@profileFeaturesOn": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "profilePlan": "复习计划",
+  "profilePrefs": "练习偏好",
+  "profileDailyGoalValue": "每日 {count} 题",
+  "@profileDailyGoalValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "profileSectionBank": "题库",
+  "profileImport": "导入题目",
+  "profileImportedCount": "{count} 题",
+  "@profileImportedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "profileBankManage": "题库管理",
+  "profileBankHealth": "题库体检",
+  "profileBackup": "备份与恢复",
+  "profileSectionApp": "应用",
+  "profileAiSettings": "AI 设置",
+  "profileConfigured": "已配置",
+  "profileAiUsage": "AI 用量",
+  "profilePrivacy": "数据与隐私",
+  "profilePrivacyBody": "题库、答题记录、统计与错题本都存在本机的 SQLite 数据库里，不上传服务器、不做任何埋点、没有账号体系。\\n\\n唯一会联网的是 AI 功能（申论批改、拍照识题）：只有你主动触发时才发请求，直接发往你自己填的服务商，API Key 存在本机。不配置就完全离线。",
+  "profileAbout": "关于",
+  "profileNoStatsYet": "还没开始记，划一组就有数了",
+  "profileStatsLine": "正确率 {rate}% · 本周 {count} 题",
+  "@profileStatsLine": {
+    "placeholders": {
+      "rate": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "profileThemeAuto": "自动",
+  "profileThemeLight": "浅色",
+  "profileThemeDark": "深色",
+  "profileTheme": "主题",
+  "profileRename": "改个称呼",
+  "profileRenameHint": "例如：上岸倒计时",
+  "commonSave": "保存",
+  "profileRegion": "报考地区",
+  "profileRegionHint": "用来优先推荐对应的真题卷",
+  "profileDailyGoal": "每日目标",
+  "profileDailyGoalHint": "在职备考建议 20–30 题，全职冲刺 60 题以上",
+  "profileSetSize": "默认每组题量",
+  "commonGotIt": "知道了",
+  "commonCancel": "取消",
+  "profilePickExamDate": "选择考试日期",
+  "profileMockCount": "模考题量",
+  "profileMockMinutes": "模考时长",
+  "commonConfirm": "确定",
+  "profileSetSizeShort": "每组题量",
+  "profileExamDate": "考试日期",
+  "profileDaysRemaining": "还有 {days} 天",
+  "@profileDaysRemaining": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "profileMock": "限时模考",
+  "profileMockHint": "按自己那门考试的节奏",
+  "profileMockCountShort": "题量",
+  "profileMockMinutesShort": "时长",
+  "wrongRemoved": "已移出错题本",
+  "wrongSaved": "已收藏",
+  "wrongExportHeading": "# 错题本",
+  "wrongExportedAt": "导出时间：{at}",
+  "@wrongExportedAt": {
+    "placeholders": {
+      "at": {
+        "type": "String"
+      }
+    }
+  },
+  "wrongExportTotal": "共 {count} 题",
+  "@wrongExportTotal": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "wrongExportHasImage": "（本题含图，导出文件不含图片）",
+  "wrongExportImageOption": "（图片选项）",
+  "wrongExportAnalysis": "解析：{text}",
+  "@wrongExportAnalysis": {
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "wrongExportNote": "我的笔记：{text}",
+  "@wrongExportNote": {
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "wrongExportSavedDocs": "已保存到 App 文档目录：{name}",
+  "@wrongExportSavedDocs": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "wrongExportSaved": "已导出 {name}",
+  "@wrongExportSaved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "wrongExportFailed": "导出失败：{error}",
+  "@wrongExportFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "wrongQuickLook": "错题速览",
+  "diagnosisTitle": "弱点诊断",
+  "wrongDiagnosisHint": "拿你的速度和正确率去比 161 套真题的基准",
+  "wrongTodayReview": "今日复盘",
+  "wrongRepeatFirst": "先啃错过两次以上的 {count} 题",
+  "@wrongRepeatFirst": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "commonStart": "开始",
+  "wrongBrowseAnalysis": "速览解析",
+  "wrongUntagged": "{count} 题还没标错因，标了才知道是粗心还是不会",
+  "@wrongUntagged": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "wrongRepeating": "还在反复犯的",
+  "wrongLongPressHint": "长按一类可以开四天专项计划",
+  "wrongNoReason": "未标错因",
+  "wrongByType": "按题型",
+  "commonAllArrow": "全部 ›",
+  "wrongViewAll": "逐题查看全部 {count} 题",
+  "@wrongViewAll": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "wrongNoPaper": "未归卷题目",
+  "wrongBookTitle": "错题本",
+  "wrongToClear": "{count} 题待消灭",
+  "@wrongToClear": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "wrongAll": "全部错题",
+  "wrongFiltered": "筛出 {count} 题",
+  "@wrongFiltered": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "wrongRedoFiltered": "重练当前筛选的题",
+  "wrongExportMarkdown": "导出当前列表为 Markdown",
+  "wrongEmptyHint": "答错的题会自动收进来",
+  "wrongCountWithHint": "{count} 题 · 长按可标错因",
+  "@wrongCountWithHint": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }
