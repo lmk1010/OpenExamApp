@@ -206,54 +206,66 @@ class _Slide extends StatelessWidget {
     final t = context.tokens;
     final text = Theme.of(context).textTheme;
 
-    return Column(
-      children: [
-        const SizedBox(height: 22),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 40),
-          child: Column(
-            children: [
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: text.displaySmall?.copyWith(
-                  fontSize: 30,
-                  height: 1.42,
-                  letterSpacing: -0.4,
+    // 一屏放不下就滚，不要顶出黄黑条。同一句话英文常常比中文长一半 ——
+    // 320 宽的老机器上英文标题能把整屏撑破 49 像素（见 i18n_layout_test）。
+    // ConstrainedBox(minHeight) + SingleChildScrollView 是标准写法：够高时
+    // 照旧居中，不够高时整屏可滚。
+    return LayoutBuilder(
+      builder: (context, box) {
+        // 窄屏上配图跟着屏宽收，别让它自己占满再去挤文字。
+        final side = box.maxWidth - 40 < 320 ? box.maxWidth - 40 : 320.0;
+        return SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: box.maxHeight),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(height: 22),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 40),
+                  child: Column(
+                    children: [
+                      Text(
+                        title,
+                        textAlign: TextAlign.center,
+                        style: text.displaySmall?.copyWith(
+                          fontSize: 30,
+                          height: 1.42,
+                          letterSpacing: -0.4,
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      Text(
+                        body,
+                        textAlign: TextAlign.center,
+                        style: text.bodyMedium?.copyWith(
+                          fontSize: 14.5,
+                          height: 1.8,
+                          color: t.textSoft,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 14),
-              Text(
-                body,
-                textAlign: TextAlign.center,
-                style: text.bodyMedium?.copyWith(
-                  fontSize: 14.5,
-                  height: 1.8,
-                  color: t.textSoft,
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(32),
+                    child: Image.asset(
+                      art,
+                      width: side,
+                      height: side,
+                      fit: BoxFit.cover,
+                      filterQuality: FilterQuality.medium,
+                      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                    ),
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-            child: Center(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(32),
-                child: Image.asset(
-                  art,
-                  width: 320,
-                  height: 320,
-                  fit: BoxFit.cover,
-                  filterQuality: FilterQuality.medium,
-                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                ),
-              ),
+              ],
             ),
           ),
-        ),
-      ],
+        );
+      },
     );
   }
 }

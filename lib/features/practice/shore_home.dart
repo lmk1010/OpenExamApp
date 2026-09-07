@@ -686,12 +686,16 @@ class ShoreSection extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [
-              Text(
-                title,
-                style: Theme.of(context)
-                    .textTheme
-                    .titleMedium
-                    ?.copyWith(fontSize: 17, letterSpacing: -0.3),
+              Flexible(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium
+                      ?.copyWith(fontSize: 17, letterSpacing: -0.3),
+                ),
               ),
               const Spacer(),
               if (caption != null)

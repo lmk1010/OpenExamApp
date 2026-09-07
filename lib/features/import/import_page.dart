@@ -209,7 +209,14 @@ class _ImportPageState extends State<ImportPage> {
             onTap: () => setState(() => _showFormat = !_showFormat),
             child: Row(
               children: [
-                Text(AppL.of(context).importFormatTitle, style: text.bodySmall),
+                Flexible(
+                  child: Text(
+                    AppL.of(context).importFormatTitle,
+                    style: text.bodySmall,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
                 Icon(
                   _showFormat
                       ? Icons.keyboard_arrow_up_rounded

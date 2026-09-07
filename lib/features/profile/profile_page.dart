@@ -1349,7 +1349,16 @@ class _PracticePrefsPageState extends State<PracticePrefsPage> {
                             onTap: () => Navigator.of(context).maybePop(),
                           ),
                           SizedBox(width: 4),
-                          Text(AppL.of(context).profilePrefs, style: text.titleMedium),
+                          // 标题占满剩下的宽度并截断 —— 英文标题比中文长，320 宽的屏上
+                          // 顶死会把返回键那一行撑出黄黑条（见 i18n_layout_test）。
+                          Expanded(
+                            child: Text(
+                              AppL.of(context).profilePrefs,
+                              style: text.titleMedium,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
                         ],
                       ),
                     ),

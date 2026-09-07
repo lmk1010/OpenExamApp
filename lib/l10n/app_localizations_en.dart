@@ -3812,12 +3812,12 @@ class AppLEn extends AppL {
 
   @override
   String tipsQuestionRange(int from, int to) {
-    return 'Questions $from–$to';
+    return 'Q$from–$to';
   }
 
   @override
   String tipsTotalAndMinutes(int count, int minutes) {
-    return '$count questions · $minutes min';
+    return '$count Qs · $minutes min';
   }
 
   @override

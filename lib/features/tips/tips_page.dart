@@ -329,27 +329,43 @@ class _PaperMaps extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Text(
-                      layout.label,
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w600,
-                        color: t.textSoft,
+                    // 左边这组该截就截，右边的总题数 / 分钟是这一行的重点，
+                    // 不能被挤出去 —— 英文比中文长，320 宽三段顶死必溢出。
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              layout.label,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w600,
+                                color: t.textSoft,
+                              ),
+                            ),
+                          ),
+                          if (hit != null) ...[
+                            SizedBox(width: 7),
+                            Flexible(
+                              child: Text(
+                                AppL.of(context).tipsQuestionRange(hit.from, hit.to),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: t.category(active),
+                                  fontFeatures: AppTheme.numeric,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                     ),
-                    if (hit != null) ...[
-                      SizedBox(width: 7),
-                      Text(
-                        AppL.of(context).tipsQuestionRange(hit.from, hit.to),
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: t.category(active),
-                          fontFeatures: AppTheme.numeric,
-                        ),
-                      ),
-                    ],
-                    Spacer(),
+                    SizedBox(width: 8),
                     Text(
                       AppL.of(context).tipsTotalAndMinutes(layout.total, layout.minutes),
                       style: TextStyle(

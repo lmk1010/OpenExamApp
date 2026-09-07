@@ -404,7 +404,16 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
                               ),
                               SizedBox(width: 4),
                             ],
-                            Text(AppL.of(context).planTitle, style: text.titleMedium),
+                            // 标题占满剩下的宽度并截断 —— 英文标题比中文长，320 宽的屏上
+                            // 顶死会把返回键那一行撑出黄黑条（见 i18n_layout_test）。
+                            Expanded(
+                              child: Text(
+                                AppL.of(context).planTitle,
+                                style: text.titleMedium,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
                             Spacer(),
                             TextButton(
                               onPressed: _pickPlanSet,
@@ -444,9 +453,14 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
                               style: text.titleSmall,
                             ),
                             SizedBox(width: 8),
-                            Text(
-                              AppL.of(context).planSwipeHint,
-                              style: text.bodySmall,
+                            // 提示语可以截，月份和「回到今天」不能被挤掉。
+                            Flexible(
+                              child: Text(
+                                AppL.of(context).planSwipeHint,
+                                style: text.bodySmall,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
                             Spacer(),
                             if (!_sameDay(_selected, DateTime.now()))
