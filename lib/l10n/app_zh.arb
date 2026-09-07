@@ -67,7 +67,7 @@
     }
   },
   "settingsLanguage": "界面语言",
-  "settingsLanguageSystem": "跟随系统",
+  "settingsLanguageSystem": "自动",
   "settingsLanguageSystemHint": "按手机的语言自动切换",
   "onboardNext": "下一个",
   "onboardFinish": "开始划",

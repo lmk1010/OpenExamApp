@@ -159,11 +159,19 @@ class _BankPageState extends State<BankPage> with TabReload {
     });
   }
 
+  /// 报考地区筛选。**认不出地区的题库不该看见这一条。**
+  ///
+  /// 这些地区是从卷名里认出来的（国考 / 安徽 / 联考 / 事业）。换一套英文
+  /// 题库进来，每张卷都认不出来、全落进「其他」—— 那时候这一条筛选是
+  /// 一个只有一个选项、还是中文的没用东西。所以：丢掉「其他」，剩下
+  /// 不足两个就整条不出现。
   List<FilterOption> _regionOptions() {
     final counts = <String, int>{};
     for (final p in _papers) {
+      if (p.region == '其他') continue;
       counts[p.region] = (counts[p.region] ?? 0) + 1;
     }
+    if (counts.length < 2) return const [];
     final keys = counts.keys.toList()
       ..sort((a, b) {
         if (a == '国考') return -1;
@@ -239,6 +247,7 @@ class _BankPageState extends State<BankPage> with TabReload {
     final t = context.tokens;
     final text = Theme.of(context).textTheme;
 
+    final regionOptions = _regionOptions();
     final matched = _papers.where((p) {
       if (_query.isNotEmpty &&
           !p.title.contains(_query) &&
@@ -446,12 +455,14 @@ class _BankPageState extends State<BankPage> with TabReload {
                       _sort = 'year';
                     }),
                   ),
-                  SizedBox(height: 12),
-                  _RegionStrip(
-                    options: _regionOptions(),
-                    value: _region,
-                    onPick: (v) => setState(() => _region = v),
-                  ),
+                  if (regionOptions.isNotEmpty) ...[
+                    SizedBox(height: 12),
+                    _RegionStrip(
+                      options: regionOptions,
+                      value: _region,
+                      onPick: (v) => setState(() => _region = v),
+                    ),
+                  ],
                   SizedBox(height: 14),
                   if (matched.isEmpty)
                     EmptyState(

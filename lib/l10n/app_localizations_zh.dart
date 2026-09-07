@@ -89,7 +89,7 @@ class AppLZh extends AppL {
   String get settingsLanguage => '界面语言';
 
   @override
-  String get settingsLanguageSystem => '跟随系统';
+  String get settingsLanguageSystem => '自动';
 
   @override
   String get settingsLanguageSystemHint => '按手机的语言自动切换';

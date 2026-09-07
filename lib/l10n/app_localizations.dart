@@ -238,7 +238,7 @@ abstract class AppL {
   /// No description provided for @settingsLanguageSystem.
   ///
   /// In zh, this message translates to:
-  /// **'跟随系统'**
+  /// **'自动'**
   String get settingsLanguageSystem;
 
   /// No description provided for @settingsLanguageSystemHint.

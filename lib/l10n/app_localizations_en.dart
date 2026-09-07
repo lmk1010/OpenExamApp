@@ -92,7 +92,7 @@ class AppLEn extends AppL {
   String get settingsLanguage => 'Language';
 
   @override
-  String get settingsLanguageSystem => 'Match system';
+  String get settingsLanguageSystem => 'Auto';
 
   @override
   String get settingsLanguageSystemHint => 'Follows your phone\'s language';

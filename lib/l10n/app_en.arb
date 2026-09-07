@@ -23,7 +23,7 @@
   "bankExportDone": "Exported {count} questions: {name}",
   "bankExportFailed": "Export failed: {error}",
   "settingsLanguage": "Language",
-  "settingsLanguageSystem": "Match system",
+  "settingsLanguageSystem": "Auto",
   "settingsLanguageSystemHint": "Follows your phone's language",
   "onboardNext": "Next",
   "onboardFinish": "Let's go",

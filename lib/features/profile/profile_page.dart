@@ -483,7 +483,7 @@ class _ProfilePageState extends State<ProfilePage> with TabReload {
         _SettingRow(
           icon: AppIcon.info,
           title: AppL.of(context).profileAbout,
-          value: 'v1.0.1',
+          value: 'v${AppConstants.appVersion}',
           onTap: _openAbout,
         ),
           ]),
@@ -1484,8 +1484,16 @@ class _LanguageRow extends StatelessWidget {
           children: [
             StrokeIcon(AppIcon.globe, size: 20, color: t.textSoft, weight: 1.8),
             const SizedBox(width: 14),
+            // 「自动 / 中文 / English」这三段是定宽的，标题只能拿剩下的。
+            // 英文标题 Language 比中文长，段名再长一点就把它挤成两行了 ——
+            // 所以段名跟上面主题那行用同一套说法（自动 / Auto），别自成一套。
             Expanded(
-              child: Text(l.settingsLanguage, style: text.bodyLarge),
+              child: Text(
+                l.settingsLanguage,
+                style: text.bodyLarge,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
             Container(
               padding: const EdgeInsets.all(3),

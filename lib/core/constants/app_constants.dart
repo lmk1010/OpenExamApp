@@ -1,5 +1,12 @@
 class AppConstants {
   static const appName = 'OpenExam App';
+
+  /// 「关于」里显示的版本号。
+  ///
+  /// 必须跟 pubspec.yaml 的 version 一致 —— app_version_test 会去比。
+  /// 之前这里是写死在设置页里的 'v1.0.1'，pubspec 都到 1.1.0 了它还挂着
+  /// 上一版的号，用户报 bug 报的是个不存在的版本。
+  static const appVersion = '1.1.0';
 }
 
 /// Shared preference keys.
