@@ -159,7 +159,7 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
     if (questions.isEmpty) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('这里还没有题')));
+      ).showSnackBar(SnackBar(content: Text(AppL.of(context).homeNoQuestionsHere)));
       return;
     }
     await Navigator.of(context).push(
@@ -193,7 +193,7 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            _scope == QuestionScope.unseen ? '这个范围里没有没做过的题了' : '这里还没有错题',
+            _scope == QuestionScope.unseen ? AppL.of(context).homeNoUnseen : AppL.of(context).homeNoWrongHere,
           ),
         ),
       );
@@ -227,8 +227,8 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
             for (final q in questions) q.id: q.answer.toUpperCase(),
           },
           title: subCategory != null
-              ? '${subCategoryLabel(subCategory)} · 背题'
-              : '背题',
+              ? AppL.of(context).homeReciteSub(subCategoryLabel(subCategory))
+              : AppL.of(context).homeRecite,
         ),
       ),
     );
@@ -236,8 +236,10 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
   }
 
   Future<void> _startHard() async {
+    // 标题在 await 之后才用，先取出来 —— 跨 await 摸 context 会被 lint 拦。
+    final hardTitle = AppL.of(context).homeHardTagged;
     final questions = await AppDatabase.instance.fetchByDifficulty(3, limit: 30);
-    await _open(questions, title: '标难的题');
+    await _open(questions, title: hardTitle);
   }
 
   /// 单模块限时练 — same question count as normal practice, but on the pace a
@@ -264,17 +266,14 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
       scope: _scope,
       years: _years,
     );
-    if (questions.isEmpty) return;
+    if (questions.isEmpty || !mounted) return;
     final duration = minutes != null
         ? Duration(minutes: minutes)
         : Duration(seconds: (_paceSeconds[category] ?? 60) * questions.length);
-    await _open(
-      questions,
-      limit: duration,
-      title: subCategory != null
-          ? '${subCategoryLabel(subCategory)} · 限时'
-          : '${categoryLabel(category)}限时练',
-    );
+    final title = subCategory != null
+        ? AppL.of(context).homeTimedSub(subCategoryLabel(subCategory))
+        : AppL.of(context).homeTimedCat(categoryLabel(category));
+    await _open(questions, limit: duration, title: title);
   }
 
   Future<void> _toggleStudyTask(StudyTask task, bool done) async {
@@ -295,6 +294,9 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
   }
 
   Future<void> _runStudyTask(StudyTask task) async {
+    // 标题在 await 之后才用，先取出来 —— 跨 await 摸 context 会被 lint 拦。
+    final redoWrongTitle = AppL.of(context).homeRedoWrong;
+    final weakDrillTitle = AppL.of(context).homeWeakDrill;
     switch (task.action) {
       case StudyAction.vocab:
         if (!ExamProfileStore.current.has(ExamFeature.vocab)) {
@@ -311,7 +313,7 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
         return;
       case StudyAction.note:
         // 申论类任务现在有真正的去处：录题、作答、AI 批改
-        if (task.title.contains('申论')) {
+        if (task.title.contains(AppL.of(context).homeEssay)) {
           await Navigator.of(context)
               .push(MaterialPageRoute(builder: (_) => const EssayPage()));
           if (mounted) _reload();
@@ -320,7 +322,7 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
         await _toggleStudyTask(task, !_todayPlanDone.contains(task.id));
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('手写任务勾选即可，做完别忘了打勾')),
+          SnackBar(content: Text(AppL.of(context).homeManualTask)),
         );
         return;
       case StudyAction.openWrongBook:
@@ -348,13 +350,13 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
       case StudyAction.wrong:
         await _open(
           await AppDatabase.instance.fetchWrong(limit: task.count ?? _count),
-          title: '错题重练',
+          title: redoWrongTitle,
         );
         break;
       case StudyAction.adaptive:
         await _open(
           await AppDatabase.instance.fetchAdaptive(limit: task.count ?? _count),
-          title: '弱项强化',
+          title: weakDrillTitle,
         );
         break;
     }
@@ -416,16 +418,16 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('删除安排'),
-        content: Text('确定删除「${task.title}」？'),
+        title: Text(AppL.of(context).homeDeleteTask),
+        content: Text(AppL.of(context).homeDeleteTaskConfirm(task.title)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('取消'),
+            child: Text(AppL.of(context).commonCancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('删除'),
+            child: Text(AppL.of(context).commonDelete),
           ),
         ],
       ),
@@ -449,38 +451,38 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
     return [
       if (_resume != null && _resume!.total - _resume!.answered > 0)
         _FeatureCard(
-          title: '继续上次',
-          meta: '${_resume!.title} · 还剩 ${_resume!.total - _resume!.answered} 题',
+          title: AppL.of(context).homeResume,
+          meta: AppL.of(context).homeResumeLine(_resume!.title, _resume!.total - _resume!.answered),
           glyph: AppIcon.replay,
           colors: [t.category('shuliang')],
           onTap: _continueResume,
           onLong: _dismissResume,
         ),
       _FeatureCard(
-        title: '每日一练',
-        meta: '今天的固定卷',
+        title: AppL.of(context).homeDaily,
+        meta: AppL.of(context).homeDailyHint,
         glyph: AppIcon.shuffle,
         colors: [t.brand],
         onTap: _startDaily,
       ),
       if (_province != null && _provinceCount > 0)
         _FeatureCard(
-          title: '$_province真题',
-          meta: '$_provinceCount 题 · 你要考的卷',
+          title: AppL.of(context).homeProvincePapers(_province ?? ''),
+          meta: AppL.of(context).homeProvinceHint(_provinceCount),
           glyph: AppIcon.papers,
           colors: [t.category('yanyu')],
           onTap: _startRegion,
         ),
       _FeatureCard(
-        title: '弱项强化',
-        meta: _done < 20 ? '先练一组再解锁' : '按薄弱模块配比',
+        title: AppL.of(context).homeWeakDrill,
+        meta: _done < 20 ? AppL.of(context).homeWeakLocked : AppL.of(context).homeWeakHint,
         glyph: AppIcon.chart,
         colors: [t.category('panduan')],
         onTap: _done < 20 ? null : _startAdaptive,
       ),
       _FeatureCard(
-        title: '错题重练',
-        meta: _wrong == 0 ? '暂无错题' : '$_wrong 题待清',
+        title: AppL.of(context).homeRedoWrong,
+        meta: _wrong == 0 ? AppL.of(context).homeNoWrong : AppL.of(context).homeWrongLeft(_wrong),
         glyph: AppIcon.replay,
         colors: [t.category('changshi')],
         onTap: _wrong == 0 ? null : _startWrong,
@@ -488,8 +490,8 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
       // 申论不该只能从当天的计划任务进。没排任务的日子它就消失了。
       if (ExamProfileStore.current.has(ExamFeature.essay))
       _FeatureCard(
-        title: '申论批改',
-        meta: '写一篇，交给 AI 评',
+        title: AppL.of(context).homeEssayMark,
+        meta: AppL.of(context).homeEssayHint,
         glyph: AppIcon.papers,
         colors: [t.success],
         onTap: () async {
@@ -501,7 +503,7 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
         },
       ),
       _FeatureCard(
-        title: '限时模考',
+        title: AppL.of(context).homeMock,
         meta: '${ExamProfileStore.current.mockCount} 题 · '
             '${ExamProfileStore.current.mockMinutes} 分钟',
         glyph: AppIcon.timer,
@@ -524,7 +526,7 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
           top: false,
           child: Container(
             margin: const EdgeInsets.all(10),
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+            padding: EdgeInsets.fromLTRB(16, 14, 16, 16),
             decoration: BoxDecoration(
               color: t.bg,
               borderRadius: BorderRadius.circular(20),
@@ -543,17 +545,17 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
                     ),
                   ),
                 ),
-                const SizedBox(height: 14),
+                SizedBox(height: 14),
                 Text(
-                  '更多练法',
+                  AppL.of(context).homeMoreWays,
                   style: Theme.of(sheetContext).textTheme.titleMedium,
                 ),
-                const SizedBox(height: 14),
+                SizedBox(height: 14),
                 // 每日一练打卡：断掉的那天点一下能补做
                 Row(
                   children: [
                     Text(
-                      _checkinStreak > 0 ? '连续打卡 $_checkinStreak 天' : '每日一练打卡',
+                      _checkinStreak > 0 ? AppL.of(context).homeStreak(_checkinStreak) : AppL.of(context).homeDailyCheckin,
                       style: Theme.of(sheetContext).textTheme.bodySmall?.copyWith(
                             color: _checkinStreak > 0 ? t.success : null,
                           ),
@@ -624,7 +626,7 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
                     );
                   },
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 // 练法的两个参数放在这里，首页不为它们留位置
                 // 四个开关一行放不下，用 Wrap —— Row + Spacer 在窄屏上会溢出。
                 Wrap(
@@ -632,14 +634,14 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
                   runSpacing: 10,
                   children: [
                     _SheetLink(
-                      label: '每组 $_count 题',
+                      label: AppL.of(context).homePerSet(_count),
                       onTap: () {
                         Navigator.of(sheetContext).pop();
                         _pickCount();
                       },
                     ),
                     _SheetLink(
-                      label: _scopeLabel(_scope),
+                      label: _scopeLabel(context, _scope),
                       onTap: () {
                         Navigator.of(sheetContext).pop();
                         _pickScope();
@@ -653,7 +655,7 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
                       },
                     ),
                     _SheetLink(
-                      label: '共 $_total 题',
+                      label: AppL.of(context).homeTotalInBank(_total),
                       onTap: () => showModalBottomSheet<void>(
                         context: sheetContext,
                         backgroundColor: Colors.transparent,
@@ -768,17 +770,21 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
   /// 题量和时长跟着备考目标走。行测 45 分钟 50 题，医师一个单元 150 题，
   /// 写死一套数字对第二种人毫无意义。
   Future<void> _startMock() async {
+    // 标题在 await 之后才用，先取出来 —— 跨 await 摸 context 会被 lint 拦。
+    final mockTitle = AppL.of(context).homeMock;
     final profile = ExamProfileStore.current;
     final questions = await AppDatabase.instance.fetchPractice(
       limit: profile.mockCount,
       shuffle: true,
     );
-    await _open(questions, limit: profile.mockLimit, title: '限时模考');
+    await _open(questions, limit: profile.mockLimit, title: mockTitle);
   }
 
   /// Today's fixed set. Finished sets reopen in review mode rather than being
   /// re-answered, so the number on the card stays honest.
   Future<void> _startDaily() async {
+    // 标题在 await 之后才用，先取出来 —— 跨 await 摸 context 会被 lint 拦。
+    final dailyTitle = AppL.of(context).homeDaily;
     // 整套题只在真的要做的时候才取 —— 首页为了显示一行字去捞 20 道
     // 带 HTML 的题目，是之前首屏最慢的一步。
     if (_daily.isEmpty) {
@@ -804,14 +810,14 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
           builder: (_) => PracticeSessionPage(
             questions: _daily,
             reviewAnswers: answers,
-            title: '今日一练回顾',
+            title: AppL.of(context).homeDailyReview,
           ),
         ),
       );
       _reload();
       return;
     }
-    await _open(_daily, title: '每日一练');
+    await _open(_daily, title: dailyTitle);
     await _checkDailyDone(DateTime.now(), _daily);
   }
 
@@ -829,26 +835,32 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
 
   /// 补做某天的固定卷。断了的那天补回来，比"从今天重新开始"更留得住人。
   Future<void> _makeUp(DateTime day) async {
+    final title = AppL.of(context).homeCatchUp('${day.month}/${day.day}');
     final set = await AppDatabase.instance.fetchDailySet(day: day, limit: 20);
     if (set.isEmpty) return;
-    await _open(set, title: '补做 ${day.month}/${day.day}');
+    await _open(set, title: title);
     await _checkDailyDone(day, set);
   }
 
   /// Weakness-weighted set — the app decides the mix so the user doesn't have
   /// to guess which module needs work.
   Future<void> _startAdaptive() async {
+    // 标题在 await 之后才用，先取出来 —— 跨 await 摸 context 会被 lint 拦。
+    final weakTitle = AppL.of(context).homeWeakDrill;
     final questions = await AppDatabase.instance.fetchAdaptive(limit: _count);
-    await _open(questions, title: '弱项强化');
+    await _open(questions, title: weakTitle);
   }
 
   /// Questions drawn only from the province the user is sitting for.
   Future<void> _startRegion() async {
     final region = _province;
     if (region == null) return;
+    // 标题在 await 之后才用，先把文案取出来 —— 跨 await 再摸 context 是
+    // use_build_context_synchronously。
+    final title = AppL.of(context).homeRegionPapers(region);
     final questions =
         await AppDatabase.instance.fetchByRegion(region, limit: _count);
-    await _open(questions, title: '$region真题');
+    await _open(questions, title: title);
   }
 
   Future<void> _startWrong() async {
@@ -946,7 +958,7 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
             .inDays;
 
     final head = <Widget>[
-      const SizedBox(height: ShoreGap.top),
+      SizedBox(height: ShoreGap.top),
       ShoreHeader(
         kicker: '${now.month} 月 ${now.day} 日 · ${_weekdayCn(now)}',
         title: _greeting(now),
@@ -956,12 +968,12 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
           ShoreRoundButton(
             icon: Icon(Icons.grid_view_rounded, size: 18, color: t.textSoft),
             onTap: () => Navigator.of(context)
-                .push(MaterialPageRoute(builder: (_) => const ToolsPage())),
+                .push(MaterialPageRoute(builder: (_) => ToolsPage())),
           ),
           ShoreRoundButton(
             icon: Icon(Icons.search, size: 19, color: t.textSoft),
             onTap: () => Navigator.of(context)
-                .push(MaterialPageRoute(builder: (_) => const SearchPage())),
+                .push(MaterialPageRoute(builder: (_) => SearchPage())),
           ),
           ShoreRoundButton(
             icon: Icon(ThemeController.instance.icon,
@@ -970,7 +982,7 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
           ),
         ],
       ),
-      const SizedBox(height: ShoreGap.titleToBody),
+      SizedBox(height: ShoreGap.titleToBody),
       // 题库是空的：首页上"每日一练""资料分析·限时""五座岛"全都点不出题来。
       // 照常显示等于摆一屏死按钮 —— 不打包题库的那个版本（App Store）一装上
       // 就是这个状态，审核员点哪个都是空的，会直接判"功能不完整"。
@@ -985,18 +997,18 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
         daysLeft: (daysLeft != null && daysLeft >= 0) ? daysLeft : null,
         onTap: _pickGoal,
       ),
-      const SizedBox(height: ShoreGap.section),
+      SizedBox(height: ShoreGap.section),
       if (tasks.isEmpty)
         ShoreSection(
-          title: '今日航线',
-          action: '安排',
+          title: AppL.of(context).homeTodayRoute,
+          action: AppL.of(context).homeArrange,
           onAction: _openStudyPlan,
           child: _EmptyRoute(onTap: _openStudyPlan),
         )
       else
         ShoreSection(
-          title: '今日航线',
-          action: tasks.length > 4 ? '全部 ${tasks.length}' : '调整',
+          title: AppL.of(context).homeTodayRoute,
+          action: tasks.length > 4 ? AppL.of(context).homeAllTasks(tasks.length) : AppL.of(context).homeAdjust,
           onAction: _openStudyPlan,
           child: RouteList(
             tasks: tasks,
@@ -1017,11 +1029,11 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
       ],
     ];
 
-    final rest = _total == 0 ? const <Widget>[] : <Widget>[
-      const SizedBox(height: ShoreGap.section),
+    final rest = _total == 0 ? <Widget>[] : <Widget>[
+      SizedBox(height: ShoreGap.section),
       ShoreSection(
-        title: '五座岛',
-        action: '更多练法',
+        title: AppL.of(context).homeIslands,
+        action: AppL.of(context).homeMoreWays,
         onAction: _openMorePractice,
         child: IsleStrip(
           stats: byKey,
@@ -1032,7 +1044,7 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
       if (_hardCount > 0)
         _HintRow(
           icon: AppIcon.timer,
-          text: '自己标难的 $_hardCount 题',
+          text: AppL.of(context).homeHardCount(_hardCount),
           onTap: _startHard,
         ),
       const SizedBox(height: 12),
@@ -1080,10 +1092,10 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
   }
 
   String _greeting(DateTime now) {
-    if (_week.last >= _goal) return '今天划完了';
-    if (now.hour < 11) return '早，该出发了';
-    if (now.hour < 18) return '继续划';
-    return '收个尾再靠岸';
+    if (_week.last >= _goal) return AppL.of(context).homeGreetDone;
+    if (now.hour < 11) return AppL.of(context).homeGreetMorning;
+    if (now.hour < 18) return AppL.of(context).homeGreetKeep;
+    return AppL.of(context).homeGreetFinish;
   }
 }
 
@@ -1106,7 +1118,7 @@ class _EmptyRoute extends StatelessWidget {
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+          padding: EdgeInsets.fromLTRB(18, 18, 18, 18),
           decoration: BoxDecoration(
             color: t.accentSoft,
             borderRadius: BorderRadius.circular(22),
@@ -1118,15 +1130,15 @@ class _EmptyRoute extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '还没排今天的航线',
+                      AppL.of(context).homeNoRoute,
                       style: Theme.of(context)
                           .textTheme
                           .titleSmall
                           ?.copyWith(fontSize: 15.5),
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4),
                     Text(
-                      '模板可以改，删掉不做的就行',
+                      AppL.of(context).homeRouteHint,
                       style: Theme.of(context)
                           .textTheme
                           .bodySmall
@@ -1138,13 +1150,13 @@ class _EmptyRoute extends StatelessWidget {
               const SizedBox(width: 12),
               Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
+                    EdgeInsets.symmetric(horizontal: 20, vertical: 11),
                 decoration: BoxDecoration(
                   color: t.accent,
                   borderRadius: BorderRadius.circular(99),
                 ),
                 child: Text(
-                  '去安排',
+                  AppL.of(context).homeGoPlan,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
@@ -1192,10 +1204,11 @@ class _HintRow extends StatelessWidget {
 }
 
 
-String _scopeLabel(QuestionScope scope) => switch (scope) {
-      QuestionScope.all => '全部题',
-      QuestionScope.unseen => '没做过',
-      QuestionScope.wrong => '做错过',
+String _scopeLabel(BuildContext context, QuestionScope scope) =>
+    switch (scope) {
+      QuestionScope.all => AppL.of(context).scopeAll,
+      QuestionScope.unseen => AppL.of(context).scopeUnseen,
+      QuestionScope.wrong => AppL.of(context).scopeWrong,
     };
 
 /// 卡片高度得跟着系统字号走 —— 写死会在放大字号时把标题挤出去。
@@ -1298,10 +1311,10 @@ class _ScopeSheet extends StatelessWidget {
     final t = context.tokens;
     final text = Theme.of(context).textTheme;
 
-    const items = [
-      (scope: QuestionScope.all, label: '全部题', desc: '优先近年真题，同年内随机'),
-      (scope: QuestionScope.unseen, label: '没做过的', desc: '跳过已做 · 仍优先近年'),
-      (scope: QuestionScope.wrong, label: '做错过的', desc: '只抽上次答错的题'),
+    final items = [
+      (scope: QuestionScope.all, label: AppL.of(context).scopeAll, desc: AppL.of(context).scopeAllHint),
+      (scope: QuestionScope.unseen, label: AppL.of(context).scopeUnseenLong, desc: AppL.of(context).scopeUnseenHint),
+      (scope: QuestionScope.wrong, label: AppL.of(context).scopeWrongLong, desc: AppL.of(context).scopeWrongHint),
     ];
 
     return Container(
@@ -1310,16 +1323,16 @@ class _ScopeSheet extends StatelessWidget {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         border: Border(top: BorderSide(color: t.lineSoft)),
       ),
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 12),
+      padding: EdgeInsets.fromLTRB(20, 18, 20, 12),
       child: SafeArea(
         top: false,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('抽题范围', style: text.titleMedium),
-            const SizedBox(height: 6),
-            Text('长按题量可以改每组题数', style: text.bodySmall),
+            Text(AppL.of(context).scopeTitle, style: text.titleMedium),
+            SizedBox(height: 6),
+            Text(AppL.of(context).scopeHint, style: text.bodySmall),
             const SizedBox(height: 6),
             for (final item in items)
               GestureDetector(
@@ -1339,12 +1352,12 @@ class _ScopeSheet extends StatelessWidget {
                                 color: item.scope == current ? t.brand : t.text,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            SizedBox(height: 4),
                             Text(item.desc, style: text.bodySmall),
                           ],
                         ),
                       ),
-                      Text('${counts[item.scope] ?? 0} 题', style: text.bodySmall),
+                      Text(AppL.of(context).scopeCount(counts[item.scope] ?? 0), style: text.bodySmall),
                       const SizedBox(width: 10),
                       if (item.scope == current)
                         Icon(Icons.check, size: 19, color: t.brand),
@@ -1382,15 +1395,15 @@ class _YearSheet extends StatelessWidget {
     final items = [
       (
         range: YearRange.all,
-        desc: '题库里有的都抽，仍然优先近年',
+        desc: AppL.of(context).yearAllHint,
       ),
       (
         range: YearRange.last3,
-        desc: '$latest—${latest - 2} 年 · 结构和考点最贴近今年',
+        desc: AppL.of(context).yearLast3Hint('$latest', '${latest - 2}'),
       ),
       (
         range: YearRange.last1,
-        desc: '只有 $latest 年 · 练常识时间政策题必用这一档',
+        desc: AppL.of(context).yearLast1Hint('$latest'),
       ),
     ];
 
@@ -1400,18 +1413,17 @@ class _YearSheet extends StatelessWidget {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         border: Border(top: BorderSide(color: t.lineSoft)),
       ),
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 12),
+      padding: EdgeInsets.fromLTRB(20, 18, 20, 12),
       child: SafeArea(
         top: false,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('年份范围', style: text.titleMedium),
-            const SizedBox(height: 6),
+            Text(AppL.of(context).yearRangeTitle, style: text.titleMedium),
+            SizedBox(height: 6),
             Text(
-              '常识判断一半的题引的是考前一年的讲话原文和新出台文件，'
-              '旧题的答案已经作废；言语、判断、资料的结构常年不动，老题照样能练。',
+              AppL.of(context).yearRangeHint,
               style: text.bodySmall,
             ),
             const SizedBox(height: 6),
@@ -1433,12 +1445,12 @@ class _YearSheet extends StatelessWidget {
                                 color: item.range == current ? t.brand : t.text,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            SizedBox(height: 4),
                             Text(item.desc, style: text.bodySmall),
                           ],
                         ),
                       ),
-                      Text('${counts[item.range] ?? 0} 题', style: text.bodySmall),
+                      Text(AppL.of(context).yearRangeCount(counts[item.range] ?? 0), style: text.bodySmall),
                       const SizedBox(width: 10),
                       if (item.range == current)
                         Icon(Icons.check, size: 19, color: t.brand),
@@ -1468,27 +1480,27 @@ class _GoalSheet extends StatelessWidget {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         border: Border(top: BorderSide(color: t.lineSoft)),
       ),
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 12),
+      padding: EdgeInsets.fromLTRB(20, 18, 20, 12),
       child: SafeArea(
         top: false,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('每日目标', style: text.titleMedium),
-            const SizedBox(height: 6),
-            Text('在职备考建议 20–30 题，全职冲刺 60 题以上', style: text.bodySmall),
+            Text(AppL.of(context).homeDailyGoal, style: text.titleMedium),
+            SizedBox(height: 6),
+            Text(AppL.of(context).homeDailyGoalHint, style: text.bodySmall),
             const SizedBox(height: 6),
             for (final n in const [10, 20, 30, 50, 80, 100])
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap: () => Navigator.of(context).pop(n),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  padding: EdgeInsets.symmetric(vertical: 14),
                   child: Row(
                     children: [
                       Text(
-                        '$n 题',
+                        AppL.of(context).countQuestions(n),
                         style: text.titleSmall?.copyWith(
                           color: n == current ? t.brand : t.text,
                           fontFeatures: AppTheme.numeric,
@@ -1523,25 +1535,25 @@ class _CountSheet extends StatelessWidget {
         gradient: null,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 10),
+      padding: EdgeInsets.fromLTRB(20, 16, 20, 10),
       child: SafeArea(
         top: false,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('每组题量', style: text.titleMedium),
+            Text(AppL.of(context).homeSetSize, style: text.titleMedium),
             const SizedBox(height: 6),
             for (final n in const [10, 20, 30, 50])
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap: () => Navigator.of(context).pop(n),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  padding: EdgeInsets.symmetric(vertical: 15),
                   child: Row(
                     children: [
                       Text(
-                        '$n 题',
+                        AppL.of(context).countQuestions(n),
                         style: text.titleSmall?.copyWith(
                           color: n == current ? t.brand : t.text,
                           fontFeatures: AppTheme.numeric,
@@ -1588,10 +1600,9 @@ class _AboutSheet extends StatelessWidget {
                 Text('OpenExam', style: text.titleMedium),
               ],
             ),
-            const SizedBox(height: 14),
+            SizedBox(height: 14),
             Text(
-              '本地优先的公务员行测刷题工具。题库、答题记录、统计全部保存在这台设备上，'
-              '不联网、不上传。内置题来自 OpenExam 桌面端种子库，也可以在「导入」页导入自己的题目。',
+              AppL.of(context).homeAboutBody,
               style: text.bodyMedium,
             ),
             const SizedBox(height: 18),
@@ -1599,7 +1610,7 @@ class _AboutSheet extends StatelessWidget {
               width: double.infinity,
               child: FilledButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('知道了'),
+                child: Text(AppL.of(context).commonGotIt),
               ),
             ),
           ],
@@ -1652,13 +1663,13 @@ class _CategoryBrowseSheetState extends State<_CategoryBrowseSheet> {
 
     Widget actions(String? sub) {
       return Padding(
-        padding: const EdgeInsets.fromLTRB(8, 0, 8, 10),
+        padding: EdgeInsets.fromLTRB(8, 0, 8, 10),
         child: Row(
           children: [
             for (final item in [
-              ('practice', '开始'),
-              ('timed', '限时'),
-              ('recite', '背题'),
+              ('practice', AppL.of(context).commonStart),
+              ('timed', AppL.of(context).homeTimed),
+              ('recite', AppL.of(context).homeRecite),
             ]) ...[
               if (item.$1 != 'practice') const SizedBox(width: 8),
               Expanded(
@@ -1698,7 +1709,7 @@ class _CategoryBrowseSheetState extends State<_CategoryBrowseSheet> {
       ),
       decoration: BoxDecoration(
         color: t.gradient.last,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         border: Border(top: BorderSide(color: t.lineSoft)),
       ),
       child: SafeArea(
@@ -1707,7 +1718,7 @@ class _CategoryBrowseSheetState extends State<_CategoryBrowseSheet> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+              padding: EdgeInsets.fromLTRB(20, 16, 20, 8),
               child: Row(
                 children: [
                   StrokeIcon(
@@ -1715,7 +1726,7 @@ class _CategoryBrowseSheetState extends State<_CategoryBrowseSheet> {
                     size: 20,
                     color: color,
                   ),
-                  const SizedBox(width: 10),
+                  SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1725,7 +1736,7 @@ class _CategoryBrowseSheetState extends State<_CategoryBrowseSheet> {
                           style: text.titleMedium,
                         ),
                         Text(
-                          total > 0 ? '共 $total 题 · 展开分类后开始' : '暂无细分',
+                          total > 0 ? AppL.of(context).homeExpandHint(total) : AppL.of(context).homeNoSubtypes,
                           style: text.bodySmall,
                         ),
                       ],
@@ -1736,7 +1747,7 @@ class _CategoryBrowseSheetState extends State<_CategoryBrowseSheet> {
             ),
             // 全部混练始终可见，不折叠。
             Padding(
-              padding: const EdgeInsets.fromLTRB(12, 0, 12, 4),
+              padding: EdgeInsets.fromLTRB(12, 0, 12, 4),
               child: Container(
                 decoration: BoxDecoration(
                   color: t.surfaceAlt,
@@ -1747,9 +1758,9 @@ class _CategoryBrowseSheetState extends State<_CategoryBrowseSheet> {
                   children: [
                     ListTile(
                       dense: true,
-                      title: Text('全部混练', style: text.titleSmall),
+                      title: Text(AppL.of(context).homeMixAll, style: text.titleSmall),
                       subtitle: Text(
-                        '${widget.count} 题 · 约 ${widget.minutes} 分钟节奏',
+                        AppL.of(context).homeMixHint(widget.count, widget.minutes),
                         style: text.bodySmall,
                       ),
                       trailing: Icon(Icons.shuffle, size: 18, color: color),
@@ -1806,9 +1817,9 @@ class _CategoryBrowseSheetState extends State<_CategoryBrowseSheet> {
                                           subCategoryLabel(sub.key),
                                           style: text.titleSmall,
                                         ),
-                                        const SizedBox(height: 2),
+                                        SizedBox(height: 2),
                                         Text(
-                                          '${sub.count} 题',
+                                          AppL.of(context).homeSubCount(sub.count),
                                           style: text.bodySmall?.copyWith(
                                             fontFeatures: AppTheme.numeric,
                                           ),
@@ -1862,20 +1873,20 @@ class _ModuleSheet extends StatelessWidget {
     final items = <({String key, String label, String desc, AppIcon icon})>[
       (
         key: 'practice',
-        label: '直接练',
-        desc: '$count 题，不计时',
+        label: AppL.of(context).homePlain,
+        desc: AppL.of(context).homePlainHint(count),
         icon: AppIcon.practice,
       ),
       (
         key: 'timed',
-        label: '限时练',
-        desc: '$count 题 · 约 $minutes 分钟，按考场节奏',
+        label: AppL.of(context).homeTimedDrill,
+        desc: AppL.of(context).homeTimedDrillHint(count, minutes),
         icon: AppIcon.timer,
       ),
       (
         key: 'recite',
-        label: '背题',
-        desc: '不作答，直接看答案和解析',
+        label: AppL.of(context).homeRecite,
+        desc: AppL.of(context).homeReciteHint,
         icon: AppIcon.papers,
       ),
     ];

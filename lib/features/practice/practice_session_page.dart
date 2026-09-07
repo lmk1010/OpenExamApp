@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/constants/app_constants.dart';
 import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
@@ -368,17 +369,17 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
             borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
             border: Border(top: BorderSide(color: t.lineSoft)),
           ),
-          padding: const EdgeInsets.fromLTRB(22, 18, 22, 16),
+          padding: EdgeInsets.fromLTRB(22, 18, 22, 16),
           child: SafeArea(
             top: false,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('本场结果', style: text.titleMedium),
-                const SizedBox(height: 10),
+                Text(AppL.of(context).sessionResultTitle, style: text.titleMedium),
+                SizedBox(height: 10),
                 Text(
-                  '正确率 $rate% · 答对 $correct / $total · 用时 ${_clock(_elapsed)}',
+                  AppL.of(context).sessionResultLine(rate, correct, total, _clock(_elapsed)),
                   style: text.bodyMedium,
                 ),
                 const SizedBox(height: 16),
@@ -390,14 +391,14 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
                           Navigator.of(ctx).pop();
                           setState(() => _postReview = false);
                         },
-                        child: const Text('看成绩单'),
+                        child: Text(AppL.of(context).sessionSeeReport),
                       ),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: FilledButton(
                         onPressed: () => Navigator.of(ctx).pop(),
-                        child: const Text('逐题看解析'),
+                        child: Text(AppL.of(context).sessionSeeAnalysis),
                       ),
                     ),
                   ],
@@ -457,13 +458,13 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
   }
 
   String get _reportTitle =>
-      widget.title ?? (_isExam ? '限时模考' : '练习 ${_questions.length} 题');
+      widget.title ?? (_isExam ? AppL.of(context).sessionMock : AppL.of(context).sessionPracticeCount(_questions.length));
 
   /// 每日一练在记录页里值得单独一类 —— 它是每天固定的那一卷，
   /// 跟随手抽的练习不是一回事。各入口传的都是同一个标题。
   String get _reportKind => _isExam
       ? 'exam'
-      : (widget.title == '每日一练' ? 'daily' : 'practice');
+      : (widget.title == AppL.of(context).sessionDaily ? 'daily' : 'practice');
 
   /// 交卷：把这场练习那一行标成完成。
   ///
@@ -503,9 +504,9 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
     final blank = _questions.length - _answers.length;
     if (blank > 0) {
       final ok = await _confirm(
-        title: '还有 $blank 题没作答',
-        message: '交卷后未作答的题会计为错题，确定现在交卷吗？',
-        confirm: '仍然交卷',
+        title: AppL.of(context).sessionBlankLeft(blank),
+        message: AppL.of(context).sessionSubmitWarn,
+        confirm: AppL.of(context).sessionSubmitAnyway,
       );
       if (ok != true) return;
     }
@@ -523,11 +524,11 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
   Future<bool> _confirmExit() async {
     if (_finished || _isReview || _answers.isEmpty) return true;
     final ok = await _confirm(
-      title: _isExam ? '退出模考？' : '结束这组练习？',
+      title: _isExam ? AppL.of(context).sessionQuitMock : AppL.of(context).sessionQuitPractice,
       message: _isExam
-          ? '模考中途退出不会生成成绩报告，已答的题仍计入练习记录。'
-          : '已答的 ${_answers.length} 题已经保存，可以随时再来一组。',
-      confirm: '退出',
+          ? AppL.of(context).sessionQuitMockBody
+          : AppL.of(context).sessionQuitPracticeBody(_answers.length),
+      confirm: AppL.of(context).commonQuit,
     );
     return ok == true;
   }
@@ -558,7 +559,7 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
     ScaffoldMessenger.of(context)
       ..clearSnackBars()
       ..showSnackBar(SnackBar(
-        content: Text(next ? '已收藏，可在「我的 → 我的收藏」查看' : '已取消收藏'),
+        content: Text(next ? AppL.of(context).sessionSavedHint : AppL.of(context).sessionUnsaved),
         duration: const Duration(milliseconds: 1200),
       ));
   }
@@ -678,8 +679,8 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
     if (!mounted) return;
     ScaffoldMessenger.of(context)
       ..clearSnackBars()
-      ..showSnackBar(const SnackBar(
-        content: Text('已记下，可在「我的 → 纠错记录」里查看'),
+      ..showSnackBar(SnackBar(
+        content: Text(AppL.of(context).sessionReportedHint),
         duration: Duration(milliseconds: 1500),
       ));
   }
@@ -852,7 +853,7 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
                   )
                 else
                   Text(
-                    _postReview ? '解析 · ${_clock(_elapsed)}' : '回顾',
+                    _postReview ? AppL.of(context).sessionAnalysisTime(_clock(_elapsed)) : AppL.of(context).sessionReview,
                     style: text.bodySmall?.copyWith(color: t.brand),
                   ),
               ],
@@ -862,7 +863,7 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
             if (_postReview)
               TextButton(
                 onPressed: () => setState(() => _postReview = false),
-                child: const Text('成绩'),
+                child: Text(AppL.of(context).sessionScore),
               ),
             if (!_postReview)
               _BarButton(
@@ -995,14 +996,14 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(
+                  padding: EdgeInsets.fromLTRB(
                     AppTheme.gutter,
                     12,
                     AppTheme.gutter,
                     0,
                   ),
                   child: Text(
-                    '第 ${i + 1} 题',
+                    AppL.of(context).sessionQuestionNo(i + 1),
                     style: Theme.of(context).textTheme.labelMedium?.copyWith(
                           color: i == _index ? t.brand : t.muted,
                           fontFeatures: AppTheme.numeric,
@@ -1049,7 +1050,7 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
                     ? _buildQuestion(right, reviewMode: reviewMode, paired: true)
                     : Center(
                         child: Text(
-                          '最后一题',
+                          AppL.of(context).sessionLastQuestion,
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ),
@@ -1089,24 +1090,24 @@ class _ViewModeSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tokens;
     final text = Theme.of(context).textTheme;
-    const items = <({_ViewMode mode, IconData icon, String label, String hint})>[
+    final items = <({_ViewMode mode, IconData icon, String label, String hint})>[
       (
         mode: _ViewMode.single,
         icon: Icons.crop_portrait_rounded,
-        label: '单题',
-        hint: '一屏一题，最专注',
+        label: AppL.of(context).sessionViewSingle,
+        hint: AppL.of(context).sessionViewSingleHint,
       ),
       (
         mode: _ViewMode.dual,
         icon: Icons.view_column_outlined,
-        label: '双题',
-        hint: '一屏两题，适合宽屏',
+        label: AppL.of(context).sessionViewDual,
+        hint: AppL.of(context).sessionViewDualHint,
       ),
       (
         mode: _ViewMode.scroll,
         icon: Icons.view_stream_outlined,
-        label: '整卷',
-        hint: '连续下滑，像纸质卷',
+        label: AppL.of(context).sessionViewScroll,
+        hint: AppL.of(context).sessionViewScrollHint,
       ),
     ];
 
@@ -1115,7 +1116,7 @@ class _ViewModeSheet extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('答题版式', style: text.titleMedium),
+          Text(AppL.of(context).sessionLayout, style: text.titleMedium),
           const SizedBox(height: 14),
           for (final item in items)
             GestureDetector(
@@ -1248,9 +1249,9 @@ class _QuestionView extends StatelessWidget {
           _History(questionId: question.id, answered: selected != null),
         if (isReview && selected == null)
           Padding(
-            padding: const EdgeInsets.only(bottom: 12),
+            padding: EdgeInsets.only(bottom: 12),
             child: Text(
-              '这道题当时没有作答',
+              AppL.of(context).sessionWasBlank,
               style: text.bodySmall?.copyWith(color: t.danger),
             ),
           ),
@@ -1276,10 +1277,10 @@ class _QuestionView extends StatelessWidget {
                   ),
                   if (question.year > 0)
                     Text(' · ${question.year} 年', style: text.bodySmall),
-                  const SizedBox(width: 6),
+                  SizedBox(width: 6),
                   Icon(Icons.lightbulb_outline, size: 13, color: t.muted),
                   Text(
-                    ' 技巧',
+                    AppL.of(context).sessionTipsChip,
                     style: text.bodySmall?.copyWith(fontSize: 11.5),
                   ),
                 ],
@@ -1419,12 +1420,12 @@ class _QuestionView extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 14),
+                    SizedBox(width: 14),
                     if (opt.isFigureOnly)
                       // 选项内容在上面那张图里，这儿再写一遍字母是噪音
                       Expanded(
                         child: Text(
-                          '见上图',
+                          AppL.of(context).sessionSeeFigure,
                           style: text.bodySmall?.copyWith(
                             fontSize: 13 * fontScale,
                             color: struck ? t.muted : t.muted,
@@ -1492,11 +1493,11 @@ class _QuestionView extends StatelessWidget {
                 Row(
                   children: [
                     Icon(Icons.lightbulb_outline, size: 15, color: t.brand),
-                    const SizedBox(width: 6),
-                    Text('解析', style: text.labelLarge?.copyWith(color: t.brand)),
-                    const Spacer(),
+                    SizedBox(width: 6),
+                    Text(AppL.of(context).sessionAnalysis, style: text.labelLarge?.copyWith(color: t.brand)),
+                    Spacer(),
                     Text(
-                      '正确答案 ${question.answer.toUpperCase()}',
+                      AppL.of(context).sessionCorrectAnswer(question.answer.toUpperCase()),
                       style: text.bodySmall?.copyWith(color: t.success),
                     ),
                   ],
@@ -1517,43 +1518,43 @@ class _QuestionView extends StatelessWidget {
           // 题库自带的解析常常只把答案又说一遍。配了 AI 的人可以点一下，
           // 听一段真讲思路的 —— 没配 AI 就整栏不显示，不占地方。
           AiExplainPanel(question: question, userAnswer: selected),
-          const SizedBox(height: 10),
+          SizedBox(height: 10),
           _PastAttempts(questionId: question.id, answer: question.answer),
           _DifficultyPicker(level: difficulty, onPick: onDifficulty),
           // 最后一题下面本来就有「交卷」，不用再顶一颗。
           if (onNext != null && !isLast) ...[
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
                 onPressed: onNext,
-                child: const Text('下一题'),
+                child: Text(AppL.of(context).sessionNext),
               ),
             ),
           ],
         ] else if (question.isMulti && selected == null && onCommitMulti != null) ...[
           // 多选唯一的出口。少了它, 全库 51 道多选在单选界面上无解 ——
           // 存一个字母, 比四个字母, 怎么点都是错的。
-          const SizedBox(height: 6),
+          SizedBox(height: 6),
           Text(
-            '多选题 · 选完点「确定」',
+            AppL.of(context).sessionMultiHint,
             style: text.bodySmall?.copyWith(fontSize: 12),
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: 10),
           SizedBox(
             width: double.infinity,
             child: FilledButton(
               onPressed: draft.isEmpty ? null : onCommitMulti,
-              child: Text(draft.isEmpty ? '确定' : '确定（已选 ${draft.length} 项）'),
+              child: Text(draft.isEmpty ? AppL.of(context).commonConfirmShort : AppL.of(context).sessionConfirmPicked(draft.length)),
             ),
           ),
         ] else if (!hideAnalysis && selected == null && showHints)
           Padding(
-            padding: const EdgeInsets.only(top: 6),
+            padding: EdgeInsets.only(top: 6),
             child: Text(
               isExam
-                  ? '选中即进入下一题 · 长按选项可排除 · 左右滑动可回看'
-                  : '长按选项可排除 · 左右滑动切换题目 · 点图片可放大',
+                  ? AppL.of(context).sessionHintAuto
+                  : AppL.of(context).sessionHintManual,
               style: text.bodySmall?.copyWith(fontSize: 12),
             ),
           ),
@@ -1576,9 +1577,9 @@ class _QuestionView extends StatelessWidget {
                     children: [
                       Icon(Icons.sticky_note_2_outlined,
                           size: 15, color: t.category('shuliang')),
-                      const SizedBox(width: 6),
+                      SizedBox(width: 6),
                       Text(
-                        '我的笔记',
+                        AppL.of(context).sessionMyNote,
                         style: text.labelLarge?.copyWith(
                           color: t.category('shuliang'),
                         ),
@@ -1605,7 +1606,7 @@ class _QuestionView extends StatelessWidget {
           const SizedBox(height: 20),
           SizedBox(
             width: double.infinity,
-            child: FilledButton(onPressed: onSubmit, child: const Text('交卷')),
+            child: FilledButton(onPressed: onSubmit, child: Text(AppL.of(context).sessionSubmit)),
           ),
         ],
     ];
@@ -1725,7 +1726,7 @@ class _HistoryState extends State<_History> {
         final last = past.first;
         final wrongTimes = past.where((e) => !e.correct).length;
         final days = DateTime.now().difference(last.at).inDays;
-        final when = days == 0 ? '今天' : (days == 1 ? '昨天' : '$days 天前');
+        final when = days == 0 ? AppL.of(context).whenToday : (days == 1 ? AppL.of(context).whenYesterday : AppL.of(context).whenDaysAgo(days));
 
         return Padding(
           padding: const EdgeInsets.only(bottom: 12),
@@ -1811,7 +1812,7 @@ class _ResultView extends StatelessWidget {
       // 不写「模考成绩」是因为 20 题的限时练习也走这一档，撑不起「模考」。
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text(session._isExam ? '本场成绩' : '练习结果'),
+        title: Text(session._isExam ? AppL.of(context).sessionMockScore : AppL.of(context).sessionPracticeResult),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 8, AppTheme.gutter, 24),
@@ -1842,13 +1843,13 @@ class _ResultView extends StatelessWidget {
                       errorBuilder: (_, __, ___) =>
                           Container(height: 130, color: t.brandSoft),
                     ),
-                    const Positioned(
+                    Positioned(
                       left: 0, right: 0, bottom: -1, child: Waterline(),
                     ),
                   ],
                 ),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+                  padding: EdgeInsets.fromLTRB(20, 4, 20, 20),
                   child: Row(
                     children: [
                       CompassDial(
@@ -1857,33 +1858,33 @@ class _ResultView extends StatelessWidget {
                         caption: '$correct / $total',
                         size: 104,
                       ),
-                      const SizedBox(width: 20),
+                      SizedBox(width: 20),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               rate >= 80
-                                  ? '状态不错'
-                                  : (rate >= 60 ? '继续保持' : '再练一组'),
+                                  ? AppL.of(context).sessionGoodShape
+                                  : (rate >= 60 ? AppL.of(context).sessionKeepGoing : AppL.of(context).sessionAnotherSet),
                               style: text.titleSmall?.copyWith(fontSize: 17),
                             ),
-                            const SizedBox(height: 8),
+                            SizedBox(height: 8),
                             Text(
-                              '用时 ${session._clock(session._elapsed)}',
+                              AppL.of(context).sessionTimeUsed(session._clock(session._elapsed)),
                               style: text.bodySmall?.copyWith(fontSize: 13),
                             ),
-                            const SizedBox(height: 3),
+                            SizedBox(height: 3),
                             Text(
                               answers.isEmpty
-                                  ? '每题 —'
+                                  ? AppL.of(context).sessionPerQuestionNone
                                   : '每题 ${(session._questionMs.values.fold<int>(0, (a, b) => a + b) / answers.length / 1000).toStringAsFixed(1)} 秒',
                               style: text.bodySmall?.copyWith(fontSize: 13),
                             ),
                             if (answers.length < total) ...[
-                              const SizedBox(height: 3),
+                              SizedBox(height: 3),
                               Text(
-                                '未作答 ${total - answers.length}',
+                                AppL.of(context).sessionUnanswered(total - answers.length),
                                 style: text.bodySmall?.copyWith(
                                   fontSize: 13,
                                   color: t.danger,
@@ -1912,7 +1913,7 @@ class _ResultView extends StatelessWidget {
                     builder: (_) => PracticeSessionPage(
                       questions: flagged,
                       reviewAnswers: answers,
-                      title: '存疑回顾',
+                      title: AppL.of(context).sessionDoubtReview,
                     ),
                   ),
                 );
@@ -1922,10 +1923,10 @@ class _ResultView extends StatelessWidget {
                 child: Row(
                   children: [
                     Icon(Icons.flag_rounded, size: 17, color: t.category('shuliang')),
-                    const SizedBox(width: 9),
+                    SizedBox(width: 9),
                     Expanded(
                       child: Text(
-                        '做题时标了 ${session._doubts.length} 道存疑，点开逐题看',
+                        AppL.of(context).sessionDoubtCount(session._doubts.length),
                         style: text.bodyMedium?.copyWith(fontSize: 13.5),
                       ),
                     ),
@@ -1947,10 +1948,10 @@ class _ResultView extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     StrokeIcon(AppIcon.timer, size: 16, color: t.category('shuliang')),
-                    const SizedBox(width: 9),
+                    SizedBox(width: 9),
                     Expanded(
                       child: Text(
-                        '有 ${slow.length} 题超过 90 秒，考场上这类题应该先跳过',
+                        AppL.of(context).sessionSlowCount(slow.length),
                         style: text.bodyMedium?.copyWith(fontSize: 13.5),
                       ),
                     ),
@@ -1960,7 +1961,7 @@ class _ResultView extends StatelessWidget {
             }),
           ],
           if (byCategory.length > 1) ...[
-            const SectionHeader(title: '各题型得分'),
+            SectionHeader(title: AppL.of(context).sessionByType),
             for (final key in byCategory)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 11),
@@ -1977,19 +1978,19 @@ class _ResultView extends StatelessWidget {
                         height: 3,
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: 12),
                     Text('${rights[key] ?? 0}/${totals[key]}', style: text.bodySmall),
                   ],
                 ),
               ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
           ],
           if (wrong.isNotEmpty) ...[
-            SectionHeader(title: '错题回顾', caption: '${wrong.length} 题 · 点开看原题'),
+            SectionHeader(title: AppL.of(context).sessionWrongReview, caption: AppL.of(context).sessionWrongCount(wrong.length)),
             for (var i = 0; i < wrong.length; i++) ...[
-              if (i > 0) const RowDivider(indent: 0),
+              if (i > 0) RowDivider(indent: 0),
               AppRow(
-                padding: const EdgeInsets.symmetric(vertical: 14),
+                padding: EdgeInsets.symmetric(vertical: 14),
                 title: wrong[i].content,
                 maxLines: 3,
                 subtitle:
@@ -2008,17 +2009,17 @@ class _ResultView extends StatelessWidget {
                       questions: wrong,
                       reviewAnswers: answers,
                       startAt: i,
-                      title: '错题回顾',
+                      title: AppL.of(context).sessionWrongReview,
                     ),
                   ),
                 ),
               ),
             ],
           ] else
-            const EmptyState(
+            EmptyState(
               icon: Icons.emoji_events_outlined,
-              title: '全部答对',
-              message: '这一组没有错题，换个题型继续保持手感。',
+              title: AppL.of(context).sessionAllCorrect,
+              message: AppL.of(context).sessionAllCorrectBody,
             ),
         ],
       ),
@@ -2033,14 +2034,14 @@ class _ResultView extends StatelessWidget {
                     builder: (_) => PracticeSessionPage(
                       questions: questions,
                       reviewAnswers: answers,
-                      title: '逐题回顾',
+                      title: AppL.of(context).sessionGoThrough,
                     ),
                   ),
                 ),
-                child: const Text('逐题回顾'),
+                child: Text(AppL.of(context).sessionGoThrough),
               ),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: 12),
             Expanded(
               child: FilledButton(
                 onPressed: wrong.isEmpty
@@ -2050,7 +2051,7 @@ class _ResultView extends StatelessWidget {
                             builder: (_) => PracticeSessionPage(questions: wrong),
                           ),
                         ),
-                child: Text(wrong.isEmpty ? '完成' : '重做错题 ${wrong.length}'),
+                child: Text(wrong.isEmpty ? AppL.of(context).commonDone : AppL.of(context).sessionRedoWrong(wrong.length)),
               ),
             ),
           ],
@@ -2091,9 +2092,9 @@ class _NoteSheetState extends State<_NoteSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('这道题的笔记', style: text.titleMedium),
-            const SizedBox(height: 6),
-            Text('记方法、坑点、公式 —— 回顾时会显示在解析下面', style: text.bodySmall),
+            Text(AppL.of(context).sessionNoteTitle, style: text.titleMedium),
+            SizedBox(height: 6),
+            Text(AppL.of(context).sessionNoteHint, style: text.bodySmall),
             const SizedBox(height: 14),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -2118,7 +2119,7 @@ class _NoteSheetState extends State<_NoteSheet> {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () => Navigator.of(context).pop(''),
-                      child: const Text('删除'),
+                      child: Text(AppL.of(context).commonDelete),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -2126,7 +2127,7 @@ class _NoteSheetState extends State<_NoteSheet> {
                 Expanded(
                   child: FilledButton(
                     onPressed: () => Navigator.of(context).pop(_controller.text),
-                    child: const Text('保存'),
+                    child: Text(AppL.of(context).commonSave),
                   ),
                 ),
               ],
@@ -2151,17 +2152,17 @@ class _ReasonPicker extends StatelessWidget {
     final text = Theme.of(context).textTheme;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: EdgeInsets.only(bottom: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Text('这题为什么错？', style: text.bodySmall),
-              const SizedBox(width: 8),
+              Text(AppL.of(context).sessionWhyWrong, style: text.bodySmall),
+              SizedBox(width: 8),
               if (selected != null)
                 Text(
-                  '已标记，可再点一次取消',
+                  AppL.of(context).sessionTagged,
                   style: text.bodySmall?.copyWith(fontSize: 11.5, color: t.muted),
                 ),
             ],
@@ -2238,9 +2239,9 @@ class _FeedbackSheetState extends State<_FeedbackSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('这道题有问题', style: text.titleMedium),
-            const SizedBox(height: 6),
-            Text('记在本机，可在「我的」里查看，也会随备份一起导出', style: text.bodySmall),
+            Text(AppL.of(context).sessionReportTitle, style: text.titleMedium),
+            SizedBox(height: 6),
+            Text(AppL.of(context).sessionReportHint, style: text.bodySmall),
             const SizedBox(height: 14),
             Wrap(
               spacing: 8,
@@ -2285,10 +2286,10 @@ class _FeedbackSheetState extends State<_FeedbackSheet> {
                 maxLines: 3,
                 minLines: 2,
                 style: text.bodyMedium?.copyWith(color: t.text, fontSize: 14.5),
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   isDense: true,
                   border: InputBorder.none,
-                  hintText: '补充两句（选填）',
+                  hintText: AppL.of(context).sessionReportNote,
                 ),
               ),
             ),
@@ -2298,7 +2299,7 @@ class _FeedbackSheetState extends State<_FeedbackSheet> {
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('取消'),
+                    child: Text(AppL.of(context).commonCancel),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -2307,7 +2308,7 @@ class _FeedbackSheetState extends State<_FeedbackSheet> {
                     onPressed: () => Navigator.of(context).pop(
                       (kind: _kind, note: _note.text.trim()),
                     ),
-                    child: const Text('记下'),
+                    child: Text(AppL.of(context).sessionReportSubmit),
                   ),
                 ),
               ],
@@ -2376,9 +2377,9 @@ class _MaterialPaneState extends State<_MaterialPane> {
                 child: Row(
                   children: [
                     StrokeIcon(AppIcon.papers, size: 16, color: t.textSoft),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8),
                     Text(
-                      '材料',
+                      AppL.of(context).sessionMaterial,
                       style: text.titleSmall?.copyWith(fontSize: 14),
                     ),
                     const SizedBox(width: 8),
@@ -2456,12 +2457,16 @@ class _ReadingSheetState extends State<_ReadingSheet> {
   late double _scale = widget.scale;
   late bool _auto = widget.autoNext;
 
-  static const _steps = [
-    (value: 0.9, label: '小'),
-    (value: 1.0, label: '标准'),
-    (value: 1.15, label: '大'),
-    (value: 1.3, label: '特大'),
-  ];
+  /// 档位的**数值**是常量，标签得跟着界面语言走 —— 两者不能一起放进
+  /// static const，那里取不到 context。
+  static const _stepValues = [0.9, 1.0, 1.15, 1.3];
+
+  static String _stepLabel(BuildContext context, double v) => switch (v) {
+        0.9 => AppL.of(context).fontSmall,
+        1.0 => AppL.of(context).fontNormal,
+        1.15 => AppL.of(context).fontLarge,
+        _ => AppL.of(context).fontHuge,
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -2473,36 +2478,37 @@ class _ReadingSheetState extends State<_ReadingSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('阅读设置', style: text.titleMedium),
-          const SizedBox(height: 16),
-          Text('题目字号', style: text.bodySmall),
+          Text(AppL.of(context).sessionReading, style: text.titleMedium),
+          SizedBox(height: 16),
+          Text(AppL.of(context).sessionFontSize, style: text.bodySmall),
           const SizedBox(height: 10),
           Row(
             children: [
-              for (final step in _steps)
+              for (final value in _stepValues)
                 Expanded(
                   child: Padding(
-                    padding: EdgeInsets.only(right: step == _steps.last ? 0 : 9),
+                    padding: EdgeInsets.only(
+                        right: value == _stepValues.last ? 0 : 9),
                     child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onTap: () {
-                        setState(() => _scale = step.value);
-                        widget.onScale(step.value);
+                        setState(() => _scale = value);
+                        widget.onScale(value);
                         HapticFeedback.selectionClick();
                       },
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 150),
                         height: 52,
                         alignment: Alignment.center,
-                        decoration: _scale == step.value
+                        decoration: _scale == value
                             ? GlassDecor.tinted(t, t.brand, radius: 14, glow: false)
                             : GlassDecor.panel(t, radius: 14, raised: false),
                         child: Text(
-                          step.label,
+                          _stepLabel(context, value),
                           style: TextStyle(
-                            fontSize: 13 + (step.value - 0.9) * 12,
+                            fontSize: 13 + (value - 0.9) * 12,
                             fontWeight: FontWeight.w600,
-                            color: _scale == step.value ? Colors.white : t.textSoft,
+                            color: _scale == value ? Colors.white : t.textSoft,
                           ),
                         ),
                       ),
@@ -2511,16 +2517,16 @@ class _ReadingSheetState extends State<_ReadingSheet> {
                 ),
             ],
           ),
-          const SizedBox(height: 22),
+          SizedBox(height: 22),
           Row(
             children: [
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('答对自动下一题', style: text.titleSmall),
-                    const SizedBox(height: 4),
-                    Text('答错时仍会停下看解析', style: text.bodySmall),
+                    Text(AppL.of(context).sessionAutoNext, style: text.titleSmall),
+                    SizedBox(height: 4),
+                    Text(AppL.of(context).sessionAutoNextHint, style: text.bodySmall),
                   ],
                 ),
               ),
@@ -2539,7 +2545,7 @@ class _ReadingSheetState extends State<_ReadingSheet> {
             width: double.infinity,
             child: FilledButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('完成'),
+              child: Text(AppL.of(context).commonDone),
             ),
           ),
         ],
@@ -2576,10 +2582,10 @@ class _AnswerCard extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: t.gradient.last,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         border: Border(top: BorderSide(color: t.lineSoft)),
       ),
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+      padding: EdgeInsets.fromLTRB(20, 16, 20, 16),
       child: SafeArea(
         top: false,
         child: Column(
@@ -2590,19 +2596,19 @@ class _AnswerCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.baseline,
               textBaseline: TextBaseline.alphabetic,
               children: [
-                Text('答题卡', style: text.titleMedium),
-                const SizedBox(width: 10),
-                Text('已答 $done / ${questions.length}', style: text.bodySmall),
-                const Spacer(),
+                Text(AppL.of(context).sessionCard, style: text.titleMedium),
+                SizedBox(width: 10),
+                Text(AppL.of(context).sessionAnsweredOf(done, questions.length), style: text.bodySmall),
+                Spacer(),
                 if (!isExam) ...[
-                  _Legend(color: t.success, label: '对'),
-                  const SizedBox(width: 10),
-                  _Legend(color: t.danger, label: '错'),
+                  _Legend(color: t.success, label: AppL.of(context).sessionRight),
+                  SizedBox(width: 10),
+                  _Legend(color: t.danger, label: AppL.of(context).sessionWrongShort),
                 ] else
-                  _Legend(color: t.brand, label: '已答'),
+                  _Legend(color: t.brand, label: AppL.of(context).sessionAnswered),
                 if (doubts.isNotEmpty) ...[
-                  const SizedBox(width: 10),
-                  _Legend(color: t.category('shuliang'), label: '存疑'),
+                  SizedBox(width: 10),
+                  _Legend(color: t.category('shuliang'), label: AppL.of(context).sessionDoubt),
                 ],
               ],
             ),
@@ -2627,12 +2633,12 @@ class _AnswerCard extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
               child: FilledButton(
                 onPressed: () => Navigator.of(context).pop(-1),
-                child: Text(done == questions.length ? '交卷' : '提前交卷'),
+                child: Text(done == questions.length ? AppL.of(context).sessionSubmit : AppL.of(context).sessionSubmitEarly),
               ),
             ),
           ],
@@ -2777,7 +2783,7 @@ class _ConfirmSheet extends StatelessWidget {
               Expanded(
                 child: OutlinedButton(
                   onPressed: () => Navigator.of(context).pop(false),
-                  child: const Text('取消'),
+                  child: Text(AppL.of(context).commonCancel),
                 ),
               ),
               const SizedBox(width: 12),
@@ -2823,8 +2829,6 @@ class _DifficultyPicker extends StatelessWidget {
   final int? level;
   final ValueChanged<int> onPick;
 
-  static const _labels = ['简单', '一般', '难'];
-
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
@@ -2833,7 +2837,7 @@ class _DifficultyPicker extends StatelessWidget {
 
     return Row(
       children: [
-        Text('这题对我', style: text.bodySmall),
+        Text(AppL.of(context).sessionDifficultyFor, style: text.bodySmall),
         const SizedBox(width: 10),
         for (var i = 0; i < 3; i++) ...[
           if (i > 0) const SizedBox(width: 7),
@@ -2850,7 +2854,11 @@ class _DifficultyPicker extends StatelessWidget {
                 borderRadius: BorderRadius.circular(13),
               ),
               child: Text(
-                _labels[i],
+                [
+                  AppL.of(context).difficultyEasy,
+                  AppL.of(context).difficultyMedium,
+                  AppL.of(context).difficultyHard,
+                ][i],
                 style: TextStyle(
                   fontSize: 12.5,
                   fontWeight: FontWeight.w600,
@@ -2974,43 +2982,43 @@ class _ToolSheet extends StatelessWidget {
       (
         key: 'scratch',
         icon: Icons.calculate_outlined,
-        label: '草稿纸与计算器',
-        hint: hasScratch ? '这题已有草稿' : '资料分析可以直接算',
+        label: AppL.of(context).sessionScratch,
+        hint: hasScratch ? AppL.of(context).sessionHasScratch : AppL.of(context).sessionScratchHint,
         on: hasScratch,
       ),
       (
         key: 'note',
         icon: Icons.sticky_note_2_outlined,
-        label: '写笔记',
-        hint: hasNote ? '这题已有笔记' : '记方法和坑点，回顾时会显示',
+        label: AppL.of(context).sessionWriteNote,
+        hint: hasNote ? AppL.of(context).sessionHasNote : AppL.of(context).sessionNoteShort,
         on: hasNote,
       ),
       (
         key: 'layout',
         icon: Icons.view_agenda_outlined,
-        label: '答题版式',
-        hint: '单题 / 双题 / 整卷',
+        label: AppL.of(context).sessionLayout,
+        hint: AppL.of(context).sessionLayoutHint,
         on: false,
       ),
       (
         key: 'font',
         icon: Icons.text_fields_rounded,
-        label: '阅读设置',
-        hint: '字号与自动下一题',
+        label: AppL.of(context).sessionReading,
+        hint: AppL.of(context).sessionReadingHint,
         on: false,
       ),
       (
         key: 'mark',
         icon: marked ? Icons.star_rounded : Icons.star_border_rounded,
-        label: marked ? '取消收藏' : '收藏这题',
-        hint: '收藏的题在「我的 → 我的收藏」',
+        label: marked ? AppL.of(context).sessionUnsave : AppL.of(context).sessionSave,
+        hint: AppL.of(context).sessionSaveHint,
         on: marked,
       ),
       (
         key: 'report',
         icon: Icons.report_gmailerrorred_outlined,
-        label: '这题有问题',
-        hint: '答案有误、解析看不懂都可以标',
+        label: AppL.of(context).sessionReportShort,
+        hint: AppL.of(context).sessionReportShortHint,
         on: false,
       ),
     ];

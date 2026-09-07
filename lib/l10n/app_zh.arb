@@ -339,5 +339,504 @@
         "type": "int"
       }
     }
-  }
+  },
+  "sessionResultTitle": "本场结果",
+  "sessionResultLine": "正确率 {rate}% · 答对 {correct} / {total} · 用时 {time}",
+  "@sessionResultLine": {
+    "placeholders": {
+      "rate": {
+        "type": "int"
+      },
+      "correct": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "sessionSeeReport": "看成绩单",
+  "sessionSeeAnalysis": "逐题看解析",
+  "sessionMock": "限时模考",
+  "sessionPracticeCount": "练习 {count} 题",
+  "@sessionPracticeCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionDaily": "每日一练",
+  "sessionBlankLeft": "还有 {count} 题没作答",
+  "@sessionBlankLeft": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionSubmitWarn": "交卷后未作答的题会计为错题，确定现在交卷吗？",
+  "sessionSubmitAnyway": "仍然交卷",
+  "sessionQuitMock": "退出模考？",
+  "sessionQuitPractice": "结束这组练习？",
+  "sessionQuitMockBody": "模考中途退出不会生成成绩报告，已答的题仍计入练习记录。",
+  "sessionQuitPracticeBody": "已答的 {count} 题已经保存，可以随时再来一组。",
+  "@sessionQuitPracticeBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "commonQuit": "退出",
+  "sessionSavedHint": "已收藏，可在「我的 → 我的收藏」查看",
+  "sessionUnsaved": "已取消收藏",
+  "sessionReportedHint": "已记下，可在「我的 → 纠错记录」里查看",
+  "sessionAnalysisTime": "解析 · {time}",
+  "@sessionAnalysisTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "sessionReview": "回顾",
+  "sessionScore": "成绩",
+  "sessionQuestionNo": "第 {n} 题",
+  "@sessionQuestionNo": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionLastQuestion": "最后一题",
+  "sessionViewSingle": "单题",
+  "sessionViewSingleHint": "一屏一题，最专注",
+  "sessionViewDual": "双题",
+  "sessionViewDualHint": "一屏两题，适合宽屏",
+  "sessionViewScroll": "整卷",
+  "sessionViewScrollHint": "连续下滑，像纸质卷",
+  "sessionLayout": "答题版式",
+  "sessionWasBlank": "这道题当时没有作答",
+  "sessionTipsChip": " 技巧",
+  "sessionSeeFigure": "见上图",
+  "sessionAnalysis": "解析",
+  "sessionCorrectAnswer": "正确答案 {answer}",
+  "@sessionCorrectAnswer": {
+    "placeholders": {
+      "answer": {
+        "type": "String"
+      }
+    }
+  },
+  "sessionNext": "下一题",
+  "sessionMultiHint": "多选题 · 选完点「确定」",
+  "commonConfirmShort": "确定",
+  "sessionConfirmPicked": "确定（已选 {count} 项）",
+  "@sessionConfirmPicked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionHintAuto": "选中即进入下一题 · 长按选项可排除 · 左右滑动可回看",
+  "sessionHintManual": "长按选项可排除 · 左右滑动切换题目 · 点图片可放大",
+  "sessionMyNote": "我的笔记",
+  "sessionSubmit": "交卷",
+  "whenToday": "今天",
+  "whenYesterday": "昨天",
+  "whenDaysAgo": "{days} 天前",
+  "@whenDaysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionMockScore": "本场成绩",
+  "sessionPracticeResult": "练习结果",
+  "sessionGoodShape": "状态不错",
+  "sessionKeepGoing": "继续保持",
+  "sessionAnotherSet": "再练一组",
+  "sessionTimeUsed": "用时 {time}",
+  "@sessionTimeUsed": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "sessionPerQuestionNone": "每题 —",
+  "sessionUnanswered": "未作答 {count}",
+  "@sessionUnanswered": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionDoubtReview": "存疑回顾",
+  "sessionDoubtCount": "做题时标了 {count} 道存疑，点开逐题看",
+  "@sessionDoubtCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionSlowCount": "有 {count} 题超过 90 秒，考场上这类题应该先跳过",
+  "@sessionSlowCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionByType": "各题型得分",
+  "sessionWrongReview": "错题回顾",
+  "sessionWrongCount": "{count} 题 · 点开看原题",
+  "@sessionWrongCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionAllCorrect": "全部答对",
+  "sessionAllCorrectBody": "这一组没有错题，换个题型继续保持手感。",
+  "sessionGoThrough": "逐题回顾",
+  "commonDone": "完成",
+  "sessionRedoWrong": "重做错题 {count}",
+  "@sessionRedoWrong": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionNoteTitle": "这道题的笔记",
+  "sessionNoteHint": "记方法、坑点、公式 —— 回顾时会显示在解析下面",
+  "commonDelete": "删除",
+  "sessionWhyWrong": "这题为什么错？",
+  "sessionTagged": "已标记，可再点一次取消",
+  "sessionReportTitle": "这道题有问题",
+  "sessionReportHint": "记在本机，可在「我的」里查看，也会随备份一起导出",
+  "sessionReportNote": "补充两句（选填）",
+  "sessionReportSubmit": "记下",
+  "sessionMaterial": "材料",
+  "fontSmall": "小",
+  "fontNormal": "标准",
+  "fontLarge": "大",
+  "fontHuge": "特大",
+  "sessionReading": "阅读设置",
+  "sessionFontSize": "题目字号",
+  "sessionAutoNext": "答对自动下一题",
+  "sessionAutoNextHint": "答错时仍会停下看解析",
+  "sessionCard": "答题卡",
+  "sessionAnsweredOf": "已答 {done} / {total}",
+  "@sessionAnsweredOf": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionRight": "对",
+  "sessionWrongShort": "错",
+  "sessionAnswered": "已答",
+  "sessionDoubt": "存疑",
+  "sessionSubmitEarly": "提前交卷",
+  "difficultyEasy": "简单",
+  "difficultyMedium": "一般",
+  "difficultyHard": "难",
+  "sessionDifficultyFor": "这题对我",
+  "sessionScratch": "草稿纸与计算器",
+  "sessionHasScratch": "这题已有草稿",
+  "sessionScratchHint": "资料分析可以直接算",
+  "sessionWriteNote": "写笔记",
+  "sessionHasNote": "这题已有笔记",
+  "sessionNoteShort": "记方法和坑点，回顾时会显示",
+  "sessionLayoutHint": "单题 / 双题 / 整卷",
+  "sessionReadingHint": "字号与自动下一题",
+  "sessionUnsave": "取消收藏",
+  "sessionSave": "收藏这题",
+  "sessionSaveHint": "收藏的题在「我的 → 我的收藏」",
+  "sessionReportShort": "这题有问题",
+  "sessionReportShortHint": "答案有误、解析看不懂都可以标",
+  "homeNoQuestionsHere": "这里还没有题",
+  "homeNoUnseen": "这个范围里没有没做过的题了",
+  "homeNoWrongHere": "这里还没有错题",
+  "homeReciteSub": "{name} · 背题",
+  "@homeReciteSub": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "homeRecite": "背题",
+  "homeHardTagged": "标难的题",
+  "homeTimedSub": "{name} · 限时",
+  "@homeTimedSub": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "homeTimedCat": "{name}限时练",
+  "@homeTimedCat": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "homeEssay": "申论",
+  "homeManualTask": "手写任务勾选即可，做完别忘了打勾",
+  "homeRedoWrong": "错题重练",
+  "homeWeakDrill": "弱项强化",
+  "homeDeleteTask": "删除安排",
+  "homeDeleteTaskConfirm": "确定删除「{title}」？",
+  "@homeDeleteTaskConfirm": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "homeResume": "继续上次",
+  "homeResumeLine": "{title} · 还剩 {count} 题",
+  "@homeResumeLine": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeDaily": "每日一练",
+  "homeDailyHint": "今天的固定卷",
+  "homeProvincePapers": "{name}真题",
+  "@homeProvincePapers": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "homeProvinceHint": "{count} 题 · 你要考的卷",
+  "@homeProvinceHint": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeWeakLocked": "先练一组再解锁",
+  "homeWeakHint": "按薄弱模块配比",
+  "homeNoWrong": "暂无错题",
+  "homeWrongLeft": "{count} 题待清",
+  "@homeWrongLeft": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeEssayMark": "申论批改",
+  "homeEssayHint": "写一篇，交给 AI 评",
+  "homeMock": "限时模考",
+  "homeMoreWays": "更多练法",
+  "homeStreak": "连续打卡 {days} 天",
+  "@homeStreak": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "homeDailyCheckin": "每日一练打卡",
+  "homePerSet": "每组 {count} 题",
+  "@homePerSet": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeTotalInBank": "共 {count} 题",
+  "@homeTotalInBank": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeDailyReview": "今日一练回顾",
+  "homeCatchUp": "补做 {date}",
+  "@homeCatchUp": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "homeRegionPapers": "{name}真题",
+  "@homeRegionPapers": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "homeTodayRoute": "今日航线",
+  "homeArrange": "安排",
+  "homeAllTasks": "全部 {count}",
+  "@homeAllTasks": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeAdjust": "调整",
+  "homeIslands": "五座岛",
+  "homeHardCount": "自己标难的 {count} 题",
+  "@homeHardCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeGreetDone": "今天划完了",
+  "homeGreetMorning": "早，该出发了",
+  "homeGreetKeep": "继续划",
+  "homeGreetFinish": "收个尾再靠岸",
+  "homeNoRoute": "还没排今天的航线",
+  "homeRouteHint": "模板可以改，删掉不做的就行",
+  "homeGoPlan": "去安排",
+  "scopeAll": "全部题",
+  "scopeUnseen": "没做过",
+  "scopeWrong": "做错过",
+  "scopeAllHint": "优先近年真题，同年内随机",
+  "scopeUnseenLong": "没做过的",
+  "scopeUnseenHint": "跳过已做 · 仍优先近年",
+  "scopeWrongLong": "做错过的",
+  "scopeWrongHint": "只抽上次答错的题",
+  "scopeTitle": "抽题范围",
+  "scopeHint": "长按题量可以改每组题数",
+  "scopeCount": "{count} 题",
+  "@scopeCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "yearAllHint": "题库里有的都抽，仍然优先近年",
+  "yearLast3Hint": "{from}—{to} 年 · 结构和考点最贴近今年",
+  "@yearLast3Hint": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "yearLast1Hint": "只有 {year} 年 · 练常识时间政策题必用这一档",
+  "@yearLast1Hint": {
+    "placeholders": {
+      "year": {
+        "type": "String"
+      }
+    }
+  },
+  "yearRangeTitle": "年份范围",
+  "yearRangeHint": "常识判断一半的题引的是考前一年的讲话原文和新出台文件，旧题的答案已经作废；言语、判断、资料的结构常年不动，老题照样能练。",
+  "yearRangeCount": "{count} 题",
+  "@yearRangeCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeDailyGoal": "每日目标",
+  "homeDailyGoalHint": "在职备考建议 20–30 题，全职冲刺 60 题以上",
+  "countQuestions": "{count} 题",
+  "@countQuestions": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeSetSize": "每组题量",
+  "homeAboutBody": "本地优先的公务员行测刷题工具。题库、答题记录、统计全部保存在这台设备上，不联网、不上传。内置题来自 OpenExam 桌面端种子库，也可以在「导入」页导入自己的题目。",
+  "homeTimed": "限时",
+  "homeExpandHint": "共 {count} 题 · 展开分类后开始",
+  "@homeExpandHint": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeNoSubtypes": "暂无细分",
+  "homeMixAll": "全部混练",
+  "homeMixHint": "{count} 题 · 约 {minutes} 分钟节奏",
+  "@homeMixHint": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "homeSubCount": "{count} 题",
+  "@homeSubCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homePlain": "直接练",
+  "homePlainHint": "{count} 题，不计时",
+  "@homePlainHint": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeTimedDrill": "限时练",
+  "homeTimedDrillHint": "{count} 题 · 约 {minutes} 分钟，按考场节奏",
+  "@homeTimedDrillHint": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "homeReciteHint": "不作答，直接看答案和解析"
 }

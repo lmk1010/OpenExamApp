@@ -930,6 +930,1134 @@ abstract class AppL {
   /// In zh, this message translates to:
   /// **'{count} 题 · 长按可标错因'**
   String wrongCountWithHint(int count);
+
+  /// No description provided for @sessionResultTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'本场结果'**
+  String get sessionResultTitle;
+
+  /// No description provided for @sessionResultLine.
+  ///
+  /// In zh, this message translates to:
+  /// **'正确率 {rate}% · 答对 {correct} / {total} · 用时 {time}'**
+  String sessionResultLine(int rate, int correct, int total, String time);
+
+  /// No description provided for @sessionSeeReport.
+  ///
+  /// In zh, this message translates to:
+  /// **'看成绩单'**
+  String get sessionSeeReport;
+
+  /// No description provided for @sessionSeeAnalysis.
+  ///
+  /// In zh, this message translates to:
+  /// **'逐题看解析'**
+  String get sessionSeeAnalysis;
+
+  /// No description provided for @sessionMock.
+  ///
+  /// In zh, this message translates to:
+  /// **'限时模考'**
+  String get sessionMock;
+
+  /// No description provided for @sessionPracticeCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'练习 {count} 题'**
+  String sessionPracticeCount(int count);
+
+  /// No description provided for @sessionDaily.
+  ///
+  /// In zh, this message translates to:
+  /// **'每日一练'**
+  String get sessionDaily;
+
+  /// No description provided for @sessionBlankLeft.
+  ///
+  /// In zh, this message translates to:
+  /// **'还有 {count} 题没作答'**
+  String sessionBlankLeft(int count);
+
+  /// No description provided for @sessionSubmitWarn.
+  ///
+  /// In zh, this message translates to:
+  /// **'交卷后未作答的题会计为错题，确定现在交卷吗？'**
+  String get sessionSubmitWarn;
+
+  /// No description provided for @sessionSubmitAnyway.
+  ///
+  /// In zh, this message translates to:
+  /// **'仍然交卷'**
+  String get sessionSubmitAnyway;
+
+  /// No description provided for @sessionQuitMock.
+  ///
+  /// In zh, this message translates to:
+  /// **'退出模考？'**
+  String get sessionQuitMock;
+
+  /// No description provided for @sessionQuitPractice.
+  ///
+  /// In zh, this message translates to:
+  /// **'结束这组练习？'**
+  String get sessionQuitPractice;
+
+  /// No description provided for @sessionQuitMockBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'模考中途退出不会生成成绩报告，已答的题仍计入练习记录。'**
+  String get sessionQuitMockBody;
+
+  /// No description provided for @sessionQuitPracticeBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'已答的 {count} 题已经保存，可以随时再来一组。'**
+  String sessionQuitPracticeBody(int count);
+
+  /// No description provided for @commonQuit.
+  ///
+  /// In zh, this message translates to:
+  /// **'退出'**
+  String get commonQuit;
+
+  /// No description provided for @sessionSavedHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'已收藏，可在「我的 → 我的收藏」查看'**
+  String get sessionSavedHint;
+
+  /// No description provided for @sessionUnsaved.
+  ///
+  /// In zh, this message translates to:
+  /// **'已取消收藏'**
+  String get sessionUnsaved;
+
+  /// No description provided for @sessionReportedHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'已记下，可在「我的 → 纠错记录」里查看'**
+  String get sessionReportedHint;
+
+  /// No description provided for @sessionAnalysisTime.
+  ///
+  /// In zh, this message translates to:
+  /// **'解析 · {time}'**
+  String sessionAnalysisTime(String time);
+
+  /// No description provided for @sessionReview.
+  ///
+  /// In zh, this message translates to:
+  /// **'回顾'**
+  String get sessionReview;
+
+  /// No description provided for @sessionScore.
+  ///
+  /// In zh, this message translates to:
+  /// **'成绩'**
+  String get sessionScore;
+
+  /// No description provided for @sessionQuestionNo.
+  ///
+  /// In zh, this message translates to:
+  /// **'第 {n} 题'**
+  String sessionQuestionNo(int n);
+
+  /// No description provided for @sessionLastQuestion.
+  ///
+  /// In zh, this message translates to:
+  /// **'最后一题'**
+  String get sessionLastQuestion;
+
+  /// No description provided for @sessionViewSingle.
+  ///
+  /// In zh, this message translates to:
+  /// **'单题'**
+  String get sessionViewSingle;
+
+  /// No description provided for @sessionViewSingleHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'一屏一题，最专注'**
+  String get sessionViewSingleHint;
+
+  /// No description provided for @sessionViewDual.
+  ///
+  /// In zh, this message translates to:
+  /// **'双题'**
+  String get sessionViewDual;
+
+  /// No description provided for @sessionViewDualHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'一屏两题，适合宽屏'**
+  String get sessionViewDualHint;
+
+  /// No description provided for @sessionViewScroll.
+  ///
+  /// In zh, this message translates to:
+  /// **'整卷'**
+  String get sessionViewScroll;
+
+  /// No description provided for @sessionViewScrollHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'连续下滑，像纸质卷'**
+  String get sessionViewScrollHint;
+
+  /// No description provided for @sessionLayout.
+  ///
+  /// In zh, this message translates to:
+  /// **'答题版式'**
+  String get sessionLayout;
+
+  /// No description provided for @sessionWasBlank.
+  ///
+  /// In zh, this message translates to:
+  /// **'这道题当时没有作答'**
+  String get sessionWasBlank;
+
+  /// No description provided for @sessionTipsChip.
+  ///
+  /// In zh, this message translates to:
+  /// **' 技巧'**
+  String get sessionTipsChip;
+
+  /// No description provided for @sessionSeeFigure.
+  ///
+  /// In zh, this message translates to:
+  /// **'见上图'**
+  String get sessionSeeFigure;
+
+  /// No description provided for @sessionAnalysis.
+  ///
+  /// In zh, this message translates to:
+  /// **'解析'**
+  String get sessionAnalysis;
+
+  /// No description provided for @sessionCorrectAnswer.
+  ///
+  /// In zh, this message translates to:
+  /// **'正确答案 {answer}'**
+  String sessionCorrectAnswer(String answer);
+
+  /// No description provided for @sessionNext.
+  ///
+  /// In zh, this message translates to:
+  /// **'下一题'**
+  String get sessionNext;
+
+  /// No description provided for @sessionMultiHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'多选题 · 选完点「确定」'**
+  String get sessionMultiHint;
+
+  /// No description provided for @commonConfirmShort.
+  ///
+  /// In zh, this message translates to:
+  /// **'确定'**
+  String get commonConfirmShort;
+
+  /// No description provided for @sessionConfirmPicked.
+  ///
+  /// In zh, this message translates to:
+  /// **'确定（已选 {count} 项）'**
+  String sessionConfirmPicked(int count);
+
+  /// No description provided for @sessionHintAuto.
+  ///
+  /// In zh, this message translates to:
+  /// **'选中即进入下一题 · 长按选项可排除 · 左右滑动可回看'**
+  String get sessionHintAuto;
+
+  /// No description provided for @sessionHintManual.
+  ///
+  /// In zh, this message translates to:
+  /// **'长按选项可排除 · 左右滑动切换题目 · 点图片可放大'**
+  String get sessionHintManual;
+
+  /// No description provided for @sessionMyNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'我的笔记'**
+  String get sessionMyNote;
+
+  /// No description provided for @sessionSubmit.
+  ///
+  /// In zh, this message translates to:
+  /// **'交卷'**
+  String get sessionSubmit;
+
+  /// No description provided for @whenToday.
+  ///
+  /// In zh, this message translates to:
+  /// **'今天'**
+  String get whenToday;
+
+  /// No description provided for @whenYesterday.
+  ///
+  /// In zh, this message translates to:
+  /// **'昨天'**
+  String get whenYesterday;
+
+  /// No description provided for @whenDaysAgo.
+  ///
+  /// In zh, this message translates to:
+  /// **'{days} 天前'**
+  String whenDaysAgo(int days);
+
+  /// No description provided for @sessionMockScore.
+  ///
+  /// In zh, this message translates to:
+  /// **'本场成绩'**
+  String get sessionMockScore;
+
+  /// No description provided for @sessionPracticeResult.
+  ///
+  /// In zh, this message translates to:
+  /// **'练习结果'**
+  String get sessionPracticeResult;
+
+  /// No description provided for @sessionGoodShape.
+  ///
+  /// In zh, this message translates to:
+  /// **'状态不错'**
+  String get sessionGoodShape;
+
+  /// No description provided for @sessionKeepGoing.
+  ///
+  /// In zh, this message translates to:
+  /// **'继续保持'**
+  String get sessionKeepGoing;
+
+  /// No description provided for @sessionAnotherSet.
+  ///
+  /// In zh, this message translates to:
+  /// **'再练一组'**
+  String get sessionAnotherSet;
+
+  /// No description provided for @sessionTimeUsed.
+  ///
+  /// In zh, this message translates to:
+  /// **'用时 {time}'**
+  String sessionTimeUsed(String time);
+
+  /// No description provided for @sessionPerQuestionNone.
+  ///
+  /// In zh, this message translates to:
+  /// **'每题 —'**
+  String get sessionPerQuestionNone;
+
+  /// No description provided for @sessionUnanswered.
+  ///
+  /// In zh, this message translates to:
+  /// **'未作答 {count}'**
+  String sessionUnanswered(int count);
+
+  /// No description provided for @sessionDoubtReview.
+  ///
+  /// In zh, this message translates to:
+  /// **'存疑回顾'**
+  String get sessionDoubtReview;
+
+  /// No description provided for @sessionDoubtCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'做题时标了 {count} 道存疑，点开逐题看'**
+  String sessionDoubtCount(int count);
+
+  /// No description provided for @sessionSlowCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'有 {count} 题超过 90 秒，考场上这类题应该先跳过'**
+  String sessionSlowCount(int count);
+
+  /// No description provided for @sessionByType.
+  ///
+  /// In zh, this message translates to:
+  /// **'各题型得分'**
+  String get sessionByType;
+
+  /// No description provided for @sessionWrongReview.
+  ///
+  /// In zh, this message translates to:
+  /// **'错题回顾'**
+  String get sessionWrongReview;
+
+  /// No description provided for @sessionWrongCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 题 · 点开看原题'**
+  String sessionWrongCount(int count);
+
+  /// No description provided for @sessionAllCorrect.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部答对'**
+  String get sessionAllCorrect;
+
+  /// No description provided for @sessionAllCorrectBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'这一组没有错题，换个题型继续保持手感。'**
+  String get sessionAllCorrectBody;
+
+  /// No description provided for @sessionGoThrough.
+  ///
+  /// In zh, this message translates to:
+  /// **'逐题回顾'**
+  String get sessionGoThrough;
+
+  /// No description provided for @commonDone.
+  ///
+  /// In zh, this message translates to:
+  /// **'完成'**
+  String get commonDone;
+
+  /// No description provided for @sessionRedoWrong.
+  ///
+  /// In zh, this message translates to:
+  /// **'重做错题 {count}'**
+  String sessionRedoWrong(int count);
+
+  /// No description provided for @sessionNoteTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'这道题的笔记'**
+  String get sessionNoteTitle;
+
+  /// No description provided for @sessionNoteHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'记方法、坑点、公式 —— 回顾时会显示在解析下面'**
+  String get sessionNoteHint;
+
+  /// No description provided for @commonDelete.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除'**
+  String get commonDelete;
+
+  /// No description provided for @sessionWhyWrong.
+  ///
+  /// In zh, this message translates to:
+  /// **'这题为什么错？'**
+  String get sessionWhyWrong;
+
+  /// No description provided for @sessionTagged.
+  ///
+  /// In zh, this message translates to:
+  /// **'已标记，可再点一次取消'**
+  String get sessionTagged;
+
+  /// No description provided for @sessionReportTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'这道题有问题'**
+  String get sessionReportTitle;
+
+  /// No description provided for @sessionReportHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'记在本机，可在「我的」里查看，也会随备份一起导出'**
+  String get sessionReportHint;
+
+  /// No description provided for @sessionReportNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'补充两句（选填）'**
+  String get sessionReportNote;
+
+  /// No description provided for @sessionReportSubmit.
+  ///
+  /// In zh, this message translates to:
+  /// **'记下'**
+  String get sessionReportSubmit;
+
+  /// No description provided for @sessionMaterial.
+  ///
+  /// In zh, this message translates to:
+  /// **'材料'**
+  String get sessionMaterial;
+
+  /// No description provided for @fontSmall.
+  ///
+  /// In zh, this message translates to:
+  /// **'小'**
+  String get fontSmall;
+
+  /// No description provided for @fontNormal.
+  ///
+  /// In zh, this message translates to:
+  /// **'标准'**
+  String get fontNormal;
+
+  /// No description provided for @fontLarge.
+  ///
+  /// In zh, this message translates to:
+  /// **'大'**
+  String get fontLarge;
+
+  /// No description provided for @fontHuge.
+  ///
+  /// In zh, this message translates to:
+  /// **'特大'**
+  String get fontHuge;
+
+  /// No description provided for @sessionReading.
+  ///
+  /// In zh, this message translates to:
+  /// **'阅读设置'**
+  String get sessionReading;
+
+  /// No description provided for @sessionFontSize.
+  ///
+  /// In zh, this message translates to:
+  /// **'题目字号'**
+  String get sessionFontSize;
+
+  /// No description provided for @sessionAutoNext.
+  ///
+  /// In zh, this message translates to:
+  /// **'答对自动下一题'**
+  String get sessionAutoNext;
+
+  /// No description provided for @sessionAutoNextHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'答错时仍会停下看解析'**
+  String get sessionAutoNextHint;
+
+  /// No description provided for @sessionCard.
+  ///
+  /// In zh, this message translates to:
+  /// **'答题卡'**
+  String get sessionCard;
+
+  /// No description provided for @sessionAnsweredOf.
+  ///
+  /// In zh, this message translates to:
+  /// **'已答 {done} / {total}'**
+  String sessionAnsweredOf(int done, int total);
+
+  /// No description provided for @sessionRight.
+  ///
+  /// In zh, this message translates to:
+  /// **'对'**
+  String get sessionRight;
+
+  /// No description provided for @sessionWrongShort.
+  ///
+  /// In zh, this message translates to:
+  /// **'错'**
+  String get sessionWrongShort;
+
+  /// No description provided for @sessionAnswered.
+  ///
+  /// In zh, this message translates to:
+  /// **'已答'**
+  String get sessionAnswered;
+
+  /// No description provided for @sessionDoubt.
+  ///
+  /// In zh, this message translates to:
+  /// **'存疑'**
+  String get sessionDoubt;
+
+  /// No description provided for @sessionSubmitEarly.
+  ///
+  /// In zh, this message translates to:
+  /// **'提前交卷'**
+  String get sessionSubmitEarly;
+
+  /// No description provided for @difficultyEasy.
+  ///
+  /// In zh, this message translates to:
+  /// **'简单'**
+  String get difficultyEasy;
+
+  /// No description provided for @difficultyMedium.
+  ///
+  /// In zh, this message translates to:
+  /// **'一般'**
+  String get difficultyMedium;
+
+  /// No description provided for @difficultyHard.
+  ///
+  /// In zh, this message translates to:
+  /// **'难'**
+  String get difficultyHard;
+
+  /// No description provided for @sessionDifficultyFor.
+  ///
+  /// In zh, this message translates to:
+  /// **'这题对我'**
+  String get sessionDifficultyFor;
+
+  /// No description provided for @sessionScratch.
+  ///
+  /// In zh, this message translates to:
+  /// **'草稿纸与计算器'**
+  String get sessionScratch;
+
+  /// No description provided for @sessionHasScratch.
+  ///
+  /// In zh, this message translates to:
+  /// **'这题已有草稿'**
+  String get sessionHasScratch;
+
+  /// No description provided for @sessionScratchHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'资料分析可以直接算'**
+  String get sessionScratchHint;
+
+  /// No description provided for @sessionWriteNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'写笔记'**
+  String get sessionWriteNote;
+
+  /// No description provided for @sessionHasNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'这题已有笔记'**
+  String get sessionHasNote;
+
+  /// No description provided for @sessionNoteShort.
+  ///
+  /// In zh, this message translates to:
+  /// **'记方法和坑点，回顾时会显示'**
+  String get sessionNoteShort;
+
+  /// No description provided for @sessionLayoutHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'单题 / 双题 / 整卷'**
+  String get sessionLayoutHint;
+
+  /// No description provided for @sessionReadingHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'字号与自动下一题'**
+  String get sessionReadingHint;
+
+  /// No description provided for @sessionUnsave.
+  ///
+  /// In zh, this message translates to:
+  /// **'取消收藏'**
+  String get sessionUnsave;
+
+  /// No description provided for @sessionSave.
+  ///
+  /// In zh, this message translates to:
+  /// **'收藏这题'**
+  String get sessionSave;
+
+  /// No description provided for @sessionSaveHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'收藏的题在「我的 → 我的收藏」'**
+  String get sessionSaveHint;
+
+  /// No description provided for @sessionReportShort.
+  ///
+  /// In zh, this message translates to:
+  /// **'这题有问题'**
+  String get sessionReportShort;
+
+  /// No description provided for @sessionReportShortHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'答案有误、解析看不懂都可以标'**
+  String get sessionReportShortHint;
+
+  /// No description provided for @homeNoQuestionsHere.
+  ///
+  /// In zh, this message translates to:
+  /// **'这里还没有题'**
+  String get homeNoQuestionsHere;
+
+  /// No description provided for @homeNoUnseen.
+  ///
+  /// In zh, this message translates to:
+  /// **'这个范围里没有没做过的题了'**
+  String get homeNoUnseen;
+
+  /// No description provided for @homeNoWrongHere.
+  ///
+  /// In zh, this message translates to:
+  /// **'这里还没有错题'**
+  String get homeNoWrongHere;
+
+  /// No description provided for @homeReciteSub.
+  ///
+  /// In zh, this message translates to:
+  /// **'{name} · 背题'**
+  String homeReciteSub(String name);
+
+  /// No description provided for @homeRecite.
+  ///
+  /// In zh, this message translates to:
+  /// **'背题'**
+  String get homeRecite;
+
+  /// No description provided for @homeHardTagged.
+  ///
+  /// In zh, this message translates to:
+  /// **'标难的题'**
+  String get homeHardTagged;
+
+  /// No description provided for @homeTimedSub.
+  ///
+  /// In zh, this message translates to:
+  /// **'{name} · 限时'**
+  String homeTimedSub(String name);
+
+  /// No description provided for @homeTimedCat.
+  ///
+  /// In zh, this message translates to:
+  /// **'{name}限时练'**
+  String homeTimedCat(String name);
+
+  /// No description provided for @homeEssay.
+  ///
+  /// In zh, this message translates to:
+  /// **'申论'**
+  String get homeEssay;
+
+  /// No description provided for @homeManualTask.
+  ///
+  /// In zh, this message translates to:
+  /// **'手写任务勾选即可，做完别忘了打勾'**
+  String get homeManualTask;
+
+  /// No description provided for @homeRedoWrong.
+  ///
+  /// In zh, this message translates to:
+  /// **'错题重练'**
+  String get homeRedoWrong;
+
+  /// No description provided for @homeWeakDrill.
+  ///
+  /// In zh, this message translates to:
+  /// **'弱项强化'**
+  String get homeWeakDrill;
+
+  /// No description provided for @homeDeleteTask.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除安排'**
+  String get homeDeleteTask;
+
+  /// No description provided for @homeDeleteTaskConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确定删除「{title}」？'**
+  String homeDeleteTaskConfirm(String title);
+
+  /// No description provided for @homeResume.
+  ///
+  /// In zh, this message translates to:
+  /// **'继续上次'**
+  String get homeResume;
+
+  /// No description provided for @homeResumeLine.
+  ///
+  /// In zh, this message translates to:
+  /// **'{title} · 还剩 {count} 题'**
+  String homeResumeLine(String title, int count);
+
+  /// No description provided for @homeDaily.
+  ///
+  /// In zh, this message translates to:
+  /// **'每日一练'**
+  String get homeDaily;
+
+  /// No description provided for @homeDailyHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'今天的固定卷'**
+  String get homeDailyHint;
+
+  /// No description provided for @homeProvincePapers.
+  ///
+  /// In zh, this message translates to:
+  /// **'{name}真题'**
+  String homeProvincePapers(String name);
+
+  /// No description provided for @homeProvinceHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 题 · 你要考的卷'**
+  String homeProvinceHint(int count);
+
+  /// No description provided for @homeWeakLocked.
+  ///
+  /// In zh, this message translates to:
+  /// **'先练一组再解锁'**
+  String get homeWeakLocked;
+
+  /// No description provided for @homeWeakHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'按薄弱模块配比'**
+  String get homeWeakHint;
+
+  /// No description provided for @homeNoWrong.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无错题'**
+  String get homeNoWrong;
+
+  /// No description provided for @homeWrongLeft.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 题待清'**
+  String homeWrongLeft(int count);
+
+  /// No description provided for @homeEssayMark.
+  ///
+  /// In zh, this message translates to:
+  /// **'申论批改'**
+  String get homeEssayMark;
+
+  /// No description provided for @homeEssayHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'写一篇，交给 AI 评'**
+  String get homeEssayHint;
+
+  /// No description provided for @homeMock.
+  ///
+  /// In zh, this message translates to:
+  /// **'限时模考'**
+  String get homeMock;
+
+  /// No description provided for @homeMoreWays.
+  ///
+  /// In zh, this message translates to:
+  /// **'更多练法'**
+  String get homeMoreWays;
+
+  /// No description provided for @homeStreak.
+  ///
+  /// In zh, this message translates to:
+  /// **'连续打卡 {days} 天'**
+  String homeStreak(int days);
+
+  /// No description provided for @homeDailyCheckin.
+  ///
+  /// In zh, this message translates to:
+  /// **'每日一练打卡'**
+  String get homeDailyCheckin;
+
+  /// No description provided for @homePerSet.
+  ///
+  /// In zh, this message translates to:
+  /// **'每组 {count} 题'**
+  String homePerSet(int count);
+
+  /// No description provided for @homeTotalInBank.
+  ///
+  /// In zh, this message translates to:
+  /// **'共 {count} 题'**
+  String homeTotalInBank(int count);
+
+  /// No description provided for @homeDailyReview.
+  ///
+  /// In zh, this message translates to:
+  /// **'今日一练回顾'**
+  String get homeDailyReview;
+
+  /// No description provided for @homeCatchUp.
+  ///
+  /// In zh, this message translates to:
+  /// **'补做 {date}'**
+  String homeCatchUp(String date);
+
+  /// No description provided for @homeRegionPapers.
+  ///
+  /// In zh, this message translates to:
+  /// **'{name}真题'**
+  String homeRegionPapers(String name);
+
+  /// No description provided for @homeTodayRoute.
+  ///
+  /// In zh, this message translates to:
+  /// **'今日航线'**
+  String get homeTodayRoute;
+
+  /// No description provided for @homeArrange.
+  ///
+  /// In zh, this message translates to:
+  /// **'安排'**
+  String get homeArrange;
+
+  /// No description provided for @homeAllTasks.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部 {count}'**
+  String homeAllTasks(int count);
+
+  /// No description provided for @homeAdjust.
+  ///
+  /// In zh, this message translates to:
+  /// **'调整'**
+  String get homeAdjust;
+
+  /// No description provided for @homeIslands.
+  ///
+  /// In zh, this message translates to:
+  /// **'五座岛'**
+  String get homeIslands;
+
+  /// No description provided for @homeHardCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'自己标难的 {count} 题'**
+  String homeHardCount(int count);
+
+  /// No description provided for @homeGreetDone.
+  ///
+  /// In zh, this message translates to:
+  /// **'今天划完了'**
+  String get homeGreetDone;
+
+  /// No description provided for @homeGreetMorning.
+  ///
+  /// In zh, this message translates to:
+  /// **'早，该出发了'**
+  String get homeGreetMorning;
+
+  /// No description provided for @homeGreetKeep.
+  ///
+  /// In zh, this message translates to:
+  /// **'继续划'**
+  String get homeGreetKeep;
+
+  /// No description provided for @homeGreetFinish.
+  ///
+  /// In zh, this message translates to:
+  /// **'收个尾再靠岸'**
+  String get homeGreetFinish;
+
+  /// No description provided for @homeNoRoute.
+  ///
+  /// In zh, this message translates to:
+  /// **'还没排今天的航线'**
+  String get homeNoRoute;
+
+  /// No description provided for @homeRouteHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'模板可以改，删掉不做的就行'**
+  String get homeRouteHint;
+
+  /// No description provided for @homeGoPlan.
+  ///
+  /// In zh, this message translates to:
+  /// **'去安排'**
+  String get homeGoPlan;
+
+  /// No description provided for @scopeAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部题'**
+  String get scopeAll;
+
+  /// No description provided for @scopeUnseen.
+  ///
+  /// In zh, this message translates to:
+  /// **'没做过'**
+  String get scopeUnseen;
+
+  /// No description provided for @scopeWrong.
+  ///
+  /// In zh, this message translates to:
+  /// **'做错过'**
+  String get scopeWrong;
+
+  /// No description provided for @scopeAllHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'优先近年真题，同年内随机'**
+  String get scopeAllHint;
+
+  /// No description provided for @scopeUnseenLong.
+  ///
+  /// In zh, this message translates to:
+  /// **'没做过的'**
+  String get scopeUnseenLong;
+
+  /// No description provided for @scopeUnseenHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'跳过已做 · 仍优先近年'**
+  String get scopeUnseenHint;
+
+  /// No description provided for @scopeWrongLong.
+  ///
+  /// In zh, this message translates to:
+  /// **'做错过的'**
+  String get scopeWrongLong;
+
+  /// No description provided for @scopeWrongHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'只抽上次答错的题'**
+  String get scopeWrongHint;
+
+  /// No description provided for @scopeTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'抽题范围'**
+  String get scopeTitle;
+
+  /// No description provided for @scopeHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'长按题量可以改每组题数'**
+  String get scopeHint;
+
+  /// No description provided for @scopeCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 题'**
+  String scopeCount(int count);
+
+  /// No description provided for @yearAllHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'题库里有的都抽，仍然优先近年'**
+  String get yearAllHint;
+
+  /// No description provided for @yearLast3Hint.
+  ///
+  /// In zh, this message translates to:
+  /// **'{from}—{to} 年 · 结构和考点最贴近今年'**
+  String yearLast3Hint(String from, String to);
+
+  /// No description provided for @yearLast1Hint.
+  ///
+  /// In zh, this message translates to:
+  /// **'只有 {year} 年 · 练常识时间政策题必用这一档'**
+  String yearLast1Hint(String year);
+
+  /// No description provided for @yearRangeTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'年份范围'**
+  String get yearRangeTitle;
+
+  /// No description provided for @yearRangeHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'常识判断一半的题引的是考前一年的讲话原文和新出台文件，旧题的答案已经作废；言语、判断、资料的结构常年不动，老题照样能练。'**
+  String get yearRangeHint;
+
+  /// No description provided for @yearRangeCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 题'**
+  String yearRangeCount(int count);
+
+  /// No description provided for @homeDailyGoal.
+  ///
+  /// In zh, this message translates to:
+  /// **'每日目标'**
+  String get homeDailyGoal;
+
+  /// No description provided for @homeDailyGoalHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'在职备考建议 20–30 题，全职冲刺 60 题以上'**
+  String get homeDailyGoalHint;
+
+  /// No description provided for @countQuestions.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 题'**
+  String countQuestions(int count);
+
+  /// No description provided for @homeSetSize.
+  ///
+  /// In zh, this message translates to:
+  /// **'每组题量'**
+  String get homeSetSize;
+
+  /// No description provided for @homeAboutBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'本地优先的公务员行测刷题工具。题库、答题记录、统计全部保存在这台设备上，不联网、不上传。内置题来自 OpenExam 桌面端种子库，也可以在「导入」页导入自己的题目。'**
+  String get homeAboutBody;
+
+  /// No description provided for @homeTimed.
+  ///
+  /// In zh, this message translates to:
+  /// **'限时'**
+  String get homeTimed;
+
+  /// No description provided for @homeExpandHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'共 {count} 题 · 展开分类后开始'**
+  String homeExpandHint(int count);
+
+  /// No description provided for @homeNoSubtypes.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无细分'**
+  String get homeNoSubtypes;
+
+  /// No description provided for @homeMixAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部混练'**
+  String get homeMixAll;
+
+  /// No description provided for @homeMixHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 题 · 约 {minutes} 分钟节奏'**
+  String homeMixHint(int count, int minutes);
+
+  /// No description provided for @homeSubCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 题'**
+  String homeSubCount(int count);
+
+  /// No description provided for @homePlain.
+  ///
+  /// In zh, this message translates to:
+  /// **'直接练'**
+  String get homePlain;
+
+  /// No description provided for @homePlainHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 题，不计时'**
+  String homePlainHint(int count);
+
+  /// No description provided for @homeTimedDrill.
+  ///
+  /// In zh, this message translates to:
+  /// **'限时练'**
+  String get homeTimedDrill;
+
+  /// No description provided for @homeTimedDrillHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 题 · 约 {minutes} 分钟，按考场节奏'**
+  String homeTimedDrillHint(int count, int minutes);
+
+  /// No description provided for @homeReciteHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'不作答，直接看答案和解析'**
+  String get homeReciteHint;
 }
 
 class _AppLDelegate extends LocalizationsDelegate<AppL> {
