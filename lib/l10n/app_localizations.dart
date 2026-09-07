@@ -2058,6 +2058,449 @@ abstract class AppL {
   /// In zh, this message translates to:
   /// **'不作答，直接看答案和解析'**
   String get homeReciteHint;
+
+  /// No description provided for @dxScopeAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部作答记录'**
+  String get dxScopeAll;
+
+  /// No description provided for @dxThinSample.
+  ///
+  /// In zh, this message translates to:
+  /// **'只有 {count} 条作答记录，结论还不稳。做够 100 题再看一次。'**
+  String dxThinSample(int count);
+
+  /// No description provided for @dxSlowTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'{name} 慢得会拖垮整张卷'**
+  String dxSlowTitle(String name);
+
+  /// No description provided for @dxSlowEvidence.
+  ///
+  /// In zh, this message translates to:
+  /// **'每题 {secs} 秒，基准 {bench} 秒，慢 {pct}%'**
+  String dxSlowEvidence(int secs, int bench, int pct);
+
+  /// No description provided for @dxSlowOverrun.
+  ///
+  /// In zh, this message translates to:
+  /// **'；照这个速度一套卷多花 {mins} 分钟'**
+  String dxSlowOverrun(int mins);
+
+  /// No description provided for @dxSlightlySlowTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'{name} 比基准慢一点'**
+  String dxSlightlySlowTitle(String name);
+
+  /// No description provided for @dxPaceEvidence.
+  ///
+  /// In zh, this message translates to:
+  /// **'每题 {secs} 秒，基准 {bench} 秒'**
+  String dxPaceEvidence(int secs, int bench);
+
+  /// No description provided for @dxSlightlySlowAction.
+  ///
+  /// In zh, this message translates to:
+  /// **'还在可控范围，但限时练的时候按 {bench} 秒卡表，别让它继续涨。'**
+  String dxSlightlySlowAction(int bench);
+
+  /// No description provided for @dxFastSteadyTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'{name} 又快又稳'**
+  String dxFastSteadyTitle(String name);
+
+  /// No description provided for @dxFastSteadyEvidence.
+  ///
+  /// In zh, this message translates to:
+  /// **'每题 {secs} 秒（基准 {bench} 秒），正确率 {rate}'**
+  String dxFastSteadyEvidence(int secs, int bench, String rate);
+
+  /// No description provided for @dxFastSteadyAction.
+  ///
+  /// In zh, this message translates to:
+  /// **'这块不用再投时间，省下来的分钟给弱的模块。'**
+  String get dxFastSteadyAction;
+
+  /// No description provided for @dxRushTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'{name} 是做太快错的，不是不会'**
+  String dxRushTitle(String name);
+
+  /// No description provided for @dxRushEvidence.
+  ///
+  /// In zh, this message translates to:
+  /// **'每题 {secs} 秒，比基准 {bench} 秒快 {pct}%；正确率只有 {rate}（目标 {target}）'**
+  String dxRushEvidence(
+    int secs,
+    int bench,
+    int pct,
+    String rate,
+    String target,
+  );
+
+  /// No description provided for @dxRushAction.
+  ///
+  /// In zh, this message translates to:
+  /// **'先把速度压回 {bench} 秒一题，正确率提到 {target} 之后再提速。省下来的几分钟换不回丢掉的分 —— {how}'**
+  String dxRushAction(int bench, String target, String how);
+
+  /// No description provided for @dxAccuracyGapTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'{name} 正确率离目标还差一截'**
+  String dxAccuracyGapTitle(String name);
+
+  /// No description provided for @dxAccuracyGapEvidence.
+  ///
+  /// In zh, this message translates to:
+  /// **'{rate}（{correct}/{attempts}），目标 {target}'**
+  String dxAccuracyGapEvidence(
+    String rate,
+    int correct,
+    int attempts,
+    String target,
+  );
+
+  /// No description provided for @dxAlmostTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'{name} 差一口气到目标'**
+  String dxAlmostTitle(String name);
+
+  /// No description provided for @dxAlmostEvidence.
+  ///
+  /// In zh, this message translates to:
+  /// **'{rate}，目标 {target}'**
+  String dxAlmostEvidence(String rate, String target);
+
+  /// No description provided for @dxAlmostAction.
+  ///
+  /// In zh, this message translates to:
+  /// **'按错因翻一遍这个模块的错题，看是同一类反复栽还是零散错。'**
+  String get dxAlmostAction;
+
+  /// No description provided for @dxTimeSinkTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'数量关系吃掉了太多时间'**
+  String get dxTimeSinkTitle;
+
+  /// No description provided for @dxTimeSinkEvidence.
+  ///
+  /// In zh, this message translates to:
+  /// **'它占了你 {share} 的做题时间，卷面上只占 {paper} 的题'**
+  String dxTimeSinkEvidence(String share, String paper);
+
+  /// No description provided for @dxOverthinkTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'常识判断纠结太久'**
+  String get dxOverthinkTitle;
+
+  /// No description provided for @dxThinPracticeTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'资料分析练得太少'**
+  String get dxThinPracticeTitle;
+
+  /// No description provided for @dxThinPracticeEvidence.
+  ///
+  /// In zh, this message translates to:
+  /// **'只占你练习量的 {share}，卷面上占 {paper}'**
+  String dxThinPracticeEvidence(String share, String paper);
+
+  /// No description provided for @dxRepeatTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'错题在重复犯，不是新错'**
+  String get dxRepeatTitle;
+
+  /// No description provided for @dxRepeatEvidence.
+  ///
+  /// In zh, this message translates to:
+  /// **'错题本 {total} 题里有 {repeat} 题错过两次以上（{pct}）'**
+  String dxRepeatEvidence(int total, int repeat, String pct);
+
+  /// No description provided for @dxRepeatAction.
+  ///
+  /// In zh, this message translates to:
+  /// **'重复错说明第一次复盘没弄懂原因。挑错得最多的那几道，逐题写下「当时为什么选了它」，比再做十道新题有用。'**
+  String get dxRepeatAction;
+
+  /// No description provided for @dxUntaggedTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'大部分错题没标错因'**
+  String get dxUntaggedTitle;
+
+  /// No description provided for @dxUntaggedEvidence.
+  ///
+  /// In zh, this message translates to:
+  /// **'{total} 题里只标了 {tagged} 题'**
+  String dxUntaggedEvidence(int total, int tagged);
+
+  /// No description provided for @dxUntaggedAction.
+  ///
+  /// In zh, this message translates to:
+  /// **'标错因是复盘唯一的杠杆：知识点没会、看错题、算错、时间不够，这四类的补法完全不同，不分开就只能整本重做。'**
+  String get dxUntaggedAction;
+
+  /// No description provided for @dxTrendUpTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'近两周在往上走'**
+  String get dxTrendUpTitle;
+
+  /// No description provided for @dxTrendDownTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'近两周反而掉了'**
+  String get dxTrendDownTitle;
+
+  /// No description provided for @dxTrendEvidence.
+  ///
+  /// In zh, this message translates to:
+  /// **'近两周 {recent}，之前 {earlier}'**
+  String dxTrendEvidence(String recent, String earlier);
+
+  /// No description provided for @dxTrendUpAction.
+  ///
+  /// In zh, this message translates to:
+  /// **'保持现在的练法别换。'**
+  String get dxTrendUpAction;
+
+  /// No description provided for @dxTrendDownAction.
+  ///
+  /// In zh, this message translates to:
+  /// **'一般是两种原因：开始限时了，或者换到了更难的模块。先确认是哪一种，前者正常，后者要放慢。'**
+  String get dxTrendDownAction;
+
+  /// No description provided for @dxTailBlankTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'资料分析没做完 —— 时间是在前面丢的'**
+  String get dxTailBlankTitle;
+
+  /// No description provided for @dxBlankTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'有 {count} 题没作答'**
+  String dxBlankTitle(int count);
+
+  /// No description provided for @dxBlankWithTail.
+  ///
+  /// In zh, this message translates to:
+  /// **'共空 {total} 题，其中资料分析空 {tail} 题'**
+  String dxBlankWithTail(int total, int tail);
+
+  /// No description provided for @dxBlankOnly.
+  ///
+  /// In zh, this message translates to:
+  /// **'共空 {total} 题'**
+  String dxBlankOnly(int total);
+
+  /// No description provided for @dxTailBlankAction.
+  ///
+  /// In zh, this message translates to:
+  /// **'资料分析是全卷唯一练到位就能拿满的模块，绝不能留给残余时间。下次把它提到判断推理之后做，数量关系放最后。'**
+  String get dxTailBlankAction;
+
+  /// No description provided for @dxBlankAction.
+  ///
+  /// In zh, this message translates to:
+  /// **'空着的题也要涂 —— 统一涂同一个字母，四个选项的正确率都在 25% 上下。'**
+  String get dxBlankAction;
+
+  /// No description provided for @dxOvertimeTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'整卷超时'**
+  String get dxOvertimeTitle;
+
+  /// No description provided for @dxOvertimeEvidence.
+  ///
+  /// In zh, this message translates to:
+  /// **'实际 {actual} 分钟，按基准这些题应该 {budget} 分钟'**
+  String dxOvertimeEvidence(int actual, int budget);
+
+  /// No description provided for @dxOvertimeAction.
+  ///
+  /// In zh, this message translates to:
+  /// **'超时通常集中在一两个模块，看上面哪一块的「慢」被标红了，先卡那一块的表。'**
+  String get dxOvertimeAction;
+
+  /// No description provided for @dxUnderTimeTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'整卷节奏比基准快'**
+  String get dxUnderTimeTitle;
+
+  /// No description provided for @dxUnderTimeEvidence.
+  ///
+  /// In zh, this message translates to:
+  /// **'实际 {actual} 分钟，基准 {budget} 分钟'**
+  String dxUnderTimeEvidence(int actual, int budget);
+
+  /// No description provided for @dxUnderTimeAction.
+  ///
+  /// In zh, this message translates to:
+  /// **'如果正确率也达标，可以把省下的时间还给数量关系多挑两道。'**
+  String get dxUnderTimeAction;
+
+  /// No description provided for @dxNoRecords.
+  ///
+  /// In zh, this message translates to:
+  /// **'还没有作答记录'**
+  String get dxNoRecords;
+
+  /// No description provided for @dxHeadlineClean.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 题，正确率 {rate}，没查出明显短板'**
+  String dxHeadlineClean(int count, String rate);
+
+  /// No description provided for @dxHeadlineWorst.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 题，正确率 {rate}；最该先修的是{what}'**
+  String dxHeadlineWorst(int count, String rate, String what);
+
+  /// No description provided for @dxPageTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'弱点诊断'**
+  String get dxPageTitle;
+
+  /// No description provided for @dxEmptyTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'还没有作答记录'**
+  String get dxEmptyTitle;
+
+  /// No description provided for @dxEmptyBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'做完一组题再回来 —— 诊断靠的是你自己的做题数据，不是别人的经验。'**
+  String get dxEmptyBody;
+
+  /// No description provided for @dxFootnote.
+  ///
+  /// In zh, this message translates to:
+  /// **'基准来自 161 套真题（安徽 2023—2026、国考 2022—2026）逐题统计出的题量和结构；单题秒数是按这套题量倒推的建议值，跟「解题技巧」页上的是同一个数。'**
+  String get dxFootnote;
+
+  /// No description provided for @dxModuleTable.
+  ///
+  /// In zh, this message translates to:
+  /// **'各模块 · 实测对基准'**
+  String get dxModuleTable;
+
+  /// No description provided for @dxColQuestions.
+  ///
+  /// In zh, this message translates to:
+  /// **'题'**
+  String get dxColQuestions;
+
+  /// No description provided for @dxColAccuracy.
+  ///
+  /// In zh, this message translates to:
+  /// **'正确率'**
+  String get dxColAccuracy;
+
+  /// No description provided for @dxColSeconds.
+  ///
+  /// In zh, this message translates to:
+  /// **'秒/题'**
+  String get dxColSeconds;
+
+  /// No description provided for @dxColBench.
+  ///
+  /// In zh, this message translates to:
+  /// **'基准'**
+  String get dxColBench;
+
+  /// No description provided for @dxFindings.
+  ///
+  /// In zh, this message translates to:
+  /// **'结论'**
+  String get dxFindings;
+
+  /// No description provided for @dxFindingsCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 条'**
+  String dxFindingsCount(int count);
+
+  /// No description provided for @dxNoWeakSpot.
+  ///
+  /// In zh, this message translates to:
+  /// **'各模块的速度和正确率都在基准附近，没有单独拎出来说的短板。继续按现在的练法走。'**
+  String get dxNoWeakSpot;
+
+  /// No description provided for @dxNoBenchmark.
+  ///
+  /// In zh, this message translates to:
+  /// **'这个题库的分类对不上行测五模块，没有可比的基准 —— 上面的总题数和正确率仍然是你的真实数据，但\"每题该几秒、正确率该到多少\"这类结论给不了。'**
+  String get dxNoBenchmark;
+
+  /// No description provided for @dxLevelBad.
+  ///
+  /// In zh, this message translates to:
+  /// **'要修'**
+  String get dxLevelBad;
+
+  /// No description provided for @dxLevelWatch.
+  ///
+  /// In zh, this message translates to:
+  /// **'注意'**
+  String get dxLevelWatch;
+
+  /// No description provided for @dxLevelGood.
+  ///
+  /// In zh, this message translates to:
+  /// **'不错'**
+  String get dxLevelGood;
+
+  /// No description provided for @dxAiSection.
+  ///
+  /// In zh, this message translates to:
+  /// **'AI 深入分析'**
+  String get dxAiSection;
+
+  /// No description provided for @dxRegenerate.
+  ///
+  /// In zh, this message translates to:
+  /// **'重新生成'**
+  String get dxRegenerate;
+
+  /// No description provided for @dxAiPitch.
+  ///
+  /// In zh, this message translates to:
+  /// **'上面的结论是本机按真题基准算的，已经能直接用。AI 在这基础上再串一遍因果，并排一份一周训练计划。'**
+  String get dxAiPitch;
+
+  /// No description provided for @dxAiNotConfigured.
+  ///
+  /// In zh, this message translates to:
+  /// **'还没配 AI。上面的结论不用配也能看 —— AI 只是在它之上多一层解读。'**
+  String get dxAiNotConfigured;
+
+  /// No description provided for @dxAskAi.
+  ///
+  /// In zh, this message translates to:
+  /// **'让 AI 分析'**
+  String get dxAskAi;
+
+  /// No description provided for @dxConfigureAi.
+  ///
+  /// In zh, this message translates to:
+  /// **'去配置 AI'**
+  String get dxConfigureAi;
 }
 
 class _AppLDelegate extends LocalizationsDelegate<AppL> {

@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:openexam_app/data/models/question.dart';
 import 'package:openexam_app/features/diagnosis/diagnosis.dart';
+import 'package:openexam_app/l10n/app_localizations_zh.dart';
 
 Question q(String id, String category) => Question(
       id: id,
@@ -49,6 +50,9 @@ Diagnosis diagnose(
 }) {
   final p = paper(spec, blank: blank);
   return Diagnosis.fromReport(
+    // 用中文那份，断言才能继续拿中文原文当契约 —— 诊断引擎没有 BuildContext，
+    // 文案由调用方传进来。
+    l: AppLZh(),
     title: '测试卷',
     questions: p.questions,
     answers: p.answers,

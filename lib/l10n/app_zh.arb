@@ -838,5 +838,361 @@
       }
     }
   },
-  "homeReciteHint": "不作答，直接看答案和解析"
+  "homeReciteHint": "不作答，直接看答案和解析",
+  "dxScopeAll": "全部作答记录",
+  "dxThinSample": "只有 {count} 条作答记录，结论还不稳。做够 100 题再看一次。",
+  "@dxThinSample": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dxSlowTitle": "{name} 慢得会拖垮整张卷",
+  "@dxSlowTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dxSlowEvidence": "每题 {secs} 秒，基准 {bench} 秒，慢 {pct}%",
+  "@dxSlowEvidence": {
+    "placeholders": {
+      "secs": {
+        "type": "int"
+      },
+      "bench": {
+        "type": "int"
+      },
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
+  "dxSlowOverrun": "；照这个速度一套卷多花 {mins} 分钟",
+  "@dxSlowOverrun": {
+    "placeholders": {
+      "mins": {
+        "type": "int"
+      }
+    }
+  },
+  "dxSlightlySlowTitle": "{name} 比基准慢一点",
+  "@dxSlightlySlowTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dxPaceEvidence": "每题 {secs} 秒，基准 {bench} 秒",
+  "@dxPaceEvidence": {
+    "placeholders": {
+      "secs": {
+        "type": "int"
+      },
+      "bench": {
+        "type": "int"
+      }
+    }
+  },
+  "dxSlightlySlowAction": "还在可控范围，但限时练的时候按 {bench} 秒卡表，别让它继续涨。",
+  "@dxSlightlySlowAction": {
+    "placeholders": {
+      "bench": {
+        "type": "int"
+      }
+    }
+  },
+  "dxFastSteadyTitle": "{name} 又快又稳",
+  "@dxFastSteadyTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dxFastSteadyEvidence": "每题 {secs} 秒（基准 {bench} 秒），正确率 {rate}",
+  "@dxFastSteadyEvidence": {
+    "placeholders": {
+      "secs": {
+        "type": "int"
+      },
+      "bench": {
+        "type": "int"
+      },
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
+  "dxFastSteadyAction": "这块不用再投时间，省下来的分钟给弱的模块。",
+  "dxRushTitle": "{name} 是做太快错的，不是不会",
+  "@dxRushTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dxRushEvidence": "每题 {secs} 秒，比基准 {bench} 秒快 {pct}%；正确率只有 {rate}（目标 {target}）",
+  "@dxRushEvidence": {
+    "placeholders": {
+      "secs": {
+        "type": "int"
+      },
+      "bench": {
+        "type": "int"
+      },
+      "pct": {
+        "type": "int"
+      },
+      "rate": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "dxRushAction": "先把速度压回 {bench} 秒一题，正确率提到 {target} 之后再提速。省下来的几分钟换不回丢掉的分 —— {how}",
+  "@dxRushAction": {
+    "placeholders": {
+      "bench": {
+        "type": "int"
+      },
+      "target": {
+        "type": "String"
+      },
+      "how": {
+        "type": "String"
+      }
+    }
+  },
+  "dxAccuracyGapTitle": "{name} 正确率离目标还差一截",
+  "@dxAccuracyGapTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dxAccuracyGapEvidence": "{rate}（{correct}/{attempts}），目标 {target}",
+  "@dxAccuracyGapEvidence": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      },
+      "correct": {
+        "type": "int"
+      },
+      "attempts": {
+        "type": "int"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "dxAlmostTitle": "{name} 差一口气到目标",
+  "@dxAlmostTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dxAlmostEvidence": "{rate}，目标 {target}",
+  "@dxAlmostEvidence": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "dxAlmostAction": "按错因翻一遍这个模块的错题，看是同一类反复栽还是零散错。",
+  "dxTimeSinkTitle": "数量关系吃掉了太多时间",
+  "dxTimeSinkEvidence": "它占了你 {share} 的做题时间，卷面上只占 {paper} 的题",
+  "@dxTimeSinkEvidence": {
+    "placeholders": {
+      "share": {
+        "type": "String"
+      },
+      "paper": {
+        "type": "String"
+      }
+    }
+  },
+  "dxOverthinkTitle": "常识判断纠结太久",
+  "dxThinPracticeTitle": "资料分析练得太少",
+  "dxThinPracticeEvidence": "只占你练习量的 {share}，卷面上占 {paper}",
+  "@dxThinPracticeEvidence": {
+    "placeholders": {
+      "share": {
+        "type": "String"
+      },
+      "paper": {
+        "type": "String"
+      }
+    }
+  },
+  "dxRepeatTitle": "错题在重复犯，不是新错",
+  "dxRepeatEvidence": "错题本 {total} 题里有 {repeat} 题错过两次以上（{pct}）",
+  "@dxRepeatEvidence": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "repeat": {
+        "type": "int"
+      },
+      "pct": {
+        "type": "String"
+      }
+    }
+  },
+  "dxRepeatAction": "重复错说明第一次复盘没弄懂原因。挑错得最多的那几道，逐题写下「当时为什么选了它」，比再做十道新题有用。",
+  "dxUntaggedTitle": "大部分错题没标错因",
+  "dxUntaggedEvidence": "{total} 题里只标了 {tagged} 题",
+  "@dxUntaggedEvidence": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "tagged": {
+        "type": "int"
+      }
+    }
+  },
+  "dxUntaggedAction": "标错因是复盘唯一的杠杆：知识点没会、看错题、算错、时间不够，这四类的补法完全不同，不分开就只能整本重做。",
+  "dxTrendUpTitle": "近两周在往上走",
+  "dxTrendDownTitle": "近两周反而掉了",
+  "dxTrendEvidence": "近两周 {recent}，之前 {earlier}",
+  "@dxTrendEvidence": {
+    "placeholders": {
+      "recent": {
+        "type": "String"
+      },
+      "earlier": {
+        "type": "String"
+      }
+    }
+  },
+  "dxTrendUpAction": "保持现在的练法别换。",
+  "dxTrendDownAction": "一般是两种原因：开始限时了，或者换到了更难的模块。先确认是哪一种，前者正常，后者要放慢。",
+  "dxTailBlankTitle": "资料分析没做完 —— 时间是在前面丢的",
+  "dxBlankTitle": "有 {count} 题没作答",
+  "@dxBlankTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dxBlankWithTail": "共空 {total} 题，其中资料分析空 {tail} 题",
+  "@dxBlankWithTail": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "tail": {
+        "type": "int"
+      }
+    }
+  },
+  "dxBlankOnly": "共空 {total} 题",
+  "@dxBlankOnly": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "dxTailBlankAction": "资料分析是全卷唯一练到位就能拿满的模块，绝不能留给残余时间。下次把它提到判断推理之后做，数量关系放最后。",
+  "dxBlankAction": "空着的题也要涂 —— 统一涂同一个字母，四个选项的正确率都在 25% 上下。",
+  "dxOvertimeTitle": "整卷超时",
+  "dxOvertimeEvidence": "实际 {actual} 分钟，按基准这些题应该 {budget} 分钟",
+  "@dxOvertimeEvidence": {
+    "placeholders": {
+      "actual": {
+        "type": "int"
+      },
+      "budget": {
+        "type": "int"
+      }
+    }
+  },
+  "dxOvertimeAction": "超时通常集中在一两个模块，看上面哪一块的「慢」被标红了，先卡那一块的表。",
+  "dxUnderTimeTitle": "整卷节奏比基准快",
+  "dxUnderTimeEvidence": "实际 {actual} 分钟，基准 {budget} 分钟",
+  "@dxUnderTimeEvidence": {
+    "placeholders": {
+      "actual": {
+        "type": "int"
+      },
+      "budget": {
+        "type": "int"
+      }
+    }
+  },
+  "dxUnderTimeAction": "如果正确率也达标，可以把省下的时间还给数量关系多挑两道。",
+  "dxNoRecords": "还没有作答记录",
+  "dxHeadlineClean": "{count} 题，正确率 {rate}，没查出明显短板",
+  "@dxHeadlineClean": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
+  "dxHeadlineWorst": "{count} 题，正确率 {rate}；最该先修的是{what}",
+  "@dxHeadlineWorst": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "rate": {
+        "type": "String"
+      },
+      "what": {
+        "type": "String"
+      }
+    }
+  },
+  "dxPageTitle": "弱点诊断",
+  "dxEmptyTitle": "还没有作答记录",
+  "dxEmptyBody": "做完一组题再回来 —— 诊断靠的是你自己的做题数据，不是别人的经验。",
+  "dxFootnote": "基准来自 161 套真题（安徽 2023—2026、国考 2022—2026）逐题统计出的题量和结构；单题秒数是按这套题量倒推的建议值，跟「解题技巧」页上的是同一个数。",
+  "dxModuleTable": "各模块 · 实测对基准",
+  "dxColQuestions": "题",
+  "dxColAccuracy": "正确率",
+  "dxColSeconds": "秒/题",
+  "dxColBench": "基准",
+  "dxFindings": "结论",
+  "dxFindingsCount": "{count} 条",
+  "@dxFindingsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dxNoWeakSpot": "各模块的速度和正确率都在基准附近，没有单独拎出来说的短板。继续按现在的练法走。",
+  "dxNoBenchmark": "这个题库的分类对不上行测五模块，没有可比的基准 —— 上面的总题数和正确率仍然是你的真实数据，但\"每题该几秒、正确率该到多少\"这类结论给不了。",
+  "dxLevelBad": "要修",
+  "dxLevelWatch": "注意",
+  "dxLevelGood": "不错",
+  "dxAiSection": "AI 深入分析",
+  "dxRegenerate": "重新生成",
+  "dxAiPitch": "上面的结论是本机按真题基准算的，已经能直接用。AI 在这基础上再串一遍因果，并排一份一周训练计划。",
+  "dxAiNotConfigured": "还没配 AI。上面的结论不用配也能看 —— AI 只是在它之上多一层解读。",
+  "dxAskAi": "让 AI 分析",
+  "dxConfigureAi": "去配置 AI"
 }

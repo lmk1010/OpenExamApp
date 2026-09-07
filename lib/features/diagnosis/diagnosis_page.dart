@@ -13,6 +13,7 @@ import 'package:openexam_app/features/ai/ai_settings_page.dart';
 import 'package:openexam_app/features/ai/ai_thinking.dart';
 import 'package:openexam_app/features/diagnosis/ai_diagnosis_service.dart';
 import 'package:openexam_app/features/diagnosis/diagnosis.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 
 /// 弱点诊断页。
 ///
@@ -25,7 +26,8 @@ class DiagnosisPage extends StatefulWidget {
   const DiagnosisPage({super.key, required this.build, required this.cacheKey});
 
   /// 怎么算这份诊断。错题本传整段历史，成绩页传那一份卷子。
-  final Future<Diagnosis> Function() build;
+  /// 传进 AppL 是因为诊断引擎是纯模型、没有 BuildContext。
+  final Future<Diagnosis> Function(AppL l) build;
 
   /// AI 结果的存档键：`history` 或 `report:<id>`。
   final String cacheKey;
@@ -33,17 +35,18 @@ class DiagnosisPage extends StatefulWidget {
   /// 整段作答记录。
   static DiagnosisPage history() => DiagnosisPage(
         cacheKey: 'history',
-        build: () async =>
-            Diagnosis.fromHistory(await AppDatabase.instance.diagnosisData()),
+        build: (l) async =>
+            Diagnosis.fromHistory(l, await AppDatabase.instance.diagnosisData()),
       );
 
   /// 一份成卷记录。逐题用时在 practice_logs 里，按这份记录的时间窗口去捞。
   static DiagnosisPage report(ExamReport r) => DiagnosisPage(
         cacheKey: 'report:${r.id}',
-        build: () async {
+        build: (l) async {
           final db = AppDatabase.instance;
           final questions = await db.fetchByIds(r.questionIds);
           return Diagnosis.fromReport(
+            l: l,
             title: r.title,
             questions: questions,
             answers: r.answers,
@@ -68,7 +71,7 @@ class _DiagnosisPageState extends State<DiagnosisPage> {
   }
 
   Future<void> _load() async {
-    final d = await widget.build();
+    final d = await widget.build(AppL.of(context));
     final settings = await AiSettingsStore.load();
     await AiDiagnosisService.instance.hydrate(widget.cacheKey);
     if (!mounted) return;
@@ -100,16 +103,15 @@ class _DiagnosisPageState extends State<DiagnosisPage> {
           onPressed: () => Navigator.of(context).maybePop(),
         ),
         titleSpacing: 0,
-        title: const Text('弱点诊断'),
+        title: Text(AppL.of(context).dxPageTitle),
       ),
       body: d == null
-          ? const LoadingState()
+          ? LoadingState()
           : d.attempts == 0
-              ? const EmptyState(
+              ? EmptyState(
                   icon: Icons.query_stats_outlined,
-                  title: '还没有作答记录',
-                  message: '做完一组题再回来 —— 诊断靠的是你自己的做题数据，'
-                      '不是别人的经验。',
+                  title: AppL.of(context).dxEmptyTitle,
+                  message: AppL.of(context).dxEmptyBody,
                 )
               : ReadableWidth(
                   child: ListView(
@@ -131,12 +133,10 @@ class _DiagnosisPageState extends State<DiagnosisPage> {
                       ),
                       const SizedBox(height: 24),
                       Padding(
-                        padding: const EdgeInsets.symmetric(
+                        padding: EdgeInsets.symmetric(
                             horizontal: AppTheme.gutter),
                         child: Text(
-                          '基准来自 161 套真题（安徽 2023—2026、国考 2022—2026）'
-                          '逐题统计出的题量和结构；单题秒数是按这套题量倒推的建议值，'
-                          '跟「解题技巧」页上的是同一个数。',
+                          AppL.of(context).dxFootnote,
                           style: TextStyle(
                               fontSize: 11.5, height: 1.6, color: t.muted),
                         ),
@@ -222,22 +222,22 @@ class _ModuleTable extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const _Label('各模块 · 实测对基准'),
+        _Label(AppL.of(context).dxModuleTable),
         Container(
-          margin: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
-          padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
+          margin: EdgeInsets.symmetric(horizontal: AppTheme.gutter),
+          padding: EdgeInsets.fromLTRB(14, 10, 14, 12),
           decoration: GlassDecor.panel(t, radius: 16, raised: false),
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.only(bottom: 8),
+                padding: EdgeInsets.only(bottom: 8),
                 child: Row(
                   children: [
-                    const Spacer(),
-                    head('题', 36),
-                    head('正确率', 52),
-                    head('秒/题', 46),
-                    head('基准', 40),
+                    Spacer(),
+                    head(AppL.of(context).dxColQuestions, 36),
+                    head(AppL.of(context).dxColAccuracy, 52),
+                    head(AppL.of(context).dxColSeconds, 46),
+                    head(AppL.of(context).dxColBench, 40),
                   ],
                 ),
               ),
@@ -344,14 +344,11 @@ class _Findings extends StatelessWidget {
       // 「没查出短板」和「压根没查」是两回事。基准是按行测五模块定的，
       // 换一门考试分类就对不上，这时候说"都在基准附近"是句假话。
       return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
+        padding: EdgeInsets.symmetric(horizontal: AppTheme.gutter),
         child: Text(
           diagnosis.benchmarked
-              ? '各模块的速度和正确率都在基准附近，没有单独拎出来说的短板。'
-                  '继续按现在的练法走。'
-              : '这个题库的分类对不上行测五模块，没有可比的基准 —— '
-                  '上面的总题数和正确率仍然是你的真实数据，但"每题该几秒、'
-                  '正确率该到多少"这类结论给不了。',
+              ? AppL.of(context).dxNoWeakSpot
+              : AppL.of(context).dxNoBenchmark,
           style: TextStyle(fontSize: 14, height: 1.7, color: t.textSoft),
         ),
       );
@@ -360,7 +357,7 @@ class _Findings extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _Label('结论', trailing: '${diagnosis.findings.length} 条'),
+        _Label(AppL.of(context).dxFindings, trailing: AppL.of(context).dxFindingsCount(diagnosis.findings.length)),
         for (var i = 0; i < diagnosis.findings.length; i++)
           _FindingRow(finding: diagnosis.findings[i], first: i == 0),
       ],
@@ -378,9 +375,9 @@ class _FindingRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tokens;
     final (color, mark) = switch (finding.level) {
-      FindingLevel.bad => (t.danger, '要修'),
-      FindingLevel.watch => (t.accent, '注意'),
-      FindingLevel.good => (t.success, '不错'),
+      FindingLevel.bad => (t.danger, AppL.of(context).dxLevelBad),
+      FindingLevel.watch => (t.accent, AppL.of(context).dxLevelWatch),
+      FindingLevel.good => (t.success, AppL.of(context).dxLevelGood),
     };
 
     return Container(
@@ -473,8 +470,8 @@ class _AiSection extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _Label(
-              'AI 深入分析',
-              trailing: state.text.isNotEmpty && !state.streaming ? '重新生成' : null,
+              AppL.of(context).dxAiSection,
+              trailing: state.text.isNotEmpty && !state.streaming ? AppL.of(context).dxRegenerate : null,
               onTapTrailing: state.text.isNotEmpty && !state.streaming
                   ? () => service.regenerate(cacheKey, diagnosis)
                   : null,
@@ -496,9 +493,9 @@ class _AiSection extends StatelessWidget {
                       ),
                       if (state.streaming) ...[
                         const SizedBox(height: 6),
-                        const AiCaret(),
+                        AiCaret(),
                       ] else if (state.stamp != null) ...[
-                        const SizedBox(height: 12),
+                        SizedBox(height: 12),
                         Text(
                           state.stamp!,
                           style: TextStyle(fontSize: 11, color: t.muted),
@@ -511,23 +508,21 @@ class _AiSection extends StatelessWidget {
                     children: [
                       Text(
                         configured
-                            ? '上面的结论是本机按真题基准算的，已经能直接用。'
-                              'AI 在这基础上再串一遍因果，并排一份一周训练计划。'
-                            : '还没配 AI。上面的结论不用配也能看 —— '
-                              'AI 只是在它之上多一层解读。',
+                            ? AppL.of(context).dxAiPitch
+                            : AppL.of(context).dxAiNotConfigured,
                         style: TextStyle(
                             fontSize: 13.5, height: 1.75, color: t.textSoft),
                       ),
                       if (state.error != null) ...[
-                        const SizedBox(height: 10),
+                        SizedBox(height: 10),
                         Text(
                           state.error!,
                           style: TextStyle(fontSize: 12.5, color: t.danger),
                         ),
                       ],
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14),
                       _AskButton(
-                        label: configured ? '让 AI 分析' : '去配置 AI',
+                        label: configured ? AppL.of(context).dxAskAi : AppL.of(context).dxConfigureAi,
                         onTap: configured
                             ? () => service.start(cacheKey, diagnosis)
                             : onConfigure,

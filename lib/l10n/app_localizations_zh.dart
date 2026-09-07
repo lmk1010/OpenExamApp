@@ -1131,4 +1131,295 @@ class AppLZh extends AppL {
 
   @override
   String get homeReciteHint => '不作答，直接看答案和解析';
+
+  @override
+  String get dxScopeAll => '全部作答记录';
+
+  @override
+  String dxThinSample(int count) {
+    return '只有 $count 条作答记录，结论还不稳。做够 100 题再看一次。';
+  }
+
+  @override
+  String dxSlowTitle(String name) {
+    return '$name 慢得会拖垮整张卷';
+  }
+
+  @override
+  String dxSlowEvidence(int secs, int bench, int pct) {
+    return '每题 $secs 秒，基准 $bench 秒，慢 $pct%';
+  }
+
+  @override
+  String dxSlowOverrun(int mins) {
+    return '；照这个速度一套卷多花 $mins 分钟';
+  }
+
+  @override
+  String dxSlightlySlowTitle(String name) {
+    return '$name 比基准慢一点';
+  }
+
+  @override
+  String dxPaceEvidence(int secs, int bench) {
+    return '每题 $secs 秒，基准 $bench 秒';
+  }
+
+  @override
+  String dxSlightlySlowAction(int bench) {
+    return '还在可控范围，但限时练的时候按 $bench 秒卡表，别让它继续涨。';
+  }
+
+  @override
+  String dxFastSteadyTitle(String name) {
+    return '$name 又快又稳';
+  }
+
+  @override
+  String dxFastSteadyEvidence(int secs, int bench, String rate) {
+    return '每题 $secs 秒（基准 $bench 秒），正确率 $rate';
+  }
+
+  @override
+  String get dxFastSteadyAction => '这块不用再投时间，省下来的分钟给弱的模块。';
+
+  @override
+  String dxRushTitle(String name) {
+    return '$name 是做太快错的，不是不会';
+  }
+
+  @override
+  String dxRushEvidence(
+    int secs,
+    int bench,
+    int pct,
+    String rate,
+    String target,
+  ) {
+    return '每题 $secs 秒，比基准 $bench 秒快 $pct%；正确率只有 $rate（目标 $target）';
+  }
+
+  @override
+  String dxRushAction(int bench, String target, String how) {
+    return '先把速度压回 $bench 秒一题，正确率提到 $target 之后再提速。省下来的几分钟换不回丢掉的分 —— $how';
+  }
+
+  @override
+  String dxAccuracyGapTitle(String name) {
+    return '$name 正确率离目标还差一截';
+  }
+
+  @override
+  String dxAccuracyGapEvidence(
+    String rate,
+    int correct,
+    int attempts,
+    String target,
+  ) {
+    return '$rate（$correct/$attempts），目标 $target';
+  }
+
+  @override
+  String dxAlmostTitle(String name) {
+    return '$name 差一口气到目标';
+  }
+
+  @override
+  String dxAlmostEvidence(String rate, String target) {
+    return '$rate，目标 $target';
+  }
+
+  @override
+  String get dxAlmostAction => '按错因翻一遍这个模块的错题，看是同一类反复栽还是零散错。';
+
+  @override
+  String get dxTimeSinkTitle => '数量关系吃掉了太多时间';
+
+  @override
+  String dxTimeSinkEvidence(String share, String paper) {
+    return '它占了你 $share 的做题时间，卷面上只占 $paper 的题';
+  }
+
+  @override
+  String get dxOverthinkTitle => '常识判断纠结太久';
+
+  @override
+  String get dxThinPracticeTitle => '资料分析练得太少';
+
+  @override
+  String dxThinPracticeEvidence(String share, String paper) {
+    return '只占你练习量的 $share，卷面上占 $paper';
+  }
+
+  @override
+  String get dxRepeatTitle => '错题在重复犯，不是新错';
+
+  @override
+  String dxRepeatEvidence(int total, int repeat, String pct) {
+    return '错题本 $total 题里有 $repeat 题错过两次以上（$pct）';
+  }
+
+  @override
+  String get dxRepeatAction =>
+      '重复错说明第一次复盘没弄懂原因。挑错得最多的那几道，逐题写下「当时为什么选了它」，比再做十道新题有用。';
+
+  @override
+  String get dxUntaggedTitle => '大部分错题没标错因';
+
+  @override
+  String dxUntaggedEvidence(int total, int tagged) {
+    return '$total 题里只标了 $tagged 题';
+  }
+
+  @override
+  String get dxUntaggedAction =>
+      '标错因是复盘唯一的杠杆：知识点没会、看错题、算错、时间不够，这四类的补法完全不同，不分开就只能整本重做。';
+
+  @override
+  String get dxTrendUpTitle => '近两周在往上走';
+
+  @override
+  String get dxTrendDownTitle => '近两周反而掉了';
+
+  @override
+  String dxTrendEvidence(String recent, String earlier) {
+    return '近两周 $recent，之前 $earlier';
+  }
+
+  @override
+  String get dxTrendUpAction => '保持现在的练法别换。';
+
+  @override
+  String get dxTrendDownAction =>
+      '一般是两种原因：开始限时了，或者换到了更难的模块。先确认是哪一种，前者正常，后者要放慢。';
+
+  @override
+  String get dxTailBlankTitle => '资料分析没做完 —— 时间是在前面丢的';
+
+  @override
+  String dxBlankTitle(int count) {
+    return '有 $count 题没作答';
+  }
+
+  @override
+  String dxBlankWithTail(int total, int tail) {
+    return '共空 $total 题，其中资料分析空 $tail 题';
+  }
+
+  @override
+  String dxBlankOnly(int total) {
+    return '共空 $total 题';
+  }
+
+  @override
+  String get dxTailBlankAction =>
+      '资料分析是全卷唯一练到位就能拿满的模块，绝不能留给残余时间。下次把它提到判断推理之后做，数量关系放最后。';
+
+  @override
+  String get dxBlankAction => '空着的题也要涂 —— 统一涂同一个字母，四个选项的正确率都在 25% 上下。';
+
+  @override
+  String get dxOvertimeTitle => '整卷超时';
+
+  @override
+  String dxOvertimeEvidence(int actual, int budget) {
+    return '实际 $actual 分钟，按基准这些题应该 $budget 分钟';
+  }
+
+  @override
+  String get dxOvertimeAction => '超时通常集中在一两个模块，看上面哪一块的「慢」被标红了，先卡那一块的表。';
+
+  @override
+  String get dxUnderTimeTitle => '整卷节奏比基准快';
+
+  @override
+  String dxUnderTimeEvidence(int actual, int budget) {
+    return '实际 $actual 分钟，基准 $budget 分钟';
+  }
+
+  @override
+  String get dxUnderTimeAction => '如果正确率也达标，可以把省下的时间还给数量关系多挑两道。';
+
+  @override
+  String get dxNoRecords => '还没有作答记录';
+
+  @override
+  String dxHeadlineClean(int count, String rate) {
+    return '$count 题，正确率 $rate，没查出明显短板';
+  }
+
+  @override
+  String dxHeadlineWorst(int count, String rate, String what) {
+    return '$count 题，正确率 $rate；最该先修的是$what';
+  }
+
+  @override
+  String get dxPageTitle => '弱点诊断';
+
+  @override
+  String get dxEmptyTitle => '还没有作答记录';
+
+  @override
+  String get dxEmptyBody => '做完一组题再回来 —— 诊断靠的是你自己的做题数据，不是别人的经验。';
+
+  @override
+  String get dxFootnote =>
+      '基准来自 161 套真题（安徽 2023—2026、国考 2022—2026）逐题统计出的题量和结构；单题秒数是按这套题量倒推的建议值，跟「解题技巧」页上的是同一个数。';
+
+  @override
+  String get dxModuleTable => '各模块 · 实测对基准';
+
+  @override
+  String get dxColQuestions => '题';
+
+  @override
+  String get dxColAccuracy => '正确率';
+
+  @override
+  String get dxColSeconds => '秒/题';
+
+  @override
+  String get dxColBench => '基准';
+
+  @override
+  String get dxFindings => '结论';
+
+  @override
+  String dxFindingsCount(int count) {
+    return '$count 条';
+  }
+
+  @override
+  String get dxNoWeakSpot => '各模块的速度和正确率都在基准附近，没有单独拎出来说的短板。继续按现在的练法走。';
+
+  @override
+  String get dxNoBenchmark =>
+      '这个题库的分类对不上行测五模块，没有可比的基准 —— 上面的总题数和正确率仍然是你的真实数据，但\"每题该几秒、正确率该到多少\"这类结论给不了。';
+
+  @override
+  String get dxLevelBad => '要修';
+
+  @override
+  String get dxLevelWatch => '注意';
+
+  @override
+  String get dxLevelGood => '不错';
+
+  @override
+  String get dxAiSection => 'AI 深入分析';
+
+  @override
+  String get dxRegenerate => '重新生成';
+
+  @override
+  String get dxAiPitch => '上面的结论是本机按真题基准算的，已经能直接用。AI 在这基础上再串一遍因果，并排一份一周训练计划。';
+
+  @override
+  String get dxAiNotConfigured => '还没配 AI。上面的结论不用配也能看 —— AI 只是在它之上多一层解读。';
+
+  @override
+  String get dxAskAi => '让 AI 分析';
+
+  @override
+  String get dxConfigureAi => '去配置 AI';
 }

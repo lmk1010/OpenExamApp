@@ -2,6 +2,7 @@ import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/data/db/app_database.dart';
 import 'package:openexam_app/data/models/question.dart';
 import 'package:openexam_app/features/tips/tips.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 
 /// 弱点诊断。
 ///
@@ -161,7 +162,9 @@ class Diagnosis {
   bool get thin => attempts < 30;
 
   /// 整段作答记录。
-  factory Diagnosis.fromHistory(DiagnosisData d) {
+  /// [l] 是界面文案。这一层是纯模型、没有 BuildContext，所以由调用方
+  /// （诊断页）把它传进来；测试直接 new 一个 AppLZh() 就能继续断言中文。
+  factory Diagnosis.fromHistory(AppL l, DiagnosisData d) {
     final modules = <ModuleLine>[];
     for (final s in d.byCategory) {
       final b = Benchmark.of(s.key);
@@ -178,27 +181,26 @@ class Diagnosis {
     modules.sort((a, b) => b.attempts.compareTo(a.attempts));
 
     final findings = <Finding>[
-      ..._moduleFindings(modules),
-      ..._historyFindings(d, modules),
+      ..._moduleFindings(l, modules),
+      ..._historyFindings(l, d, modules),
     ];
     _rank(findings);
 
     return Diagnosis(
-      scopeLabel: '全部作答记录',
-      headline: _headline(d.attempts, d.correct, findings),
+      scopeLabel: l.dxScopeAll,
+      headline: _headline(l, d.attempts, d.correct, findings),
       modules: modules,
       findings: findings,
       attempts: d.attempts,
       correct: d.correct,
       benchmarked: modules.isNotEmpty,
-      note: d.attempts < 30
-          ? '只有 ${d.attempts} 条作答记录，结论还不稳。做够 100 题再看一次。'
-          : '',
+      note: d.attempts < 30 ? l.dxThinSample(d.attempts) : '',
     );
   }
 
   /// 单次成卷。[timings] 是逐题用时，[questions] 是这份卷子的题。
   factory Diagnosis.fromReport({
+    required AppL l,
     required String title,
     required List<Question> questions,
     required Map<String, String> answers,
@@ -239,14 +241,14 @@ class Diagnosis {
     final total = questions.length;
     final correct = modules.fold<int>(0, (s, m) => s + m.correct);
     final findings = <Finding>[
-      ..._moduleFindings(modules),
-      ..._reportFindings(byCat, modules, elapsed, total),
+      ..._moduleFindings(l, modules),
+      ..._reportFindings(l, byCat, modules, elapsed, total),
     ];
     _rank(findings);
 
     return Diagnosis(
       scopeLabel: title,
-      headline: _headline(total, correct, findings),
+      headline: _headline(l, total, correct, findings),
       modules: modules,
       findings: findings,
       attempts: total,
@@ -258,7 +260,7 @@ class Diagnosis {
   // ------------------------------------------------------------------ 规则
 
   /// 逐模块：慢不慢、准不准。
-  static List<Finding> _moduleFindings(List<ModuleLine> modules) {
+  static List<Finding> _moduleFindings(AppL l, List<ModuleLine> modules) {
     final out = <Finding>[];
     for (final m in modules) {
       // 少于 8 题的模块不下结论 —— 三道题的正确率是噪声。
@@ -272,29 +274,34 @@ class Diagnosis {
           out.add(Finding(
             level: FindingLevel.bad,
             category: m.category,
-            title: '$label 慢得会拖垮整张卷',
-            evidence: '每题 ${m.seconds} 秒，基准 ${m.benchSeconds} 秒，'
-                '慢 ${((ratio - 1) * 100).round()}%'
-                '${over > 0 ? '；照这个速度一套卷多花 $over 分钟' : ''}',
+            title: l.dxSlowTitle(label),
+            evidence: l.dxSlowEvidence(
+                  m.seconds,
+                  m.benchSeconds,
+                  ((ratio - 1) * 100).round(),
+                ) +
+                (over > 0 ? l.dxSlowOverrun(over) : ''),
             action: _paceAction(m.category),
           ));
         } else if (ratio >= 1.1) {
           out.add(Finding(
             level: FindingLevel.watch,
             category: m.category,
-            title: '$label 比基准慢一点',
-            evidence: '每题 ${m.seconds} 秒，基准 ${m.benchSeconds} 秒',
-            action: '还在可控范围，但限时练的时候按 ${m.benchSeconds} 秒卡表，'
-                '别让它继续涨。',
+            title: l.dxSlightlySlowTitle(label),
+            evidence: l.dxPaceEvidence(m.seconds, m.benchSeconds),
+            action: l.dxSlightlySlowAction(m.benchSeconds),
           ));
         } else if (ratio <= 0.9 && m.accuracy >= m.targetAccuracy) {
           out.add(Finding(
             level: FindingLevel.good,
             category: m.category,
-            title: '$label 又快又稳',
-            evidence: '每题 ${m.seconds} 秒（基准 ${m.benchSeconds} 秒），'
-                '正确率 ${_pct(m.accuracy)}',
-            action: '这块不用再投时间，省下来的分钟给弱的模块。',
+            title: l.dxFastSteadyTitle(label),
+            evidence: l.dxFastSteadyEvidence(
+              m.seconds,
+              m.benchSeconds,
+              _pct(m.accuracy),
+            ),
+            action: l.dxFastSteadyAction,
           ));
         }
       }
@@ -310,30 +317,43 @@ class Diagnosis {
         out.add(Finding(
           level: FindingLevel.bad,
           category: m.category,
-          title: '$label 是做太快错的，不是不会',
-          evidence: '每题 ${m.seconds} 秒，比基准 ${m.benchSeconds} 秒快 '
-              '${((1 - m.seconds / m.benchSeconds) * 100).round()}%；'
-              '正确率只有 ${_pct(m.accuracy)}（目标 ${_pct(m.targetAccuracy)}）',
-          action: '先把速度压回 ${m.benchSeconds} 秒一题，正确率提到 '
-              '${_pct(m.targetAccuracy)} 之后再提速。'
-              '省下来的几分钟换不回丢掉的分 —— ${_rushAction(m.category)}',
+          title: l.dxRushTitle(label),
+          evidence: l.dxRushEvidence(
+            m.seconds,
+            m.benchSeconds,
+            ((1 - m.seconds / m.benchSeconds) * 100).round(),
+            _pct(m.accuracy),
+            _pct(m.targetAccuracy),
+          ),
+          action: l.dxRushAction(
+            m.benchSeconds,
+            _pct(m.targetAccuracy),
+            _rushAction(m.category),
+          ),
         ));
       } else if (gap >= 0.15) {
         out.add(Finding(
           level: FindingLevel.bad,
           category: m.category,
-          title: '$label 正确率离目标还差一截',
-          evidence: '${_pct(m.accuracy)}（${m.correct}/${m.attempts}），'
-              '目标 ${_pct(m.targetAccuracy)}',
+          title: l.dxAccuracyGapTitle(label),
+          evidence: l.dxAccuracyGapEvidence(
+            _pct(m.accuracy),
+            m.correct,
+            m.attempts,
+            _pct(m.targetAccuracy),
+          ),
           action: _accuracyAction(m.category),
         ));
       } else if (gap >= 0.05) {
         out.add(Finding(
           level: FindingLevel.watch,
           category: m.category,
-          title: '$label 差一口气到目标',
-          evidence: '${_pct(m.accuracy)}，目标 ${_pct(m.targetAccuracy)}',
-          action: '按错因翻一遍这个模块的错题，看是同一类反复栽还是零散错。',
+          title: l.dxAlmostTitle(label),
+          evidence: l.dxAlmostEvidence(
+            _pct(m.accuracy),
+            _pct(m.targetAccuracy),
+          ),
+          action: l.dxAlmostAction,
         ));
       }
     }
@@ -342,6 +362,7 @@ class Diagnosis {
 
   /// 整段历史特有的：时间花在哪、错题消没消、有没有在进步。
   static List<Finding> _historyFindings(
+    AppL l,
     DiagnosisData d,
     List<ModuleLine> modules,
   ) {
@@ -362,21 +383,18 @@ class Diagnosis {
           out.add(Finding(
             level: FindingLevel.bad,
             category: m.category,
-            title: '数量关系吃掉了太多时间',
-            evidence: '它占了你 ${_pct(share)} 的做题时间，'
-                '卷面上只占 ${_pct(b.share)} 的题',
-            action: '数量的打法是挑，不是做完：先扫一遍标「做/不做」，'
-                '只做看一眼就知道怎么列式的，其余统一涂一个字母。',
+            title: l.dxTimeSinkTitle,
+            evidence: l.dxTimeSinkEvidence(_pct(share), _pct(b.share)),
+            action: _paceAction('shuliang'),
           ));
         }
         if (m.category == 'changshi' && m.seconds > 28) {
           out.add(Finding(
             level: FindingLevel.bad,
             category: m.category,
-            title: '常识判断纠结太久',
-            evidence: '每题 ${m.seconds} 秒，基准 ${b.seconds} 秒',
-            action: '常识的边际收益是全卷最低的：5 秒没方向就选一个走人。'
-                '多想 30 秒不会让你从不会变成会。',
+            title: l.dxOverthinkTitle,
+            evidence: l.dxPaceEvidence(m.seconds, b.seconds),
+            action: _paceAction('changshi'),
           ));
         }
       }
@@ -391,10 +409,9 @@ class Diagnosis {
         out.add(Finding(
           level: FindingLevel.watch,
           category: m.category,
-          title: '资料分析练得太少',
-          evidence: '只占你练习量的 ${_pct(share)}，卷面上占 ${_pct(b.share)}',
-          action: '资料分析是全卷唯一「练到位就能拿满」的 20 分，'
-              '而且要按整篇 6 分半计时练，不是单题练。',
+          title: l.dxThinPracticeTitle,
+          evidence: l.dxThinPracticeEvidence(_pct(share), _pct(b.share)),
+          action: _accuracyAction('ziliao'),
         ));
       }
     }
@@ -405,11 +422,13 @@ class Diagnosis {
       if (repeatShare >= 0.3) {
         out.add(Finding(
           level: FindingLevel.bad,
-          title: '错题在重复犯，不是新错',
-          evidence: '错题本 ${d.wrongTotal} 题里有 ${d.repeatWrong} 题错过两次以上'
-              '（${_pct(repeatShare)}）',
-          action: '重复错说明第一次复盘没弄懂原因。挑错得最多的那几道，'
-              '逐题写下「当时为什么选了它」，比再做十道新题有用。',
+          title: l.dxRepeatTitle,
+          evidence: l.dxRepeatEvidence(
+            d.wrongTotal,
+            d.repeatWrong,
+            _pct(repeatShare),
+          ),
+          action: l.dxRepeatAction,
         ));
       }
     }
@@ -421,10 +440,9 @@ class Diagnosis {
     if (d.wrongTotal >= 20 && tagged / d.wrongTotal < 0.4) {
       out.add(Finding(
         level: FindingLevel.watch,
-        title: '大部分错题没标错因',
-        evidence: '${d.wrongTotal} 题里只标了 $tagged 题',
-        action: '标错因是复盘唯一的杠杆：知识点没会、看错题、算错、时间不够，'
-            '这四类的补法完全不同，不分开就只能整本重做。',
+        title: l.dxUntaggedTitle,
+        evidence: l.dxUntaggedEvidence(d.wrongTotal, tagged),
+        action: l.dxUntaggedAction,
       ));
     }
 
@@ -434,19 +452,22 @@ class Diagnosis {
       if (delta >= 0.05) {
         out.add(Finding(
           level: FindingLevel.good,
-          title: '近两周在往上走',
-          evidence: '近两周 ${_pct(d.recent.accuracy)}，'
-              '之前 ${_pct(d.earlier.accuracy)}',
-          action: '保持现在的练法别换。',
+          title: l.dxTrendUpTitle,
+          evidence: l.dxTrendEvidence(
+            _pct(d.recent.accuracy),
+            _pct(d.earlier.accuracy),
+          ),
+          action: l.dxTrendUpAction,
         ));
       } else if (delta <= -0.05) {
         out.add(Finding(
           level: FindingLevel.watch,
-          title: '近两周反而掉了',
-          evidence: '近两周 ${_pct(d.recent.accuracy)}，'
-              '之前 ${_pct(d.earlier.accuracy)}',
-          action: '一般是两种原因：开始限时了，或者换到了更难的模块。'
-              '先确认是哪一种，前者正常，后者要放慢。',
+          title: l.dxTrendDownTitle,
+          evidence: l.dxTrendEvidence(
+            _pct(d.recent.accuracy),
+            _pct(d.earlier.accuracy),
+          ),
+          action: l.dxTrendDownAction,
         ));
       }
     }
@@ -456,6 +477,7 @@ class Diagnosis {
 
   /// 单次成卷特有的：有没有做完、时间怎么分的。
   static List<Finding> _reportFindings(
+    AppL l,
     Map<String, ({int n, int correct, int secs, int timed, int blank})> byCat,
     List<ModuleLine> modules,
     Duration elapsed,
@@ -470,15 +492,12 @@ class Diagnosis {
       out.add(Finding(
         level: blank > total * 0.1 ? FindingLevel.bad : FindingLevel.watch,
         title: tail >= blank * 0.5 && tail > 0
-            ? '资料分析没做完 —— 时间是在前面丢的'
-            : '有 $blank 题没作答',
+            ? l.dxTailBlankTitle
+            : l.dxBlankTitle(blank),
         evidence: tail > 0
-            ? '共空 $blank 题，其中资料分析空 $tail 题'
-            : '共空 $blank 题',
-        action: tail > 0
-            ? '资料分析是全卷唯一练到位就能拿满的模块，绝不能留给残余时间。'
-              '下次把它提到判断推理之后做，数量关系放最后。'
-            : '空着的题也要涂 —— 统一涂同一个字母，四个选项的正确率都在 25% 上下。',
+            ? l.dxBlankWithTail(blank, tail)
+            : l.dxBlankOnly(blank),
+        action: tail > 0 ? l.dxTailBlankAction : l.dxBlankAction,
       ));
     }
 
@@ -492,18 +511,22 @@ class Diagnosis {
       if (ratio >= 1.15) {
         out.add(Finding(
           level: FindingLevel.bad,
-          title: '整卷超时',
-          evidence: '实际 ${elapsed.inMinutes} 分钟，'
-              '按基准这些题应该 ${(budget / 60).round()} 分钟',
-          action: '超时通常集中在一两个模块，看上面哪一块的「慢」被标红了，'
-              '先卡那一块的表。',
+          title: l.dxOvertimeTitle,
+          evidence: l.dxOvertimeEvidence(
+            elapsed.inMinutes,
+            (budget / 60).round(),
+          ),
+          action: l.dxOvertimeAction,
         ));
       } else if (ratio <= 0.85) {
         out.add(Finding(
           level: FindingLevel.good,
-          title: '整卷节奏比基准快',
-          evidence: '实际 ${elapsed.inMinutes} 分钟，基准 ${(budget / 60).round()} 分钟',
-          action: '如果正确率也达标，可以把省下的时间还给数量关系多挑两道。',
+          title: l.dxUnderTimeTitle,
+          evidence: l.dxUnderTimeEvidence(
+            elapsed.inMinutes,
+            (budget / 60).round(),
+          ),
+          action: l.dxUnderTimeAction,
         ));
       }
     }
@@ -512,6 +535,12 @@ class Diagnosis {
   }
 
   // ------------------------------------------------------------------ 文案
+
+  // ---- 以下三个是行测专属的处方，**刻意保持中文** ----
+  //
+  // 它们只在 Benchmark.of(category) 认得的模块上触发，也就是只在行测题库下
+  // 出现。「逻辑填空练搭配不背释义」「图推最多 90 秒」这种话翻成英文给谁看
+  // 都没用 —— 它是考试内容，不是界面文案，该跟着题库走。
 
   static String _paceAction(String category) => switch (category) {
         'changshi' => '常识每题 16 秒一遍过，不回头。这个模块多想没有用。',
@@ -555,15 +584,21 @@ class Diagnosis {
         _ => '按错因分类翻一遍这个模块的错题。',
       };
 
-  static String _headline(int attempts, int correct, List<Finding> findings) {
-    if (attempts == 0) return '还没有作答记录';
+  static String _headline(
+    AppL l,
+    int attempts,
+    int correct,
+    List<Finding> findings,
+  ) {
+    if (attempts == 0) return l.dxNoRecords;
     final bad = findings.where((f) => f.level == FindingLevel.bad).toList();
     final acc = _pct(correct / attempts);
-    if (bad.isEmpty) {
-      return '$attempts 题，正确率 $acc，没查出明显短板';
-    }
-    return '$attempts 题，正确率 $acc；最该先修的是${bad.first.category.isEmpty ? '' : categoryLabel(bad.first.category)}'
-        '${bad.first.category.isEmpty ? bad.first.title : ''}';
+    if (bad.isEmpty) return l.dxHeadlineClean(attempts, acc);
+    // 有模块归属就报模块名，全卷层面的结论直接报它的标题。
+    final what = bad.first.category.isEmpty
+        ? bad.first.title
+        : categoryLabel(bad.first.category);
+    return l.dxHeadlineWorst(attempts, acc, what);
   }
 
   static void _rank(List<Finding> findings) {

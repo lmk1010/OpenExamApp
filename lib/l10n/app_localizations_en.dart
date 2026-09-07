@@ -1160,4 +1160,305 @@ class AppLEn extends AppL {
   @override
   String get homeReciteHint =>
       'No answering — straight to the answer and explanation';
+
+  @override
+  String get dxScopeAll => 'All practice history';
+
+  @override
+  String dxThinSample(int count) {
+    return 'Only $count answers so far — the conclusions aren\'t stable yet. Come back after 100.';
+  }
+
+  @override
+  String dxSlowTitle(String name) {
+    return '$name is slow enough to sink the whole paper';
+  }
+
+  @override
+  String dxSlowEvidence(int secs, int bench, int pct) {
+    return '${secs}s per question against a ${bench}s benchmark — $pct% slower';
+  }
+
+  @override
+  String dxSlowOverrun(int mins) {
+    return '; at that pace a full paper costs you $mins extra minutes';
+  }
+
+  @override
+  String dxSlightlySlowTitle(String name) {
+    return '$name is a little slower than the benchmark';
+  }
+
+  @override
+  String dxPaceEvidence(int secs, int bench) {
+    return '${secs}s per question, benchmark ${bench}s';
+  }
+
+  @override
+  String dxSlightlySlowAction(int bench) {
+    return 'Still manageable, but time yourself at ${bench}s in drills so it doesn\'t creep further.';
+  }
+
+  @override
+  String dxFastSteadyTitle(String name) {
+    return '$name is quick and steady';
+  }
+
+  @override
+  String dxFastSteadyEvidence(int secs, int bench, String rate) {
+    return '${secs}s per question (benchmark ${bench}s), $rate correct';
+  }
+
+  @override
+  String get dxFastSteadyAction =>
+      'No more time needed here — spend those minutes on the weak modules.';
+
+  @override
+  String dxRushTitle(String name) {
+    return '$name: you\'re missing these by rushing, not by not knowing';
+  }
+
+  @override
+  String dxRushEvidence(
+    int secs,
+    int bench,
+    int pct,
+    String rate,
+    String target,
+  ) {
+    return '${secs}s per question — $pct% faster than the ${bench}s benchmark — but only $rate correct (target $target)';
+  }
+
+  @override
+  String dxRushAction(int bench, String target, String how) {
+    return 'Slow back down to ${bench}s a question and get to $target before speeding up again. The minutes you save don\'t buy back the marks you drop — $how';
+  }
+
+  @override
+  String dxAccuracyGapTitle(String name) {
+    return '$name is well short of its target accuracy';
+  }
+
+  @override
+  String dxAccuracyGapEvidence(
+    String rate,
+    int correct,
+    int attempts,
+    String target,
+  ) {
+    return '$rate ($correct/$attempts), target $target';
+  }
+
+  @override
+  String dxAlmostTitle(String name) {
+    return '$name is nearly at target';
+  }
+
+  @override
+  String dxAlmostEvidence(String rate, String target) {
+    return '$rate, target $target';
+  }
+
+  @override
+  String get dxAlmostAction =>
+      'Go through this module\'s mistakes by reason and see whether it\'s the same trap repeating or scattered slips.';
+
+  @override
+  String get dxTimeSinkTitle => 'Quantitative is eating too much of your time';
+
+  @override
+  String dxTimeSinkEvidence(String share, String paper) {
+    return 'It takes $share of your practice time but is only $paper of the paper';
+  }
+
+  @override
+  String get dxOverthinkTitle => 'You\'re agonising over general knowledge';
+
+  @override
+  String get dxThinPracticeTitle => 'You\'ve barely practised data analysis';
+
+  @override
+  String dxThinPracticeEvidence(String share, String paper) {
+    return 'Only $share of your practice, but $paper of the paper';
+  }
+
+  @override
+  String get dxRepeatTitle => 'You\'re repeating mistakes, not making new ones';
+
+  @override
+  String dxRepeatEvidence(int total, int repeat, String pct) {
+    return '$repeat of the $total in your mistake book have been missed twice or more ($pct)';
+  }
+
+  @override
+  String get dxRepeatAction =>
+      'Repeating means the first review never found the cause. Take the few you miss most and write down why you picked what you picked — worth more than ten fresh questions.';
+
+  @override
+  String get dxUntaggedTitle => 'Most of your mistakes have no reason tagged';
+
+  @override
+  String dxUntaggedEvidence(int total, int tagged) {
+    return 'Only $tagged of $total are tagged';
+  }
+
+  @override
+  String get dxUntaggedAction =>
+      'Tagging is the only lever review has. Didn\'t know it, misread it, miscalculated, ran out of time — the four need completely different fixes, and without separating them all you can do is redo the whole book.';
+
+  @override
+  String get dxTrendUpTitle => 'The last two weeks are trending up';
+
+  @override
+  String get dxTrendDownTitle => 'The last two weeks went the other way';
+
+  @override
+  String dxTrendEvidence(String recent, String earlier) {
+    return 'Last two weeks $recent, before that $earlier';
+  }
+
+  @override
+  String get dxTrendUpAction => 'Keep doing exactly what you\'re doing.';
+
+  @override
+  String get dxTrendDownAction =>
+      'Usually one of two things: you started timing yourself, or you moved to a harder module. Work out which — the first is normal, the second means slow down.';
+
+  @override
+  String get dxTailBlankTitle =>
+      'You didn\'t finish data analysis — the time went missing earlier';
+
+  @override
+  String dxBlankTitle(int count) {
+    return '$count left unanswered';
+  }
+
+  @override
+  String dxBlankWithTail(int total, int tail) {
+    return '$total blank in all, $tail of them in data analysis';
+  }
+
+  @override
+  String dxBlankOnly(int total) {
+    return '$total left blank';
+  }
+
+  @override
+  String get dxTailBlankAction =>
+      'Data analysis is the one module you can score full marks on with practice — never leave it to whatever time is left. Next time do it right after reasoning and put quantitative last.';
+
+  @override
+  String get dxBlankAction =>
+      'Fill in the blanks anyway — pick one letter and use it for all of them; every option sits around 25%.';
+
+  @override
+  String get dxOvertimeTitle => 'Over time on the whole paper';
+
+  @override
+  String dxOvertimeEvidence(int actual, int budget) {
+    return '$actual minutes against a $budget-minute benchmark for these questions';
+  }
+
+  @override
+  String get dxOvertimeAction =>
+      'Overruns usually come from one or two modules. See which one is flagged slow above and time that one first.';
+
+  @override
+  String get dxUnderTimeTitle => 'You\'re ahead of the benchmark pace';
+
+  @override
+  String dxUnderTimeEvidence(int actual, int budget) {
+    return '$actual minutes, benchmark $budget';
+  }
+
+  @override
+  String get dxUnderTimeAction =>
+      'If accuracy is on target too, spend the saved minutes picking off a couple more quantitative questions.';
+
+  @override
+  String get dxNoRecords => 'No answers recorded yet';
+
+  @override
+  String dxHeadlineClean(int count, String rate) {
+    return '$count questions, $rate correct — no obvious weak spot';
+  }
+
+  @override
+  String dxHeadlineWorst(int count, String rate, String what) {
+    return '$count questions, $rate correct — fix $what first';
+  }
+
+  @override
+  String get dxPageTitle => 'Weak spots';
+
+  @override
+  String get dxEmptyTitle => 'No answers recorded yet';
+
+  @override
+  String get dxEmptyBody =>
+      'Finish a set and come back — this runs on your own answers, not somebody else\'s advice.';
+
+  @override
+  String get dxFootnote =>
+      'Benchmarks come from counting 161 real papers question by question; the per-question seconds are derived from those counts and match the ones on the Method page.';
+
+  @override
+  String get dxModuleTable => 'By module · measured against benchmark';
+
+  @override
+  String get dxColQuestions => 'Qs';
+
+  @override
+  String get dxColAccuracy => 'Correct';
+
+  @override
+  String get dxColSeconds => 's/q';
+
+  @override
+  String get dxColBench => 'Bench';
+
+  @override
+  String get dxFindings => 'What it says';
+
+  @override
+  String dxFindingsCount(int count) {
+    return '$count of them';
+  }
+
+  @override
+  String get dxNoWeakSpot =>
+      'Pace and accuracy sit near the benchmark across the board — nothing worth singling out. Carry on as you are.';
+
+  @override
+  String get dxNoBenchmark =>
+      'This bank\'s categories don\'t line up with the benchmarked modules, so there\'s nothing to compare against. The totals above are still your real numbers, but there\'s no basis for saying how many seconds a question should take or where accuracy should sit.';
+
+  @override
+  String get dxLevelBad => 'Fix';
+
+  @override
+  String get dxLevelWatch => 'Watch';
+
+  @override
+  String get dxLevelGood => 'Good';
+
+  @override
+  String get dxAiSection => 'AI read-through';
+
+  @override
+  String get dxRegenerate => 'Regenerate';
+
+  @override
+  String get dxAiPitch =>
+      'The conclusions above are computed on this device against real-paper benchmarks and are ready to use. AI joins them into cause and effect and lays out a week\'s training.';
+
+  @override
+  String get dxAiNotConfigured =>
+      'No AI configured. Everything above works without it — AI is just an extra layer of reading on top.';
+
+  @override
+  String get dxAskAi => 'Ask AI';
+
+  @override
+  String get dxConfigureAi => 'Set up AI';
 }
