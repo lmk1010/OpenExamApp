@@ -2140,4 +2140,102 @@ class AppLZh extends AppL {
 
   @override
   String get repeatEveryOther => '隔一天';
+
+  @override
+  String cmExported(int count) {
+    return '已导出 $count 道题';
+  }
+
+  @override
+  String get cmClearBank => '清空题库';
+
+  @override
+  String cmClearBody(int count) {
+    return '删掉全部 $count 道题。';
+  }
+
+  @override
+  String get cmClearNote =>
+      '做题记录、错题本、笔记不会删 —— 重新导入同一批题还能对上。\\n\\n这一步不可撤销，建议先导出。';
+
+  @override
+  String get cmClear => '清空';
+
+  @override
+  String cmCleared(int count) {
+    return '已清空 $count 道题';
+  }
+
+  @override
+  String get cmMerge => '合并分类';
+
+  @override
+  String cmMergeBody(int count, String from, String to) {
+    return '「$from」的 $count 道题会并进「$to」。';
+  }
+
+  @override
+  String get cmMergeNote => '这一步不可撤销，但题本身不会丢。';
+
+  @override
+  String get cmMergeConfirm => '合并';
+
+  @override
+  String cmMerged(String name) {
+    return '已并入「$name」';
+  }
+
+  @override
+  String get cmRenamed => '已改名';
+
+  @override
+  String get cmNeedAiKey => '先去「我的 → AI 设置」配一个 key';
+
+  @override
+  String get cmUncategorised => '未分类';
+
+  @override
+  String get cmNoTargets => '还没有别的分类可归，先手动建几个';
+
+  @override
+  String get cmAiSort => 'AI 重新分类';
+
+  @override
+  String cmAiSortBody(String name) {
+    return '把「$name」里的题按现有分类重新归一遍。';
+  }
+
+  @override
+  String cmAiSortNote(int count) {
+    return 'AI 只会在你已有的 $count 个分类里选，不会新造。';
+  }
+
+  @override
+  String get cmReading => '读题…';
+
+  @override
+  String get cmAiSortFailed => 'AI 没能归出结果，可以手动改';
+
+  @override
+  String cmAiSorted(int count) {
+    return '归好了 $count 道';
+  }
+
+  @override
+  String get cmTitle => '题库管理';
+
+  @override
+  String get cmRenameHint => '改名就是改名；改成已有的名字就是把两类并成一类。题一道都不会丢。';
+
+  @override
+  String get cmEmptyTitle => '题库还是空的';
+
+  @override
+  String get cmEmptyBody => '导入题目之后，分类会出现在这里。';
+
+  @override
+  String get cmRenameMerge => '改名 / 合并';
+
+  @override
+  String get cmMergeInto => '并进已有的：';
 }

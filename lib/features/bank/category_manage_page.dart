@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/ai/ai_client.dart';
 import 'package:openexam_app/core/ai/ai_settings.dart';
 import 'package:openexam_app/core/constants/categories.dart';
@@ -61,15 +62,15 @@ class _CategoryManagePageState extends State<CategoryManagePage> {
       );
       if (!mounted) return;
       if (path != null) {
-        _toast('已导出 ${rows.length} 道题');
+        _toast(AppL.of(context).cmExported(rows.length));
       } else {
         // 选择器不可用时落到 app 文档目录，总比整个失败强
         final dir = await getApplicationDocumentsDirectory();
         await File('${dir.path}/$name').writeAsString(json);
-        if (mounted) _toast('已保存到 App 文档目录：$name');
+        if (mounted) _toast(AppL.of(context).wrongExportSavedDocs(name));
       }
     } catch (e) {
-      if (mounted) _toast('导出失败：$e');
+      if (mounted) _toast(AppL.of(context).wrongExportFailed('$e'));
     } finally {
       if (mounted) setState(() => _busyGlobal = false);
     }
@@ -78,11 +79,10 @@ class _CategoryManagePageState extends State<CategoryManagePage> {
   /// 清空题库。做题记录不动 —— 它按 question_id 存，重新导入同一批题还能对上。
   Future<void> _clearAll() async {
     final ok = await _confirm(
-      title: '清空题库',
-      body: '删掉全部 $_totalQuestions 道题。'
-          '做题记录、错题本、笔记不会删 —— 重新导入同一批题还能对上。\n\n'
-          '这一步不可撤销，建议先导出。',
-      action: '清空',
+      title: AppL.of(context).cmClearBank,
+      body: '${AppL.of(context).cmClearBody(_totalQuestions)}'
+          '${AppL.of(context).cmClearNote}',
+      action: AppL.of(context).cmClear,
     );
     if (ok != true) return;
     setState(() => _busyGlobal = true);
@@ -90,7 +90,7 @@ class _CategoryManagePageState extends State<CategoryManagePage> {
     await _load();
     if (!mounted) return;
     setState(() => _busyGlobal = false);
-    _toast('已清空 $n 道题');
+    _toast(AppL.of(context).cmCleared(n));
   }
 
   @override
@@ -110,6 +110,7 @@ class _CategoryManagePageState extends State<CategoryManagePage> {
   }
 
   Future<void> _rename(CategoryStat stat) async {
+    final l = AppL.of(context);
     final others = _stats
         .map((e) => e.category)
         .where((c) => c != stat.category)
@@ -124,45 +125,46 @@ class _CategoryManagePageState extends State<CategoryManagePage> {
     final merging = others.contains(name);
     if (merging) {
       final ok = await _confirm(
-        title: '合并分类',
-        body: '「${stat.category}」的 ${stat.total} 道题会并进「$name」。'
-            '这一步不可撤销，但题本身不会丢。',
-        action: '合并',
+        title: l.cmMerge,
+        body: '${l.cmMergeBody(stat.total, stat.category, name)}'
+            '${l.cmMergeNote}',
+        action: l.cmMergeConfirm,
       );
       if (ok != true) return;
     }
     await AppDatabase.instance.renameCategory(stat.category, name);
     await _load();
-    if (mounted) _toast(merging ? '已并入「$name」' : '已改名');
+    if (mounted) _toast(merging ? l.cmMerged(name) : l.cmRenamed);
   }
 
   /// 让 AI 把这一类里的题重新分到现有分类里。
   Future<void> _autoClassify(CategoryStat stat) async {
+    final l = AppL.of(context);
     final settings = await AiSettingsStore.load();
     if (!settings.isConfigured) {
-      _toast('先去「我的 → AI 设置」配一个 key');
+      _toast(l.cmNeedAiKey);
       return;
     }
     final targets = _stats
         .map((e) => e.category)
-        .where((c) => c != stat.category && c != '未分类')
+        .where((c) => c != stat.category && c != l.cmUncategorised)
         .toList();
     if (targets.isEmpty) {
-      _toast('还没有别的分类可归，先手动建几个');
+      _toast(l.cmNoTargets);
       return;
     }
 
     final ok = await _confirm(
-      title: 'AI 重新分类',
-      body: '把「${stat.category}」里的题按现有分类重新归一遍。'
-          'AI 只会在你已有的 ${targets.length} 个分类里选，不会新造。',
-      action: '开始',
+      title: l.cmAiSort,
+      body: '${l.cmAiSortBody(stat.category)}'
+          '${l.cmAiSortNote(targets.length)}',
+      action: l.commonStart,
     );
     if (ok != true) return;
 
     setState(() {
       _working = stat.category;
-      _note = '读题…';
+      _note = l.cmReading;
     });
 
     final briefs = await AppDatabase.instance.questionBriefs(stat.category);
@@ -216,7 +218,7 @@ class _CategoryManagePageState extends State<CategoryManagePage> {
     });
     await _load();
     if (mounted) {
-      _toast(moved == 0 ? 'AI 没能归出结果，可以手动改' : '归好了 $moved 道');
+      _toast(moved == 0 ? l.cmAiSortFailed : l.cmAiSorted(moved));
     }
   }
 
@@ -233,7 +235,7 @@ class _CategoryManagePageState extends State<CategoryManagePage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(false),
-              child: const Text('取消'),
+              child: Text(AppL.of(context).commonCancel),
             ),
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(true),
@@ -259,14 +261,14 @@ class _CategoryManagePageState extends State<CategoryManagePage> {
       body: SafeArea(
         child: ReadableWidth(
           child: _loading
-              ? const LoadingState()
+              ? LoadingState()
               : ListView(
                   padding: EdgeInsets.only(
                     bottom: MediaQuery.paddingOf(context).bottom + 28,
                   ),
                   children: [
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(
+                      padding: EdgeInsets.fromLTRB(
                           AppTheme.gutter, 8, AppTheme.gutter, 6),
                       child: Row(
                         children: [
@@ -274,19 +276,19 @@ class _CategoryManagePageState extends State<CategoryManagePage> {
                             icon: Icons.arrow_back,
                             onTap: () => Navigator.of(context).maybePop(),
                           ),
-                          const SizedBox(width: 4),
+                          SizedBox(width: 4),
                           Expanded(
-                              child: Text('题库管理', style: text.titleMedium)),
+                              child: Text(AppL.of(context).cmTitle, style: text.titleMedium)),
                           if (_stats.isNotEmpty) ...[
                             IconButton(
-                              tooltip: '导出题库',
+                              tooltip: AppL.of(context).bankExportTitle,
                               visualDensity: VisualDensity.compact,
                               icon: Icon(Icons.ios_share,
                                   size: 19, color: t.textSoft),
                               onPressed: _busyGlobal ? null : _export,
                             ),
                             IconButton(
-                              tooltip: '清空题库',
+                              tooltip: AppL.of(context).cmClearBank,
                               visualDensity: VisualDensity.compact,
                               icon: Icon(Icons.delete_sweep_outlined,
                                   size: 20, color: t.textSoft),
@@ -297,19 +299,18 @@ class _CategoryManagePageState extends State<CategoryManagePage> {
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(
+                      padding: EdgeInsets.fromLTRB(
                           AppTheme.gutter, 0, AppTheme.gutter, 14),
                       child: Text(
-                        '改名就是改名；改成已有的名字就是把两类并成一类。'
-                        '题一道都不会丢。',
+                        AppL.of(context).cmRenameHint,
                         style: text.bodySmall?.copyWith(color: t.textSoft),
                       ),
                     ),
                     if (_stats.isEmpty)
-                      const EmptyState(
+                      EmptyState(
                         icon: Icons.category_outlined,
-                        title: '题库还是空的',
-                        message: '导入题目之后，分类会出现在这里。',
+                        title: AppL.of(context).cmEmptyTitle,
+                        message: AppL.of(context).cmEmptyBody,
                       ),
                     for (final s in _stats)
                       _CategoryRow(
@@ -391,15 +392,15 @@ class _CategoryRow extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: text.titleSmall,
                 ),
-                const SizedBox(height: 2),
+                SizedBox(height: 2),
                 Row(
                   children: [
-                    Text('${stat.total} 题',
+                    Text(AppL.of(context).countQuestions(stat.total),
                         style: text.bodySmall?.copyWith(color: t.textSoft)),
                     if (busy) ...[
                       const SizedBox(width: 8),
-                      const AiDots(),
-                      const SizedBox(width: 6),
+                      AiDots(),
+                      SizedBox(width: 6),
                       Text(note ?? '',
                           style:
                               text.bodySmall?.copyWith(color: t.textSoft)),
@@ -410,14 +411,14 @@ class _CategoryRow extends StatelessWidget {
             ),
           ),
           IconButton(
-            tooltip: 'AI 重新分类',
+            tooltip: AppL.of(context).cmAiSort,
             visualDensity: VisualDensity.compact,
             icon: Icon(Icons.auto_awesome_outlined,
                 size: 18, color: t.textSoft),
             onPressed: onAuto,
           ),
           IconButton(
-            tooltip: '改名 / 合并',
+            tooltip: AppL.of(context).cmRenameMerge,
             visualDensity: VisualDensity.compact,
             icon: Icon(Icons.drive_file_rename_outline,
                 size: 18, color: t.textSoft),
@@ -457,7 +458,7 @@ class _RenameDialogState extends State<_RenameDialog> {
     final text = Theme.of(context).textTheme;
 
     return AlertDialog(
-      title: const Text('改名 / 合并'),
+      title: Text(AppL.of(context).cmRenameMerge),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -472,8 +473,8 @@ class _RenameDialogState extends State<_RenameDialog> {
             onSubmitted: (v) => Navigator.of(context).pop(v.trim()),
           ),
           if (widget.others.isNotEmpty) ...[
-            const SizedBox(height: 14),
-            Text('并进已有的：',
+            SizedBox(height: 14),
+            Text(AppL.of(context).cmMergeInto,
                 style: text.bodySmall?.copyWith(color: t.textSoft)),
             const SizedBox(height: 8),
             Wrap(
@@ -510,11 +511,11 @@ class _RenameDialogState extends State<_RenameDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('取消'),
+          child: Text(AppL.of(context).commonCancel),
         ),
         TextButton(
           onPressed: () => Navigator.of(context).pop(_ctrl.text.trim()),
-          child: const Text('确定'),
+          child: Text(AppL.of(context).commonConfirm),
         ),
       ],
     );

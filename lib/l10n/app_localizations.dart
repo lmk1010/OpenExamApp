@@ -3797,6 +3797,168 @@ abstract class AppL {
   /// In zh, this message translates to:
   /// **'隔一天'**
   String get repeatEveryOther;
+
+  /// No description provided for @cmExported.
+  ///
+  /// In zh, this message translates to:
+  /// **'已导出 {count} 道题'**
+  String cmExported(int count);
+
+  /// No description provided for @cmClearBank.
+  ///
+  /// In zh, this message translates to:
+  /// **'清空题库'**
+  String get cmClearBank;
+
+  /// No description provided for @cmClearBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'删掉全部 {count} 道题。'**
+  String cmClearBody(int count);
+
+  /// No description provided for @cmClearNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'做题记录、错题本、笔记不会删 —— 重新导入同一批题还能对上。\\n\\n这一步不可撤销，建议先导出。'**
+  String get cmClearNote;
+
+  /// No description provided for @cmClear.
+  ///
+  /// In zh, this message translates to:
+  /// **'清空'**
+  String get cmClear;
+
+  /// No description provided for @cmCleared.
+  ///
+  /// In zh, this message translates to:
+  /// **'已清空 {count} 道题'**
+  String cmCleared(int count);
+
+  /// No description provided for @cmMerge.
+  ///
+  /// In zh, this message translates to:
+  /// **'合并分类'**
+  String get cmMerge;
+
+  /// No description provided for @cmMergeBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'「{from}」的 {count} 道题会并进「{to}」。'**
+  String cmMergeBody(int count, String from, String to);
+
+  /// No description provided for @cmMergeNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'这一步不可撤销，但题本身不会丢。'**
+  String get cmMergeNote;
+
+  /// No description provided for @cmMergeConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'合并'**
+  String get cmMergeConfirm;
+
+  /// No description provided for @cmMerged.
+  ///
+  /// In zh, this message translates to:
+  /// **'已并入「{name}」'**
+  String cmMerged(String name);
+
+  /// No description provided for @cmRenamed.
+  ///
+  /// In zh, this message translates to:
+  /// **'已改名'**
+  String get cmRenamed;
+
+  /// No description provided for @cmNeedAiKey.
+  ///
+  /// In zh, this message translates to:
+  /// **'先去「我的 → AI 设置」配一个 key'**
+  String get cmNeedAiKey;
+
+  /// No description provided for @cmUncategorised.
+  ///
+  /// In zh, this message translates to:
+  /// **'未分类'**
+  String get cmUncategorised;
+
+  /// No description provided for @cmNoTargets.
+  ///
+  /// In zh, this message translates to:
+  /// **'还没有别的分类可归，先手动建几个'**
+  String get cmNoTargets;
+
+  /// No description provided for @cmAiSort.
+  ///
+  /// In zh, this message translates to:
+  /// **'AI 重新分类'**
+  String get cmAiSort;
+
+  /// No description provided for @cmAiSortBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'把「{name}」里的题按现有分类重新归一遍。'**
+  String cmAiSortBody(String name);
+
+  /// No description provided for @cmAiSortNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'AI 只会在你已有的 {count} 个分类里选，不会新造。'**
+  String cmAiSortNote(int count);
+
+  /// No description provided for @cmReading.
+  ///
+  /// In zh, this message translates to:
+  /// **'读题…'**
+  String get cmReading;
+
+  /// No description provided for @cmAiSortFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'AI 没能归出结果，可以手动改'**
+  String get cmAiSortFailed;
+
+  /// No description provided for @cmAiSorted.
+  ///
+  /// In zh, this message translates to:
+  /// **'归好了 {count} 道'**
+  String cmAiSorted(int count);
+
+  /// No description provided for @cmTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'题库管理'**
+  String get cmTitle;
+
+  /// No description provided for @cmRenameHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'改名就是改名；改成已有的名字就是把两类并成一类。题一道都不会丢。'**
+  String get cmRenameHint;
+
+  /// No description provided for @cmEmptyTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'题库还是空的'**
+  String get cmEmptyTitle;
+
+  /// No description provided for @cmEmptyBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'导入题目之后，分类会出现在这里。'**
+  String get cmEmptyBody;
+
+  /// No description provided for @cmRenameMerge.
+  ///
+  /// In zh, this message translates to:
+  /// **'改名 / 合并'**
+  String get cmRenameMerge;
+
+  /// No description provided for @cmMergeInto.
+  ///
+  /// In zh, this message translates to:
+  /// **'并进已有的：'**
+  String get cmMergeInto;
 }
 
 class _AppLDelegate extends LocalizationsDelegate<AppL> {

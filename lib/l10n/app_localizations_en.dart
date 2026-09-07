@@ -2192,4 +2192,105 @@ class AppLEn extends AppL {
 
   @override
   String get repeatEveryOther => 'Every other day';
+
+  @override
+  String cmExported(int count) {
+    return 'Exported $count questions';
+  }
+
+  @override
+  String get cmClearBank => 'Clear the bank';
+
+  @override
+  String cmClearBody(int count) {
+    return 'Deletes all $count questions.';
+  }
+
+  @override
+  String get cmClearNote =>
+      'Your answers, mistake book and notes stay — re-import the same questions and they line up again.\n\nThis can\'t be undone; export first.';
+
+  @override
+  String get cmClear => 'Clear';
+
+  @override
+  String cmCleared(int count) {
+    return 'Cleared $count questions';
+  }
+
+  @override
+  String get cmMerge => 'Merge categories';
+
+  @override
+  String cmMergeBody(int count, String from, String to) {
+    return 'The $count questions in \"$from\" move into \"$to\".';
+  }
+
+  @override
+  String get cmMergeNote => 'This can\'t be undone, but no questions are lost.';
+
+  @override
+  String get cmMergeConfirm => 'Merge';
+
+  @override
+  String cmMerged(String name) {
+    return 'Merged into \"$name\"';
+  }
+
+  @override
+  String get cmRenamed => 'Renamed';
+
+  @override
+  String get cmNeedAiKey => 'Set up a key first under You → AI settings';
+
+  @override
+  String get cmUncategorised => 'Uncategorised';
+
+  @override
+  String get cmNoTargets =>
+      'No other categories to sort into — make a few first';
+
+  @override
+  String get cmAiSort => 'Re-sort with AI';
+
+  @override
+  String cmAiSortBody(String name) {
+    return 'Re-sorts the questions in \"$name\" into your existing categories.';
+  }
+
+  @override
+  String cmAiSortNote(int count) {
+    return 'AI only picks from the $count categories you already have — it won\'t invent new ones.';
+  }
+
+  @override
+  String get cmReading => 'Reading…';
+
+  @override
+  String get cmAiSortFailed => 'AI couldn\'t sort these — change them by hand';
+
+  @override
+  String cmAiSorted(int count) {
+    return 'Sorted $count';
+  }
+
+  @override
+  String get cmTitle => 'Manage the bank';
+
+  @override
+  String get cmRenameHint =>
+      'Renaming is just renaming; rename to a name that already exists and the two merge. No questions are lost either way.';
+
+  @override
+  String get cmEmptyTitle => 'The bank is empty';
+
+  @override
+  String get cmEmptyBody =>
+      'Import questions and their categories show up here.';
+
+  @override
+  String get cmRenameMerge => 'Rename / merge';
+
+  @override
+  String get cmMergeInto => 'Merge into an existing one:';
 }

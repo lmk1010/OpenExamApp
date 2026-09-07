@@ -111,6 +111,20 @@ def main() -> int:
             hit = pattern.search(src)
             if hit is None:
                 raise SystemExit(f'{path}: 找不到\n{raw[:120]}')
+
+            # Dart 里相邻的字符串字面量会自动拼接，但表达式不会。只换掉其中
+            # 一半，剩下的就变成两个并排的表达式，编译直接挂：
+            #     body: l.a(x)
+            #         l.b,          // ← 少了个逗号？不，是本来该拼在一起
+            # 所以匹配段紧邻另一个字面量时必须报错 —— 那说明这一条要连着
+            # 邻居一起写进 zh，不能拆开换。
+            after = src[hit.end():hit.end() + 200].lstrip()
+            before = src[:hit.start()].rstrip()
+            if after[:1] in ("'", '"') or before[-1:] in ("'", '"'):
+                raise SystemExit(
+                    f'{path}: 这段两边还连着别的字符串字面量，'
+                    f'要连邻居一起写进同一条 zh：\n{raw[:120]}'
+                )
             raw = hit.group(0)
             call = item.get(
                 'call',
