@@ -6887,6 +6887,240 @@ abstract class AppL {
   /// In zh, this message translates to:
   /// **'公务员 · 行测申论'**
   String get examGongkaoName;
+
+  /// No description provided for @marksTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'我的收藏'**
+  String get marksTitle;
+
+  /// No description provided for @marksPractise.
+  ///
+  /// In zh, this message translates to:
+  /// **'练一组'**
+  String get marksPractise;
+
+  /// No description provided for @marksNone.
+  ///
+  /// In zh, this message translates to:
+  /// **'还没有收藏'**
+  String get marksNone;
+
+  /// No description provided for @marksNoneHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'做题时点右上角的星标，题目会收进这里。'**
+  String get marksNoneHint;
+
+  /// No description provided for @marksUnsave.
+  ///
+  /// In zh, this message translates to:
+  /// **'取消收藏'**
+  String get marksUnsave;
+
+  /// No description provided for @marksAddTag.
+  ///
+  /// In zh, this message translates to:
+  /// **'+ 标签'**
+  String get marksAddTag;
+
+  /// No description provided for @marksTags.
+  ///
+  /// In zh, this message translates to:
+  /// **'收藏标签'**
+  String get marksTags;
+
+  /// No description provided for @marksClearTag.
+  ///
+  /// In zh, this message translates to:
+  /// **'清除标签'**
+  String get marksClearTag;
+
+  /// No description provided for @onboardThreeThings.
+  ///
+  /// In zh, this message translates to:
+  /// **'还有三件事'**
+  String get onboardThreeThings;
+
+  /// No description provided for @onboardChangeLater.
+  ///
+  /// In zh, this message translates to:
+  /// **'随时能改，都在「我的」里'**
+  String get onboardChangeLater;
+
+  /// No description provided for @onboardDailyGoal.
+  ///
+  /// In zh, this message translates to:
+  /// **'一天划几题'**
+  String get onboardDailyGoal;
+
+  /// No description provided for @onboardWhere.
+  ///
+  /// In zh, this message translates to:
+  /// **'考哪儿'**
+  String get onboardWhere;
+
+  /// No description provided for @onboardWhereHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'选了之后题库优先推你要考的那套卷'**
+  String get onboardWhereHint;
+
+  /// No description provided for @onboardWhen.
+  ///
+  /// In zh, this message translates to:
+  /// **'考试哪天'**
+  String get onboardWhen;
+
+  /// No description provided for @onboardOptional.
+  ///
+  /// In zh, this message translates to:
+  /// **'不填也行'**
+  String get onboardOptional;
+
+  /// No description provided for @onboardDaysLeft.
+  ///
+  /// In zh, this message translates to:
+  /// **' · 还有 {days} 天'**
+  String onboardDaysLeft(int days);
+
+  /// No description provided for @recentTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'最近做过'**
+  String get recentTitle;
+
+  /// No description provided for @recentHistory.
+  ///
+  /// In zh, this message translates to:
+  /// **'练习历史'**
+  String get recentHistory;
+
+  /// No description provided for @recentNone.
+  ///
+  /// In zh, this message translates to:
+  /// **'还没做过整卷'**
+  String get recentNone;
+
+  /// No description provided for @recentNoneHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'在题库里挑一张卷开始，之后这里会记着做到哪了。'**
+  String get recentNoneHint;
+
+  /// No description provided for @recentFinished.
+  ///
+  /// In zh, this message translates to:
+  /// **'已做完 {count} 题'**
+  String recentFinished(int count);
+
+  /// No description provided for @recentProgress.
+  ///
+  /// In zh, this message translates to:
+  /// **'做到 {done} / {total} 题'**
+  String recentProgress(int done, int total);
+
+  /// No description provided for @timelineTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'练习记录'**
+  String get timelineTitle;
+
+  /// No description provided for @timelineNoneHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'刷完第一组题，这里会按天记下你练了什么。'**
+  String get timelineNoneHint;
+
+  /// No description provided for @timelineDayLine.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 题 · 正确率 {rate}%'**
+  String timelineDayLine(int count, int rate);
+
+  /// No description provided for @timelineMetGoal.
+  ///
+  /// In zh, this message translates to:
+  /// **'达标'**
+  String get timelineMetGoal;
+
+  /// No description provided for @feedbackReview.
+  ///
+  /// In zh, this message translates to:
+  /// **'纠错回看'**
+  String get feedbackReview;
+
+  /// No description provided for @feedbackTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'纠错记录'**
+  String get feedbackTitle;
+
+  /// No description provided for @feedbackNone.
+  ///
+  /// In zh, this message translates to:
+  /// **'还没有纠错记录'**
+  String get feedbackNone;
+
+  /// No description provided for @feedbackNoneHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'做题时长按顶部的题号，可以标记答案有误、解析看不懂等问题。'**
+  String get feedbackNoneHint;
+
+  /// No description provided for @feedbackIssue.
+  ///
+  /// In zh, this message translates to:
+  /// **'问题'**
+  String get feedbackIssue;
+
+  /// No description provided for @feedbackNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'这些记录只存在本机，会随备份一起导出。左滑删除。'**
+  String get feedbackNote;
+
+  /// No description provided for @padThin.
+  ///
+  /// In zh, this message translates to:
+  /// **'细'**
+  String get padThin;
+
+  /// No description provided for @padMedium.
+  ///
+  /// In zh, this message translates to:
+  /// **'中'**
+  String get padMedium;
+
+  /// No description provided for @padThick.
+  ///
+  /// In zh, this message translates to:
+  /// **'粗'**
+  String get padThick;
+
+  /// No description provided for @padScratch.
+  ///
+  /// In zh, this message translates to:
+  /// **'草稿纸'**
+  String get padScratch;
+
+  /// No description provided for @padCalculator.
+  ///
+  /// In zh, this message translates to:
+  /// **'计算器'**
+  String get padCalculator;
+
+  /// No description provided for @padHere.
+  ///
+  /// In zh, this message translates to:
+  /// **'在这里算'**
+  String get padHere;
+
+  /// No description provided for @padCantCompute.
+  ///
+  /// In zh, this message translates to:
+  /// **'算不了'**
+  String get padCantCompute;
 }
 
 class _AppLDelegate extends LocalizationsDelegate<AppL> {

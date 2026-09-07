@@ -74,8 +74,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
       context: context,
       initialDate: _examDate ?? now.add(const Duration(days: 90)),
       firstDate: now,
-      lastDate: now.add(const Duration(days: 1500)),
-      helpText: '选择考试日期',
+      lastDate: now.add(Duration(days: 1500)),
+      helpText: AppL.of(context).profilePickExamDate,
     );
     if (picked != null && mounted) setState(() => _examDate = picked);
   }
@@ -285,27 +285,27 @@ class _Setup extends StatelessWidget {
         : examDate!.difference(DateTime.now()).inDays + 1;
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(24, 22, 24, 12),
+      padding: EdgeInsets.fromLTRB(24, 22, 24, 12),
       children: [
         Text(
-          '还有三件事',
+          AppL.of(context).onboardThreeThings,
           style: text.displaySmall?.copyWith(fontSize: 28, height: 1.2),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         Text(
-          '随时能改，都在「我的」里',
+          AppL.of(context).onboardChangeLater,
           style: text.bodyMedium?.copyWith(fontSize: 14.5, color: t.textSoft),
         ),
-        const SizedBox(height: 28),
+        SizedBox(height: 28),
 
-        _Field(label: '一天划几题'),
+        _Field(label: AppL.of(context).onboardDailyGoal),
         Wrap(
           spacing: 9,
           runSpacing: 9,
           children: [
-            for (final n in const [10, 20, 30, 50, 80])
+            for (final n in [10, 20, 30, 50, 80])
               _Pick(
-                label: '$n 题',
+                label: AppL.of(context).countQuestions(n),
                 on: goal == n,
                 onTap: () {
                   onGoal(n);
@@ -315,8 +315,8 @@ class _Setup extends StatelessWidget {
           ],
         ),
 
-        const SizedBox(height: 26),
-        _Field(label: '考哪儿', caption: '选了之后题库优先推你要考的那套卷'),
+        SizedBox(height: 26),
+        _Field(label: AppL.of(context).onboardWhere, caption: AppL.of(context).onboardWhereHint),
         SizedBox(
           height: 38,
           child: ListView.separated(
@@ -334,13 +334,13 @@ class _Setup extends StatelessWidget {
           ),
         ),
 
-        const SizedBox(height: 26),
-        _Field(label: '考试哪天'),
+        SizedBox(height: 26),
+        _Field(label: AppL.of(context).onboardWhen),
         GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: onPickDate,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+            padding: EdgeInsets.symmetric(horizontal: 18, vertical: 16),
             decoration: BoxDecoration(
               color: t.surface,
               borderRadius: BorderRadius.circular(20),
@@ -349,13 +349,13 @@ class _Setup extends StatelessWidget {
             child: Row(
               children: [
                 StrokeIcon(AppIcon.calendar, size: 19, color: t.textSoft),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     examDate == null
-                        ? '不填也行'
+                        ? AppL.of(context).onboardOptional
                         : '${examDate!.year} 年 ${examDate!.month} 月 ${examDate!.day} 日'
-                            '${days == null ? '' : ' · 还有 $days 天'}',
+                            '${days == null ? '' : AppL.of(context).onboardDaysLeft(days)}',
                     style: text.titleSmall?.copyWith(
                       fontSize: 15,
                       color: examDate == null ? t.muted : t.text,

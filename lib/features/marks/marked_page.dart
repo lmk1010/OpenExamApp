@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
@@ -86,24 +87,24 @@ class _MarkedPageState extends State<MarkedPage> {
           onPressed: () => Navigator.of(context).maybePop(),
         ),
         titleSpacing: 0,
-        title: const Text('我的收藏'),
+        title: Text(AppL.of(context).marksTitle),
         actions: [
           if (_items.isNotEmpty)
             TextButton(
               onPressed: () => _practise(_items.take(20).toList()),
-              child: const Text('练一组'),
+              child: Text(AppL.of(context).marksPractise),
             ),
           const SizedBox(width: 8),
         ],
       ),
       body: _loading
-          ? const LoadingState()
+          ? LoadingState()
           : _items.isEmpty
-              ? const EmptyState(
+              ? EmptyState(
                   icon: Icons.star_border_rounded,
-                  title: '还没有收藏',
+                  title: AppL.of(context).marksNone,
                   art: EmptyArt.star,
-                  message: '做题时点右上角的星标，题目会收进这里。',
+                  message: AppL.of(context).marksNoneHint,
                 )
               : ListView(
                   padding: const EdgeInsets.only(top: 6, bottom: 28),
@@ -113,7 +114,7 @@ class _MarkedPageState extends State<MarkedPage> {
                         height: 34,
                         child: ListView(
                           scrollDirection: Axis.horizontal,
-                          padding: const EdgeInsets.fromLTRB(
+                          padding: EdgeInsets.fromLTRB(
                             AppTheme.gutter,
                             0,
                             AppTheme.gutter,
@@ -121,7 +122,7 @@ class _MarkedPageState extends State<MarkedPage> {
                           ),
                           children: [
                             _TagChip(
-                              label: '全部 ${_items.length}',
+                              label: AppL.of(context).searchAllCount(_items.length),
                               selected: _filter == 'all',
                               onTap: () => setState(() => _filter = 'all'),
                             ),
@@ -156,10 +157,10 @@ class _MarkedPageState extends State<MarkedPage> {
                         onDismissed: (_) => _unmark(_shown[i]),
                         background: Container(
                           alignment: Alignment.centerRight,
-                          padding: const EdgeInsets.only(right: AppTheme.gutter),
+                          padding: EdgeInsets.only(right: AppTheme.gutter),
                           color: t.dangerSoft,
                           child: Text(
-                            '取消收藏',
+                            AppL.of(context).marksUnsave,
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
@@ -201,12 +202,12 @@ class _MarkedPageState extends State<MarkedPage> {
                                           height: 1.45,
                                         ),
                                       ),
-                                      const SizedBox(height: 7),
+                                      SizedBox(height: 7),
                                       Row(
                                         children: [
                                           Text(
                                             '${categoryLabel(_shown[i].category)}'
-                                            '${_shown[i].hasImage ? ' · 含图' : ''}',
+                                            '${_shown[i].hasImage ? AppL.of(context).searchHasFigure : ''}',
                                             style: text.bodySmall,
                                           ),
                                           const SizedBox(width: 8),
@@ -214,7 +215,7 @@ class _MarkedPageState extends State<MarkedPage> {
                                             behavior: HitTestBehavior.opaque,
                                             onTap: () => _tag(_shown[i]),
                                             child: Container(
-                                              padding: const EdgeInsets.symmetric(
+                                              padding: EdgeInsets.symmetric(
                                                 horizontal: 8,
                                                 vertical: 3,
                                               ),
@@ -226,7 +227,7 @@ class _MarkedPageState extends State<MarkedPage> {
                                               ),
                                               child: Text(
                                                 (_tags[_shown[i].id] ?? '').isEmpty
-                                                    ? '+ 标签'
+                                                    ? AppL.of(context).marksAddTag
                                                     : _tags[_shown[i].id]!,
                                                 style: TextStyle(
                                                   fontSize: 11,
@@ -317,14 +318,14 @@ class _TagSheet extends StatelessWidget {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         border: Border(top: BorderSide(color: t.lineSoft)),
       ),
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 16),
+      padding: EdgeInsets.fromLTRB(20, 18, 20, 16),
       child: SafeArea(
         top: false,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('收藏标签', style: text.titleMedium),
+            Text(AppL.of(context).marksTags, style: text.titleMedium),
             const SizedBox(height: 14),
             Wrap(
               spacing: 9,
@@ -365,7 +366,7 @@ class _TagSheet extends StatelessWidget {
               width: double.infinity,
               child: OutlinedButton(
                 onPressed: () => Navigator.of(context).pop(''),
-                child: const Text('清除标签'),
+                child: Text(AppL.of(context).marksClearTag),
               ),
             ),
           ],

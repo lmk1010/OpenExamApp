@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
@@ -44,7 +45,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
         builder: (_) => PracticeSessionPage(
           questions: [q],
           reviewAnswers: {q.id: q.answer.toUpperCase()},
-          title: '纠错回看',
+          title: AppL.of(context).feedbackReview,
         ),
       ),
     );
@@ -62,16 +63,16 @@ class _FeedbackPageState extends State<FeedbackPage> {
           onPressed: () => Navigator.of(context).maybePop(),
         ),
         titleSpacing: 0,
-        title: const Text('纠错记录'),
+        title: Text(AppL.of(context).feedbackTitle),
       ),
       body: _loading
-          ? const LoadingState()
+          ? LoadingState()
           : _items.isEmpty
-              ? const EmptyState(
+              ? EmptyState(
                   icon: Icons.report_gmailerrorred_outlined,
-                  title: '还没有纠错记录',
+                  title: AppL.of(context).feedbackNone,
                   art: EmptyArt.box,
-                  message: '做题时长按顶部的题号，可以标记答案有误、解析看不懂等问题。',
+                  message: AppL.of(context).feedbackNoneHint,
                 )
               : ListView(
                   padding: const EdgeInsets.only(top: 6, bottom: 28),
@@ -87,10 +88,10 @@ class _FeedbackPageState extends State<FeedbackPage> {
                         },
                         background: Container(
                           alignment: Alignment.centerRight,
-                          padding: const EdgeInsets.only(right: AppTheme.gutter),
+                          padding: EdgeInsets.only(right: AppTheme.gutter),
                           color: t.dangerSoft,
                           child: Text(
-                            '删除',
+                            AppL.of(context).commonDelete,
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
@@ -135,7 +136,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                       Row(
                                         children: [
                                           Container(
-                                            padding: const EdgeInsets.symmetric(
+                                            padding: EdgeInsets.symmetric(
                                               horizontal: 8,
                                               vertical: 3,
                                             ),
@@ -144,7 +145,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                               borderRadius: BorderRadius.circular(7),
                                             ),
                                             child: Text(
-                                              kFeedbackKinds[_items[i].kind] ?? '问题',
+                                              kFeedbackKinds[_items[i].kind] ?? AppL.of(context).feedbackIssue,
                                               style: TextStyle(
                                                 fontSize: 11,
                                                 fontWeight: FontWeight.w600,
@@ -188,14 +189,14 @@ class _FeedbackPageState extends State<FeedbackPage> {
                       ),
                     ],
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(
+                      padding: EdgeInsets.fromLTRB(
                         AppTheme.gutter,
                         20,
                         AppTheme.gutter,
                         0,
                       ),
                       child: Text(
-                        '这些记录只存在本机，会随备份一起导出。左滑删除。',
+                        AppL.of(context).feedbackNote,
                         style: text.bodySmall,
                       ),
                     ),

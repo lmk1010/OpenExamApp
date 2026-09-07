@@ -3909,4 +3909,129 @@ class AppLZh extends AppL {
 
   @override
   String get examGongkaoName => '公务员 · 行测申论';
+
+  @override
+  String get marksTitle => '我的收藏';
+
+  @override
+  String get marksPractise => '练一组';
+
+  @override
+  String get marksNone => '还没有收藏';
+
+  @override
+  String get marksNoneHint => '做题时点右上角的星标，题目会收进这里。';
+
+  @override
+  String get marksUnsave => '取消收藏';
+
+  @override
+  String get marksAddTag => '+ 标签';
+
+  @override
+  String get marksTags => '收藏标签';
+
+  @override
+  String get marksClearTag => '清除标签';
+
+  @override
+  String get onboardThreeThings => '还有三件事';
+
+  @override
+  String get onboardChangeLater => '随时能改，都在「我的」里';
+
+  @override
+  String get onboardDailyGoal => '一天划几题';
+
+  @override
+  String get onboardWhere => '考哪儿';
+
+  @override
+  String get onboardWhereHint => '选了之后题库优先推你要考的那套卷';
+
+  @override
+  String get onboardWhen => '考试哪天';
+
+  @override
+  String get onboardOptional => '不填也行';
+
+  @override
+  String onboardDaysLeft(int days) {
+    return ' · 还有 $days 天';
+  }
+
+  @override
+  String get recentTitle => '最近做过';
+
+  @override
+  String get recentHistory => '练习历史';
+
+  @override
+  String get recentNone => '还没做过整卷';
+
+  @override
+  String get recentNoneHint => '在题库里挑一张卷开始，之后这里会记着做到哪了。';
+
+  @override
+  String recentFinished(int count) {
+    return '已做完 $count 题';
+  }
+
+  @override
+  String recentProgress(int done, int total) {
+    return '做到 $done / $total 题';
+  }
+
+  @override
+  String get timelineTitle => '练习记录';
+
+  @override
+  String get timelineNoneHint => '刷完第一组题，这里会按天记下你练了什么。';
+
+  @override
+  String timelineDayLine(int count, int rate) {
+    return '$count 题 · 正确率 $rate%';
+  }
+
+  @override
+  String get timelineMetGoal => '达标';
+
+  @override
+  String get feedbackReview => '纠错回看';
+
+  @override
+  String get feedbackTitle => '纠错记录';
+
+  @override
+  String get feedbackNone => '还没有纠错记录';
+
+  @override
+  String get feedbackNoneHint => '做题时长按顶部的题号，可以标记答案有误、解析看不懂等问题。';
+
+  @override
+  String get feedbackIssue => '问题';
+
+  @override
+  String get feedbackNote => '这些记录只存在本机，会随备份一起导出。左滑删除。';
+
+  @override
+  String get padThin => '细';
+
+  @override
+  String get padMedium => '中';
+
+  @override
+  String get padThick => '粗';
+
+  @override
+  String get padScratch => '草稿纸';
+
+  @override
+  String get padCalculator => '计算器';
+
+  @override
+  String get padHere => '在这里算';
+
+  @override
+  String get padCantCompute => '算不了';
 }

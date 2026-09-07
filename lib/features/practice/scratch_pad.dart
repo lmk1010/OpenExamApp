@@ -2,6 +2,7 @@ import 'dart:ui' show PointMode;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
 import 'package:openexam_app/core/ui/stroke_icons.dart';
@@ -19,11 +20,7 @@ class Stroke {
 /// per question by the session, so flipping back to a question restores its
 /// working out.
 class ScratchPad extends StatefulWidget {
-  const ScratchPad({
-    super.key,
-    required this.strokes,
-    required this.onChanged,
-  });
+  const ScratchPad({super.key, required this.strokes, required this.onChanged});
 
   final List<Stroke> strokes;
   final ValueChanged<List<Stroke>> onChanged;
@@ -37,11 +34,14 @@ class _ScratchPadState extends State<ScratchPad> {
   bool _calculator = false;
   int _pen = 0;
 
-  static const _pens = [
-    (width: 3.0, label: '细'),
-    (width: 6.0, label: '中'),
-    (width: 10.0, label: '粗'),
-  ];
+  /// 笔宽是常量，名字跟着语言走，两者放不进同一个 const。
+  static const _penWidths = [3.0, 6.0, 10.0];
+
+  static String _penLabel(BuildContext context, double w) => switch (w) {
+    3.0 => AppL.of(context).padThin,
+    6.0 => AppL.of(context).padMedium,
+    _ => AppL.of(context).padThick,
+  };
 
   void _commit() => widget.onChanged(_strokes);
 
@@ -49,7 +49,9 @@ class _ScratchPadState extends State<ScratchPad> {
   Widget build(BuildContext context) {
     final t = context.tokens;
     final text = Theme.of(context).textTheme;
-    final ink = t.name == 'dark' ? const Color(0xFF1B2430) : const Color(0xFF2B3242);
+    final ink = t.name == 'dark'
+        ? const Color(0xFF1B2430)
+        : const Color(0xFF2B3242);
     final paper = t.name == 'dark' ? const Color(0xFFE8EDF4) : Colors.white;
 
     return Container(
@@ -59,7 +61,7 @@ class _ScratchPadState extends State<ScratchPad> {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         border: Border(top: BorderSide(color: t.lineSoft)),
       ),
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+      padding: EdgeInsets.fromLTRB(16, 14, 16, 10),
       child: SafeArea(
         top: false,
         child: Column(
@@ -67,32 +69,38 @@ class _ScratchPadState extends State<ScratchPad> {
             Row(
               children: [
                 _Tab(
-                  label: '草稿纸',
+                  label: AppL.of(context).padScratch,
                   selected: !_calculator,
                   onTap: () => setState(() => _calculator = false),
                 ),
-                const SizedBox(width: 16),
+                SizedBox(width: 16),
                 _Tab(
-                  label: '计算器',
+                  label: AppL.of(context).padCalculator,
                   selected: _calculator,
                   onTap: () => setState(() => _calculator = true),
                 ),
                 const Spacer(),
                 if (!_calculator) ...[
-                  for (var i = 0; i < _pens.length; i++)
-                    GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () => setState(() => _pen = i),
-                      child: Container(
-                        width: 30,
-                        height: 30,
-                        alignment: Alignment.center,
+                  for (var i = 0; i < _penWidths.length; i++)
+                    // 三支笔只画成三个圆点，粗细全靠看。挂个 tooltip：
+                    // 名字本来就有（原来那个 label 字段一直没人用），
+                    // 读屏也能念出来。
+                    Tooltip(
+                      message: _penLabel(context, _penWidths[i]),
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () => setState(() => _pen = i),
                         child: Container(
-                          width: _pens[i].width + 4,
-                          height: _pens[i].width + 4,
-                          decoration: BoxDecoration(
-                            color: _pen == i ? t.brand : t.muted,
-                            shape: BoxShape.circle,
+                          width: 30,
+                          height: 30,
+                          alignment: Alignment.center,
+                          child: Container(
+                            width: _penWidths[i] + 4,
+                            height: _penWidths[i] + 4,
+                            decoration: BoxDecoration(
+                              color: _pen == i ? t.brand : t.muted,
+                              shape: BoxShape.circle,
+                            ),
                           ),
                         ),
                       ),
@@ -160,12 +168,18 @@ class _ScratchPadState extends State<ScratchPad> {
                           onPanStart: (d) {
                             setState(() {
                               _strokes.add(
-                                Stroke([d.localPosition], ink, _pens[_pen].width),
+                                Stroke(
+                                  [d.localPosition],
+                                  ink,
+                                  _penWidths[_pen],
+                                ),
                               );
                             });
                           },
                           onPanUpdate: (d) {
-                            setState(() => _strokes.last.points.add(d.localPosition));
+                            setState(
+                              () => _strokes.last.points.add(d.localPosition),
+                            );
                           },
                           onPanEnd: (_) => _commit(),
                           child: CustomPaint(
@@ -174,9 +188,11 @@ class _ScratchPadState extends State<ScratchPad> {
                             child: _strokes.isEmpty
                                 ? Center(
                                     child: Text(
-                                      '在这里算',
+                                      AppL.of(context).padHere,
                                       style: text.bodySmall?.copyWith(
-                                        color: Colors.black.withValues(alpha: 0.22),
+                                        color: Colors.black.withValues(
+                                          alpha: 0.22,
+                                        ),
                                       ),
                                     ),
                                   )
@@ -194,7 +210,11 @@ class _ScratchPadState extends State<ScratchPad> {
 }
 
 class _Tab extends StatelessWidget {
-  const _Tab({required this.label, required this.selected, required this.onTap});
+  const _Tab({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
 
   final String label;
   final bool selected;
@@ -261,7 +281,8 @@ class _PadPainter extends CustomPainter {
         canvas.drawPoints(PointMode.points, stroke.points, paint);
         continue;
       }
-      final path = Path()..moveTo(stroke.points.first.dx, stroke.points.first.dy);
+      final path = Path()
+        ..moveTo(stroke.points.first.dx, stroke.points.first.dy);
       for (final p in stroke.points.skip(1)) {
         path.lineTo(p.dx, p.dy);
       }
@@ -306,7 +327,7 @@ class _CalculatorState extends State<_Calculator> {
             _result = _format(v);
             _expr = _result;
           } else {
-            _result = '算不了';
+            _result = AppL.of(context).padCantCompute;
           }
         default:
           _expr += key;
@@ -327,7 +348,10 @@ class _CalculatorState extends State<_Calculator> {
 
   String _format(double v) {
     if (v == v.roundToDouble() && v.abs() < 1e15) return v.toInt().toString();
-    return v.toStringAsFixed(4).replaceFirst(RegExp(r'0+$'), '').replaceFirst(RegExp(r'\.$'), '');
+    return v
+        .toStringAsFixed(4)
+        .replaceFirst(RegExp(r'0+$'), '')
+        .replaceFirst(RegExp(r'\.$'), '');
   }
 
   /// Tiny recursive-descent parser: + − × ÷ % with parentheses.
@@ -364,8 +388,7 @@ class _CalculatorState extends State<_Calculator> {
         return v == null ? null : -v;
       }
       final start = pos;
-      while (pos < src.length &&
-          (RegExp(r'[0-9.]').hasMatch(src[pos]))) {
+      while (pos < src.length && (RegExp(r'[0-9.]').hasMatch(src[pos]))) {
         pos++;
       }
       if (start == pos) return null;
@@ -469,10 +492,7 @@ class _CalculatorState extends State<_Calculator> {
                         Expanded(
                           child: Padding(
                             padding: const EdgeInsets.all(4),
-                            child: _Key(
-                              label: key,
-                              onTap: () => _tap(key),
-                            ),
+                            child: _Key(label: key, onTap: () => _tap(key)),
                           ),
                         ),
                     ],
@@ -520,8 +540,8 @@ class _Key extends StatelessWidget {
           color: isEquals
               ? t.brand
               : (t.name == 'dark'
-                  ? Colors.white.withValues(alpha: 0.07)
-                  : t.text.withValues(alpha: 0.05)),
+                    ? Colors.white.withValues(alpha: 0.07)
+                    : t.text.withValues(alpha: 0.05)),
           borderRadius: BorderRadius.circular(14),
         ),
         child: Text(

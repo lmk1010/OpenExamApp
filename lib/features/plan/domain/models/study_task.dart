@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:openexam_app/l10n/app_localizations.dart';
 
 /// One checklist item in a day plan. Most actions jump into practice; [note]
@@ -147,7 +148,8 @@ class StudyTask {
     );
     return StudyTask(
       id: json['id'] as String? ?? 'task_${DateTime.now().millisecondsSinceEpoch}',
-      title: json['title'] as String? ?? '未命名任务',
+      // 空标题留空串，显示时按当前语言兜底。
+      title: json['title'] as String? ?? '',
       subtitle: json['subtitle'] as String?,
       action: action,
       category: json['category'] as String?,
@@ -181,10 +183,10 @@ class DayPlan {
     return '${date.year}-$m-$d';
   }
 
-  String get weekdayLabel {
-    const labels = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
-    return labels[date.weekday - 1];
-  }
+  /// 星期几。交给 MaterialLocalizations —— 每种语言的缩写都不一样。
+  String weekdayLabel(BuildContext context) =>
+      MaterialLocalizations.of(context).narrowWeekdays[date.weekday % 7];
 
-  String get shortDateLabel => '${date.month}/${date.day} $weekdayLabel';
+  String shortDateLabel(BuildContext context) =>
+      '${date.month}/${date.day} ${weekdayLabel(context)}';
 }

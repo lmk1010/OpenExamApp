@@ -4029,4 +4029,134 @@ class AppLEn extends AppL {
 
   @override
   String get examGongkaoName => 'Civil service exam';
+
+  @override
+  String get marksTitle => 'Saved';
+
+  @override
+  String get marksPractise => 'Practise a set';
+
+  @override
+  String get marksNone => 'Nothing saved yet';
+
+  @override
+  String get marksNoneHint =>
+      'Tap the star while practising and the question lands here.';
+
+  @override
+  String get marksUnsave => 'Unsave';
+
+  @override
+  String get marksAddTag => '+ tag';
+
+  @override
+  String get marksTags => 'Tags';
+
+  @override
+  String get marksClearTag => 'Clear tag';
+
+  @override
+  String get onboardThreeThings => 'Three quick things';
+
+  @override
+  String get onboardChangeLater => 'All changeable later, under You';
+
+  @override
+  String get onboardDailyGoal => 'How many a day';
+
+  @override
+  String get onboardWhere => 'Where are you sitting it';
+
+  @override
+  String get onboardWhereHint => 'Papers from your region get surfaced first';
+
+  @override
+  String get onboardWhen => 'When is the exam';
+
+  @override
+  String get onboardOptional => 'Optional';
+
+  @override
+  String onboardDaysLeft(int days) {
+    return ' · $days days away';
+  }
+
+  @override
+  String get recentTitle => 'Recently practised';
+
+  @override
+  String get recentHistory => 'History';
+
+  @override
+  String get recentNone => 'No whole papers yet';
+
+  @override
+  String get recentNoneHint =>
+      'Pick a paper in the bank and this keeps track of where you got to.';
+
+  @override
+  String recentFinished(int count) {
+    return 'Finished all $count';
+  }
+
+  @override
+  String recentProgress(int done, int total) {
+    return '$done of $total done';
+  }
+
+  @override
+  String get timelineTitle => 'Practice log';
+
+  @override
+  String get timelineNoneHint =>
+      'Finish your first set and this logs what you did, day by day.';
+
+  @override
+  String timelineDayLine(int count, int rate) {
+    return '$count questions · $rate% correct';
+  }
+
+  @override
+  String get timelineMetGoal => 'goal met';
+
+  @override
+  String get feedbackReview => 'Reported errors';
+
+  @override
+  String get feedbackTitle => 'Reported errors';
+
+  @override
+  String get feedbackNone => 'Nothing reported yet';
+
+  @override
+  String get feedbackNoneHint =>
+      'Long-press the question number while practising to flag a wrong answer or an unclear explanation.';
+
+  @override
+  String get feedbackIssue => 'Issue';
+
+  @override
+  String get feedbackNote =>
+      'These stay on this device and travel with your backups. Swipe left to delete.';
+
+  @override
+  String get padThin => 'Thin';
+
+  @override
+  String get padMedium => 'Medium';
+
+  @override
+  String get padThick => 'Thick';
+
+  @override
+  String get padScratch => 'Scratchpad';
+
+  @override
+  String get padCalculator => 'Calculator';
+
+  @override
+  String get padHere => 'Work it out here';
+
+  @override
+  String get padCantCompute => 'Can\'t compute';
 }

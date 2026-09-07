@@ -199,8 +199,6 @@ class WeekBars extends StatelessWidget {
 
   final List<int> counts;
 
-  static const _weekday = ['一', '二', '三', '四', '五', '六', '日'];
-
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
@@ -282,10 +280,12 @@ class WeekBars extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    _weekday[today
+                    // narrowWeekdays 按周日起头，DateTime.weekday 周日是 7，
+                    // 取模刚好落回 0。
+                    MaterialLocalizations.of(context).narrowWeekdays[today
                             .subtract(Duration(days: counts.length - 1 - i))
-                            .weekday -
-                        1],
+                            .weekday %
+                        7],
                     style: text.bodySmall?.copyWith(
                       fontSize: 11,
                       color: i == counts.length - 1 ? t.textSoft : t.muted,

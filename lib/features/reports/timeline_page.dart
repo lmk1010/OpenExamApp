@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/constants/app_constants.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
@@ -67,16 +68,16 @@ class _TimelinePageState extends State<TimelinePage> {
           onPressed: () => Navigator.of(context).maybePop(),
         ),
         titleSpacing: 0,
-        title: const Text('练习记录'),
+        title: Text(AppL.of(context).timelineTitle),
       ),
       body: _loading
-          ? const LoadingState()
+          ? LoadingState()
           : _days.isEmpty
-              ? const EmptyState(
+              ? EmptyState(
                   icon: Icons.timeline,
-                  title: '还没有练习记录',
+                  title: AppL.of(context).statsNoRecords,
                   art: EmptyArt.chart,
-                  message: '刷完第一组题，这里会按天记下你练了什么。',
+                  message: AppL.of(context).timelineNoneHint,
                 )
               : ListView.builder(
                   padding: const EdgeInsets.fromLTRB(
@@ -128,14 +129,14 @@ class _DayBlock extends StatelessWidget {
   final bool isLast;
   final void Function(ExamReport) onReview;
 
-  String get _label {
+  String _label(BuildContext context) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final diff = today.difference(day.date).inDays;
-    if (diff == 0) return '今天';
-    if (diff == 1) return '昨天';
-    if (diff < 7) return '$diff 天前';
-    return '${day.date.month} 月 ${day.date.day} 日';
+    if (diff == 0) return AppL.of(context).whenToday;
+    if (diff == 1) return AppL.of(context).whenYesterday;
+    if (diff < 7) return AppL.of(context).whenDaysAgo(diff);
+    return MaterialLocalizations.of(context).formatShortDate(day.date);
   }
 
   @override
@@ -193,16 +194,16 @@ class _DayBlock extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.baseline,
                     textBaseline: TextBaseline.alphabetic,
                     children: [
-                      Text(_label, style: text.titleSmall?.copyWith(fontSize: 15)),
-                      const SizedBox(width: 10),
+                      Text(_label(context), style: text.titleSmall?.copyWith(fontSize: 15)),
+                      SizedBox(width: 10),
                       Text(
-                        '${day.answered} 题 · 正确率 $rate%',
+                        AppL.of(context).timelineDayLine(day.answered, rate),
                         style: text.bodySmall,
                       ),
-                      const Spacer(),
+                      Spacer(),
                       if (hit)
                         Text(
-                          '达标',
+                          AppL.of(context).timelineMetGoal,
                           style: text.bodySmall?.copyWith(color: t.brand),
                         ),
                     ],

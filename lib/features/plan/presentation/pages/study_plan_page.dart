@@ -658,7 +658,6 @@ class _DayChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tokens;
     final text = Theme.of(context).textTheme;
-    const labels = ['一', '二', '三', '四', '五', '六', '日'];
     final today = DateTime.now();
     final isToday =
         day.year == today.year && day.month == today.month && day.day == today.day;
@@ -687,7 +686,10 @@ class _DayChip extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              isToday ? AppL.of(context).planTodayMark : labels[day.weekday - 1],
+              isToday
+                  ? AppL.of(context).planTodayMark
+                  : MaterialLocalizations.of(context)
+                      .narrowWeekdays[day.weekday % 7],
               style: text.bodySmall?.copyWith(
                 color: selected ? t.onAccent : t.muted,
                 fontSize: 11,

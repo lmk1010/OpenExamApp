@@ -3054,5 +3054,78 @@
   "planStep3Hint": "按考场配速做，逼自己在时间内定下来",
   "planStep4Hint": "掺进同类新题一起做，验证是不是真会了",
   "memoUntitled": "无标题",
-  "examGongkaoName": "公务员 · 行测申论"
+  "examGongkaoName": "公务员 · 行测申论",
+  "marksTitle": "我的收藏",
+  "marksPractise": "练一组",
+  "marksNone": "还没有收藏",
+  "marksNoneHint": "做题时点右上角的星标，题目会收进这里。",
+  "marksUnsave": "取消收藏",
+  "marksAddTag": "+ 标签",
+  "marksTags": "收藏标签",
+  "marksClearTag": "清除标签",
+  "onboardThreeThings": "还有三件事",
+  "onboardChangeLater": "随时能改，都在「我的」里",
+  "onboardDailyGoal": "一天划几题",
+  "onboardWhere": "考哪儿",
+  "onboardWhereHint": "选了之后题库优先推你要考的那套卷",
+  "onboardWhen": "考试哪天",
+  "onboardOptional": "不填也行",
+  "onboardDaysLeft": " · 还有 {days} 天",
+  "@onboardDaysLeft": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "recentTitle": "最近做过",
+  "recentHistory": "练习历史",
+  "recentNone": "还没做过整卷",
+  "recentNoneHint": "在题库里挑一张卷开始，之后这里会记着做到哪了。",
+  "recentFinished": "已做完 {count} 题",
+  "@recentFinished": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "recentProgress": "做到 {done} / {total} 题",
+  "@recentProgress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "timelineTitle": "练习记录",
+  "timelineNoneHint": "刷完第一组题，这里会按天记下你练了什么。",
+  "timelineDayLine": "{count} 题 · 正确率 {rate}%",
+  "@timelineDayLine": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "rate": {
+        "type": "int"
+      }
+    }
+  },
+  "timelineMetGoal": "达标",
+  "feedbackReview": "纠错回看",
+  "feedbackTitle": "纠错记录",
+  "feedbackNone": "还没有纠错记录",
+  "feedbackNoneHint": "做题时长按顶部的题号，可以标记答案有误、解析看不懂等问题。",
+  "feedbackIssue": "问题",
+  "feedbackNote": "这些记录只存在本机，会随备份一起导出。左滑删除。",
+  "padThin": "细",
+  "padMedium": "中",
+  "padThick": "粗",
+  "padScratch": "草稿纸",
+  "padCalculator": "计算器",
+  "padHere": "在这里算",
+  "padCantCompute": "算不了"
 }

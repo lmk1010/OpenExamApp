@@ -439,7 +439,12 @@ Future<void> showStudyTaskActions(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(task.title, style: text.titleMedium),
+              Text(
+                task.title.isEmpty
+                    ? AppL.of(context).taskUntitled
+                    : task.title,
+                style: text.titleMedium,
+              ),
               const SizedBox(height: 4),
               Text(
                 studyActionLabel(context, task.action),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
 import 'package:openexam_app/core/ui/ambient.dart';
@@ -39,7 +40,7 @@ class RecentPapersPage extends StatelessWidget {
             ),
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(
+                padding: EdgeInsets.fromLTRB(
                     AppTheme.gutter, 8, AppTheme.gutter, 8),
                 child: Row(
                   children: [
@@ -47,26 +48,26 @@ class RecentPapersPage extends StatelessWidget {
                       icon: Icons.arrow_back,
                       onTap: () => Navigator.of(context).maybePop(),
                     ),
-                    const SizedBox(width: 4),
-                    Expanded(child: Text('最近做过', style: text.titleMedium)),
+                    SizedBox(width: 4),
+                    Expanded(child: Text(AppL.of(context).recentTitle, style: text.titleMedium)),
                     TextButton(
                       onPressed: () => Navigator.of(context).push(
                         MaterialPageRoute(
-                            builder: (_) => const ReportsPage()),
+                            builder: (_) => ReportsPage()),
                       ),
-                      child: Text('练习历史',
+                      child: Text(AppL.of(context).recentHistory,
                           style: text.labelMedium?.copyWith(color: t.brand)),
                     ),
                   ],
                 ),
               ),
               if (recent.isEmpty)
-                const Padding(
+                Padding(
                   padding: EdgeInsets.only(top: 40),
                   child: EmptyState(
                     icon: Icons.history,
-                    title: '还没做过整卷',
-                    message: '在题库里挑一张卷开始，之后这里会记着做到哪了。',
+                    title: AppL.of(context).recentNone,
+                    message: AppL.of(context).recentNoneHint,
                   ),
                 )
               else
@@ -91,15 +92,15 @@ class _RecentRow extends StatelessWidget {
   final RecentPaper paper;
   final VoidCallback onTap;
 
-  String get _when {
+  String _when(BuildContext context) {
     final now = DateTime.now();
     final days = DateTime(now.year, now.month, now.day)
         .difference(DateTime(paper.at.year, paper.at.month, paper.at.day))
         .inDays;
     return switch (days) {
-      0 => '今天',
-      1 => '昨天',
-      < 7 => '$days 天前',
+      0 => AppL.of(context).whenToday,
+      1 => AppL.of(context).whenYesterday,
+      < 7 => AppL.of(context).whenDaysAgo(days),
       _ => '${paper.at.month}/${paper.at.day}',
     };
   }
@@ -130,11 +131,11 @@ class _RecentRow extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 10),
-                Text(_when,
+                Text(_when(context),
                     style: text.bodySmall?.copyWith(color: t.textSoft)),
               ],
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             ClipRRect(
               borderRadius: BorderRadius.circular(99),
               child: LinearProgressIndicator(
@@ -144,11 +145,11 @@ class _RecentRow extends StatelessWidget {
                 color: finished ? t.success : t.brand,
               ),
             ),
-            const SizedBox(height: 6),
+            SizedBox(height: 6),
             Text(
               finished
-                  ? '已做完 ${paper.total} 题'
-                  : '做到 ${paper.done} / ${paper.total} 题',
+                  ? AppL.of(context).recentFinished(paper.total)
+                  : AppL.of(context).recentProgress(paper.done, paper.total),
               style: text.bodySmall?.copyWith(
                 color: finished ? t.success : t.textSoft,
                 fontSize: 11.5,
