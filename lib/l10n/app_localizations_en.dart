@@ -47,7 +47,7 @@ class AppLEn extends AppL {
 
   @override
   String get noBankHint =>
-      'You can also drop a bank file into the OpenExam folder in the Files app, or use Scan paper to turn a printed exam into questions.';
+      'Or drop a file into the OpenExam folder in Files, or scan a printed paper.';
 
   @override
   String get bankTitle => 'Question bank';
@@ -4372,21 +4372,20 @@ class AppLEn extends AppL {
   }
 
   @override
-  String get noBankLead =>
-      'The bank is separate from the app — whichever one you install decides which exam you\'re practising for.';
+  String get noBankLead => 'The bank you install decides the exam.';
 
   @override
   String get noBankFeatPractice => 'Practice by module';
 
   @override
-  String get noBankFeatMock => 'Timed mock exams';
+  String get noBankFeatMock => 'Timed mocks';
 
   @override
-  String get noBankFeatWrong => 'Mistakes tracked for you';
+  String get noBankFeatWrong => 'Mistakes collected for you';
 
   @override
   String get noBankFeatDiagnose => 'Pace and accuracy diagnostics';
 
   @override
-  String get noBankOffline => 'All offline, no account';
+  String get noBankOffline => 'Offline, no account';
 }

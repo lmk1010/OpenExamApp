@@ -44,8 +44,7 @@ class AppLZh extends AppL {
   String get noBankImport => '导入题库';
 
   @override
-  String get noBankHint =>
-      '也可以把题库文件放进「文件」App 的 OpenExam 文件夹，或者用「扫描试卷」把纸质卷子拍成题目。';
+  String get noBankHint => '也可以拖进「文件」App 的 OpenExam 文件夹，或用「扫描试卷」拍纸质卷。';
 
   @override
   String get bankTitle => '题库';
@@ -4244,16 +4243,16 @@ class AppLZh extends AppL {
   }
 
   @override
-  String get noBankLead => '题库和 App 是分开的 —— 装哪套题库，就是练哪门考试。';
+  String get noBankLead => '装哪套题库，就练哪门考试。';
 
   @override
   String get noBankFeatPractice => '按模块刷题';
 
   @override
-  String get noBankFeatMock => '按卷计时模考';
+  String get noBankFeatMock => '计时模考';
 
   @override
-  String get noBankFeatWrong => '错题自动进错题本';
+  String get noBankFeatWrong => '错题自动收集';
 
   @override
   String get noBankFeatDiagnose => '速度与正确率诊断';

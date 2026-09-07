@@ -24,7 +24,7 @@
   "onboardStart": "出发",
   "noBankTitle": "还没有题库",
   "noBankImport": "导入题库",
-  "noBankHint": "也可以把题库文件放进「文件」App 的 OpenExam 文件夹，或者用「扫描试卷」把纸质卷子拍成题目。",
+  "noBankHint": "也可以拖进「文件」App 的 OpenExam 文件夹，或用「扫描试卷」拍纸质卷。",
   "bankTitle": "题库",
   "bankExportTitle": "导出题库",
   "bankExportBody": "导出成 zip，含题目和图片。别人用「导入题库」就能装上 —— 跟导入是同一个格式。",
@@ -3289,10 +3289,10 @@
       }
     }
   },
-  "noBankLead": "题库和 App 是分开的 —— 装哪套题库，就是练哪门考试。",
+  "noBankLead": "装哪套题库，就练哪门考试。",
   "noBankFeatPractice": "按模块刷题",
-  "noBankFeatMock": "按卷计时模考",
-  "noBankFeatWrong": "错题自动进错题本",
+  "noBankFeatMock": "计时模考",
+  "noBankFeatWrong": "错题自动收集",
   "noBankFeatDiagnose": "速度与正确率诊断",
   "noBankOffline": "全部离线，不用账号"
 }

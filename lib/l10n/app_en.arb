@@ -11,7 +11,7 @@
   "onboardStart": "Start",
   "noBankTitle": "No question bank yet",
   "noBankImport": "Import a bank",
-  "noBankHint": "You can also drop a bank file into the OpenExam folder in the Files app, or use Scan paper to turn a printed exam into questions.",
+  "noBankHint": "Or drop a file into the OpenExam folder in Files, or scan a printed paper.",
   "bankTitle": "Question bank",
   "bankExportTitle": "Export bank",
   "bankExportBody": "Exports a zip with the questions and their images. Anyone can load it with Import — it's the same format Import reads.",
@@ -1230,10 +1230,10 @@
   "planTaskDaily": "Daily set",
   "planTaskWrong": "Wrong-answer review",
   "planTaskTimed": "{category} · timed",
-  "noBankLead": "The bank is separate from the app — whichever one you install decides which exam you're practising for.",
+  "noBankLead": "The bank you install decides the exam.",
   "noBankFeatPractice": "Practice by module",
-  "noBankFeatMock": "Timed mock exams",
-  "noBankFeatWrong": "Mistakes tracked for you",
+  "noBankFeatMock": "Timed mocks",
+  "noBankFeatWrong": "Mistakes collected for you",
   "noBankFeatDiagnose": "Pace and accuracy diagnostics",
-  "noBankOffline": "All offline, no account"
+  "noBankOffline": "Offline, no account"
 }

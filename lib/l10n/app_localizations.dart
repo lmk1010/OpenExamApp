@@ -166,7 +166,7 @@ abstract class AppL {
   /// No description provided for @noBankHint.
   ///
   /// In zh, this message translates to:
-  /// **'也可以把题库文件放进「文件」App 的 OpenExam 文件夹，或者用「扫描试卷」把纸质卷子拍成题目。'**
+  /// **'也可以拖进「文件」App 的 OpenExam 文件夹，或用「扫描试卷」拍纸质卷。'**
   String get noBankHint;
 
   /// No description provided for @bankTitle.
@@ -7491,7 +7491,7 @@ abstract class AppL {
   /// No description provided for @noBankLead.
   ///
   /// In zh, this message translates to:
-  /// **'题库和 App 是分开的 —— 装哪套题库，就是练哪门考试。'**
+  /// **'装哪套题库，就练哪门考试。'**
   String get noBankLead;
 
   /// No description provided for @noBankFeatPractice.
@@ -7503,13 +7503,13 @@ abstract class AppL {
   /// No description provided for @noBankFeatMock.
   ///
   /// In zh, this message translates to:
-  /// **'按卷计时模考'**
+  /// **'计时模考'**
   String get noBankFeatMock;
 
   /// No description provided for @noBankFeatWrong.
   ///
   /// In zh, this message translates to:
-  /// **'错题自动进错题本'**
+  /// **'错题自动收集'**
   String get noBankFeatWrong;
 
   /// No description provided for @noBankFeatDiagnose.
