@@ -8,6 +8,7 @@ import 'package:openexam_app/core/theme/app_tokens.dart';
 import 'package:openexam_app/core/ui/shore_art.dart';
 import 'package:openexam_app/features/import/presentation/scan_paper_page.dart';
 import 'package:openexam_app/data/db/app_database.dart';
+import 'package:openexam_app/features/profile/domain/exam_profile.dart';
 import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/ui/stroke_icons.dart';
 import 'package:openexam_app/data/importers/question_importer.dart';
@@ -90,6 +91,11 @@ class _ImportPageState extends State<ImportPage> {
       await AppDatabase.instance.importImages(bundle.images);
       final count = await AppDatabase.instance.importQuestions(
         bundle.questions,
+      );
+      // 导进来的是行测题库的话，把中文专属模块打开 —— 不然用户导完发现
+      // 技巧速查、词语、申论都还关着，而他不知道设置里有「界面模块」。
+      await ExamProfileStore.adoptFromBank(
+        bundle.questions.map((q) => q.category),
       );
       if (!mounted) return;
       setState(() {

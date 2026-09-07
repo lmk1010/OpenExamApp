@@ -9,15 +9,39 @@ void main() {
 
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  test('没设置过时是考公，四个模块全开', () async {
+  // 默认档从「一律考公·全开」改成了「跟着包里带没带题库走」。
+  //
+  // 原因：发行版默认不带题库，而考公档一开就是技巧速查（行测五模块的中文
+  // 方法）、词语（中文成语辨析）、申论。英文用户装上第一眼看到的就是这些 ——
+  // 界面英文、内容中文，看上去是个坏掉的 App，审核员看到的也是这个。
+  test('测试环境没有内置题库，默认档不开任何中文专属模块', () async {
     await ExamProfileStore.load();
+    final p = ExamProfileStore.current;
+    expect(p.id, ExamProfileStore.neutral.id);
+    for (final f in ExamFeature.values) {
+      expect(p.has(f), isFalse, reason: '${f.label} 不该默认开着');
+    }
+  });
+
+  test('导进行测题库之后，中文专属模块自己打开', () async {
+    await ExamProfileStore.load();
+    expect(ExamProfileStore.current.id, ExamProfileStore.neutral.id);
+    await ExamProfileStore.adoptFromBank(
+      const ['yanyu', 'shuliang', 'panduan', 'ziliao', 'changshi'],
+    );
     final p = ExamProfileStore.current;
     expect(p.id, 'gongkao');
     for (final f in ExamFeature.values) {
-      expect(p.has(f), isTrue, reason: '${f.label} 默认该开着');
+      expect(p.has(f), isTrue, reason: '${f.label} 该跟着题库开起来');
     }
     expect(p.mockCount, 50);
     expect(p.mockMinutes, 45);
+  });
+
+  test('导进别的题库不该被认成行测', () async {
+    await ExamProfileStore.load();
+    await ExamProfileStore.adoptFromBank(const ['verbal', 'math', 'logic']);
+    expect(ExamProfileStore.current.id, ExamProfileStore.neutral.id);
   });
 
   test('新建的什么专属模块都不开', () async {
@@ -55,11 +79,11 @@ void main() {
     expect(ExamProfileStore.current.mockLimit, const Duration(minutes: 150));
   });
 
-  test('删到一份不剩会退回考公，界面总得按某一套画', () async {
+  test('删到一份不剩会退回默认档，界面总得按某一套画', () async {
     await ExamProfileStore.load();
-    await ExamProfileStore.remove('gongkao');
+    await ExamProfileStore.remove(ExamProfileStore.current.id);
     expect(ExamProfileStore.all, isNotEmpty);
-    expect(ExamProfileStore.current.id, 'gongkao');
+    expect(ExamProfileStore.current.id, ExamProfileStore.neutral.id);
   });
 
   test('删掉当前那份会切到别的', () async {

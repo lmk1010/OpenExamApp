@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:openexam_app/data/db/app_database.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// 一项专属能力。开着才在界面上出现。
@@ -123,12 +124,49 @@ class ExamProfileStore {
 
   static List<ExamProfile> get all => _all;
 
+  /// 全新安装时该给哪一份。
+  ///
+  /// 以前一律给「考公·全开」—— 那是这个 app 只有一种用法时的合理默认。现在
+  /// 发行版默认不带题库，于是英文用户装上第一眼看到的是技巧速查（行测五模块
+  /// 的中文方法）、词语（中文成语辨析）、申论。界面是英文的，内容全是中文，
+  /// 看上去就是个坏掉的 App。审核员看到的也是这个。
+  ///
+  /// 所以默认跟着**题库里实际有什么**走：库里是行测就给考公那份，
+  /// 空库或者别的考试就什么专属模块都不开 —— 练习、错题、统计这些通用的照常。
+  /// 判断一批分类像不像行测。五个模块里对上三个就算 —— 有的卷不考数量。
+  static const _gongkaoKeys = {
+    'yanyu',
+    'shuliang',
+    'panduan',
+    'ziliao',
+    'changshi',
+  };
+
+  static bool looksGongkao(Iterable<String> categories) =>
+      categories.toSet().intersection(_gongkaoKeys).length >= 3;
+
+  /// 全新安装时给哪一份。
+  ///
+  /// 用「这个包带没带内置题库」来判断，而不是去查库：main 里刻意不 await 开库
+  /// （首启要解包几秒，等它就是一扇白窗），这里查库等于把那几秒又等回来。
+  /// 带题库的包是我们自己的行测版，不带的是发行版 —— 这个信号够准且不花钱。
+  static Future<ExamProfile> _freshDefault() async =>
+      await AppDatabase.hasBundledBank ? ExamProfile.gongkao : neutral;
+
+  /// 不开任何中文专属模块的默认档。名字留空，由界面按当前语言兜底。
+  static const neutral = ExamProfile(
+    id: 'default',
+    name: '',
+    features: {},
+  );
+
   static Future<void> load() async {
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getString(_listKey);
     if (raw == null || raw.isEmpty) {
-      _all = const [ExamProfile.gongkao];
-      current = ExamProfile.gongkao;
+      final fallback = await _freshDefault();
+      _all = [fallback];
+      current = fallback;
       return;
     }
     try {
@@ -139,7 +177,7 @@ class ExamProfileStore {
     } catch (_) {
       _all = const [ExamProfile.gongkao];
     }
-    if (_all.isEmpty) _all = const [ExamProfile.gongkao];
+    if (_all.isEmpty) _all = [await _freshDefault()];
 
     final activeId = prefs.getString(_activeKey);
     current = _all.firstWhere(
@@ -182,8 +220,29 @@ class ExamProfileStore {
   /// 界面总得按某一套显示。
   static Future<void> remove(String id) async {
     _all = _all.where((p) => p.id != id).toList();
-    if (_all.isEmpty) _all = const [ExamProfile.gongkao];
+    // 删光了退回中性档，不是考公档 —— 界面总得按某一套画，但那一套不该
+    // 自作主张把中文专属模块打开。
+    if (_all.isEmpty) _all = [await _freshDefault()];
     if (current.id == id) current = _all.first;
     await _persist();
   }
+
+  /// 导进来一套行测题库之后，把中文专属模块打开。
+  ///
+  /// 不然会是这么个死角：用户导了行测题库，技巧速查、词语、申论却还关着，
+  /// 而他压根不知道设置里有「界面模块」这一项。只在用户没自己改过档案时动手
+  /// —— 手动关掉过的人不该被自动打开。
+  static Future<void> adoptFromBank(Iterable<String> categories) async {
+    if (current.id != neutral.id) return;
+    if (!looksGongkao(categories)) return;
+    final prefs = await SharedPreferences.getInstance();
+    _all = const [ExamProfile.gongkao];
+    current = ExamProfile.gongkao;
+    await prefs.setString(
+      _listKey,
+      jsonEncode([ExamProfile.gongkao.toJson()]),
+    );
+    await prefs.setString(_activeKey, ExamProfile.gongkao.id);
+  }
+
 }
