@@ -135,10 +135,11 @@ class AppLEn extends AppL {
       'docx, xlsx, csv, txt — AI reads the text directly';
 
   @override
-  String get importWayFileTitle => 'Question file';
+  String get importWayFileTitle => 'Bank file';
 
   @override
-  String get importWayFileDesc => 'JSON or CSV; zip it up if it has images';
+  String get importWayFileDesc =>
+      'A pack from the site, or a zip / JSON / CSV someone sent you';
 
   @override
   String get profileDefaultName => 'Studying';

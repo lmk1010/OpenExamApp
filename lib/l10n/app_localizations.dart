@@ -310,13 +310,13 @@ abstract class AppL {
   /// No description provided for @importWayFileTitle.
   ///
   /// In zh, this message translates to:
-  /// **'题目文件'**
+  /// **'题库文件'**
   String get importWayFileTitle;
 
   /// No description provided for @importWayFileDesc.
   ///
   /// In zh, this message translates to:
-  /// **'JSON / CSV，带图的打包成 zip'**
+  /// **'官网下的题库包，或别人发你的 zip / JSON / CSV'**
   String get importWayFileDesc;
 
   /// No description provided for @profileDefaultName.

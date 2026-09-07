@@ -149,15 +149,16 @@ class _ImportPageState extends State<ImportPage> {
       ),
       children: [
         const SizedBox(height: 8),
-        // 两条路，各一张卡。上面那张是主路：拍照或选 PDF，AI 逐页认。
+        // 主路是「题库文件」：App 不带题目了，绝大多数人是从官网下一个包
+        // 进来的。以前这里把「拍照 / PDF」放在第一个还高亮着 —— 那条路
+        // 要配 AI、要等模型逐页认，把它摆成默认动作等于劝退。
         _Way(
-          art: ShoreArt.icoNote,
-          title: l.importWayScanTitle,
-          desc: l.importWayScanDesc,
+          art: ShoreArt.icoHistory,
+          title: l.importWayFileTitle,
+          desc: l.importWayFileDesc,
           primary: true,
-          onTap: _busy ? null : _scan,
+          onTap: _busy ? null : _pickAndImport,
         ),
-        const SizedBox(height: 12),
         const SizedBox(height: 12),
         // 文字文件不该走渲染成图那条路 —— 里面本来就有字，
         // 转成图再让模型认一遍，慢、贵、还更容易认错。
@@ -169,10 +170,10 @@ class _ImportPageState extends State<ImportPage> {
         ),
         const SizedBox(height: 12),
         _Way(
-          art: ShoreArt.icoHistory,
-          title: l.importWayFileTitle,
-          desc: l.importWayFileDesc,
-          onTap: _busy ? null : _pickAndImport,
+          art: ShoreArt.icoMark,
+          title: l.importWayScanTitle,
+          desc: l.importWayScanDesc,
+          onTap: _busy ? null : _scan,
         ),
 
         if (_busy) ...[

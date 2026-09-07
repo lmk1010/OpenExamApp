@@ -128,10 +128,10 @@ class AppLZh extends AppL {
   String get importWayDocDesc => 'docx、xlsx、csv、txt，AI 直接读文字认成题目';
 
   @override
-  String get importWayFileTitle => '题目文件';
+  String get importWayFileTitle => '题库文件';
 
   @override
-  String get importWayFileDesc => 'JSON / CSV，带图的打包成 zip';
+  String get importWayFileDesc => '官网下的题库包，或别人发你的 zip / JSON / CSV';
 
   @override
   String get profileDefaultName => '备考中';
