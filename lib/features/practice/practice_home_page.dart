@@ -2000,53 +2000,123 @@ class _NoBankCard extends StatelessWidget {
     final l = AppL.of(context);
     final t = context.tokens;
     final text = Theme.of(context).textTheme;
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 22, 20, 20),
-      decoration: GlassDecor.panel(t, radius: 22, raised: false),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          StrokeIcon(AppIcon.papers, size: 26, color: t.brand),
-          const SizedBox(height: 14),
-          Text(l.noBankTitle, style: text.titleMedium?.copyWith(fontSize: 18)),
-          const SizedBox(height: 8),
-          Text(
-            l.noBankBody,
-            style: text.bodyMedium?.copyWith(height: 1.75),
-          ),
-          const SizedBox(height: 16),
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: onImport,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-              decoration: BoxDecoration(
-                color: t.accent,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  StrokeIcon(AppIcon.download, size: 16, color: t.onAccent),
-                  const SizedBox(width: 8),
-                  Text(
-                    l.noBankImport,
-                    style: TextStyle(
-                      fontSize: 14.5,
-                      fontWeight: FontWeight.w700,
-                      color: t.onAccent,
-                    ),
+
+    // 能干什么，一行一件。原来这里是一段六行的正文，讲的是同样的事，
+    // 但没人会在空屏上读完六行 —— 摊成四条反而一眼扫得完，也顺便告诉
+    // 审核员这个 App 装上题库之后是有内容的。
+    final features = <(AppIcon, String)>[
+      (AppIcon.practice, l.noBankFeatPractice),
+      (AppIcon.timer, l.noBankFeatMock),
+      (AppIcon.wrongBook, l.noBankFeatWrong),
+      (AppIcon.chart, l.noBankFeatDiagnose),
+    ];
+
+    return Padding(
+      // 跟页面上其它卡一个宽度。少了这层，空库版首页上这块唯一的内容
+      // 比标题还宽，一眼就是没对齐。
+      padding: const EdgeInsets.symmetric(horizontal: ShoreGap.page),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(20, 24, 20, 18),
+        decoration: GlassDecor.panel(t, radius: 22, raised: false),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: t.accentSoft,
+                    borderRadius: BorderRadius.circular(13),
                   ),
-                ],
+                  child: Center(
+                    child: StrokeIcon(AppIcon.papers,
+                        size: 21, color: t.onAccentSoft),
+                  ),
+                ),
+                const SizedBox(width: 13),
+                Expanded(
+                  child: Text(
+                    l.noBankTitle,
+                    style: text.titleMedium?.copyWith(fontSize: 18),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            Text(
+              l.noBankLead,
+              style: text.bodyMedium?.copyWith(height: 1.65, color: t.textSoft),
+            ),
+            const SizedBox(height: 18),
+            SizedBox(
+              width: double.infinity,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: onImport,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  decoration: BoxDecoration(
+                    color: t.accent,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      StrokeIcon(AppIcon.download, size: 17, color: t.onAccent),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          l.noBankImport,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: t.onAccent,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            l.noBankHint,
-            style: text.bodySmall?.copyWith(height: 1.6),
-          ),
-        ],
+            const SizedBox(height: 18),
+            Divider(height: 1, thickness: 1, color: t.lineSoft),
+            const SizedBox(height: 14),
+            for (final (icon, label) in features)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 11),
+                child: Row(
+                  children: [
+                    StrokeIcon(icon, size: 16, color: t.muted),
+                    const SizedBox(width: 11),
+                    Expanded(
+                      child: Text(
+                        label,
+                        style: text.bodyMedium?.copyWith(fontSize: 13.5),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            const SizedBox(height: 3),
+            Text(
+              l.noBankOffline,
+              style: text.bodySmall?.copyWith(
+                color: t.brand,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              l.noBankHint,
+              style: text.bodySmall?.copyWith(height: 1.6, color: t.muted),
+            ),
+          ],
+        ),
       ),
     );
   }

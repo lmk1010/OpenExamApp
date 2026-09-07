@@ -43,10 +43,6 @@ class AppLEn extends AppL {
   String get noBankTitle => 'No question bank yet';
 
   @override
-  String get noBankBody =>
-      'This build ships without questions — the bank is separate from the app, so whichever bank you install decides which exam you\'re practising for. Import one and you\'re ready: practice, timed mock exams, mistake review and pace diagnostics all work offline.';
-
-  @override
   String get noBankImport => 'Import a bank';
 
   @override
@@ -4374,4 +4370,23 @@ class AppLEn extends AppL {
   String planTaskTimed(String category) {
     return '$category · timed';
   }
+
+  @override
+  String get noBankLead =>
+      'The bank is separate from the app — whichever one you install decides which exam you\'re practising for.';
+
+  @override
+  String get noBankFeatPractice => 'Practice by module';
+
+  @override
+  String get noBankFeatMock => 'Timed mock exams';
+
+  @override
+  String get noBankFeatWrong => 'Mistakes tracked for you';
+
+  @override
+  String get noBankFeatDiagnose => 'Pace and accuracy diagnostics';
+
+  @override
+  String get noBankOffline => 'All offline, no account';
 }

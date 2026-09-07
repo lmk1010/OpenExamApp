@@ -10,7 +10,6 @@
   "onboardSkip": "Skip",
   "onboardStart": "Start",
   "noBankTitle": "No question bank yet",
-  "noBankBody": "This build ships without questions — the bank is separate from the app, so whichever bank you install decides which exam you're practising for. Import one and you're ready: practice, timed mock exams, mistake review and pace diagnostics all work offline.",
   "noBankImport": "Import a bank",
   "noBankHint": "You can also drop a bank file into the OpenExam folder in the Files app, or use Scan paper to turn a printed exam into questions.",
   "bankTitle": "Question bank",
@@ -1230,5 +1229,11 @@
   "importSampleAnalysis": "Explanation",
   "planTaskDaily": "Daily set",
   "planTaskWrong": "Wrong-answer review",
-  "planTaskTimed": "{category} · timed"
+  "planTaskTimed": "{category} · timed",
+  "noBankLead": "The bank is separate from the app — whichever one you install decides which exam you're practising for.",
+  "noBankFeatPractice": "Practice by module",
+  "noBankFeatMock": "Timed mock exams",
+  "noBankFeatWrong": "Mistakes tracked for you",
+  "noBankFeatDiagnose": "Pace and accuracy diagnostics",
+  "noBankOffline": "All offline, no account"
 }

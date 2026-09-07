@@ -41,10 +41,6 @@ class AppLZh extends AppL {
   String get noBankTitle => '还没有题库';
 
   @override
-  String get noBankBody =>
-      '这个版本不预装题目 —— 题库和 App 是分开的，装哪套题库就是练哪门考试。导入一份就能开始：做题、按卷模考、错题复盘、弱点诊断都不用联网。';
-
-  @override
   String get noBankImport => '导入题库';
 
   @override
@@ -4246,4 +4242,22 @@ class AppLZh extends AppL {
   String planTaskTimed(String category) {
     return '$category · 限时';
   }
+
+  @override
+  String get noBankLead => '题库和 App 是分开的 —— 装哪套题库，就是练哪门考试。';
+
+  @override
+  String get noBankFeatPractice => '按模块刷题';
+
+  @override
+  String get noBankFeatMock => '按卷计时模考';
+
+  @override
+  String get noBankFeatWrong => '错题自动进错题本';
+
+  @override
+  String get noBankFeatDiagnose => '速度与正确率诊断';
+
+  @override
+  String get noBankOffline => '全部离线，不用账号';
 }

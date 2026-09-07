@@ -157,12 +157,6 @@ abstract class AppL {
   /// **'还没有题库'**
   String get noBankTitle;
 
-  /// No description provided for @noBankBody.
-  ///
-  /// In zh, this message translates to:
-  /// **'这个版本不预装题目 —— 题库和 App 是分开的，装哪套题库就是练哪门考试。导入一份就能开始：做题、按卷模考、错题复盘、弱点诊断都不用联网。'**
-  String get noBankBody;
-
   /// No description provided for @noBankImport.
   ///
   /// In zh, this message translates to:
@@ -7493,6 +7487,42 @@ abstract class AppL {
   /// In zh, this message translates to:
   /// **'{category} · 限时'**
   String planTaskTimed(String category);
+
+  /// No description provided for @noBankLead.
+  ///
+  /// In zh, this message translates to:
+  /// **'题库和 App 是分开的 —— 装哪套题库，就是练哪门考试。'**
+  String get noBankLead;
+
+  /// No description provided for @noBankFeatPractice.
+  ///
+  /// In zh, this message translates to:
+  /// **'按模块刷题'**
+  String get noBankFeatPractice;
+
+  /// No description provided for @noBankFeatMock.
+  ///
+  /// In zh, this message translates to:
+  /// **'按卷计时模考'**
+  String get noBankFeatMock;
+
+  /// No description provided for @noBankFeatWrong.
+  ///
+  /// In zh, this message translates to:
+  /// **'错题自动进错题本'**
+  String get noBankFeatWrong;
+
+  /// No description provided for @noBankFeatDiagnose.
+  ///
+  /// In zh, this message translates to:
+  /// **'速度与正确率诊断'**
+  String get noBankFeatDiagnose;
+
+  /// No description provided for @noBankOffline.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部离线，不用账号'**
+  String get noBankOffline;
 }
 
 class _AppLDelegate extends LocalizationsDelegate<AppL> {

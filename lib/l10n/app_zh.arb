@@ -23,7 +23,6 @@
   "onboardSkip": "跳过",
   "onboardStart": "出发",
   "noBankTitle": "还没有题库",
-  "noBankBody": "这个版本不预装题目 —— 题库和 App 是分开的，装哪套题库就是练哪门考试。导入一份就能开始：做题、按卷模考、错题复盘、弱点诊断都不用联网。",
   "noBankImport": "导入题库",
   "noBankHint": "也可以把题库文件放进「文件」App 的 OpenExam 文件夹，或者用「扫描试卷」把纸质卷子拍成题目。",
   "bankTitle": "题库",
@@ -3289,5 +3288,11 @@
         "type": "String"
       }
     }
-  }
+  },
+  "noBankLead": "题库和 App 是分开的 —— 装哪套题库，就是练哪门考试。",
+  "noBankFeatPractice": "按模块刷题",
+  "noBankFeatMock": "按卷计时模考",
+  "noBankFeatWrong": "错题自动进错题本",
+  "noBankFeatDiagnose": "速度与正确率诊断",
+  "noBankOffline": "全部离线，不用账号"
 }
