@@ -51,6 +51,32 @@ def unquote(src: str) -> str:
     return ''.join(parts).replace(r"\'", "'").replace(r'\"', '"')
 
 
+
+def locate(src: str, raw: str, start: int = 0):
+    """在 src 里找这一段，顺带把两个坑查掉。返回 (match, 错误原因)。"""
+    # 相邻字面量之间的换行和缩进按源码原样写太脆 —— 差两个空格就匹配不上。
+    # 按字面量分段找，段与段之间允许任意空白。
+    pattern = re.compile(
+        r'\s*'.join(re.escape(m.group(0)) for m in LITERAL.finditer(raw))
+    )
+    hit = pattern.search(src, start)
+    if hit is None:
+        return None, f'找不到\n{raw[:120]}'
+
+    # Dart 里相邻的字符串字面量会自动拼接，但表达式不会。只换掉其中一半，
+    # 剩下的就变成两个并排的表达式，编译直接挂：
+    #     body: l.a(x)
+    #         l.b,          // ← 少了个逗号？不，是本来该拼在一起
+    # 所以匹配段紧邻另一个字面量时必须报错 —— 那说明这一条要连着邻居
+    # 一起写进 zh，不能拆开换。
+    after = src[hit.end():hit.end() + 200].lstrip()
+    before = src[:hit.start()].rstrip()
+    if after[:1] in ("'", '"') or before[-1:] in ("'", '"'):
+        return None, ('这段两边还连着别的字符串字面量，'
+                      f'要连邻居一起写进同一条 zh：\n{raw[:120]}')
+    return hit, None
+
+
 def load(path: str) -> OrderedDict:
     with open(path, encoding='utf-8') as f:
         return json.load(f, object_pairs_hook=OrderedDict)
@@ -88,13 +114,22 @@ def main() -> int:
     zh, en = load(ZH_ARB), load(EN_ARB)
     changed = 0
 
-    # 先把所有 key 冲突查一遍，再动任何文件。
+    # 两阶段：先把每一条都验一遍（能不能找到、两边挨着别的字面量没有、
+    # key 冲不冲突），全过了再动文件。
     #
-    # 以前是边改源码边攒 arb，arb 最后一次性写盘 —— 中途任何一条报错，
+    # 以前是边改源码边验，arb 最后一次性写盘 —— 中途任何一条报错，
     # 源码已经改了一半、arb 一个字没写，留下一堆 undefined_getter。
+    # 只把 key 冲突提前是不够的：匹配失败和相邻字面量这两种也会中途退出。
     seen = dict(zh)
     for entry in spec:
+        src = open(entry['file'], encoding='utf-8').read()
+        cursor = 0
         for item in entry['items']:
+            hit, err = locate(src, item['zh'], cursor)
+            if err:
+                raise SystemExit(f'{entry["file"]}: {err}')
+            # 同一句在一个文件里可能出现多次，每条 item 认下一处。
+            cursor = hit.end()
             key = item['key']
             text = item.get('zh_text', unquote(item['zh']))
             if key in seen and seen[key] != text:
@@ -117,30 +152,9 @@ def main() -> int:
             text = item.get('zh_text', unquote(raw))
             if key in zh and zh[key] != text:
                 raise SystemExit(f'{key} 已存在且内容不同，换个 key')
-            # 相邻字面量之间的换行和缩进按源码原样写太脆 —— 差两个空格就
-            # 匹配不上。按字面量分段找，段与段之间允许任意空白。
-            pattern = re.compile(
-                r'\s*'.join(
-                    re.escape(m.group(0)) for m in LITERAL.finditer(raw)
-                )
-            )
-            hit = pattern.search(src)
-            if hit is None:
-                raise SystemExit(f'{path}: 找不到\n{raw[:120]}')
-
-            # Dart 里相邻的字符串字面量会自动拼接，但表达式不会。只换掉其中
-            # 一半，剩下的就变成两个并排的表达式，编译直接挂：
-            #     body: l.a(x)
-            #         l.b,          // ← 少了个逗号？不，是本来该拼在一起
-            # 所以匹配段紧邻另一个字面量时必须报错 —— 那说明这一条要连着
-            # 邻居一起写进 zh，不能拆开换。
-            after = src[hit.end():hit.end() + 200].lstrip()
-            before = src[:hit.start()].rstrip()
-            if after[:1] in ("'", '"') or before[-1:] in ("'", '"'):
-                raise SystemExit(
-                    f'{path}: 这段两边还连着别的字符串字面量，'
-                    f'要连邻居一起写进同一条 zh：\n{raw[:120]}'
-                )
+            hit, err = locate(src, raw)
+            if err:
+                raise SystemExit(f'{path}: {err}')
             raw = hit.group(0)
             call = item.get(
                 'call',

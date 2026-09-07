@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/constants/app_constants.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
 import 'package:openexam_app/core/ui/stroke_icons.dart';
@@ -51,10 +52,10 @@ class ThemeController extends ChangeNotifier {
 
   ThemeMode get effectiveMode => _mode;
 
-  String get label => switch (_mode) {
-        ThemeMode.system => '跟随系统',
-        ThemeMode.light => '浅色',
-        ThemeMode.dark => '深色',
+  String label(AppL l) => switch (_mode) {
+        ThemeMode.system => l.settingsLanguageSystem,
+        ThemeMode.light => l.profileThemeLight,
+        ThemeMode.dark => l.profileThemeDark,
       };
 
   IconData get icon => switch (_mode) {

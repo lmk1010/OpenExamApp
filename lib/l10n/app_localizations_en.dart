@@ -4159,4 +4159,42 @@ class AppLEn extends AppL {
 
   @override
   String get padCantCompute => 'Can\'t compute';
+
+  @override
+  String homeMockMeta(int count, int minutes) {
+    return '$count questions · $minutes min';
+  }
+
+  @override
+  String shoreLeftToday(int count) {
+    return '$count left today';
+  }
+
+  @override
+  String get shoreNotStarted => 'Not under way';
+
+  @override
+  String essayUnderWords(int n) {
+    return 'under $n words';
+  }
+
+  @override
+  String essayAttemptedTimes(int count) {
+    return 'attempted $count times';
+  }
+
+  @override
+  String get essayNeverAttempted => 'never attempted';
+
+  @override
+  String get imageMissing => 'Image missing';
+
+  @override
+  String get imagePinchHint => 'Pinch to zoom · tap to close';
+
+  @override
+  String get filterClear => 'Clear';
+
+  @override
+  String get filterSearch => 'Search';
 }

@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
 import 'package:openexam_app/core/ui/stroke_icons.dart';
 import 'package:openexam_app/data/db/app_database.dart';
@@ -251,12 +252,12 @@ class _QuestionImageState extends State<QuestionImage> {
       return Container(
         height: 64,
         alignment: Alignment.center,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
           color: t.surfaceAlt,
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Text('图片缺失', style: Theme.of(context).textTheme.bodySmall),
+        child: Text(AppL.of(context).imageMissing, style: Theme.of(context).textTheme.bodySmall),
       );
     }
 
@@ -328,7 +329,7 @@ class _ImageViewer extends StatelessWidget {
             top: MediaQuery.of(context).padding.top + 8,
             right: 12,
             child: IconButton(
-              icon: const Icon(Icons.close, color: Colors.white, size: 24),
+              icon: Icon(Icons.close, color: Colors.white, size: 24),
               onPressed: () => Navigator.of(context).pop(),
             ),
           ),
@@ -338,7 +339,7 @@ class _ImageViewer extends StatelessWidget {
             right: 0,
             child: Center(
               child: Text(
-                '双指缩放 · 点击关闭',
+                AppL.of(context).imagePinchHint,
                 style: TextStyle(
                   fontSize: 12.5,
                   color: Colors.white.withValues(alpha: 0.7),

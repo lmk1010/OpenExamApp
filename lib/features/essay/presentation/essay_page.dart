@@ -219,7 +219,7 @@ class _PromptCard extends StatelessWidget {
       prompt.type.label,
       if (prompt.province != null && prompt.province!.isNotEmpty) prompt.province!,
       if (prompt.year != null) AppL.of(context).bankYear('${prompt.year}'),
-      if (prompt.wordLimit != null) '${prompt.wordLimit} 字内',
+      if (prompt.wordLimit != null) AppL.of(context).essayUnderWords(prompt.wordLimit!),
     ];
 
     return GestureDetector(
@@ -251,7 +251,7 @@ class _PromptCard extends StatelessWidget {
                     children: [
                       for (final m in meta)
                         Container(
-                          padding: const EdgeInsets.symmetric(
+                          padding: EdgeInsets.symmetric(
                             horizontal: 7,
                             vertical: 2,
                           ),
@@ -279,7 +279,7 @@ class _PromptCard extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: 12),
             if (prompt.attemptCount > 0)
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
@@ -297,13 +297,13 @@ class _PromptCard extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    '练过 ${prompt.attemptCount} 次',
+                    AppL.of(context).essayAttemptedTimes(prompt.attemptCount),
                     style: text.bodySmall?.copyWith(fontSize: 10.5),
                   ),
                 ],
               )
             else
-              Text('没做过', style: text.bodySmall),
+              Text(AppL.of(context).essayNeverAttempted, style: text.bodySmall),
             const SizedBox(width: 4),
             Icon(Icons.chevron_right, size: 18, color: t.muted),
           ],

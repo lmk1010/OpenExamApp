@@ -1168,5 +1168,15 @@
   "padScratch": "Scratchpad",
   "padCalculator": "Calculator",
   "padHere": "Work it out here",
-  "padCantCompute": "Can't compute"
+  "padCantCompute": "Can't compute",
+  "homeMockMeta": "{count} questions · {minutes} min",
+  "shoreLeftToday": "{count} left today",
+  "shoreNotStarted": "Not under way",
+  "essayUnderWords": "under {n} words",
+  "essayAttemptedTimes": "attempted {count} times",
+  "essayNeverAttempted": "never attempted",
+  "imageMissing": "Image missing",
+  "imagePinchHint": "Pinch to zoom · tap to close",
+  "filterClear": "Clear",
+  "filterSearch": "Search"
 }

@@ -3127,5 +3127,46 @@
   "padScratch": "草稿纸",
   "padCalculator": "计算器",
   "padHere": "在这里算",
-  "padCantCompute": "算不了"
+  "padCantCompute": "算不了",
+  "homeMockMeta": "{count} 题 · {minutes} 分钟",
+  "@homeMockMeta": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "shoreLeftToday": "今天还要划 {count} 题",
+  "@shoreLeftToday": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "shoreNotStarted": "未开航",
+  "essayUnderWords": "{n} 字内",
+  "@essayUnderWords": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "essayAttemptedTimes": "练过 {count} 次",
+  "@essayAttemptedTimes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "essayNeverAttempted": "没做过",
+  "imageMissing": "图片缺失",
+  "imagePinchHint": "双指缩放 · 点击关闭",
+  "filterClear": "清除",
+  "filterSearch": "搜一下"
 }

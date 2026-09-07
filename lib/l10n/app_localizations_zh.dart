@@ -4034,4 +4034,42 @@ class AppLZh extends AppL {
 
   @override
   String get padCantCompute => '算不了';
+
+  @override
+  String homeMockMeta(int count, int minutes) {
+    return '$count 题 · $minutes 分钟';
+  }
+
+  @override
+  String shoreLeftToday(int count) {
+    return '今天还要划 $count 题';
+  }
+
+  @override
+  String get shoreNotStarted => '未开航';
+
+  @override
+  String essayUnderWords(int n) {
+    return '$n 字内';
+  }
+
+  @override
+  String essayAttemptedTimes(int count) {
+    return '练过 $count 次';
+  }
+
+  @override
+  String get essayNeverAttempted => '没做过';
+
+  @override
+  String get imageMissing => '图片缺失';
+
+  @override
+  String get imagePinchHint => '双指缩放 · 点击关闭';
+
+  @override
+  String get filterClear => '清除';
+
+  @override
+  String get filterSearch => '搜一下';
 }

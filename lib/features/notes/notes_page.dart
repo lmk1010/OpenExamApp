@@ -485,7 +485,9 @@ class _MemoRow extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            memo.displayTitle,
+                            memo.displayTitle.isEmpty
+                                ? AppL.of(context).memoUntitled
+                                : memo.displayTitle,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: text.titleSmall?.copyWith(fontSize: 14.5),

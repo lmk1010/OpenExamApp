@@ -504,8 +504,10 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
       ),
       _FeatureCard(
         title: AppL.of(context).homeMock,
-        meta: '${ExamProfileStore.current.mockCount} 题 · '
-            '${ExamProfileStore.current.mockMinutes} 分钟',
+        meta: AppL.of(context).homeMockMeta(
+          ExamProfileStore.current.mockCount,
+          ExamProfileStore.current.mockMinutes,
+        ),
         glyph: AppIcon.timer,
         colors: [t.category('ziliao')],
         onTap: _startMock,

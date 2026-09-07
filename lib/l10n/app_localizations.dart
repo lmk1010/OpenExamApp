@@ -7121,6 +7121,66 @@ abstract class AppL {
   /// In zh, this message translates to:
   /// **'算不了'**
   String get padCantCompute;
+
+  /// No description provided for @homeMockMeta.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 题 · {minutes} 分钟'**
+  String homeMockMeta(int count, int minutes);
+
+  /// No description provided for @shoreLeftToday.
+  ///
+  /// In zh, this message translates to:
+  /// **'今天还要划 {count} 题'**
+  String shoreLeftToday(int count);
+
+  /// No description provided for @shoreNotStarted.
+  ///
+  /// In zh, this message translates to:
+  /// **'未开航'**
+  String get shoreNotStarted;
+
+  /// No description provided for @essayUnderWords.
+  ///
+  /// In zh, this message translates to:
+  /// **'{n} 字内'**
+  String essayUnderWords(int n);
+
+  /// No description provided for @essayAttemptedTimes.
+  ///
+  /// In zh, this message translates to:
+  /// **'练过 {count} 次'**
+  String essayAttemptedTimes(int count);
+
+  /// No description provided for @essayNeverAttempted.
+  ///
+  /// In zh, this message translates to:
+  /// **'没做过'**
+  String get essayNeverAttempted;
+
+  /// No description provided for @imageMissing.
+  ///
+  /// In zh, this message translates to:
+  /// **'图片缺失'**
+  String get imageMissing;
+
+  /// No description provided for @imagePinchHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'双指缩放 · 点击关闭'**
+  String get imagePinchHint;
+
+  /// No description provided for @filterClear.
+  ///
+  /// In zh, this message translates to:
+  /// **'清除'**
+  String get filterClear;
+
+  /// No description provided for @filterSearch.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜一下'**
+  String get filterSearch;
 }
 
 class _AppLDelegate extends LocalizationsDelegate<AppL> {

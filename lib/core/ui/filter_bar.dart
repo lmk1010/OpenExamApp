@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
 import 'package:openexam_app/core/ui/stroke_icons.dart';
@@ -96,9 +97,9 @@ class FilterBar extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(Icons.close, size: 13, color: t.muted),
-                    const SizedBox(width: 4),
+                    SizedBox(width: 4),
                     Text(
-                      '清除',
+                      AppL.of(context).filterClear,
                       style: TextStyle(
                         fontSize: 12,
                         color: t.muted,
@@ -229,7 +230,7 @@ class _PickerSheetState extends State<_PickerSheet> {
                 child: Row(
                   children: [
                     Icon(Icons.search, size: 17, color: t.muted),
-                    const SizedBox(width: 9),
+                    SizedBox(width: 9),
                     Expanded(
                       child: TextField(
                         onChanged: (v) => setState(() => _query = v.trim()),
@@ -240,7 +241,7 @@ class _PickerSheetState extends State<_PickerSheet> {
                         decoration: InputDecoration(
                           isDense: true,
                           border: InputBorder.none,
-                          hintText: '搜一下',
+                          hintText: AppL.of(context).filterSearch,
                           hintStyle: text.bodySmall?.copyWith(fontSize: 14),
                         ),
                       ),

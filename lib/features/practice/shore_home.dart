@@ -218,11 +218,11 @@ class VoyageCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 6),
+                    SizedBox(height: 6),
                     RouteBar(value: ratio),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4),
                     Text(
-                      left == 0 ? '今天划完了' : '今天还要划 $left 题',
+                      left == 0 ? AppL.of(context).homeGreetDone : AppL.of(context).shoreLeftToday(left),
                       style: text.bodySmall?.copyWith(fontSize: 13),
                     ),
                   ],
@@ -406,8 +406,8 @@ class _RouteRow extends StatelessWidget {
     final done = state == LifeRingState.done;
 
     final meta = task.count != null
-        ? '${task.count} 题'
-        : (task.minutes != null ? '${task.minutes} 分钟' : '');
+        ? AppL.of(context).countQuestions(task.count!)
+        : (task.minutes != null ? AppL.of(context).minutesCount(task.minutes!) : '');
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -442,13 +442,13 @@ class _RouteRow extends StatelessWidget {
             ),
             if (current)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 9),
+                padding: EdgeInsets.symmetric(horizontal: 18, vertical: 9),
                 decoration: BoxDecoration(
                   color: t.accent,
                   borderRadius: BorderRadius.circular(99),
                 ),
                 child: Text(
-                  '开始',
+                  AppL.of(context).commonStart,
                   style: TextStyle(
                     fontSize: 13.5,
                     fontWeight: FontWeight.w700,
@@ -602,7 +602,7 @@ class _IsleCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: text.titleSmall?.copyWith(fontSize: _isleLabelSize),
                   ),
-                  const SizedBox(height: _isleTextGap),
+                  SizedBox(height: _isleTextGap),
                   // 卡片上原来只有"练了几题"。做了多少是过程，做对多少才是
                   // 想知道的事 —— 正确率本来就在 CategoryStat 里，只是没拿出来。
                   Row(
@@ -610,7 +610,7 @@ class _IsleCard extends StatelessWidget {
                       Flexible(
                         child: Text(
                           s == null || s.done == 0
-                              ? '未开航'
+                              ? AppL.of(context).shoreNotStarted
                               : '${s.done} / ${s.total}',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,

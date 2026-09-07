@@ -400,7 +400,7 @@ class ResumeState {
   bool get isExam => limit != null;
 
   factory ResumeState.fromJson(Map<String, dynamic> json) => ResumeState(
-        title: '${json['title'] ?? '练习'}',
+        title: '${json['title'] ?? ''}',
         questionIds:
             (json['ids'] as List? ?? const []).map((e) => '$e').toList(),
         answers: (json['answers'] as Map? ?? const {})
@@ -557,10 +557,11 @@ class Memo {
   final DateTime at;
 
   /// 没写标题就拿正文第一行顶上 —— 列表里总得有个能认出来的抬头。
+  /// 标题为空就取正文第一行；正文也空时返回空串，由界面按当前语言兜底。
   String get displayTitle {
     if (title.trim().isNotEmpty) return title.trim();
     final first = body.trim().split('\n').first.trim();
-    if (first.isEmpty) return '无标题';
+    if (first.isEmpty) return '';
     return first.length <= 24 ? first : '${first.substring(0, 24)}…';
   }
 

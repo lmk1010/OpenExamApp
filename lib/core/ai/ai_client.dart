@@ -277,9 +277,9 @@ class AiClient {
     try {
       response = await http.Client().send(request).timeout(_timeout);
     } on TimeoutException {
-      throw const AiException('请求超时了，检查一下网络或换个接口地址');
+      throw AiException(l.aiTimeout);
     } catch (error) {
-      throw AiException('请求失败：$error');
+      throw AiException(l.aiRequestFailed('$error'));
     }
 
     if (response.statusCode != 200) {
@@ -419,13 +419,13 @@ class AiClient {
     switch (status) {
       case 401:
       case 403:
-        return 'API Key 不对或没权限（$status）：$detail';
+        return l.aiBadKey(status, detail);
       case 404:
-        return '接口地址或模型名不对（404）：$detail';
+        return l.aiNotFound(detail);
       case 429:
-        return '请求太频繁或余额不足（429）：$detail';
+        return l.aiRateLimited(detail);
       default:
-        return '服务返回 $status：$detail';
+        return l.aiServerError(status, detail);
     }
   }
 }
