@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
 import 'package:openexam_app/core/ui/responsive.dart';
@@ -33,55 +34,55 @@ class ToolsPage extends StatelessWidget {
       if (profile.has(ExamFeature.vocab))
       _Tool(
         icon: Icons.compare_arrows_rounded,
-        title: '词语辨析',
-        subtitle: '一蹴而就 / 一挥而就，摆一起才分得清',
-        onTap: () => push(const VocabPage(initialTab: VocabTab.confuse)),
+        title: AppL.of(context).toolVocabCompare,
+        subtitle: AppL.of(context).toolVocabCompareHint,
+        onTap: () => push(VocabPage(initialTab: VocabTab.confuse)),
       ),
       if (profile.has(ExamFeature.vocab))
       _Tool(
         icon: Icons.trending_up_rounded,
-        title: '高频词语',
-        subtitle: '从 2077 道逻辑填空的选项统计出来的',
-        onTap: () => push(const VocabPage(initialTab: VocabTab.top)),
+        title: AppL.of(context).toolVocabTop,
+        subtitle: AppL.of(context).toolVocabTopHint,
+        onTap: () => push(VocabPage(initialTab: VocabTab.top)),
       ),
       if (profile.has(ExamFeature.vocab))
       _Tool(
         icon: Icons.style_rounded,
-        title: '今日词卡',
-        subtitle: '按间隔重复排的，今天该背哪些',
-        onTap: () => push(const VocabPage()),
+        title: AppL.of(context).toolVocabToday,
+        subtitle: AppL.of(context).toolVocabTodayHint,
+        onTap: () => push(VocabPage()),
       ),
       if (profile.has(ExamFeature.vocab))
       _Tool(
         icon: Icons.card_travel_rounded,
-        title: '生词锦囊',
-        subtitle: '做错的词自动收进来，也能自己加',
-        onTap: () => push(const VocabPage(initialTab: VocabTab.mine)),
+        title: AppL.of(context).toolVocabMine,
+        subtitle: AppL.of(context).toolVocabMineHint,
+        onTap: () => push(VocabPage(initialTab: VocabTab.mine)),
       ),
       if (profile.has(ExamFeature.vocab))
       _Tool(
         icon: Icons.search_rounded,
-        title: '词语查询',
-        subtitle: '四千词表，看真题里怎么用',
-        onTap: () => push(const VocabPage(initialTab: VocabTab.top)),
+        title: AppL.of(context).toolVocabLookup,
+        subtitle: AppL.of(context).toolVocabLookupHint,
+        onTap: () => push(VocabPage(initialTab: VocabTab.top)),
       ),
       if (profile.has(ExamFeature.tips))
       _Tool(
         icon: Icons.lightbulb_outline_rounded,
-        title: '行测助手',
-        subtitle: '各模块解题思路速查，卡住时翻',
-        onTap: () => push(const TipsPage()),
+        title: AppL.of(context).toolTips,
+        subtitle: AppL.of(context).toolTipsHint,
+        onTap: () => push(TipsPage()),
       ),
       _Tool(
         icon: Icons.check_circle_outline_rounded,
-        title: '每日打卡',
-        subtitle: '今天的安排，勾完算数',
-        onTap: () => push(const StudyPlanPage()),
+        title: AppL.of(context).toolCheckin,
+        subtitle: AppL.of(context).toolCheckinHint,
+        onTap: () => push(StudyPlanPage()),
       ),
       _Tool(
         icon: Icons.manage_search_rounded,
-        title: '题库搜索',
-        subtitle: '一万六千道题，按关键词找',
+        title: AppL.of(context).toolSearch,
+        subtitle: AppL.of(context).toolSearchHint,
         onTap: () => push(const SearchPage()),
       ),
     ];
@@ -104,8 +105,8 @@ class ToolsPage extends StatelessWidget {
                       icon: Icons.arrow_back,
                       onTap: () => Navigator.of(context).maybePop(),
                     ),
-                    const SizedBox(width: 4),
-                    Text('工具', style: text.titleMedium),
+                    SizedBox(width: 4),
+                    Text(AppL.of(context).toolsTitle, style: text.titleMedium),
                   ],
                 ),
               ),

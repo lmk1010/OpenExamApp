@@ -3240,4 +3240,106 @@ class AppLZh extends AppL {
   String explainStamp(String stamp) {
     return 'AI 生成 · $stamp';
   }
+
+  @override
+  String searchFoundCount(int count) {
+    return '找到 $count 题';
+  }
+
+  @override
+  String get searchFilteredSuffix => ' · 已按题型筛选';
+
+  @override
+  String searchYearSuffix(String year) {
+    return ' · $year 年';
+  }
+
+  @override
+  String get searchHasFigure => ' · 含图';
+
+  @override
+  String get searchTitle => '搜题';
+
+  @override
+  String get searchPractiseThese => '练这些';
+
+  @override
+  String get searchHint => '搜题干、解析关键词';
+
+  @override
+  String searchAllCount(int count) {
+    return '全部 $count';
+  }
+
+  @override
+  String get searchTop60 => '只显示前 60 条';
+
+  @override
+  String get searchNoMatch => '没有匹配的题目';
+
+  @override
+  String get searchShorterHint => '换个更短的关键词试试。';
+
+  @override
+  String get searchRecent => '最近搜索';
+
+  @override
+  String get searchTryThese => '试试这些';
+
+  @override
+  String get searchNote => '搜索会扫描全库题目的题干与解析，命中的关键词会在结果里高亮。';
+
+  @override
+  String get toolVocabCompare => '词语辨析';
+
+  @override
+  String get toolVocabCompareHint => '一蹴而就 / 一挥而就，摆一起才分得清';
+
+  @override
+  String get toolVocabTop => '高频词语';
+
+  @override
+  String get toolVocabTopHint => '从 2077 道逻辑填空的选项统计出来的';
+
+  @override
+  String get toolVocabToday => '今日词卡';
+
+  @override
+  String get toolVocabTodayHint => '按间隔重复排的，今天该背哪些';
+
+  @override
+  String get toolVocabMine => '生词锦囊';
+
+  @override
+  String get toolVocabMineHint => '做错的词自动收进来，也能自己加';
+
+  @override
+  String get toolVocabLookup => '词语查询';
+
+  @override
+  String get toolVocabLookupHint => '四千词表，看真题里怎么用';
+
+  @override
+  String get toolTips => '行测助手';
+
+  @override
+  String get toolTipsHint => '各模块解题思路速查，卡住时翻';
+
+  @override
+  String get toolCheckin => '每日打卡';
+
+  @override
+  String get toolCheckinHint => '今天的安排，勾完算数';
+
+  @override
+  String get toolSearch => '题库搜索';
+
+  @override
+  String get toolSearchHint => '一万六千道题，按关键词找';
+
+  @override
+  String get toolsTitle => '工具';
+
+  @override
+  String get searchNoResults => '没找到相关题目';
 }

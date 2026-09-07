@@ -3334,4 +3334,111 @@ class AppLEn extends AppL {
   String explainStamp(String stamp) {
     return 'AI · $stamp';
   }
+
+  @override
+  String searchFoundCount(int count) {
+    return '$count found';
+  }
+
+  @override
+  String get searchFilteredSuffix => ' · filtered by type';
+
+  @override
+  String searchYearSuffix(String year) {
+    return ' · $year';
+  }
+
+  @override
+  String get searchHasFigure => ' · has a figure';
+
+  @override
+  String get searchTitle => 'Search';
+
+  @override
+  String get searchPractiseThese => 'Practise these';
+
+  @override
+  String get searchHint => 'Search questions and explanations';
+
+  @override
+  String searchAllCount(int count) {
+    return 'All $count';
+  }
+
+  @override
+  String get searchTop60 => 'Showing the first 60';
+
+  @override
+  String get searchNoMatch => 'No questions match';
+
+  @override
+  String get searchShorterHint => 'Try a shorter keyword.';
+
+  @override
+  String get searchRecent => 'Recent searches';
+
+  @override
+  String get searchTryThese => 'Try these';
+
+  @override
+  String get searchNote =>
+      'Search scans every question and explanation in the bank; matches are highlighted in the results.';
+
+  @override
+  String get toolVocabCompare => 'Compare words';
+
+  @override
+  String get toolVocabCompareHint =>
+      'Easily-confused pairs only separate when you see them side by side';
+
+  @override
+  String get toolVocabTop => 'Most frequent';
+
+  @override
+  String get toolVocabTopHint =>
+      'Counted from the options of every fill-in-the-blank question in your bank';
+
+  @override
+  String get toolVocabToday => 'Today\'s cards';
+
+  @override
+  String get toolVocabTodayHint => 'Spaced repetition — what\'s due today';
+
+  @override
+  String get toolVocabMine => 'Your words';
+
+  @override
+  String get toolVocabMineHint =>
+      'Missed words land here; you can add your own too';
+
+  @override
+  String get toolVocabLookup => 'Look up a word';
+
+  @override
+  String get toolVocabLookupHint =>
+      'See how a word is actually used in real papers';
+
+  @override
+  String get toolTips => 'Method';
+
+  @override
+  String get toolTipsHint => 'Per-module methods to check when you\'re stuck';
+
+  @override
+  String get toolCheckin => 'Daily list';
+
+  @override
+  String get toolCheckinHint => 'Today\'s plan — tick it off';
+
+  @override
+  String get toolSearch => 'Search the bank';
+
+  @override
+  String get toolSearchHint => 'Find any question by keyword';
+
+  @override
+  String get toolsTitle => 'Tools';
+
+  @override
+  String get searchNoResults => 'Nothing found';
 }

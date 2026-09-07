@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
@@ -121,12 +122,12 @@ class _SearchPageState extends State<SearchPage> {
           onPressed: () => Navigator.of(context).maybePop(),
         ),
         titleSpacing: 0,
-        title: const Text('搜题'),
+        title: Text(AppL.of(context).searchTitle),
         actions: [
           if (_results.isNotEmpty)
             TextButton(
               onPressed: () => _practise(_shown.take(20).toList()),
-              child: const Text('练这些'),
+              child: Text(AppL.of(context).searchPractiseThese),
             ),
           const SizedBox(width: 8),
         ],
@@ -147,7 +148,7 @@ class _SearchPageState extends State<SearchPage> {
               child: Row(
                 children: [
                   Icon(Icons.search, size: 18, color: t.muted),
-                  const SizedBox(width: 9),
+                  SizedBox(width: 9),
                   Expanded(
                     child: TextField(
                       controller: _controller,
@@ -161,7 +162,7 @@ class _SearchPageState extends State<SearchPage> {
                       decoration: InputDecoration(
                         isDense: true,
                         border: InputBorder.none,
-                        hintText: '搜题干、解析关键词',
+                        hintText: AppL.of(context).searchHint,
                         hintStyle: text.bodySmall?.copyWith(fontSize: 14),
                       ),
                     ),
@@ -183,7 +184,7 @@ class _SearchPageState extends State<SearchPage> {
               height: 34,
               child: ListView(
                 scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.fromLTRB(
+                padding: EdgeInsets.fromLTRB(
                   AppTheme.gutter,
                   0,
                   AppTheme.gutter,
@@ -191,7 +192,7 @@ class _SearchPageState extends State<SearchPage> {
                 ),
                 children: [
                   _SearchChip(
-                    label: '全部 ${_results.length}',
+                    label: AppL.of(context).searchAllCount(_results.length),
                     selected: _category == 'all',
                     color: t.brand,
                     onTap: () => setState(() => _category = 'all'),
@@ -223,20 +224,22 @@ class _SearchPageState extends State<SearchPage> {
                 children: [
                   Text(
                     _results.isEmpty
-                        ? '没找到相关题目'
-                        : '找到 ${_shown.length} 题'
-                              '${_category == 'all' ? '' : ' · 已按题型筛选'}',
+                        ? AppL.of(context).searchNoResults
+                        : AppL.of(context).searchFoundCount(_shown.length) +
+                            (_category == 'all'
+                                ? ''
+                                : AppL.of(context).searchFilteredSuffix),
                     style: text.bodySmall,
                   ),
-                  const Spacer(),
+                  Spacer(),
                   if (_results.length >= 60)
-                    Text('只显示前 60 条', style: text.bodySmall),
+                    Text(AppL.of(context).searchTop60, style: text.bodySmall),
                 ],
               ),
             ),
           Expanded(
             child: _searching
-                ? const LoadingState()
+                ? LoadingState()
                 : _query.isEmpty
                 ? _HistoryView(
                     history: _history,
@@ -244,11 +247,11 @@ class _SearchPageState extends State<SearchPage> {
                     onClear: _clearHistory,
                   )
                 : _results.isEmpty
-                ? const EmptyState(
+                ? EmptyState(
                     icon: Icons.search_off,
-                    title: '没有匹配的题目',
+                    title: AppL.of(context).searchNoMatch,
                             art: EmptyArt.search,
-                    message: '换个更短的关键词试试。',
+                    message: AppL.of(context).searchShorterHint,
                   )
                 : ListView.separated(
                     padding: const EdgeInsets.only(bottom: 24),
@@ -320,9 +323,15 @@ class _ResultRow extends StatelessWidget {
                   ),
                   const SizedBox(height: 7),
                   Text(
-                    '${categoryLabel(question.category)}'
-                    '${question.year > 0 ? ' · ${question.year} 年' : ''}'
-                    '${question.hasImage ? ' · 含图' : ''}',
+                    // 两截后缀都是可选的，在 Dart 里拼。
+                    categoryLabel(question.category) +
+                        (question.year > 0
+                            ? AppL.of(context)
+                                .searchYearSuffix('${question.year}')
+                            : '') +
+                        (question.hasImage
+                            ? AppL.of(context).searchHasFigure
+                            : ''),
                     style: text.bodySmall,
                   ),
                 ],
@@ -434,7 +443,7 @@ class _HistoryView extends StatelessWidget {
     );
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(
+      padding: EdgeInsets.fromLTRB(
         AppTheme.gutter,
         6,
         AppTheme.gutter,
@@ -444,12 +453,12 @@ class _HistoryView extends StatelessWidget {
         if (history.isNotEmpty) ...[
           Row(
             children: [
-              Text('最近搜索', style: text.titleSmall),
-              const Spacer(),
+              Text(AppL.of(context).searchRecent, style: text.titleSmall),
+              Spacer(),
               GestureDetector(
                 onTap: onClear,
                 child: Text(
-                  '清空',
+                  AppL.of(context).usageClearShort,
                   style: text.labelMedium?.copyWith(color: t.brand),
                 ),
               ),
@@ -457,13 +466,13 @@ class _HistoryView extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           chips(history),
-          const SizedBox(height: 28),
+          SizedBox(height: 28),
         ],
-        Text('试试这些', style: text.titleSmall),
+        Text(AppL.of(context).searchTryThese, style: text.titleSmall),
         const SizedBox(height: 12),
         chips(_suggestions),
-        const SizedBox(height: 28),
-        Text('搜索会扫描全库题目的题干与解析，命中的关键词会在结果里高亮。', style: text.bodySmall),
+        SizedBox(height: 28),
+        Text(AppL.of(context).searchNote, style: text.bodySmall),
       ],
     );
   }

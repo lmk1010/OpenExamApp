@@ -5729,6 +5729,198 @@ abstract class AppL {
   /// In zh, this message translates to:
   /// **'AI 生成 · {stamp}'**
   String explainStamp(String stamp);
+
+  /// No description provided for @searchFoundCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'找到 {count} 题'**
+  String searchFoundCount(int count);
+
+  /// No description provided for @searchFilteredSuffix.
+  ///
+  /// In zh, this message translates to:
+  /// **' · 已按题型筛选'**
+  String get searchFilteredSuffix;
+
+  /// No description provided for @searchYearSuffix.
+  ///
+  /// In zh, this message translates to:
+  /// **' · {year} 年'**
+  String searchYearSuffix(String year);
+
+  /// No description provided for @searchHasFigure.
+  ///
+  /// In zh, this message translates to:
+  /// **' · 含图'**
+  String get searchHasFigure;
+
+  /// No description provided for @searchTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜题'**
+  String get searchTitle;
+
+  /// No description provided for @searchPractiseThese.
+  ///
+  /// In zh, this message translates to:
+  /// **'练这些'**
+  String get searchPractiseThese;
+
+  /// No description provided for @searchHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜题干、解析关键词'**
+  String get searchHint;
+
+  /// No description provided for @searchAllCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部 {count}'**
+  String searchAllCount(int count);
+
+  /// No description provided for @searchTop60.
+  ///
+  /// In zh, this message translates to:
+  /// **'只显示前 60 条'**
+  String get searchTop60;
+
+  /// No description provided for @searchNoMatch.
+  ///
+  /// In zh, this message translates to:
+  /// **'没有匹配的题目'**
+  String get searchNoMatch;
+
+  /// No description provided for @searchShorterHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'换个更短的关键词试试。'**
+  String get searchShorterHint;
+
+  /// No description provided for @searchRecent.
+  ///
+  /// In zh, this message translates to:
+  /// **'最近搜索'**
+  String get searchRecent;
+
+  /// No description provided for @searchTryThese.
+  ///
+  /// In zh, this message translates to:
+  /// **'试试这些'**
+  String get searchTryThese;
+
+  /// No description provided for @searchNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜索会扫描全库题目的题干与解析，命中的关键词会在结果里高亮。'**
+  String get searchNote;
+
+  /// No description provided for @toolVocabCompare.
+  ///
+  /// In zh, this message translates to:
+  /// **'词语辨析'**
+  String get toolVocabCompare;
+
+  /// No description provided for @toolVocabCompareHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'一蹴而就 / 一挥而就，摆一起才分得清'**
+  String get toolVocabCompareHint;
+
+  /// No description provided for @toolVocabTop.
+  ///
+  /// In zh, this message translates to:
+  /// **'高频词语'**
+  String get toolVocabTop;
+
+  /// No description provided for @toolVocabTopHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'从 2077 道逻辑填空的选项统计出来的'**
+  String get toolVocabTopHint;
+
+  /// No description provided for @toolVocabToday.
+  ///
+  /// In zh, this message translates to:
+  /// **'今日词卡'**
+  String get toolVocabToday;
+
+  /// No description provided for @toolVocabTodayHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'按间隔重复排的，今天该背哪些'**
+  String get toolVocabTodayHint;
+
+  /// No description provided for @toolVocabMine.
+  ///
+  /// In zh, this message translates to:
+  /// **'生词锦囊'**
+  String get toolVocabMine;
+
+  /// No description provided for @toolVocabMineHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'做错的词自动收进来，也能自己加'**
+  String get toolVocabMineHint;
+
+  /// No description provided for @toolVocabLookup.
+  ///
+  /// In zh, this message translates to:
+  /// **'词语查询'**
+  String get toolVocabLookup;
+
+  /// No description provided for @toolVocabLookupHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'四千词表，看真题里怎么用'**
+  String get toolVocabLookupHint;
+
+  /// No description provided for @toolTips.
+  ///
+  /// In zh, this message translates to:
+  /// **'行测助手'**
+  String get toolTips;
+
+  /// No description provided for @toolTipsHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'各模块解题思路速查，卡住时翻'**
+  String get toolTipsHint;
+
+  /// No description provided for @toolCheckin.
+  ///
+  /// In zh, this message translates to:
+  /// **'每日打卡'**
+  String get toolCheckin;
+
+  /// No description provided for @toolCheckinHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'今天的安排，勾完算数'**
+  String get toolCheckinHint;
+
+  /// No description provided for @toolSearch.
+  ///
+  /// In zh, this message translates to:
+  /// **'题库搜索'**
+  String get toolSearch;
+
+  /// No description provided for @toolSearchHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'一万六千道题，按关键词找'**
+  String get toolSearchHint;
+
+  /// No description provided for @toolsTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'工具'**
+  String get toolsTitle;
+
+  /// No description provided for @searchNoResults.
+  ///
+  /// In zh, this message translates to:
+  /// **'没找到相关题目'**
+  String get searchNoResults;
 }
 
 class _AppLDelegate extends LocalizationsDelegate<AppL> {

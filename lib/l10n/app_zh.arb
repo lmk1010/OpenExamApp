@@ -2529,5 +2529,58 @@
         "type": "String"
       }
     }
-  }
+  },
+  "searchFoundCount": "找到 {count} 题",
+  "@searchFoundCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "searchFilteredSuffix": " · 已按题型筛选",
+  "searchYearSuffix": " · {year} 年",
+  "@searchYearSuffix": {
+    "placeholders": {
+      "year": {
+        "type": "String"
+      }
+    }
+  },
+  "searchHasFigure": " · 含图",
+  "searchTitle": "搜题",
+  "searchPractiseThese": "练这些",
+  "searchHint": "搜题干、解析关键词",
+  "searchAllCount": "全部 {count}",
+  "@searchAllCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "searchTop60": "只显示前 60 条",
+  "searchNoMatch": "没有匹配的题目",
+  "searchShorterHint": "换个更短的关键词试试。",
+  "searchRecent": "最近搜索",
+  "searchTryThese": "试试这些",
+  "searchNote": "搜索会扫描全库题目的题干与解析，命中的关键词会在结果里高亮。",
+  "toolVocabCompare": "词语辨析",
+  "toolVocabCompareHint": "一蹴而就 / 一挥而就，摆一起才分得清",
+  "toolVocabTop": "高频词语",
+  "toolVocabTopHint": "从 2077 道逻辑填空的选项统计出来的",
+  "toolVocabToday": "今日词卡",
+  "toolVocabTodayHint": "按间隔重复排的，今天该背哪些",
+  "toolVocabMine": "生词锦囊",
+  "toolVocabMineHint": "做错的词自动收进来，也能自己加",
+  "toolVocabLookup": "词语查询",
+  "toolVocabLookupHint": "四千词表，看真题里怎么用",
+  "toolTips": "行测助手",
+  "toolTipsHint": "各模块解题思路速查，卡住时翻",
+  "toolCheckin": "每日打卡",
+  "toolCheckinHint": "今天的安排，勾完算数",
+  "toolSearch": "题库搜索",
+  "toolSearchHint": "一万六千道题，按关键词找",
+  "toolsTitle": "工具",
+  "searchNoResults": "没找到相关题目"
 }

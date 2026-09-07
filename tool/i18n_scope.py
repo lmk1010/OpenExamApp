@@ -40,6 +40,9 @@ CONTENT = {
     # 拼给模型的题目上下文和禁用套话表（「这是一道很好的题」那种），
     # 是给模型的指令不是界面。
     'lib/features/ai/ai_explain_panel.dart': '讲题提示词与禁用套话表',
+    # 搜索建议词（主旨概括/等差数列/行政处罚）是给这个题库用的例子，
+    # 该跟题库语言走，不跟界面语言走。
+    'lib/features/search/search_page.dart': '搜索建议词',
 }
 
 
