@@ -5,6 +5,7 @@ import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
 import 'package:openexam_app/core/ui/shore.dart';
 import 'package:openexam_app/core/ui/shore_art.dart';
+import 'package:openexam_app/core/ui/stroke_icons.dart';
 import 'package:openexam_app/data/models/question.dart';
 import 'package:openexam_app/features/plan/domain/models/study_task.dart';
 
@@ -533,6 +534,28 @@ class IsleStrip extends StatelessWidget {
   }
 }
 
+/// 没有配图的分类用这块顶上：分类色的底 + 那个分类的图标。
+///
+/// [CategoryRegistry] 会给没见过的分类按名字稳定地生成图标和颜色，
+/// 所以同一个科目每次进来长得一样，不会这次是书下次是地球。
+class _IsleGlyph extends StatelessWidget {
+  const _IsleGlyph({required this.meta});
+
+  final CategoryMeta meta;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = context.tokens.category(meta.key);
+    return Container(
+      height: _isleArtHeight,
+      width: _isleWidth,
+      color: color.withValues(alpha: 0.14),
+      alignment: Alignment.center,
+      child: StrokeIcon(meta.icon, size: 34, color: color, weight: 1.6),
+    );
+  }
+}
+
 /// 正确率的颜色：低于 60% 报警，80% 以上算稳。
 ///
 /// 题数太少时不上色 —— 三题对两题算 67%，染成红的只会吓人。
@@ -578,6 +601,9 @@ class _IsleCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // 配图只有行测那五个模块有。导进计算机、驾考、法考这些题库时
+            // art 是 null —— 以前这里直接不画，卡片上半截就空着一块，
+            // 一排卡全是空白。没有图就画一块底色 + 分类图标，尺寸照旧。
             if (art != null)
               Image.asset(
                 art,
@@ -585,12 +611,10 @@ class _IsleCard extends StatelessWidget {
                 width: _isleWidth,
                 fit: BoxFit.cover,
                 filterQuality: FilterQuality.medium,
-                errorBuilder: (_, __, ___) => Container(
-                  height: _isleArtHeight,
-                  width: _isleWidth,
-                  color: t.category(meta.key).withValues(alpha: 0.14),
-                ),
-              ),
+                errorBuilder: (_, __, ___) => _IsleGlyph(meta: meta),
+              )
+            else
+              _IsleGlyph(meta: meta),
             Padding(
               padding: const EdgeInsets.fromLTRB(12, _islePadTop, 12, _islePadBottom),
               child: Column(
