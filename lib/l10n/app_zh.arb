@@ -2201,5 +2201,42 @@
     }
   },
   "docNoAnswer": "没有答案",
-  "docHasAnalysis": "带解析"
+  "docHasAnalysis": "带解析",
+  "essayNeedAi": "先配置 AI",
+  "essayNeedAiBody": "拍照识题要用到 AI，去填一下 API Key？",
+  "commonLater": "以后再说",
+  "essayScanFailed": "识别失败",
+  "essayScanDone": "识别完成，检查一下材料有没有缺段",
+  "essayNeedFields": "标题、给定材料、作答要求都得填，AI 才批得准",
+  "essayNewTitle": "录入申论题",
+  "essayEditTitle": "编辑题目",
+  "commonSaving": "保存中…",
+  "essayScanning": "识别中，长材料要等十几秒…",
+  "essayScanHint": "拍照 / 选图，让 AI 认题",
+  "essayScanCheck": "认完记得核对材料有没有缺段 —— 材料缺一块，批改就会漏一片。",
+  "essayType": "题型",
+  "essayTitleField": "标题",
+  "essayProvince": "省份",
+  "essayYear": "年份",
+  "essayWordLimit": "字数上限",
+  "essaySuggestedMinutes": "建议用时（分钟）",
+  "essaySource": "给定材料",
+  "essayTask": "作答要求",
+  "essayReference": "参考答案与采分点（可选，填了批改更准）",
+  "essayModelAnswer": "参考答案",
+  "essayModelAnswerHint": "有官方答案就贴上",
+  "essayMarkPoints": "采分点，一行一个",
+  "essayTitleHint": "2025 国考副省级 第一题",
+  "essaySourceHint": "材料1……\\n材料2……",
+  "essayTaskHint": "根据给定资料，概括……要求：全面、准确、有条理，不超过 200 字。",
+  "essayMarkPointsHint": "基层治理成本高\\n群众参与度低\\n数字化手段缺位",
+  "importMissingImages": "有 {count} 张图片在压缩包里找不到，这些题会显示\"图片缺失\"",
+  "@importMissingImages": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importedPaperTitle": "用户导入"
 }

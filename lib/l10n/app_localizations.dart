@@ -4883,6 +4883,186 @@ abstract class AppL {
   /// In zh, this message translates to:
   /// **'带解析'**
   String get docHasAnalysis;
+
+  /// No description provided for @essayNeedAi.
+  ///
+  /// In zh, this message translates to:
+  /// **'先配置 AI'**
+  String get essayNeedAi;
+
+  /// No description provided for @essayNeedAiBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'拍照识题要用到 AI，去填一下 API Key？'**
+  String get essayNeedAiBody;
+
+  /// No description provided for @commonLater.
+  ///
+  /// In zh, this message translates to:
+  /// **'以后再说'**
+  String get commonLater;
+
+  /// No description provided for @essayScanFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'识别失败'**
+  String get essayScanFailed;
+
+  /// No description provided for @essayScanDone.
+  ///
+  /// In zh, this message translates to:
+  /// **'识别完成，检查一下材料有没有缺段'**
+  String get essayScanDone;
+
+  /// No description provided for @essayNeedFields.
+  ///
+  /// In zh, this message translates to:
+  /// **'标题、给定材料、作答要求都得填，AI 才批得准'**
+  String get essayNeedFields;
+
+  /// No description provided for @essayNewTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'录入申论题'**
+  String get essayNewTitle;
+
+  /// No description provided for @essayEditTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'编辑题目'**
+  String get essayEditTitle;
+
+  /// No description provided for @commonSaving.
+  ///
+  /// In zh, this message translates to:
+  /// **'保存中…'**
+  String get commonSaving;
+
+  /// No description provided for @essayScanning.
+  ///
+  /// In zh, this message translates to:
+  /// **'识别中，长材料要等十几秒…'**
+  String get essayScanning;
+
+  /// No description provided for @essayScanHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'拍照 / 选图，让 AI 认题'**
+  String get essayScanHint;
+
+  /// No description provided for @essayScanCheck.
+  ///
+  /// In zh, this message translates to:
+  /// **'认完记得核对材料有没有缺段 —— 材料缺一块，批改就会漏一片。'**
+  String get essayScanCheck;
+
+  /// No description provided for @essayType.
+  ///
+  /// In zh, this message translates to:
+  /// **'题型'**
+  String get essayType;
+
+  /// No description provided for @essayTitleField.
+  ///
+  /// In zh, this message translates to:
+  /// **'标题'**
+  String get essayTitleField;
+
+  /// No description provided for @essayProvince.
+  ///
+  /// In zh, this message translates to:
+  /// **'省份'**
+  String get essayProvince;
+
+  /// No description provided for @essayYear.
+  ///
+  /// In zh, this message translates to:
+  /// **'年份'**
+  String get essayYear;
+
+  /// No description provided for @essayWordLimit.
+  ///
+  /// In zh, this message translates to:
+  /// **'字数上限'**
+  String get essayWordLimit;
+
+  /// No description provided for @essaySuggestedMinutes.
+  ///
+  /// In zh, this message translates to:
+  /// **'建议用时（分钟）'**
+  String get essaySuggestedMinutes;
+
+  /// No description provided for @essaySource.
+  ///
+  /// In zh, this message translates to:
+  /// **'给定材料'**
+  String get essaySource;
+
+  /// No description provided for @essayTask.
+  ///
+  /// In zh, this message translates to:
+  /// **'作答要求'**
+  String get essayTask;
+
+  /// No description provided for @essayReference.
+  ///
+  /// In zh, this message translates to:
+  /// **'参考答案与采分点（可选，填了批改更准）'**
+  String get essayReference;
+
+  /// No description provided for @essayModelAnswer.
+  ///
+  /// In zh, this message translates to:
+  /// **'参考答案'**
+  String get essayModelAnswer;
+
+  /// No description provided for @essayModelAnswerHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'有官方答案就贴上'**
+  String get essayModelAnswerHint;
+
+  /// No description provided for @essayMarkPoints.
+  ///
+  /// In zh, this message translates to:
+  /// **'采分点，一行一个'**
+  String get essayMarkPoints;
+
+  /// No description provided for @essayTitleHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'2025 国考副省级 第一题'**
+  String get essayTitleHint;
+
+  /// No description provided for @essaySourceHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'材料1……\\n材料2……'**
+  String get essaySourceHint;
+
+  /// No description provided for @essayTaskHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'根据给定资料，概括……要求：全面、准确、有条理，不超过 200 字。'**
+  String get essayTaskHint;
+
+  /// No description provided for @essayMarkPointsHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'基层治理成本高\\n群众参与度低\\n数字化手段缺位'**
+  String get essayMarkPointsHint;
+
+  /// No description provided for @importMissingImages.
+  ///
+  /// In zh, this message translates to:
+  /// **'有 {count} 张图片在压缩包里找不到，这些题会显示\"图片缺失\"'**
+  String importMissingImages(int count);
+
+  /// No description provided for @importedPaperTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'用户导入'**
+  String get importedPaperTitle;
 }
 
 class _AppLDelegate extends LocalizationsDelegate<AppL> {

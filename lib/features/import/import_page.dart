@@ -412,7 +412,13 @@ class _PreviewSheet extends StatelessWidget {
                           ],
                         ),
                       ),
-                    for (final warning in bundle.warnings)
+                    // 缺图那条由界面组句 —— 解析器只报数字，见 ImportBundle。
+                    for (final warning in [
+                      ...bundle.warnings,
+                      if (bundle.missingImages > 0)
+                        AppL.of(context)
+                            .importMissingImages(bundle.missingImages),
+                    ])
                       Padding(
                         padding: const EdgeInsets.only(top: 6),
                         child: Row(

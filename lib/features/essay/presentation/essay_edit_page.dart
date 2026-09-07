@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/ai/ai_settings.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
@@ -93,15 +94,15 @@ class _EssayEditPageState extends State<EssayEditPage> {
       final go = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('先配置 AI'),
-          content: const Text('拍照识题要用到 AI，去填一下 API Key？'),
+          title: Text(AppL.of(context).essayNeedAi),
+          content: Text(AppL.of(context).essayNeedAiBody),
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('以后再说')),
+                child: Text(AppL.of(context).commonLater)),
             TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('去设置')),
+                child: Text(AppL.of(context).scanGoSettings)),
           ],
         ),
       );
@@ -128,7 +129,7 @@ class _EssayEditPageState extends State<EssayEditPage> {
       if (!mounted) return;
 
       if (!result.isOk) {
-        _toast(result.error ?? '识别失败');
+        _toast(result.error ?? AppL.of(context).essayScanFailed);
         return;
       }
       final p = result.value!;
@@ -141,7 +142,7 @@ class _EssayEditPageState extends State<EssayEditPage> {
         _material.text = p.material;
         _requirement.text = p.requirement;
       });
-      _toast('识别完成，检查一下材料有没有缺段');
+      _toast(AppL.of(context).essayScanDone);
     } finally {
       if (mounted) setState(() => _recognizing = false);
     }
@@ -157,7 +158,7 @@ class _EssayEditPageState extends State<EssayEditPage> {
     if (_title.text.trim().isEmpty ||
         _material.text.trim().isEmpty ||
         _requirement.text.trim().isEmpty) {
-      _toast('标题、给定材料、作答要求都得填，AI 才批得准');
+      _toast(AppL.of(context).essayNeedFields);
       return;
     }
     setState(() => _saving = true);
@@ -191,11 +192,11 @@ class _EssayEditPageState extends State<EssayEditPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.existing == null ? '录入申论题' : '编辑题目'),
+        title: Text(widget.existing == null ? AppL.of(context).essayNewTitle : AppL.of(context).essayEditTitle),
         actions: [
           TextButton(
             onPressed: _saving ? null : _save,
-            child: Text(_saving ? '保存中…' : '保存'),
+            child: Text(_saving ? AppL.of(context).commonSaving : AppL.of(context).commonSave),
           ),
         ],
       ),
@@ -210,20 +211,20 @@ class _EssayEditPageState extends State<EssayEditPage> {
           OutlinedButton.icon(
             onPressed: _recognizing ? null : _recognize,
             icon: _recognizing
-                ? const SizedBox(
+                ? SizedBox(
                     width: 15,
                     height: 15,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : const Icon(Icons.photo_camera_outlined, size: 18),
-            label: Text(_recognizing ? '识别中，长材料要等十几秒…' : '拍照 / 选图，让 AI 认题'),
+                : Icon(Icons.photo_camera_outlined, size: 18),
+            label: Text(_recognizing ? AppL.of(context).essayScanning : AppL.of(context).essayScanHint),
           ),
-          const SizedBox(height: 8),
-          Text('认完记得核对材料有没有缺段 —— 材料缺一块，批改就会漏一片。',
+          SizedBox(height: 8),
+          Text(AppL.of(context).essayScanCheck,
               style: text.bodySmall),
-          const SizedBox(height: 22),
+          SizedBox(height: 22),
 
-          _Label('题型'),
+          _Label(AppL.of(context).essayType),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
@@ -253,12 +254,12 @@ class _EssayEditPageState extends State<EssayEditPage> {
                 ),
             ],
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: 20),
 
-          _Label('标题'),
-          const SizedBox(height: 8),
-          _Input(controller: _title, hint: '2025 国考副省级 第一题'),
-          const SizedBox(height: 18),
+          _Label(AppL.of(context).essayTitleField),
+          SizedBox(height: 8),
+          _Input(controller: _title, hint: AppL.of(context).essayTitleHint),
+          SizedBox(height: 18),
 
           Row(
             children: [
@@ -266,18 +267,18 @@ class _EssayEditPageState extends State<EssayEditPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _Label('省份'),
+                    _Label(AppL.of(context).essayProvince),
                     const SizedBox(height: 8),
                     _Input(controller: _province, hint: '国考'),
                   ],
                 ),
               ),
-              const SizedBox(width: 10),
+              SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _Label('年份'),
+                    _Label(AppL.of(context).essayYear),
                     const SizedBox(height: 8),
                     _Input(controller: _year, hint: '2025', number: true),
                   ],
@@ -285,7 +286,7 @@ class _EssayEditPageState extends State<EssayEditPage> {
               ),
             ],
           ),
-          const SizedBox(height: 18),
+          SizedBox(height: 18),
 
           Row(
             children: [
@@ -293,18 +294,18 @@ class _EssayEditPageState extends State<EssayEditPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _Label('字数上限'),
+                    _Label(AppL.of(context).essayWordLimit),
                     const SizedBox(height: 8),
                     _Input(controller: _wordLimit, hint: '200', number: true),
                   ],
                 ),
               ),
-              const SizedBox(width: 10),
+              SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _Label('建议用时（分钟）'),
+                    _Label(AppL.of(context).essaySuggestedMinutes),
                     const SizedBox(height: 8),
                     _Input(controller: _minutes, hint: '20', number: true),
                   ],
@@ -312,18 +313,18 @@ class _EssayEditPageState extends State<EssayEditPage> {
               ),
             ],
           ),
-          const SizedBox(height: 18),
+          SizedBox(height: 18),
 
-          _Label('给定材料'),
-          const SizedBox(height: 8),
-          _Input(controller: _material, hint: '材料1……\n材料2……', lines: 10),
-          const SizedBox(height: 18),
+          _Label(AppL.of(context).essaySource),
+          SizedBox(height: 8),
+          _Input(controller: _material, hint: AppL.of(context).essaySourceHint, lines: 10),
+          SizedBox(height: 18),
 
-          _Label('作答要求'),
-          const SizedBox(height: 8),
+          _Label(AppL.of(context).essayTask),
+          SizedBox(height: 8),
           _Input(
             controller: _requirement,
-            hint: '根据给定资料，概括……要求：全面、准确、有条理，不超过 200 字。',
+            hint: AppL.of(context).essayTaskHint,
             lines: 3,
           ),
           const SizedBox(height: 20),
@@ -337,23 +338,23 @@ class _EssayEditPageState extends State<EssayEditPage> {
                   size: 20,
                   color: t.muted,
                 ),
-                const SizedBox(width: 4),
-                Text('参考答案与采分点（可选，填了批改更准）',
+                SizedBox(width: 4),
+                Text(AppL.of(context).essayReference,
                     style: text.bodySmall?.copyWith(color: t.textSoft)),
               ],
             ),
           ),
           if (_showOptional) ...[
-            const SizedBox(height: 14),
-            _Label('参考答案'),
-            const SizedBox(height: 8),
-            _Input(controller: _reference, hint: '有官方答案就贴上', lines: 5),
-            const SizedBox(height: 18),
-            _Label('采分点，一行一个'),
-            const SizedBox(height: 8),
+            SizedBox(height: 14),
+            _Label(AppL.of(context).essayModelAnswer),
+            SizedBox(height: 8),
+            _Input(controller: _reference, hint: AppL.of(context).essayModelAnswerHint, lines: 5),
+            SizedBox(height: 18),
+            _Label(AppL.of(context).essayMarkPoints),
+            SizedBox(height: 8),
             _Input(
               controller: _points,
-              hint: '基层治理成本高\n群众参与度低\n数字化手段缺位',
+              hint: AppL.of(context).essayMarkPointsHint,
               lines: 5,
             ),
           ],

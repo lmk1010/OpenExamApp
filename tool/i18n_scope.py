@@ -29,6 +29,11 @@ CONTENT = {
     # 剩下的全是 SQL LIKE 模式和中文省份名 —— 拿去 contains 匹配中文卷名的，
     # 翻了会直接把地区分类打断。跟 bank_page 里的「国考/联考」同一类。
     'lib/data/db/app_database.dart': '匹配中文卷名的 SQL 模式与省份名',
+    # 中文 CSV 的列名（题干/答案/选项a）和分类猜测关键词，拿去匹配用户导入的
+    # 文件表头 —— 翻了中文 CSV 就导不进来了。
+    'lib/data/importers/question_importer.dart': '中文 CSV 列名与分类关键词',
+    # 喂给视觉模型的提示词和 JSON schema 描述，是给模型的指令不是界面。
+    'lib/features/import/data/paper_scanner.dart': '视觉模型提示词',
 }
 
 

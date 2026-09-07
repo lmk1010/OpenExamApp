@@ -2840,4 +2840,102 @@ class AppLEn extends AppL {
 
   @override
   String get docHasAnalysis => 'has an explanation';
+
+  @override
+  String get essayNeedAi => 'Set up AI first';
+
+  @override
+  String get essayNeedAiBody => 'Reading a photo needs AI — add an API key?';
+
+  @override
+  String get commonLater => 'Later';
+
+  @override
+  String get essayScanFailed => 'Couldn\'t read it';
+
+  @override
+  String get essayScanDone =>
+      'Read it — check the source text for missing paragraphs';
+
+  @override
+  String get essayNeedFields =>
+      'Title, source text and the task are all needed for AI to mark it well';
+
+  @override
+  String get essayNewTitle => 'New essay question';
+
+  @override
+  String get essayEditTitle => 'Edit question';
+
+  @override
+  String get commonSaving => 'Saving…';
+
+  @override
+  String get essayScanning => 'Reading — long text takes a moment…';
+
+  @override
+  String get essayScanHint => 'Photograph or pick an image and let AI read it';
+
+  @override
+  String get essayScanCheck =>
+      'Check the source text afterwards — a missing paragraph means a blind spot in the marking.';
+
+  @override
+  String get essayType => 'Type';
+
+  @override
+  String get essayTitleField => 'Title';
+
+  @override
+  String get essayProvince => 'Region';
+
+  @override
+  String get essayYear => 'Year';
+
+  @override
+  String get essayWordLimit => 'Word limit';
+
+  @override
+  String get essaySuggestedMinutes => 'Suggested time (minutes)';
+
+  @override
+  String get essaySource => 'Source text';
+
+  @override
+  String get essayTask => 'The task';
+
+  @override
+  String get essayReference =>
+      'Model answer and mark scheme (optional — improves marking)';
+
+  @override
+  String get essayModelAnswer => 'Model answer';
+
+  @override
+  String get essayModelAnswerHint =>
+      'Paste the official answer if you have one';
+
+  @override
+  String get essayMarkPoints => 'Mark scheme, one point per line';
+
+  @override
+  String get essayTitleHint => 'e.g. 2025 paper, question 1';
+
+  @override
+  String get essaySourceHint => 'Source 1…\nSource 2…';
+
+  @override
+  String get essayTaskHint =>
+      'Using the sources, summarise… Be complete, accurate and well organised; no more than 200 words.';
+
+  @override
+  String get essayMarkPointsHint => 'First point\nSecond point\nThird point';
+
+  @override
+  String importMissingImages(int count) {
+    return '$count images referenced but missing from the zip — those questions will show a missing-figure placeholder';
+  }
+
+  @override
+  String get importedPaperTitle => 'Imported';
 }

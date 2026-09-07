@@ -11,6 +11,7 @@ class ImportBundle {
     required this.questions,
     required this.images,
     this.warnings = const [],
+    this.missingImages = 0,
   });
 
   final List<Question> questions;
@@ -18,6 +19,12 @@ class ImportBundle {
   /// Figure name (without extension) -> bytes, from a zip's images folder.
   final Map<String, Uint8List> images;
   final List<String> warnings;
+
+  /// 题里引用了、但压缩包里没有的图片张数。
+  ///
+  /// 不在这里拼成一句中文警告 —— 解析器是纯数据层，没有 BuildContext，
+  /// 拼出来的中文在英文界面上就是一句突兀的中文。只报数字，界面自己组句。
+  final int missingImages;
 
   bool get isEmpty => questions.isEmpty;
 
@@ -59,7 +66,8 @@ class QuestionImporter {
             parseBytes(file.content as List<int>, fileName: name),
           );
         } catch (e) {
-          warnings.add('$name 解析失败：$e');
+          // 文件名加错误原文就够了，不用再套一句中文 —— 这里没有 context。
+          warnings.add('$name: $e');
         }
       }
     }
@@ -73,11 +81,12 @@ class QuestionImporter {
         if (!images.containsKey(match.group(1))) missing.add(match.group(1)!);
       }
     }
-    if (missing.isNotEmpty) {
-      warnings.add('有 ${missing.length} 张图片在压缩包里找不到，这些题会显示"图片缺失"');
-    }
-
-    return ImportBundle(questions: fixed, images: images, warnings: warnings);
+    return ImportBundle(
+      questions: fixed,
+      images: images,
+      warnings: warnings,
+      missingImages: missing.length,
+    );
   }
 
   static Question _rewriteImages(Question q, Set<String> names) {
@@ -259,7 +268,7 @@ class QuestionImporter {
         answer: answer,
         category: _guessCategory(at(catI)),
         analysis: at(analysisI),
-        paperTitle: '用户导入',
+        paperTitle: '',
         source: 'imported',
       ));
     }

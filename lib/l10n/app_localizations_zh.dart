@@ -2768,4 +2768,96 @@ class AppLZh extends AppL {
 
   @override
   String get docHasAnalysis => '带解析';
+
+  @override
+  String get essayNeedAi => '先配置 AI';
+
+  @override
+  String get essayNeedAiBody => '拍照识题要用到 AI，去填一下 API Key？';
+
+  @override
+  String get commonLater => '以后再说';
+
+  @override
+  String get essayScanFailed => '识别失败';
+
+  @override
+  String get essayScanDone => '识别完成，检查一下材料有没有缺段';
+
+  @override
+  String get essayNeedFields => '标题、给定材料、作答要求都得填，AI 才批得准';
+
+  @override
+  String get essayNewTitle => '录入申论题';
+
+  @override
+  String get essayEditTitle => '编辑题目';
+
+  @override
+  String get commonSaving => '保存中…';
+
+  @override
+  String get essayScanning => '识别中，长材料要等十几秒…';
+
+  @override
+  String get essayScanHint => '拍照 / 选图，让 AI 认题';
+
+  @override
+  String get essayScanCheck => '认完记得核对材料有没有缺段 —— 材料缺一块，批改就会漏一片。';
+
+  @override
+  String get essayType => '题型';
+
+  @override
+  String get essayTitleField => '标题';
+
+  @override
+  String get essayProvince => '省份';
+
+  @override
+  String get essayYear => '年份';
+
+  @override
+  String get essayWordLimit => '字数上限';
+
+  @override
+  String get essaySuggestedMinutes => '建议用时（分钟）';
+
+  @override
+  String get essaySource => '给定材料';
+
+  @override
+  String get essayTask => '作答要求';
+
+  @override
+  String get essayReference => '参考答案与采分点（可选，填了批改更准）';
+
+  @override
+  String get essayModelAnswer => '参考答案';
+
+  @override
+  String get essayModelAnswerHint => '有官方答案就贴上';
+
+  @override
+  String get essayMarkPoints => '采分点，一行一个';
+
+  @override
+  String get essayTitleHint => '2025 国考副省级 第一题';
+
+  @override
+  String get essaySourceHint => '材料1……\\n材料2……';
+
+  @override
+  String get essayTaskHint => '根据给定资料，概括……要求：全面、准确、有条理，不超过 200 字。';
+
+  @override
+  String get essayMarkPointsHint => '基层治理成本高\\n群众参与度低\\n数字化手段缺位';
+
+  @override
+  String importMissingImages(int count) {
+    return '有 $count 张图片在压缩包里找不到，这些题会显示\"图片缺失\"';
+  }
+
+  @override
+  String get importedPaperTitle => '用户导入';
 }
