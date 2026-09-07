@@ -3018,4 +3018,86 @@ class AppLZh extends AppL {
 
   @override
   String get healthWhichAnswerHint => '选错了也不要紧，之后在做题页还能改。';
+
+  @override
+  String get bankAllShort => '全部';
+
+  @override
+  String reportsTodayAt(String time) {
+    return '今天 $time';
+  }
+
+  @override
+  String reportsMinSec(int m, int s) {
+    return '$m 分 $s 秒';
+  }
+
+  @override
+  String reportsSec(int s) {
+    return '$s 秒';
+  }
+
+  @override
+  String reportsResume(String when, int n) {
+    return '$when · 停在第 $n 题 · 点开接着做';
+  }
+
+  @override
+  String reportsScoreLine(
+    String when,
+    int correct,
+    int total,
+    String duration,
+  ) {
+    return '$when · 答对 $correct/$total · $duration';
+  }
+
+  @override
+  String reportsPlainLine(String when, String duration) {
+    return '$when · $duration';
+  }
+
+  @override
+  String get reportsEssayHint => '申论记录去申论页看批改';
+
+  @override
+  String get reportsVocabHint => '背词记录没有题目可以逐题回顾';
+
+  @override
+  String get reportsNeedTwo => '至少要有两份报告才能对比';
+
+  @override
+  String get reportsTitle => '练习历史';
+
+  @override
+  String get reportsNone => '还没有成绩报告';
+
+  @override
+  String get reportsNoneHint => '练习、模考、背词都会记在这里。';
+
+  @override
+  String get reportsKindVocab => '背词';
+
+  @override
+  String get reportsUnfinished => '未做完';
+
+  @override
+  String reportsSeeWrong(int count) {
+    return '看这 $count 道错题';
+  }
+
+  @override
+  String get reportsDiagnose => '诊断这份卷子';
+
+  @override
+  String get reportsCompareWith => '和哪一次比';
+
+  @override
+  String get reportsCompare => '两次对比';
+
+  @override
+  String get reportsLevel => '持平';
+
+  @override
+  String get reportsCompareNote => '题目不同，比的是各模块的正确率，不是同一批题。';
 }

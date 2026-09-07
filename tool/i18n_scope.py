@@ -34,6 +34,9 @@ CONTENT = {
     'lib/data/importers/question_importer.dart': '中文 CSV 列名与分类关键词',
     # 喂给视觉模型的提示词和 JSON schema 描述，是给模型的指令不是界面。
     'lib/features/import/data/paper_scanner.dart': '视觉模型提示词',
+    # 剩下的是「国考/联考/事业/选调」这批 —— 拿去 contains 匹配中文卷名的
+    # key 和 switch 分支，决定试卷分类、图标和配色，翻了直接打断。
+    'lib/features/bank/bank_page.dart': '匹配中文卷名的地区/考试类型 key',
 }
 
 

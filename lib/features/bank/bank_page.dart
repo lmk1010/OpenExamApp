@@ -304,7 +304,7 @@ class _BankPageState extends State<BankPage> with TabReload {
                     kicker: matched.length == _papers.length
                         ? AppL.of(context).bankPaperCount(_papers.length)
                         : AppL.of(context).bankMatchedCount(matched.length, _papers.length),
-                    title: '题库',
+                    title: AppL.of(context).bankTab,
                     actions: [
                       // 导出：题库以前只进不出 —— 扫描试卷、文档导入辛苦攒出来
                       // 的一套题换台手机就没了，更别说发给别人。
@@ -680,7 +680,9 @@ class _RegionStrip extends StatelessWidget {
                 textBaseline: TextBaseline.alphabetic,
                 children: [
                   Text(
-                    o.label == '全部地区' ? '全部' : o.label,
+                    // 按 value 判断而不是按 label —— label 已经跟着语言走了，
+                    // 拿中文字面量比，英文界面下这个短标签永远不生效。
+                    o.value == 'all' ? AppL.of(context).bankAllShort : o.label,
                     style: text.bodyMedium?.copyWith(
                       fontSize: 13,
                       color: on ? Colors.white : t.textSoft,

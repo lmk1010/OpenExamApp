@@ -5339,6 +5339,132 @@ abstract class AppL {
   /// In zh, this message translates to:
   /// **'选错了也不要紧，之后在做题页还能改。'**
   String get healthWhichAnswerHint;
+
+  /// No description provided for @bankAllShort.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部'**
+  String get bankAllShort;
+
+  /// No description provided for @reportsTodayAt.
+  ///
+  /// In zh, this message translates to:
+  /// **'今天 {time}'**
+  String reportsTodayAt(String time);
+
+  /// No description provided for @reportsMinSec.
+  ///
+  /// In zh, this message translates to:
+  /// **'{m} 分 {s} 秒'**
+  String reportsMinSec(int m, int s);
+
+  /// No description provided for @reportsSec.
+  ///
+  /// In zh, this message translates to:
+  /// **'{s} 秒'**
+  String reportsSec(int s);
+
+  /// No description provided for @reportsResume.
+  ///
+  /// In zh, this message translates to:
+  /// **'{when} · 停在第 {n} 题 · 点开接着做'**
+  String reportsResume(String when, int n);
+
+  /// No description provided for @reportsScoreLine.
+  ///
+  /// In zh, this message translates to:
+  /// **'{when} · 答对 {correct}/{total} · {duration}'**
+  String reportsScoreLine(String when, int correct, int total, String duration);
+
+  /// No description provided for @reportsPlainLine.
+  ///
+  /// In zh, this message translates to:
+  /// **'{when} · {duration}'**
+  String reportsPlainLine(String when, String duration);
+
+  /// No description provided for @reportsEssayHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'申论记录去申论页看批改'**
+  String get reportsEssayHint;
+
+  /// No description provided for @reportsVocabHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'背词记录没有题目可以逐题回顾'**
+  String get reportsVocabHint;
+
+  /// No description provided for @reportsNeedTwo.
+  ///
+  /// In zh, this message translates to:
+  /// **'至少要有两份报告才能对比'**
+  String get reportsNeedTwo;
+
+  /// No description provided for @reportsTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'练习历史'**
+  String get reportsTitle;
+
+  /// No description provided for @reportsNone.
+  ///
+  /// In zh, this message translates to:
+  /// **'还没有成绩报告'**
+  String get reportsNone;
+
+  /// No description provided for @reportsNoneHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'练习、模考、背词都会记在这里。'**
+  String get reportsNoneHint;
+
+  /// No description provided for @reportsKindVocab.
+  ///
+  /// In zh, this message translates to:
+  /// **'背词'**
+  String get reportsKindVocab;
+
+  /// No description provided for @reportsUnfinished.
+  ///
+  /// In zh, this message translates to:
+  /// **'未做完'**
+  String get reportsUnfinished;
+
+  /// No description provided for @reportsSeeWrong.
+  ///
+  /// In zh, this message translates to:
+  /// **'看这 {count} 道错题'**
+  String reportsSeeWrong(int count);
+
+  /// No description provided for @reportsDiagnose.
+  ///
+  /// In zh, this message translates to:
+  /// **'诊断这份卷子'**
+  String get reportsDiagnose;
+
+  /// No description provided for @reportsCompareWith.
+  ///
+  /// In zh, this message translates to:
+  /// **'和哪一次比'**
+  String get reportsCompareWith;
+
+  /// No description provided for @reportsCompare.
+  ///
+  /// In zh, this message translates to:
+  /// **'两次对比'**
+  String get reportsCompare;
+
+  /// No description provided for @reportsLevel.
+  ///
+  /// In zh, this message translates to:
+  /// **'持平'**
+  String get reportsLevel;
+
+  /// No description provided for @reportsCompareNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'题目不同，比的是各模块的正确率，不是同一批题。'**
+  String get reportsCompareNote;
 }
 
 class _AppLDelegate extends LocalizationsDelegate<AppL> {

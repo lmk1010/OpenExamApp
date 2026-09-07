@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
 import 'package:openexam_app/core/ui/responsive.dart';
@@ -86,7 +87,7 @@ class _ReportsPageState extends State<ReportsPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            report.kind == 'essay' ? '申论记录去申论页看批改' : '背词记录没有题目可以逐题回顾',
+            report.kind == 'essay' ? AppL.of(context).reportsEssayHint : AppL.of(context).reportsVocabHint,
           ),
         ),
       );
@@ -105,7 +106,7 @@ class _ReportsPageState extends State<ReportsPage> {
         builder: (_) => PracticeSessionPage(
           questions: list,
           reviewAnswers: report.answers,
-          title: wrongOnly ? '错题回顾' : '逐题回顾',
+          title: wrongOnly ? AppL.of(context).sessionWrongReview : AppL.of(context).sessionGoThrough,
         ),
       ),
     );
@@ -124,7 +125,7 @@ class _ReportsPageState extends State<ReportsPage> {
     final others = _reports.where((r) => r.id != a.id).toList();
     if (others.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('至少要有两份报告才能对比')),
+        SnackBar(content: Text(AppL.of(context).reportsNeedTwo)),
       );
       return;
     }
@@ -163,41 +164,41 @@ class _ReportsPageState extends State<ReportsPage> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, size: 21),
+          icon: Icon(Icons.arrow_back, size: 21),
           onPressed: () => Navigator.of(context).maybePop(),
         ),
         titleSpacing: 0,
-        title: Text(widget.pageTitle ?? '练习历史'),
+        title: Text(widget.pageTitle ?? AppL.of(context).reportsTitle),
       ),
       body: ReadableWidth(
         maxWidth: context.isExpanded ? 820 : context.readableWidth,
         child: _loading
-          ? const LoadingState()
+          ? LoadingState()
           : _reports.isEmpty
-              ? const EmptyState(
+              ? EmptyState(
                   icon: Icons.assignment_outlined,
-                  title: '还没有成绩报告',
+                  title: AppL.of(context).reportsNone,
                   art: EmptyArt.chart,
-                  message: '练习、模考、背词都会记在这里。',
+                  message: AppL.of(context).reportsNoneHint,
                 )
               : ListView(
                   padding: const EdgeInsets.only(top: 6, bottom: 28),
                   children: [
                     if (_kinds.length > 1)
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(
+                        padding: EdgeInsets.fromLTRB(
                             AppTheme.gutter, 2, AppTheme.gutter, 8),
                         child: Wrap(
                           spacing: 8,
                           children: [
                             _KindChip(
-                              label: '全部',
+                              label: AppL.of(context).bankAllShort,
                               on: _kind == null,
                               onTap: () => setState(() => _kind = null),
                             ),
                             for (final k in _kinds)
                               _KindChip(
-                                label: reportKindLabel(k),
+                                label: reportKindLabel(context, k),
                                 on: _kind == k,
                                 onTap: () => setState(() => _kind = k),
                               ),
@@ -212,10 +213,10 @@ class _ReportsPageState extends State<ReportsPage> {
                         onDismissed: (_) => _delete(_shown[i]),
                         background: Container(
                           alignment: Alignment.centerRight,
-                          padding: const EdgeInsets.only(right: AppTheme.gutter),
+                          padding: EdgeInsets.only(right: AppTheme.gutter),
                           color: t.dangerSoft,
                           child: Text(
-                            '删除',
+                            AppL.of(context).commonDelete,
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
@@ -241,14 +242,14 @@ class _ReportsPageState extends State<ReportsPage> {
   }
 }
 
-/// 记录类型的中文名。练习、模考、背词现在都写进同一张表，
+/// 记录类型的名字。练习、模考、背词现在都写进同一张表，
 /// 列表上得分得出谁是谁。
-String reportKindLabel(String kind) => switch (kind) {
-      'exam' => '模考',
-      'vocab' => '背词',
-      'daily' => '每日一练',
-      'essay' => '申论',
-      _ => '练习',
+String reportKindLabel(BuildContext context, String kind) => switch (kind) {
+      'exam' => AppL.of(context).statsKindMock,
+      'vocab' => AppL.of(context).reportsKindVocab,
+      'daily' => AppL.of(context).homeDaily,
+      'essay' => AppL.of(context).homeEssay,
+      _ => AppL.of(context).statsKindPractice,
     };
 
 class _KindChip extends StatelessWidget {
@@ -302,19 +303,22 @@ class _ReportRow extends StatelessWidget {
   final VoidCallback onCompare;
   final VoidCallback onDiagnose;
 
-  String get _when {
+  /// 带 context：日期和时长的说法跟着界面语言走。
+  String _when(BuildContext context) {
     final d = report.createdAt;
     final now = DateTime.now();
     final sameDay = d.year == now.year && d.month == now.month && d.day == now.day;
     final hm = '${d.hour.toString().padLeft(2, '0')}:'
         '${d.minute.toString().padLeft(2, '0')}';
-    return sameDay ? '今天 $hm' : '${d.month}/${d.day} $hm';
+    return sameDay ? AppL.of(context).reportsTodayAt(hm) : '${d.month}/${d.day} $hm';
   }
 
-  String get _duration {
+  String _duration(BuildContext context) {
     final m = report.elapsed.inMinutes;
     final s = report.elapsed.inSeconds % 60;
-    return m > 0 ? '$m 分 $s 秒' : '$s 秒';
+    return m > 0
+        ? AppL.of(context).reportsMinSec(m, s)
+        : AppL.of(context).reportsSec(s);
   }
 
   @override
@@ -376,9 +380,9 @@ class _ReportRow extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 6),
+                  SizedBox(height: 6),
                   Text(
-                    ongoing ? '未做完' : reportKindLabel(report.kind),
+                    ongoing ? AppL.of(context).reportsUnfinished : reportKindLabel(context, report.kind),
                     style: text.bodySmall?.copyWith(
                       fontSize: 11,
                       color: ongoing ? t.brand : null,
@@ -398,17 +402,24 @@ class _ReportRow extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: text.titleSmall?.copyWith(fontSize: 15),
                   ),
-                  const SizedBox(height: 6),
+                  SizedBox(height: 6),
                   Text(
                     ongoing
-                        ? '$_when · 停在第 ${report.cursor + 1} 题 · 点开接着做'
+                        ? AppL.of(context).reportsResume(
+                            _when(context), report.cursor + 1)
                         : (report.score != null
-                            ? '$_when · $_duration'
-                            : '$_when · 答对 ${report.correct}/${report.total} · $_duration'),
+                            ? AppL.of(context).reportsPlainLine(
+                                _when(context), _duration(context))
+                            : AppL.of(context).reportsScoreLine(
+                                _when(context),
+                                report.correct,
+                                report.total,
+                                _duration(context),
+                              )),
                     style: text.bodySmall,
                   ),
                   if (!ongoing || wrong > 0) ...[
-                    const SizedBox(height: 9),
+                    SizedBox(height: 9),
                     Wrap(
                       spacing: 16,
                       runSpacing: 7,
@@ -416,7 +427,7 @@ class _ReportRow extends StatelessWidget {
                         if (wrong > 0)
                           _RowLink(
                             icon: AppIcon.wrongBook,
-                            label: '看这 $wrong 道错题',
+                            label: AppL.of(context).reportsSeeWrong(wrong),
                             onTap: onReviewWrong,
                           ),
                         // 一份成绩单只说了对几道，说不了"时间花在哪、
@@ -424,7 +435,7 @@ class _ReportRow extends StatelessWidget {
                         if (!ongoing)
                           _RowLink(
                             icon: AppIcon.chart,
-                            label: '诊断这份卷子',
+                            label: AppL.of(context).reportsDiagnose,
                             onTap: onDiagnose,
                           ),
                       ],
@@ -465,14 +476,14 @@ class _PickReportSheet extends StatelessWidget {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         border: Border(top: BorderSide(color: t.lineSoft)),
       ),
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+      padding: EdgeInsets.fromLTRB(20, 16, 20, 12),
       child: SafeArea(
         top: false,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('和哪一次比', style: text.titleMedium),
+            Text(AppL.of(context).reportsCompareWith, style: text.titleMedium),
             const SizedBox(height: 8),
             Flexible(
               child: ListView.builder(
@@ -573,14 +584,14 @@ class _CompareSheet extends StatelessWidget {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         border: Border(top: BorderSide(color: t.lineSoft)),
       ),
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 16),
+      padding: EdgeInsets.fromLTRB(20, 18, 20, 16),
       child: SafeArea(
         top: false,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('两次对比', style: text.titleMedium),
+            Text(AppL.of(context).reportsCompare, style: text.titleMedium),
             const SizedBox(height: 6),
             Text(
               '${older.createdAt.month}/${older.createdAt.day} → '
@@ -609,9 +620,9 @@ class _CompareSheet extends StatelessWidget {
                     fontFeatures: AppTheme.numeric,
                   ),
                 ),
-                const SizedBox(width: 10),
+                SizedBox(width: 10),
                 Text(
-                  delta == 0 ? '持平' : (delta > 0 ? '+$delta' : '$delta'),
+                  delta == 0 ? AppL.of(context).reportsLevel : (delta > 0 ? '+$delta' : '$delta'),
                   style: text.titleSmall?.copyWith(
                     color: delta > 0
                         ? t.success
@@ -667,9 +678,9 @@ class _CompareSheet extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             Text(
-              '题目不同，比的是各模块的正确率，不是同一批题。',
+              AppL.of(context).reportsCompareNote,
               style: text.bodySmall,
             ),
           ],

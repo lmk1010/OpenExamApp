@@ -2363,5 +2363,93 @@
   "healthEmptyStem": "（空题干）",
   "healthDelete": "删掉",
   "healthWhichAnswer": "正确答案是哪个",
-  "healthWhichAnswerHint": "选错了也不要紧，之后在做题页还能改。"
+  "healthWhichAnswerHint": "选错了也不要紧，之后在做题页还能改。",
+  "bankAllShort": "全部",
+  "reportsTodayAt": "今天 {time}",
+  "@reportsTodayAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "reportsMinSec": "{m} 分 {s} 秒",
+  "@reportsMinSec": {
+    "placeholders": {
+      "m": {
+        "type": "int"
+      },
+      "s": {
+        "type": "int"
+      }
+    }
+  },
+  "reportsSec": "{s} 秒",
+  "@reportsSec": {
+    "placeholders": {
+      "s": {
+        "type": "int"
+      }
+    }
+  },
+  "reportsResume": "{when} · 停在第 {n} 题 · 点开接着做",
+  "@reportsResume": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "reportsScoreLine": "{when} · 答对 {correct}/{total} · {duration}",
+  "@reportsScoreLine": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      },
+      "correct": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "reportsPlainLine": "{when} · {duration}",
+  "@reportsPlainLine": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "reportsEssayHint": "申论记录去申论页看批改",
+  "reportsVocabHint": "背词记录没有题目可以逐题回顾",
+  "reportsNeedTwo": "至少要有两份报告才能对比",
+  "reportsTitle": "练习历史",
+  "reportsNone": "还没有成绩报告",
+  "reportsNoneHint": "练习、模考、背词都会记在这里。",
+  "reportsKindVocab": "背词",
+  "reportsUnfinished": "未做完",
+  "reportsSeeWrong": "看这 {count} 道错题",
+  "@reportsSeeWrong": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reportsDiagnose": "诊断这份卷子",
+  "reportsCompareWith": "和哪一次比",
+  "reportsCompare": "两次对比",
+  "reportsLevel": "持平",
+  "reportsCompareNote": "题目不同，比的是各模块的正确率，不是同一批题。"
 }

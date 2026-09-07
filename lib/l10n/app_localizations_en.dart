@@ -3102,4 +3102,89 @@ class AppLEn extends AppL {
   @override
   String get healthWhichAnswerHint =>
       'Pick the wrong one and it\'s fine — you can change it later while practising.';
+
+  @override
+  String get bankAllShort => 'All';
+
+  @override
+  String reportsTodayAt(String time) {
+    return 'Today $time';
+  }
+
+  @override
+  String reportsMinSec(int m, int s) {
+    return '${m}m ${s}s';
+  }
+
+  @override
+  String reportsSec(int s) {
+    return '${s}s';
+  }
+
+  @override
+  String reportsResume(String when, int n) {
+    return '$when · stopped at question $n · tap to carry on';
+  }
+
+  @override
+  String reportsScoreLine(
+    String when,
+    int correct,
+    int total,
+    String duration,
+  ) {
+    return '$when · $correct/$total correct · $duration';
+  }
+
+  @override
+  String reportsPlainLine(String when, String duration) {
+    return '$when · $duration';
+  }
+
+  @override
+  String get reportsEssayHint =>
+      'Essay records: see the marking on the essay page';
+
+  @override
+  String get reportsVocabHint => 'Word sessions have no questions to review';
+
+  @override
+  String get reportsNeedTwo => 'You need at least two reports to compare';
+
+  @override
+  String get reportsTitle => 'Practice history';
+
+  @override
+  String get reportsNone => 'No reports yet';
+
+  @override
+  String get reportsNoneHint =>
+      'Practice sets, mocks and word sessions all get recorded here.';
+
+  @override
+  String get reportsKindVocab => 'words';
+
+  @override
+  String get reportsUnfinished => 'Unfinished';
+
+  @override
+  String reportsSeeWrong(int count) {
+    return 'See those $count mistakes';
+  }
+
+  @override
+  String get reportsDiagnose => 'Diagnose this paper';
+
+  @override
+  String get reportsCompareWith => 'Compare with';
+
+  @override
+  String get reportsCompare => 'Side by side';
+
+  @override
+  String get reportsLevel => 'level';
+
+  @override
+  String get reportsCompareNote =>
+      'Different questions — this compares accuracy per module, not the same set.';
 }
