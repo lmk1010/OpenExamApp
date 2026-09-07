@@ -1461,4 +1461,325 @@ class AppLEn extends AppL {
 
   @override
   String get dxConfigureAi => 'Set up AI';
+
+  @override
+  String get dashTitle => 'Your profile';
+
+  @override
+  String get dashByModule => 'Module by module';
+
+  @override
+  String get dashByModuleHint => 'Weakest accuracy first';
+
+  @override
+  String get dashLast35 => 'Last 35 days';
+
+  @override
+  String get dashHeatHint => 'Darker means more practice';
+
+  @override
+  String get dashTrend => 'Score trend';
+
+  @override
+  String dashLastN(int count) {
+    return 'Last $count';
+  }
+
+  @override
+  String get dashWhen => 'When you practise';
+
+  @override
+  String get dashWhenHint => 'What time of day you tend to work';
+
+  @override
+  String get dashAdvice => 'What to do next';
+
+  @override
+  String get dashAdviceHint => 'Read off your current numbers';
+
+  @override
+  String get dashEmpty => 'Finish your first set and this page fills up.';
+
+  @override
+  String get dashDataNote =>
+      'Everything here comes from this device only; clearing your practice history resets the page.';
+
+  @override
+  String get dashDoFirstSet => 'Do a set of 20 first';
+
+  @override
+  String get dashDoFirstSetHint =>
+      'Accuracy and weak spots need something to work from, and so does this page.';
+
+  @override
+  String dashWeakest(String name) {
+    return '$name is your weakest right now';
+  }
+
+  @override
+  String dashWeakestBody(int rate, int done) {
+    return '$rate% correct over $done questions. Weak-spot drills give it the biggest share — get this above 70% first.';
+  }
+
+  @override
+  String get dashTopCareless => 'Most of your mistakes are careless';
+
+  @override
+  String get dashTopUnknown => 'Most of your mistakes are gaps';
+
+  @override
+  String get dashTopMisread => 'Most of your mistakes are misreads';
+
+  @override
+  String get dashTopNoTime => 'Most of your mistakes are time';
+
+  @override
+  String dashCarelessBody(int count) {
+    return '$count tagged careless. Don\'t add volume — take each answer back to the question and check it.';
+  }
+
+  @override
+  String dashUnknownBody(int count) {
+    return '$count tagged as gaps. Go back for the method first — drilling the same type only pays after that.';
+  }
+
+  @override
+  String dashMisreadBody(int count) {
+    return '$count came down to misreading. Circle the qualifiers and the units as you read.';
+  }
+
+  @override
+  String dashNoTimeBody(int count) {
+    return '$count ran out of time. Time yourself module by module before taking whole papers.';
+  }
+
+  @override
+  String get dashGoTagged => 'Go through the mistake book by reason';
+
+  @override
+  String dashDropped(String name, int points) {
+    return '$name dropped $points points this week';
+  }
+
+  @override
+  String dashDroppedBody(int before, int now, int done) {
+    return '$before% the week before, $now% over the last 7 days ($done questions). Don\'t add volume yet — go through this module in the mistake book and see whether it\'s one type repeating or just rust.';
+  }
+
+  @override
+  String get dashSeeModuleWrong => 'See this module\'s mistakes';
+
+  @override
+  String dashRose(String name, int points) {
+    return '$name gained $points points this week';
+  }
+
+  @override
+  String dashRoseBody(int before, int now, int done) {
+    return '$before% the week before, $now% over the last 7 days ($done questions). Whatever you\'re doing here works — start squeezing the clock.';
+  }
+
+  @override
+  String dashSlow(String name) {
+    return '$name is taking you a while';
+  }
+
+  @override
+  String dashSlowBody(int secs) {
+    return '${secs}s a question on average. Anything past 90 seconds is one to skip in the exam — hold yourself to that in practice too.';
+  }
+
+  @override
+  String get dashTimeThisModule => 'Do a timed drill on it';
+
+  @override
+  String get dashStreakBroken => 'Your streak broke';
+
+  @override
+  String get dashStreakBrokenBody =>
+      'Ten a day still counts — rhythm beats any single big session.';
+
+  @override
+  String dashStreakDays(int days) {
+    return '$days days running';
+  }
+
+  @override
+  String get dashStreakBody =>
+      'Hold it. What separates people is coming back every day, not one 200-question binge.';
+
+  @override
+  String get dashAllSteady => 'Everything looks steady';
+
+  @override
+  String get dashAllSteadyBody =>
+      'Time yourself on whole papers now and bring your pace into exam rhythm.';
+
+  @override
+  String dashDaysLine(int days, int streak) {
+    return '$days days practised · $streak in a row';
+  }
+
+  @override
+  String get unitDays => 'days';
+
+  @override
+  String get dashToExam => 'To exam';
+
+  @override
+  String get dashOverallRate => 'Overall accuracy';
+
+  @override
+  String get dashTotalAnswered => 'Answered';
+
+  @override
+  String get dashWrongLeft => 'Mistakes left';
+
+  @override
+  String get dashToday => 'Today';
+
+  @override
+  String dashPacePerQ(int secs) {
+    return '${secs}s/q';
+  }
+
+  @override
+  String get dashLess => 'less';
+
+  @override
+  String get dashMore => 'more';
+
+  @override
+  String get dashHeatToday => 'Bottom-right is today';
+
+  @override
+  String dashFlat(int rate) {
+    return 'Latest $rate%, level with where you started';
+  }
+
+  @override
+  String dashUp(int from, int to, int points) {
+    return '$from% to $to%, up $points points';
+  }
+
+  @override
+  String dashDown(int from, int to, int points) {
+    return '$from% to $to%, down $points points';
+  }
+
+  @override
+  String get dashHour0 => '0:00';
+
+  @override
+  String dashPeakHour(int hour) {
+    return 'Usually around $hour:00';
+  }
+
+  @override
+  String get dashHour23 => '23:00';
+
+  @override
+  String get dashPractiseNow => 'Practise now';
+
+  @override
+  String get bankTab => 'Bank';
+
+  @override
+  String get bankPapers => 'Papers';
+
+  @override
+  String get bankAllRegions => 'All regions';
+
+  @override
+  String get bankAllYears => 'All years';
+
+  @override
+  String get bankNoYear => 'No year';
+
+  @override
+  String bankYear(String year) {
+    return '$year';
+  }
+
+  @override
+  String get bankAllStatus => 'Any status';
+
+  @override
+  String get bankNotStarted => 'Not started';
+
+  @override
+  String get bankInProgress => 'In progress';
+
+  @override
+  String get bankFinished => 'Finished';
+
+  @override
+  String bankPaperCount(int count) {
+    return '$count papers';
+  }
+
+  @override
+  String bankMatchedCount(int matched, int total) {
+    return '$matched of $total';
+  }
+
+  @override
+  String get bankSearchHint => 'Search by year, region or title';
+
+  @override
+  String get bankFilterYear => 'Year';
+
+  @override
+  String get bankFilterStatus => 'Status';
+
+  @override
+  String get bankSort => 'Sort';
+
+  @override
+  String get bankSortYear => 'By year (newest first)';
+
+  @override
+  String get bankSortProgress => 'By progress';
+
+  @override
+  String get bankSortSize => 'By length';
+
+  @override
+  String get bankNoPapers => 'No papers yet';
+
+  @override
+  String get bankNoMatch => 'No papers match';
+
+  @override
+  String get bankNoPapersHint =>
+      'Import from You → Import questions and whole papers show up here.';
+
+  @override
+  String get bankNoMatchHint =>
+      'Try another keyword — a year, a region, an exam name.';
+
+  @override
+  String get bankUndatedGroup => 'No year given';
+
+  @override
+  String bankPaperCountShort(int count) {
+    return '$count papers';
+  }
+
+  @override
+  String get bankPickPaper => 'Pick a paper';
+
+  @override
+  String get bankPickPaperHint => 'Choose one on the left.';
+
+  @override
+  String get bankUntitledPaper => 'Untitled paper';
+
+  @override
+  String bankPaperProgress(int done, int total) {
+    return '$done of $total';
+  }
+
+  @override
+  String get bankImport => 'Import';
 }

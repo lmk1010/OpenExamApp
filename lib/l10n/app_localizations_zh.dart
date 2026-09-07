@@ -1422,4 +1422,318 @@ class AppLZh extends AppL {
 
   @override
   String get dxConfigureAi => '去配置 AI';
+
+  @override
+  String get dashTitle => '备考档案';
+
+  @override
+  String get dashByModule => '模块能力';
+
+  @override
+  String get dashByModuleHint => '正确率由低到高';
+
+  @override
+  String get dashLast35 => '最近 35 天';
+
+  @override
+  String get dashHeatHint => '颜色越深练得越多';
+
+  @override
+  String get dashTrend => '成绩走势';
+
+  @override
+  String dashLastN(int count) {
+    return '最近 $count 次';
+  }
+
+  @override
+  String get dashWhen => '习惯时段';
+
+  @override
+  String get dashWhenHint => '一天里你在什么时候刷题';
+
+  @override
+  String get dashAdvice => '给你的建议';
+
+  @override
+  String get dashAdviceHint => '按当前数据推断';
+
+  @override
+  String get dashEmpty => '刷完第一组题，这一页就会有内容。';
+
+  @override
+  String get dashDataNote => '数据只统计本机记录，清除练习记录后这一页会重新开始。';
+
+  @override
+  String get dashDoFirstSet => '先刷一组 20 题';
+
+  @override
+  String get dashDoFirstSetHint => '有了记录才能算正确率、排弱项，这一页也才有东西可看。';
+
+  @override
+  String dashWeakest(String name) {
+    return '$name是当前短板';
+  }
+
+  @override
+  String dashWeakestBody(int rate, int done) {
+    return '正确率 $rate%，已练 $done 题。弱项强化会给它最大配额，先把这块拉到 70% 以上。';
+  }
+
+  @override
+  String get dashTopCareless => '错题里\"粗心\"最多';
+
+  @override
+  String get dashTopUnknown => '错题里\"不会\"最多';
+
+  @override
+  String get dashTopMisread => '错题里\"审题\"最多';
+
+  @override
+  String get dashTopNoTime => '错题里\"没时间\"最多';
+
+  @override
+  String dashCarelessBody(int count) {
+    return '$count 道标了粗心。别加量，做完把答案带回题干核对一遍。';
+  }
+
+  @override
+  String dashUnknownBody(int count) {
+    return '$count 道标了不会。先回去补方法，再刷同类题才有意义。';
+  }
+
+  @override
+  String dashMisreadBody(int count) {
+    return '$count 道栽在审题。做题时把限定词和单位圈出来。';
+  }
+
+  @override
+  String dashNoTimeBody(int count) {
+    return '$count 道是时间不够。先按模块限时练，再上整卷。';
+  }
+
+  @override
+  String get dashGoTagged => '去错题本按错因过一遍';
+
+  @override
+  String dashDropped(String name, int points) {
+    return '$name这周退了 $points 个点';
+  }
+
+  @override
+  String dashDroppedBody(int before, int now, int done) {
+    return '上一周 $before%，最近 7 天 $now%（$done 题）。先别加量，去错题本按这个模块过一遍，看是同一类题反复错还是手生了。';
+  }
+
+  @override
+  String get dashSeeModuleWrong => '看这个模块的错题';
+
+  @override
+  String dashRose(String name, int points) {
+    return '$name这周涨了 $points 个点';
+  }
+
+  @override
+  String dashRoseBody(int before, int now, int done) {
+    return '上一周 $before%，最近 7 天 $now%（$done 题）。这块的练法是对的，可以开始压时间了。';
+  }
+
+  @override
+  String dashSlow(String name) {
+    return '$name花的时间偏长';
+  }
+
+  @override
+  String dashSlowBody(int secs) {
+    return '平均每题 $secs 秒。行测里超过 90 秒的题在考场上应该先跳过，练的时候也要按这个标准掐表。';
+  }
+
+  @override
+  String get dashTimeThisModule => '限时练这个模块';
+
+  @override
+  String get dashStreakBroken => '连续打卡断了';
+
+  @override
+  String get dashStreakBrokenBody => '每天 10 题也算数，节奏比单次量更重要。';
+
+  @override
+  String dashStreakDays(int days) {
+    return '已经连续 $days 天';
+  }
+
+  @override
+  String get dashStreakBody => '保持住。真正拉开差距的是能不能天天回来，而不是某天刷了 200 题。';
+
+  @override
+  String get dashAllSteady => '各项都挺稳';
+
+  @override
+  String get dashAllSteadyBody => '可以开始按整卷限时练，把速度也压进考试节奏。';
+
+  @override
+  String dashDaysLine(int days, int streak) {
+    return '练过 $days 天 · 连续 $streak 天';
+  }
+
+  @override
+  String get unitDays => '天';
+
+  @override
+  String get dashToExam => '距考试';
+
+  @override
+  String get dashOverallRate => '总正确率';
+
+  @override
+  String get dashTotalAnswered => '累计答题';
+
+  @override
+  String get dashWrongLeft => '待清错题';
+
+  @override
+  String get dashToday => '今日进度';
+
+  @override
+  String dashPacePerQ(int secs) {
+    return '${secs}s/题';
+  }
+
+  @override
+  String get dashLess => '少';
+
+  @override
+  String get dashMore => '多';
+
+  @override
+  String get dashHeatToday => '右下角为今天';
+
+  @override
+  String dashFlat(int rate) {
+    return '最近一次 $rate%，和最早那次持平';
+  }
+
+  @override
+  String dashUp(int from, int to, int points) {
+    return '从 $from% 到 $to%，涨了 $points 个点';
+  }
+
+  @override
+  String dashDown(int from, int to, int points) {
+    return '从 $from% 到 $to%，掉了 $points 个点';
+  }
+
+  @override
+  String get dashHour0 => '0 点';
+
+  @override
+  String dashPeakHour(int hour) {
+    return '最常在 $hour 点前后刷题';
+  }
+
+  @override
+  String get dashHour23 => '23 点';
+
+  @override
+  String get dashPractiseNow => '现在就练';
+
+  @override
+  String get bankTab => '题库';
+
+  @override
+  String get bankPapers => '试卷';
+
+  @override
+  String get bankAllRegions => '全部地区';
+
+  @override
+  String get bankAllYears => '全部年份';
+
+  @override
+  String get bankNoYear => '未标注';
+
+  @override
+  String bankYear(String year) {
+    return '$year 年';
+  }
+
+  @override
+  String get bankAllStatus => '全部状态';
+
+  @override
+  String get bankNotStarted => '未开始';
+
+  @override
+  String get bankInProgress => '进行中';
+
+  @override
+  String get bankFinished => '已做完';
+
+  @override
+  String bankPaperCount(int count) {
+    return '$count 套真题卷';
+  }
+
+  @override
+  String bankMatchedCount(int matched, int total) {
+    return '$matched / $total 套';
+  }
+
+  @override
+  String get bankSearchHint => '搜索年份、省份、卷名';
+
+  @override
+  String get bankFilterYear => '年份';
+
+  @override
+  String get bankFilterStatus => '状态';
+
+  @override
+  String get bankSort => '排序';
+
+  @override
+  String get bankSortYear => '按年份（新→旧）';
+
+  @override
+  String get bankSortProgress => '按完成度';
+
+  @override
+  String get bankSortSize => '按题量';
+
+  @override
+  String get bankNoPapers => '还没有试卷';
+
+  @override
+  String get bankNoMatch => '没有匹配的试卷';
+
+  @override
+  String get bankNoPapersHint => '到「我的 → 导入题目」导入后，整套试卷会出现在这里。';
+
+  @override
+  String get bankNoMatchHint => '换个关键词试试，比如 2025、江苏、国考。';
+
+  @override
+  String get bankUndatedGroup => '未标注年份';
+
+  @override
+  String bankPaperCountShort(int count) {
+    return '$count 套';
+  }
+
+  @override
+  String get bankPickPaper => '选一张卷';
+
+  @override
+  String get bankPickPaperHint => '左边挑一张。';
+
+  @override
+  String get bankUntitledPaper => '未命名试卷';
+
+  @override
+  String bankPaperProgress(int done, int total) {
+    return '$done / $total 题';
+  }
+
+  @override
+  String get bankImport => '导入';
 }

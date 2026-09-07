@@ -2501,6 +2501,534 @@ abstract class AppL {
   /// In zh, this message translates to:
   /// **'去配置 AI'**
   String get dxConfigureAi;
+
+  /// No description provided for @dashTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'备考档案'**
+  String get dashTitle;
+
+  /// No description provided for @dashByModule.
+  ///
+  /// In zh, this message translates to:
+  /// **'模块能力'**
+  String get dashByModule;
+
+  /// No description provided for @dashByModuleHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'正确率由低到高'**
+  String get dashByModuleHint;
+
+  /// No description provided for @dashLast35.
+  ///
+  /// In zh, this message translates to:
+  /// **'最近 35 天'**
+  String get dashLast35;
+
+  /// No description provided for @dashHeatHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'颜色越深练得越多'**
+  String get dashHeatHint;
+
+  /// No description provided for @dashTrend.
+  ///
+  /// In zh, this message translates to:
+  /// **'成绩走势'**
+  String get dashTrend;
+
+  /// No description provided for @dashLastN.
+  ///
+  /// In zh, this message translates to:
+  /// **'最近 {count} 次'**
+  String dashLastN(int count);
+
+  /// No description provided for @dashWhen.
+  ///
+  /// In zh, this message translates to:
+  /// **'习惯时段'**
+  String get dashWhen;
+
+  /// No description provided for @dashWhenHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'一天里你在什么时候刷题'**
+  String get dashWhenHint;
+
+  /// No description provided for @dashAdvice.
+  ///
+  /// In zh, this message translates to:
+  /// **'给你的建议'**
+  String get dashAdvice;
+
+  /// No description provided for @dashAdviceHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'按当前数据推断'**
+  String get dashAdviceHint;
+
+  /// No description provided for @dashEmpty.
+  ///
+  /// In zh, this message translates to:
+  /// **'刷完第一组题，这一页就会有内容。'**
+  String get dashEmpty;
+
+  /// No description provided for @dashDataNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'数据只统计本机记录，清除练习记录后这一页会重新开始。'**
+  String get dashDataNote;
+
+  /// No description provided for @dashDoFirstSet.
+  ///
+  /// In zh, this message translates to:
+  /// **'先刷一组 20 题'**
+  String get dashDoFirstSet;
+
+  /// No description provided for @dashDoFirstSetHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'有了记录才能算正确率、排弱项，这一页也才有东西可看。'**
+  String get dashDoFirstSetHint;
+
+  /// No description provided for @dashWeakest.
+  ///
+  /// In zh, this message translates to:
+  /// **'{name}是当前短板'**
+  String dashWeakest(String name);
+
+  /// No description provided for @dashWeakestBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'正确率 {rate}%，已练 {done} 题。弱项强化会给它最大配额，先把这块拉到 70% 以上。'**
+  String dashWeakestBody(int rate, int done);
+
+  /// No description provided for @dashTopCareless.
+  ///
+  /// In zh, this message translates to:
+  /// **'错题里\"粗心\"最多'**
+  String get dashTopCareless;
+
+  /// No description provided for @dashTopUnknown.
+  ///
+  /// In zh, this message translates to:
+  /// **'错题里\"不会\"最多'**
+  String get dashTopUnknown;
+
+  /// No description provided for @dashTopMisread.
+  ///
+  /// In zh, this message translates to:
+  /// **'错题里\"审题\"最多'**
+  String get dashTopMisread;
+
+  /// No description provided for @dashTopNoTime.
+  ///
+  /// In zh, this message translates to:
+  /// **'错题里\"没时间\"最多'**
+  String get dashTopNoTime;
+
+  /// No description provided for @dashCarelessBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 道标了粗心。别加量，做完把答案带回题干核对一遍。'**
+  String dashCarelessBody(int count);
+
+  /// No description provided for @dashUnknownBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 道标了不会。先回去补方法，再刷同类题才有意义。'**
+  String dashUnknownBody(int count);
+
+  /// No description provided for @dashMisreadBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 道栽在审题。做题时把限定词和单位圈出来。'**
+  String dashMisreadBody(int count);
+
+  /// No description provided for @dashNoTimeBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 道是时间不够。先按模块限时练，再上整卷。'**
+  String dashNoTimeBody(int count);
+
+  /// No description provided for @dashGoTagged.
+  ///
+  /// In zh, this message translates to:
+  /// **'去错题本按错因过一遍'**
+  String get dashGoTagged;
+
+  /// No description provided for @dashDropped.
+  ///
+  /// In zh, this message translates to:
+  /// **'{name}这周退了 {points} 个点'**
+  String dashDropped(String name, int points);
+
+  /// No description provided for @dashDroppedBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'上一周 {before}%，最近 7 天 {now}%（{done} 题）。先别加量，去错题本按这个模块过一遍，看是同一类题反复错还是手生了。'**
+  String dashDroppedBody(int before, int now, int done);
+
+  /// No description provided for @dashSeeModuleWrong.
+  ///
+  /// In zh, this message translates to:
+  /// **'看这个模块的错题'**
+  String get dashSeeModuleWrong;
+
+  /// No description provided for @dashRose.
+  ///
+  /// In zh, this message translates to:
+  /// **'{name}这周涨了 {points} 个点'**
+  String dashRose(String name, int points);
+
+  /// No description provided for @dashRoseBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'上一周 {before}%，最近 7 天 {now}%（{done} 题）。这块的练法是对的，可以开始压时间了。'**
+  String dashRoseBody(int before, int now, int done);
+
+  /// No description provided for @dashSlow.
+  ///
+  /// In zh, this message translates to:
+  /// **'{name}花的时间偏长'**
+  String dashSlow(String name);
+
+  /// No description provided for @dashSlowBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'平均每题 {secs} 秒。行测里超过 90 秒的题在考场上应该先跳过，练的时候也要按这个标准掐表。'**
+  String dashSlowBody(int secs);
+
+  /// No description provided for @dashTimeThisModule.
+  ///
+  /// In zh, this message translates to:
+  /// **'限时练这个模块'**
+  String get dashTimeThisModule;
+
+  /// No description provided for @dashStreakBroken.
+  ///
+  /// In zh, this message translates to:
+  /// **'连续打卡断了'**
+  String get dashStreakBroken;
+
+  /// No description provided for @dashStreakBrokenBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'每天 10 题也算数，节奏比单次量更重要。'**
+  String get dashStreakBrokenBody;
+
+  /// No description provided for @dashStreakDays.
+  ///
+  /// In zh, this message translates to:
+  /// **'已经连续 {days} 天'**
+  String dashStreakDays(int days);
+
+  /// No description provided for @dashStreakBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'保持住。真正拉开差距的是能不能天天回来，而不是某天刷了 200 题。'**
+  String get dashStreakBody;
+
+  /// No description provided for @dashAllSteady.
+  ///
+  /// In zh, this message translates to:
+  /// **'各项都挺稳'**
+  String get dashAllSteady;
+
+  /// No description provided for @dashAllSteadyBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'可以开始按整卷限时练，把速度也压进考试节奏。'**
+  String get dashAllSteadyBody;
+
+  /// No description provided for @dashDaysLine.
+  ///
+  /// In zh, this message translates to:
+  /// **'练过 {days} 天 · 连续 {streak} 天'**
+  String dashDaysLine(int days, int streak);
+
+  /// No description provided for @unitDays.
+  ///
+  /// In zh, this message translates to:
+  /// **'天'**
+  String get unitDays;
+
+  /// No description provided for @dashToExam.
+  ///
+  /// In zh, this message translates to:
+  /// **'距考试'**
+  String get dashToExam;
+
+  /// No description provided for @dashOverallRate.
+  ///
+  /// In zh, this message translates to:
+  /// **'总正确率'**
+  String get dashOverallRate;
+
+  /// No description provided for @dashTotalAnswered.
+  ///
+  /// In zh, this message translates to:
+  /// **'累计答题'**
+  String get dashTotalAnswered;
+
+  /// No description provided for @dashWrongLeft.
+  ///
+  /// In zh, this message translates to:
+  /// **'待清错题'**
+  String get dashWrongLeft;
+
+  /// No description provided for @dashToday.
+  ///
+  /// In zh, this message translates to:
+  /// **'今日进度'**
+  String get dashToday;
+
+  /// No description provided for @dashPacePerQ.
+  ///
+  /// In zh, this message translates to:
+  /// **'{secs}s/题'**
+  String dashPacePerQ(int secs);
+
+  /// No description provided for @dashLess.
+  ///
+  /// In zh, this message translates to:
+  /// **'少'**
+  String get dashLess;
+
+  /// No description provided for @dashMore.
+  ///
+  /// In zh, this message translates to:
+  /// **'多'**
+  String get dashMore;
+
+  /// No description provided for @dashHeatToday.
+  ///
+  /// In zh, this message translates to:
+  /// **'右下角为今天'**
+  String get dashHeatToday;
+
+  /// No description provided for @dashFlat.
+  ///
+  /// In zh, this message translates to:
+  /// **'最近一次 {rate}%，和最早那次持平'**
+  String dashFlat(int rate);
+
+  /// No description provided for @dashUp.
+  ///
+  /// In zh, this message translates to:
+  /// **'从 {from}% 到 {to}%，涨了 {points} 个点'**
+  String dashUp(int from, int to, int points);
+
+  /// No description provided for @dashDown.
+  ///
+  /// In zh, this message translates to:
+  /// **'从 {from}% 到 {to}%，掉了 {points} 个点'**
+  String dashDown(int from, int to, int points);
+
+  /// No description provided for @dashHour0.
+  ///
+  /// In zh, this message translates to:
+  /// **'0 点'**
+  String get dashHour0;
+
+  /// No description provided for @dashPeakHour.
+  ///
+  /// In zh, this message translates to:
+  /// **'最常在 {hour} 点前后刷题'**
+  String dashPeakHour(int hour);
+
+  /// No description provided for @dashHour23.
+  ///
+  /// In zh, this message translates to:
+  /// **'23 点'**
+  String get dashHour23;
+
+  /// No description provided for @dashPractiseNow.
+  ///
+  /// In zh, this message translates to:
+  /// **'现在就练'**
+  String get dashPractiseNow;
+
+  /// No description provided for @bankTab.
+  ///
+  /// In zh, this message translates to:
+  /// **'题库'**
+  String get bankTab;
+
+  /// No description provided for @bankPapers.
+  ///
+  /// In zh, this message translates to:
+  /// **'试卷'**
+  String get bankPapers;
+
+  /// No description provided for @bankAllRegions.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部地区'**
+  String get bankAllRegions;
+
+  /// No description provided for @bankAllYears.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部年份'**
+  String get bankAllYears;
+
+  /// No description provided for @bankNoYear.
+  ///
+  /// In zh, this message translates to:
+  /// **'未标注'**
+  String get bankNoYear;
+
+  /// No description provided for @bankYear.
+  ///
+  /// In zh, this message translates to:
+  /// **'{year} 年'**
+  String bankYear(String year);
+
+  /// No description provided for @bankAllStatus.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部状态'**
+  String get bankAllStatus;
+
+  /// No description provided for @bankNotStarted.
+  ///
+  /// In zh, this message translates to:
+  /// **'未开始'**
+  String get bankNotStarted;
+
+  /// No description provided for @bankInProgress.
+  ///
+  /// In zh, this message translates to:
+  /// **'进行中'**
+  String get bankInProgress;
+
+  /// No description provided for @bankFinished.
+  ///
+  /// In zh, this message translates to:
+  /// **'已做完'**
+  String get bankFinished;
+
+  /// No description provided for @bankPaperCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 套真题卷'**
+  String bankPaperCount(int count);
+
+  /// No description provided for @bankMatchedCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'{matched} / {total} 套'**
+  String bankMatchedCount(int matched, int total);
+
+  /// No description provided for @bankSearchHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜索年份、省份、卷名'**
+  String get bankSearchHint;
+
+  /// No description provided for @bankFilterYear.
+  ///
+  /// In zh, this message translates to:
+  /// **'年份'**
+  String get bankFilterYear;
+
+  /// No description provided for @bankFilterStatus.
+  ///
+  /// In zh, this message translates to:
+  /// **'状态'**
+  String get bankFilterStatus;
+
+  /// No description provided for @bankSort.
+  ///
+  /// In zh, this message translates to:
+  /// **'排序'**
+  String get bankSort;
+
+  /// No description provided for @bankSortYear.
+  ///
+  /// In zh, this message translates to:
+  /// **'按年份（新→旧）'**
+  String get bankSortYear;
+
+  /// No description provided for @bankSortProgress.
+  ///
+  /// In zh, this message translates to:
+  /// **'按完成度'**
+  String get bankSortProgress;
+
+  /// No description provided for @bankSortSize.
+  ///
+  /// In zh, this message translates to:
+  /// **'按题量'**
+  String get bankSortSize;
+
+  /// No description provided for @bankNoPapers.
+  ///
+  /// In zh, this message translates to:
+  /// **'还没有试卷'**
+  String get bankNoPapers;
+
+  /// No description provided for @bankNoMatch.
+  ///
+  /// In zh, this message translates to:
+  /// **'没有匹配的试卷'**
+  String get bankNoMatch;
+
+  /// No description provided for @bankNoPapersHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'到「我的 → 导入题目」导入后，整套试卷会出现在这里。'**
+  String get bankNoPapersHint;
+
+  /// No description provided for @bankNoMatchHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'换个关键词试试，比如 2025、江苏、国考。'**
+  String get bankNoMatchHint;
+
+  /// No description provided for @bankUndatedGroup.
+  ///
+  /// In zh, this message translates to:
+  /// **'未标注年份'**
+  String get bankUndatedGroup;
+
+  /// No description provided for @bankPaperCountShort.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 套'**
+  String bankPaperCountShort(int count);
+
+  /// No description provided for @bankPickPaper.
+  ///
+  /// In zh, this message translates to:
+  /// **'选一张卷'**
+  String get bankPickPaper;
+
+  /// No description provided for @bankPickPaperHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'左边挑一张。'**
+  String get bankPickPaperHint;
+
+  /// No description provided for @bankUntitledPaper.
+  ///
+  /// In zh, this message translates to:
+  /// **'未命名试卷'**
+  String get bankUntitledPaper;
+
+  /// No description provided for @bankPaperProgress.
+  ///
+  /// In zh, this message translates to:
+  /// **'{done} / {total} 题'**
+  String bankPaperProgress(int done, int total);
+
+  /// No description provided for @bankImport.
+  ///
+  /// In zh, this message translates to:
+  /// **'导入'**
+  String get bankImport;
 }
 
 class _AppLDelegate extends LocalizationsDelegate<AppL> {

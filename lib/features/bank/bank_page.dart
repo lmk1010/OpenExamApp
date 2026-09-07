@@ -90,13 +90,16 @@ class _BankPageState extends State<BankPage> with TabReload {
       String? paperId;
       String? paperTitle;
       int? year;
+      // 文件名在 await 之后才拼，先把兜底文案取出来。
+      final bankLabel = AppL.of(context).bankTab;
+      final paperLabel = AppL.of(context).bankPapers;
       if (scope == '_all') {
         questions = await AppDatabase.instance.fetchAllQuestions();
-        label = '题库';
+        label = bankLabel;
       } else {
         questions = await AppDatabase.instance.fetchByPaper(scope);
         final paper = _papers.where((p) => p.id == scope).firstOrNull;
-        label = paper?.title ?? '试卷';
+        label = paper?.title.isNotEmpty == true ? paper!.title : paperLabel;
         paperId = scope;
         paperTitle = paper?.title;
         year = paper?.year;
@@ -168,7 +171,7 @@ class _BankPageState extends State<BankPage> with TabReload {
         return counts[b]!.compareTo(counts[a]!);
       });
     return [
-      FilterOption('all', '全部地区', count: _papers.length),
+      FilterOption('all', AppL.of(context).bankAllRegions, count: _papers.length),
       for (final k in keys) FilterOption(k, k, count: counts[k]),
     ];
   }
@@ -180,9 +183,9 @@ class _BankPageState extends State<BankPage> with TabReload {
     }
     final years = counts.keys.toList()..sort((a, b) => b.compareTo(a));
     return [
-      FilterOption('all', '全部年份', count: _papers.length),
+      FilterOption('all', AppL.of(context).bankAllYears, count: _papers.length),
       for (final y in years)
-        FilterOption('$y', y == 0 ? '未标注' : '$y 年', count: counts[y]),
+        FilterOption('$y', y == 0 ? AppL.of(context).bankNoYear : AppL.of(context).bankYear('$y'), count: counts[y]),
     ];
   }
 
@@ -201,10 +204,10 @@ class _BankPageState extends State<BankPage> with TabReload {
       }
     }
     return [
-      FilterOption('all', '全部状态', count: _papers.length),
-      FilterOption('todo', '未开始', count: todo),
-      FilterOption('doing', '进行中', count: doing),
-      FilterOption('done', '已做完', count: done),
+      FilterOption('all', AppL.of(context).bankAllStatus, count: _papers.length),
+      FilterOption('todo', AppL.of(context).bankNotStarted, count: todo),
+      FilterOption('doing', AppL.of(context).bankInProgress, count: doing),
+      FilterOption('done', AppL.of(context).bankFinished, count: done),
     ];
   }
 
@@ -292,15 +295,15 @@ class _BankPageState extends State<BankPage> with TabReload {
       child: ReadableWidth(
         maxWidth: context.isExpanded ? double.infinity : null,
         child: CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
+          physics: AlwaysScrollableScrollPhysics(),
           slivers: [
             SliverList(
               delegate: SliverChildListDelegate([
-                  const SizedBox(height: ShoreGap.top),
+                  SizedBox(height: ShoreGap.top),
                   ShoreHeader(
                     kicker: matched.length == _papers.length
-                        ? '${_papers.length} 套真题卷'
-                        : '${matched.length} / ${_papers.length} 套',
+                        ? AppL.of(context).bankPaperCount(_papers.length)
+                        : AppL.of(context).bankMatchedCount(matched.length, _papers.length),
                     title: '题库',
                     actions: [
                       // 导出：题库以前只进不出 —— 扫描试卷、文档导入辛苦攒出来
@@ -331,7 +334,9 @@ class _BankPageState extends State<BankPage> with TabReload {
                                     if (papers[r.id] != null)
                                       (
                                         id: r.id,
-                                        title: papers[r.id]!.title,
+                                        title: papers[r.id]!.title.isEmpty
+                                            ? AppL.of(context).bankUntitledPaper
+                                            : papers[r.id]!.title,
                                         total: papers[r.id]!.count,
                                         done: _progress[r.id] ?? 0,
                                         at: r.at,
@@ -364,7 +369,7 @@ class _BankPageState extends State<BankPage> with TabReload {
                       child: Row(
                         children: [
                           Icon(Icons.search, size: 18, color: t.muted),
-                          const SizedBox(width: 9),
+                          SizedBox(width: 9),
                           Expanded(
                             child: TextField(
                               controller: _search,
@@ -376,7 +381,7 @@ class _BankPageState extends State<BankPage> with TabReload {
                               decoration: InputDecoration(
                                 isDense: true,
                                 border: InputBorder.none,
-                                hintText: '搜索年份、省份、卷名',
+                                hintText: AppL.of(context).bankSearchHint,
                                 hintStyle:
                                     text.bodySmall?.copyWith(fontSize: 14),
                               ),
@@ -395,32 +400,32 @@ class _BankPageState extends State<BankPage> with TabReload {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   FilterBar(
                     filters: [
                       FilterSpec(
                         key: 'year',
-                        label: '年份',
+                        label: AppL.of(context).bankFilterYear,
                         value: _year,
                         icon: AppIcon.timer,
                         options: _yearOptions(),
                       ),
                       FilterSpec(
                         key: 'status',
-                        label: '状态',
+                        label: AppL.of(context).bankFilterStatus,
                         value: _status,
                         icon: AppIcon.chart,
                         options: _statusOptions(),
                       ),
                       FilterSpec(
                         key: 'sort',
-                        label: '排序',
+                        label: AppL.of(context).bankSort,
                         value: _sort == 'year' ? 'all' : _sort,
                         icon: AppIcon.papers,
-                        options: const [
-                          FilterOption('all', '按年份（新→旧）'),
-                          FilterOption('progress', '按完成度'),
-                          FilterOption('size', '按题量'),
+                        options: [
+                          FilterOption('all', AppL.of(context).bankSortYear),
+                          FilterOption('progress', AppL.of(context).bankSortProgress),
+                          FilterOption('size', AppL.of(context).bankSortSize),
                         ],
                       ),
                     ],
@@ -441,21 +446,21 @@ class _BankPageState extends State<BankPage> with TabReload {
                       _sort = 'year';
                     }),
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   _RegionStrip(
                     options: _regionOptions(),
                     value: _region,
                     onPick: (v) => setState(() => _region = v),
                   ),
-                  const SizedBox(height: 14),
+                  SizedBox(height: 14),
                   if (matched.isEmpty)
                     EmptyState(
                       icon: Icons.search_off,
-                      title: _query.isEmpty ? '还没有试卷' : '没有匹配的试卷',
+                      title: _query.isEmpty ? AppL.of(context).bankNoPapers : AppL.of(context).bankNoMatch,
                       art: _query.isEmpty ? EmptyArt.bank : EmptyArt.search,
                       message: _query.isEmpty
-                          ? '到「我的 → 导入题目」导入后，整套试卷会出现在这里。'
-                          : '换个关键词试试，比如 2025、江苏、国考。',
+                          ? AppL.of(context).bankNoPapersHint
+                          : AppL.of(context).bankNoMatchHint,
                     ),
                 ]),
             ),
@@ -467,7 +472,7 @@ class _BankPageState extends State<BankPage> with TabReload {
                     switch (e.kind) {
                       case _BankKind.year:
                         return Padding(
-                          padding: const EdgeInsets.fromLTRB(
+                          padding: EdgeInsets.fromLTRB(
                             AppTheme.gutter,
                             10,
                             AppTheme.gutter,
@@ -476,12 +481,12 @@ class _BankPageState extends State<BankPage> with TabReload {
                           child: Row(
                             children: [
                               Text(
-                                e.year == 0 ? '未标注年份' : '${e.year} 年',
+                                e.year == 0 ? AppL.of(context).bankUndatedGroup : AppL.of(context).bankYear('${e.year}'),
                                 style:
                                     text.titleMedium?.copyWith(fontSize: 16),
                               ),
-                              const SizedBox(width: 8),
-                              Text('${e.count} 套', style: text.bodySmall),
+                              SizedBox(width: 8),
+                              Text(AppL.of(context).bankPaperCountShort(e.count), style: text.bodySmall),
                             ],
                           ),
                         );
@@ -524,11 +529,11 @@ class _BankPageState extends State<BankPage> with TabReload {
         Container(width: 1, color: context.tokens.line.withValues(alpha: 0.5)),
         Expanded(
           child: picked == null
-              ? const EmptyState(
+              ? EmptyState(
                   icon: Icons.description_outlined,
-                  title: '选一张卷',
+                  title: AppL.of(context).bankPickPaper,
                   art: EmptyArt.paper,
-                  message: '左边挑一张。',
+                  message: AppL.of(context).bankPickPaperHint,
                 )
               : PaperPage(
                   key: ValueKey(picked.id),
@@ -580,7 +585,9 @@ class _Paper {
 
   factory _Paper.fromRow(Map<String, Object?> row) => _Paper(
         id: '${row['paper_id']}',
-        title: '${row['paper_title'] ?? '未命名试卷'}',
+        // 标题为空时留空串，由列表显示时按当前语言兜底 ——
+        // 这里是行到模型的映射，没有 context。
+        title: '${row['paper_title'] ?? ''}',
         year: int.tryParse('${row['year'] ?? 0}') ?? 0,
         count: int.tryParse('${row['question_count'] ?? 0}') ?? 0,
         imported: '${row['source'] ?? ''}' == 'imported',
@@ -800,7 +807,7 @@ class _PaperRow extends StatelessWidget {
                     Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(
+                          padding: EdgeInsets.symmetric(
                             horizontal: 6,
                             vertical: 1,
                           ),
@@ -818,9 +825,9 @@ class _PaperRow extends StatelessWidget {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 7),
+                        SizedBox(width: 7),
                         Text(
-                          started ? '$done / ${paper.count} 题' : '${paper.count} 题',
+                          started ? AppL.of(context).bankPaperProgress(done, paper.count) : AppL.of(context).countQuestions(paper.count),
                           style: text.bodySmall?.copyWith(
                             fontSize: 11.5,
                             color: started ? t.brand : t.muted,
@@ -828,8 +835,8 @@ class _PaperRow extends StatelessWidget {
                           ),
                         ),
                         if (paper.imported) ...[
-                          const SizedBox(width: 8),
-                          Text('导入',
+                          SizedBox(width: 8),
+                          Text(AppL.of(context).bankImport,
                               style: text.bodySmall
                                   ?.copyWith(fontSize: 11.5, color: t.brand)),
                         ],
@@ -920,7 +927,9 @@ class _ExportScopeSheet extends StatelessWidget {
                   ),
                   for (final p in papers)
                     _ScopeRow(
-                      title: p.title,
+                      title: p.title.isEmpty
+                          ? AppL.of(context).bankUntitledPaper
+                          : p.title,
                       subtitle: l.bankExportCount(p.count),
                       onTap: () => Navigator.of(context).pop(p.id),
                     ),

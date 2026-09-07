@@ -1194,5 +1194,310 @@
   "dxAiPitch": "上面的结论是本机按真题基准算的，已经能直接用。AI 在这基础上再串一遍因果，并排一份一周训练计划。",
   "dxAiNotConfigured": "还没配 AI。上面的结论不用配也能看 —— AI 只是在它之上多一层解读。",
   "dxAskAi": "让 AI 分析",
-  "dxConfigureAi": "去配置 AI"
+  "dxConfigureAi": "去配置 AI",
+  "dashTitle": "备考档案",
+  "dashByModule": "模块能力",
+  "dashByModuleHint": "正确率由低到高",
+  "dashLast35": "最近 35 天",
+  "dashHeatHint": "颜色越深练得越多",
+  "dashTrend": "成绩走势",
+  "dashLastN": "最近 {count} 次",
+  "@dashLastN": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dashWhen": "习惯时段",
+  "dashWhenHint": "一天里你在什么时候刷题",
+  "dashAdvice": "给你的建议",
+  "dashAdviceHint": "按当前数据推断",
+  "dashEmpty": "刷完第一组题，这一页就会有内容。",
+  "dashDataNote": "数据只统计本机记录，清除练习记录后这一页会重新开始。",
+  "dashDoFirstSet": "先刷一组 20 题",
+  "dashDoFirstSetHint": "有了记录才能算正确率、排弱项，这一页也才有东西可看。",
+  "dashWeakest": "{name}是当前短板",
+  "@dashWeakest": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dashWeakestBody": "正确率 {rate}%，已练 {done} 题。弱项强化会给它最大配额，先把这块拉到 70% 以上。",
+  "@dashWeakestBody": {
+    "placeholders": {
+      "rate": {
+        "type": "int"
+      },
+      "done": {
+        "type": "int"
+      }
+    }
+  },
+  "dashTopCareless": "错题里\"粗心\"最多",
+  "dashTopUnknown": "错题里\"不会\"最多",
+  "dashTopMisread": "错题里\"审题\"最多",
+  "dashTopNoTime": "错题里\"没时间\"最多",
+  "dashCarelessBody": "{count} 道标了粗心。别加量，做完把答案带回题干核对一遍。",
+  "@dashCarelessBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dashUnknownBody": "{count} 道标了不会。先回去补方法，再刷同类题才有意义。",
+  "@dashUnknownBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dashMisreadBody": "{count} 道栽在审题。做题时把限定词和单位圈出来。",
+  "@dashMisreadBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dashNoTimeBody": "{count} 道是时间不够。先按模块限时练，再上整卷。",
+  "@dashNoTimeBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dashGoTagged": "去错题本按错因过一遍",
+  "dashDropped": "{name}这周退了 {points} 个点",
+  "@dashDropped": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "points": {
+        "type": "int"
+      }
+    }
+  },
+  "dashDroppedBody": "上一周 {before}%，最近 7 天 {now}%（{done} 题）。先别加量，去错题本按这个模块过一遍，看是同一类题反复错还是手生了。",
+  "@dashDroppedBody": {
+    "placeholders": {
+      "before": {
+        "type": "int"
+      },
+      "now": {
+        "type": "int"
+      },
+      "done": {
+        "type": "int"
+      }
+    }
+  },
+  "dashSeeModuleWrong": "看这个模块的错题",
+  "dashRose": "{name}这周涨了 {points} 个点",
+  "@dashRose": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "points": {
+        "type": "int"
+      }
+    }
+  },
+  "dashRoseBody": "上一周 {before}%，最近 7 天 {now}%（{done} 题）。这块的练法是对的，可以开始压时间了。",
+  "@dashRoseBody": {
+    "placeholders": {
+      "before": {
+        "type": "int"
+      },
+      "now": {
+        "type": "int"
+      },
+      "done": {
+        "type": "int"
+      }
+    }
+  },
+  "dashSlow": "{name}花的时间偏长",
+  "@dashSlow": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dashSlowBody": "平均每题 {secs} 秒。行测里超过 90 秒的题在考场上应该先跳过，练的时候也要按这个标准掐表。",
+  "@dashSlowBody": {
+    "placeholders": {
+      "secs": {
+        "type": "int"
+      }
+    }
+  },
+  "dashTimeThisModule": "限时练这个模块",
+  "dashStreakBroken": "连续打卡断了",
+  "dashStreakBrokenBody": "每天 10 题也算数，节奏比单次量更重要。",
+  "dashStreakDays": "已经连续 {days} 天",
+  "@dashStreakDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "dashStreakBody": "保持住。真正拉开差距的是能不能天天回来，而不是某天刷了 200 题。",
+  "dashAllSteady": "各项都挺稳",
+  "dashAllSteadyBody": "可以开始按整卷限时练，把速度也压进考试节奏。",
+  "dashDaysLine": "练过 {days} 天 · 连续 {streak} 天",
+  "@dashDaysLine": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
+  "unitDays": "天",
+  "dashToExam": "距考试",
+  "dashOverallRate": "总正确率",
+  "dashTotalAnswered": "累计答题",
+  "dashWrongLeft": "待清错题",
+  "dashToday": "今日进度",
+  "dashPacePerQ": "{secs}s/题",
+  "@dashPacePerQ": {
+    "placeholders": {
+      "secs": {
+        "type": "int"
+      }
+    }
+  },
+  "dashLess": "少",
+  "dashMore": "多",
+  "dashHeatToday": "右下角为今天",
+  "dashFlat": "最近一次 {rate}%，和最早那次持平",
+  "@dashFlat": {
+    "placeholders": {
+      "rate": {
+        "type": "int"
+      }
+    }
+  },
+  "dashUp": "从 {from}% 到 {to}%，涨了 {points} 个点",
+  "@dashUp": {
+    "placeholders": {
+      "from": {
+        "type": "int"
+      },
+      "to": {
+        "type": "int"
+      },
+      "points": {
+        "type": "int"
+      }
+    }
+  },
+  "dashDown": "从 {from}% 到 {to}%，掉了 {points} 个点",
+  "@dashDown": {
+    "placeholders": {
+      "from": {
+        "type": "int"
+      },
+      "to": {
+        "type": "int"
+      },
+      "points": {
+        "type": "int"
+      }
+    }
+  },
+  "dashHour0": "0 点",
+  "dashPeakHour": "最常在 {hour} 点前后刷题",
+  "@dashPeakHour": {
+    "placeholders": {
+      "hour": {
+        "type": "int"
+      }
+    }
+  },
+  "dashHour23": "23 点",
+  "dashPractiseNow": "现在就练",
+  "bankTab": "题库",
+  "bankPapers": "试卷",
+  "bankAllRegions": "全部地区",
+  "bankAllYears": "全部年份",
+  "bankNoYear": "未标注",
+  "bankYear": "{year} 年",
+  "@bankYear": {
+    "placeholders": {
+      "year": {
+        "type": "String"
+      }
+    }
+  },
+  "bankAllStatus": "全部状态",
+  "bankNotStarted": "未开始",
+  "bankInProgress": "进行中",
+  "bankFinished": "已做完",
+  "bankPaperCount": "{count} 套真题卷",
+  "@bankPaperCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "bankMatchedCount": "{matched} / {total} 套",
+  "@bankMatchedCount": {
+    "placeholders": {
+      "matched": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "bankSearchHint": "搜索年份、省份、卷名",
+  "bankFilterYear": "年份",
+  "bankFilterStatus": "状态",
+  "bankSort": "排序",
+  "bankSortYear": "按年份（新→旧）",
+  "bankSortProgress": "按完成度",
+  "bankSortSize": "按题量",
+  "bankNoPapers": "还没有试卷",
+  "bankNoMatch": "没有匹配的试卷",
+  "bankNoPapersHint": "到「我的 → 导入题目」导入后，整套试卷会出现在这里。",
+  "bankNoMatchHint": "换个关键词试试，比如 2025、江苏、国考。",
+  "bankUndatedGroup": "未标注年份",
+  "bankPaperCountShort": "{count} 套",
+  "@bankPaperCountShort": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "bankPickPaper": "选一张卷",
+  "bankPickPaperHint": "左边挑一张。",
+  "bankUntitledPaper": "未命名试卷",
+  "bankPaperProgress": "{done} / {total} 题",
+  "@bankPaperProgress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "bankImport": "导入"
 }

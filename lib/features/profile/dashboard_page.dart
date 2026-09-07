@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/constants/app_constants.dart';
 import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
@@ -33,7 +34,8 @@ class _DashboardPageState extends State<DashboardPage> {
   Map<String, ({int done, int correct})> _thisWeek = const {};
   Map<String, ({int done, int correct})> _lastWeek = const {};
 
-  String _name = '备考中';
+  /// 空串 = 没起过名字，显示时再兜底 —— 字段初始化器里取不到 context。
+  String _name = '';
   DateTime? _examDate;
   int _goal = 30;
 
@@ -85,7 +87,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
     if (!mounted) return;
     setState(() {
-      _name = prefs.getString(Prefs.nickname) ?? '备考中';
+      _name = prefs.getString(Prefs.nickname) ?? '';
       _goal = prefs.getInt(Prefs.dailyGoal) ?? 30;
       final raw = prefs.getString(Prefs.examDate);
       _examDate = raw == null ? null : DateTime.tryParse(raw);
@@ -140,7 +142,7 @@ class _DashboardPageState extends State<DashboardPage> {
     if (!mounted || questions.isEmpty) return;
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => PracticeSessionPage(questions: questions, title: '弱项强化'),
+        builder: (_) => PracticeSessionPage(questions: questions, title: AppL.of(context).homeWeakDrill),
       ),
     );
     _load();
@@ -160,7 +162,7 @@ class _DashboardPageState extends State<DashboardPage> {
           onPressed: () => Navigator.of(context).maybePop(),
         ),
         titleSpacing: 0,
-        title: const Text('备考档案'),
+        title: Text(AppL.of(context).dashTitle),
       ),
       body: _loading
           ? const LoadingState()
@@ -172,7 +174,9 @@ class _DashboardPageState extends State<DashboardPage> {
                 _Reveal(
                   delay: 0,
                   child: _Header(
-                    name: _name,
+                    name: _name.isEmpty
+                        ? AppL.of(context).profileDefaultName
+                        : _name,
                     daysLeft: _daysLeft,
                     activeDays: _activeDays,
                     streak: _streak,
@@ -194,16 +198,16 @@ class _DashboardPageState extends State<DashboardPage> {
                         body: SafeArea(child: WrongBookPage()),
                       ),
                     ),
-                    onTapToday: () => _push(const ReportsPage()),
+                    onTapToday: () => _push(ReportsPage()),
                   ),
                 ),
-                const SizedBox(height: 30),
+                SizedBox(height: 30),
                 if (ranked.isNotEmpty) ...[
                   _Reveal(
                     delay: 180,
                     child: _SectionTitle(
-                      title: '模块能力',
-                      caption: '正确率由低到高',
+                      title: AppL.of(context).dashByModule,
+                      caption: AppL.of(context).dashByModuleHint,
                     ),
                   ),
                   const SizedBox(height: 14),
@@ -217,45 +221,45 @@ class _DashboardPageState extends State<DashboardPage> {
                         onTap: () => _practiseModule(ranked[i].category),
                       ),
                     ),
-                  const SizedBox(height: 26),
+                  SizedBox(height: 26),
                 ],
                 _Reveal(
                   delay: 300,
-                  child: _SectionTitle(title: '最近 35 天', caption: '颜色越深练得越多'),
+                  child: _SectionTitle(title: AppL.of(context).dashLast35, caption: AppL.of(context).dashHeatHint),
                 ),
-                const SizedBox(height: 14),
+                SizedBox(height: 14),
                 _Reveal(
                   delay: 340,
                   child: ShoreCard(child: _Heatmap(days: _days, goal: _goal)),
                 ),
-                const SizedBox(height: 30),
+                SizedBox(height: 30),
                 if (_reports.length >= 2) ...[
                   _Reveal(
                     delay: 380,
                     child: _SectionTitle(
-                      title: '成绩走势',
-                      caption: '最近 ${_reports.length} 次',
+                      title: AppL.of(context).dashTrend,
+                      caption: AppL.of(context).dashLastN(_reports.length),
                     ),
                   ),
-                  const SizedBox(height: 14),
+                  SizedBox(height: 14),
                   _Reveal(
                     delay: 420,
                     child: ShoreCard(child: _Sparkline(reports: _reports)),
                   ),
-                  const SizedBox(height: 30),
+                  SizedBox(height: 30),
                 ],
                 if (_hours.any((n) => n > 0)) ...[
                   _Reveal(
                     delay: 440,
-                    child: _SectionTitle(title: '习惯时段', caption: '一天里你在什么时候刷题'),
+                    child: _SectionTitle(title: AppL.of(context).dashWhen, caption: AppL.of(context).dashWhenHint),
                   ),
-                  const SizedBox(height: 14),
+                  SizedBox(height: 14),
                   _Reveal(delay: 470, child: _HourStrip(hours: _hours)),
-                  const SizedBox(height: 30),
+                  SizedBox(height: 30),
                 ],
                 _Reveal(
                   delay: 500,
-                  child: _SectionTitle(title: '给你的建议', caption: '按当前数据推断'),
+                  child: _SectionTitle(title: AppL.of(context).dashAdvice, caption: AppL.of(context).dashAdviceHint),
                 ),
                 const SizedBox(height: 14),
                 for (var i = 0; i < _advice(ranked).length; i++)
@@ -272,15 +276,15 @@ class _DashboardPageState extends State<DashboardPage> {
                   ),
                 if (_answers == 0)
                   Padding(
-                    padding: const EdgeInsets.only(top: 10),
+                    padding: EdgeInsets.only(top: 10),
                     child: Text(
-                      '刷完第一组题，这一页就会有内容。',
+                      AppL.of(context).dashEmpty,
                       style: text.bodySmall,
                     ),
                   ),
-                const SizedBox(height: 10),
+                SizedBox(height: 10),
                 Text(
-                  '数据只统计本机记录，清除练习记录后这一页会重新开始。',
+                  AppL.of(context).dashDataNote,
                   style: text.bodySmall?.copyWith(color: t.muted),
                 ),
               ],
@@ -294,10 +298,10 @@ class _DashboardPageState extends State<DashboardPage> {
     final out = <_Advice>[];
 
     if (_answers == 0) {
-      out.add(const _Advice(
+      out.add(_Advice(
         icon: AppIcon.practice,
-        title: '先刷一组 20 题',
-        body: '有了记录才能算正确率、排弱项，这一页也才有东西可看。',
+        title: AppL.of(context).dashDoFirstSet,
+        body: AppL.of(context).dashDoFirstSetHint,
       ));
       return out;
     }
@@ -306,9 +310,8 @@ class _DashboardPageState extends State<DashboardPage> {
       final weak = ranked.first;
       out.add(_Advice(
         icon: categoryIcon(weak.category),
-        title: '${categoryLabel(weak.category)}是当前短板',
-        body: '正确率 ${(weak.accuracy * 100).round()}%，已练 ${weak.done} 题。'
-            '弱项强化会给它最大配额，先把这块拉到 70% 以上。',
+        title: AppL.of(context).dashWeakest(categoryLabel(weak.category)),
+        body: AppL.of(context).dashWeakestBody((weak.accuracy * 100).round(), weak.done),
         actionable: true,
       ));
     }
@@ -321,18 +324,18 @@ class _DashboardPageState extends State<DashboardPage> {
       out.add(_Advice(
         icon: AppIcon.wrongBook,
         title: switch (topReason.key) {
-          'careless' => '错题里"粗心"最多',
-          'unknown' => '错题里"不会"最多',
-          'misread' => '错题里"审题"最多',
-          _ => '错题里"没时间"最多',
+          'careless' => AppL.of(context).dashTopCareless,
+          'unknown' => AppL.of(context).dashTopUnknown,
+          'misread' => AppL.of(context).dashTopMisread,
+          _ => AppL.of(context).dashTopNoTime,
         },
         body: switch (topReason.key) {
-          'careless' => '${topReason.value} 道标了粗心。别加量，做完把答案带回题干核对一遍。',
-          'unknown' => '${topReason.value} 道标了不会。先回去补方法，再刷同类题才有意义。',
-          'misread' => '${topReason.value} 道栽在审题。做题时把限定词和单位圈出来。',
-          _ => '${topReason.value} 道是时间不够。先按模块限时练，再上整卷。',
+          'careless' => AppL.of(context).dashCarelessBody(topReason.value),
+          'unknown' => AppL.of(context).dashUnknownBody(topReason.value),
+          'misread' => AppL.of(context).dashMisreadBody(topReason.value),
+          _ => AppL.of(context).dashNoTimeBody(topReason.value),
         },
-        actionLabel: '去错题本按错因过一遍',
+        actionLabel: AppL.of(context).dashGoTagged,
         onAct: (context) async {
           AppShell.jumpTo.value = AppShell.wrongBookTab;
           Navigator.of(context).popUntil((r) => r.isFirst);
@@ -359,10 +362,9 @@ class _DashboardPageState extends State<DashboardPage> {
       if (worst.now - worst.before <= -8) {
         out.add(_Advice(
           icon: categoryIcon(worst.key),
-          title: '${categoryLabel(worst.key)}这周退了 ${worst.before - worst.now} 个点',
-          body: '上一周 ${worst.before}%，最近 7 天 ${worst.now}%（${worst.done} 题）。'
-              '先别加量，去错题本按这个模块过一遍，看是同一类题反复错还是手生了。',
-          actionLabel: '看这个模块的错题',
+          title: AppL.of(context).dashDropped(categoryLabel(worst.key), worst.before - worst.now),
+          body: AppL.of(context).dashDroppedBody(worst.before, worst.now, worst.done),
+          actionLabel: AppL.of(context).dashSeeModuleWrong,
           onAct: (context) async {
             AppShell.jumpTo.value = AppShell.wrongBookTab;
             Navigator.of(context).popUntil((r) => r.isFirst);
@@ -371,9 +373,8 @@ class _DashboardPageState extends State<DashboardPage> {
       } else if (best.now - best.before >= 8) {
         out.add(_Advice(
           icon: categoryIcon(best.key),
-          title: '${categoryLabel(best.key)}这周涨了 ${best.now - best.before} 个点',
-          body: '上一周 ${best.before}%，最近 7 天 ${best.now}%（${best.done} 题）。'
-              '这块的练法是对的，可以开始压时间了。',
+          title: AppL.of(context).dashRose(categoryLabel(best.key), best.now - best.before),
+          body: AppL.of(context).dashRoseBody(best.before, best.now, best.done),
         ));
       }
     }
@@ -387,10 +388,9 @@ class _DashboardPageState extends State<DashboardPage> {
     if (slow != null) {
       out.add(_Advice(
         icon: AppIcon.timer,
-        title: '${categoryLabel(slow.key)}花的时间偏长',
-        body: '平均每题 ${slow.value.round()} 秒。行测里超过 90 秒的题在考场上应该先跳过，'
-            '练的时候也要按这个标准掐表。',
-        actionLabel: '限时练这个模块',
+        title: AppL.of(context).dashSlow(categoryLabel(slow.key)),
+        body: AppL.of(context).dashSlowBody(slow.value.round()),
+        actionLabel: AppL.of(context).dashTimeThisModule,
         onAct: (context) async {
           final questions = await AppDatabase.instance.fetchPractice(
             category: slow.key,
@@ -403,7 +403,7 @@ class _DashboardPageState extends State<DashboardPage> {
               builder: (_) => PracticeSessionPage(
                 questions: questions,
                 limit: Duration(seconds: 55 * questions.length),
-                title: '${categoryLabel(slow.key)}限时练',
+                title: AppL.of(context).homeTimedCat(categoryLabel(slow.key)),
               ),
             ),
           );
@@ -412,25 +412,25 @@ class _DashboardPageState extends State<DashboardPage> {
     }
 
     if (_streak == 0) {
-      out.add(const _Advice(
+      out.add(_Advice(
         icon: AppIcon.chart,
-        title: '连续打卡断了',
-        body: '每天 10 题也算数，节奏比单次量更重要。',
+        title: AppL.of(context).dashStreakBroken,
+        body: AppL.of(context).dashStreakBrokenBody,
         actionable: true,
       ));
     } else if (_streak >= 3) {
       out.add(_Advice(
         icon: AppIcon.chart,
-        title: '已经连续 $_streak 天',
-        body: '保持住。真正拉开差距的是能不能天天回来，而不是某天刷了 200 题。',
+        title: AppL.of(context).dashStreakDays(_streak),
+        body: AppL.of(context).dashStreakBody,
       ));
     }
 
     if (out.isEmpty) {
-      out.add(const _Advice(
+      out.add(_Advice(
         icon: AppIcon.chart,
-        title: '各项都挺稳',
-        body: '可以开始按整卷限时练，把速度也压进考试节奏。',
+        title: AppL.of(context).dashAllSteady,
+        body: AppL.of(context).dashAllSteadyBody,
       ));
     }
     return out;
@@ -512,9 +512,9 @@ class _Header extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(name, style: text.displaySmall?.copyWith(fontSize: 24)),
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               Text(
-                '练过 $activeDays 天 · 连续 $streak 天',
+                AppL.of(context).dashDaysLine(activeDays, streak),
                 style: text.bodySmall?.copyWith(fontSize: 13),
               ),
             ],
@@ -544,12 +544,12 @@ class _Header extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 3),
-                  Text('天', style: text.bodySmall?.copyWith(color: t.brand)),
+                  SizedBox(width: 3),
+                  Text(AppL.of(context).unitDays, style: text.bodySmall?.copyWith(color: t.brand)),
                 ],
               ),
-              const SizedBox(height: 5),
-              Text('距考试', style: text.bodySmall?.copyWith(fontSize: 11.5)),
+              SizedBox(height: 5),
+              Text(AppL.of(context).dashToExam, style: text.bodySmall?.copyWith(fontSize: 11.5)),
             ],
           ),
       ],
@@ -590,40 +590,40 @@ class _AccuracyBlock extends StatelessWidget {
         // 一个 app 里不该有两种"环形分数"的画法。
         TweenAnimationBuilder<double>(
           tween: Tween(begin: 0, end: answered == 0 ? 0 : rate / 100),
-          duration: const Duration(milliseconds: 900),
+          duration: Duration(milliseconds: 900),
           curve: Curves.easeOutCubic,
           builder: (context, v, _) => CompassDial(
             value: v,
             label: answered == 0 ? '—' : '${(v * 100).round()}%',
-            caption: '总正确率',
+            caption: AppL.of(context).dashOverallRate,
             size: 132,
             color: answered == 0 ? t.line : null,
           ),
         ),
-        const SizedBox(width: 22),
+        SizedBox(width: 22),
         Expanded(
           child: Column(
             children: [
               _Figure(
                 icon: AppIcon.practice,
                 color: t.brand,
-                label: '累计答题',
+                label: AppL.of(context).dashTotalAnswered,
                 value: '$correct / $answered',
                 onTap: onTapAnswers,
               ),
-              const SizedBox(height: 15),
+              SizedBox(height: 15),
               _Figure(
                 icon: AppIcon.wrongBook,
                 color: t.danger,
-                label: '待清错题',
+                label: AppL.of(context).dashWrongLeft,
                 value: '$wrong',
                 onTap: onTapWrong,
               ),
-              const SizedBox(height: 15),
+              SizedBox(height: 15),
               _Figure(
                 icon: AppIcon.chart,
                 color: t.success,
-                label: '今日进度',
+                label: AppL.of(context).dashToday,
                 value: '$todayDone / $goal',
                 onTap: onTapToday,
               ),
@@ -709,7 +709,7 @@ class _ModuleBar extends StatelessWidget {
           Row(
             children: [
               StrokeIcon(categoryIcon(stat.category), size: 17, color: color),
-              const SizedBox(width: 10),
+              SizedBox(width: 10),
               Expanded(
                 child: Text(
                   categoryLabel(stat.category),
@@ -717,11 +717,11 @@ class _ModuleBar extends StatelessWidget {
                 ),
               ),
               if (pace != null) ...[
-                Text('${pace!.round()}s/题', style: text.bodySmall?.copyWith(fontSize: 11.5)),
-                const SizedBox(width: 10),
+                Text(AppL.of(context).dashPacePerQ(pace!.round()), style: text.bodySmall?.copyWith(fontSize: 11.5)),
+                SizedBox(width: 10),
               ],
               Text(
-                '${stat.done} 题',
+                AppL.of(context).countQuestions(stat.done),
                 style: text.bodySmall?.copyWith(fontSize: 11.5),
               ),
               const SizedBox(width: 10),
@@ -832,25 +832,25 @@ class _Heatmap extends StatelessWidget {
             );
           },
         ),
-        const SizedBox(height: 10),
+        SizedBox(height: 10),
         Row(
           children: [
-            Text('少', style: text.bodySmall?.copyWith(fontSize: 11)),
+            Text(AppL.of(context).dashLess, style: text.bodySmall?.copyWith(fontSize: 11)),
             const SizedBox(width: 6),
             for (final a in [0.1, 0.35, 0.6, 0.95])
               Container(
                 width: 12,
                 height: 12,
-                margin: const EdgeInsets.only(right: 4),
+                margin: EdgeInsets.only(right: 4),
                 decoration: BoxDecoration(
                   color: t.brand.withValues(alpha: a),
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
-            Text('多', style: text.bodySmall?.copyWith(fontSize: 11)),
-            const Spacer(),
+            Text(AppL.of(context).dashMore, style: text.bodySmall?.copyWith(fontSize: 11)),
+            Spacer(),
             Text(
-              '右下角为今天',
+              AppL.of(context).dashHeatToday,
               style: text.bodySmall?.copyWith(fontSize: 11),
             ),
           ],
@@ -880,10 +880,10 @@ class _Sparkline extends StatelessWidget {
           height: 96,
           child: TweenAnimationBuilder<double>(
             tween: Tween(begin: 0, end: 1),
-            duration: const Duration(milliseconds: 900),
+            duration: Duration(milliseconds: 900),
             curve: Curves.easeOutCubic,
             builder: (_, v, __) => CustomPaint(
-              size: const Size(double.infinity, 96),
+              size: Size(double.infinity, 96),
               painter: _LinePainter(
                 values: values,
                 progress: v,
@@ -895,13 +895,13 @@ class _Sparkline extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 10),
+        SizedBox(height: 10),
         Text(
           delta == 0
-              ? '最近一次 ${reports.last.rate}%，和最早那次持平'
+              ? AppL.of(context).dashFlat(reports.last.rate)
               : (delta > 0
-                  ? '从 ${reports.first.rate}% 到 ${reports.last.rate}%，涨了 $delta 个点'
-                  : '从 ${reports.first.rate}% 到 ${reports.last.rate}%，掉了 ${-delta} 个点'),
+                  ? AppL.of(context).dashUp(reports.first.rate, reports.last.rate, delta)
+                  : AppL.of(context).dashDown(reports.first.rate, reports.last.rate, -delta)),
           style: text.bodySmall,
         ),
       ],
@@ -1035,17 +1035,17 @@ class _HourStrip extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         Row(
           children: [
-            Text('0 点', style: text.bodySmall?.copyWith(fontSize: 11)),
-            const Spacer(),
+            Text(AppL.of(context).dashHour0, style: text.bodySmall?.copyWith(fontSize: 11)),
+            Spacer(),
             Text(
-              max == 0 ? '' : '最常在 $peak 点前后刷题',
+              max == 0 ? '' : AppL.of(context).dashPeakHour(peak),
               style: text.bodySmall?.copyWith(fontSize: 11, color: t.brand),
             ),
-            const Spacer(),
-            Text('23 点', style: text.bodySmall?.copyWith(fontSize: 11)),
+            Spacer(),
+            Text(AppL.of(context).dashHour23, style: text.bodySmall?.copyWith(fontSize: 11)),
           ],
         ),
       ],
@@ -1108,7 +1108,7 @@ class _AdviceCard extends StatelessWidget {
                     style: text.bodyMedium?.copyWith(fontSize: 13.5, height: 1.6),
                   ),
                   if (onAct != null) ...[
-                    const SizedBox(height: 10),
+                    SizedBox(height: 10),
                     GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onTap: onAct,
@@ -1116,7 +1116,7 @@ class _AdviceCard extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            advice.actionLabel ?? '现在就练',
+                            advice.actionLabel ?? AppL.of(context).dashPractiseNow,
                             style: text.labelMedium?.copyWith(color: t.brand),
                           ),
                           Icon(Icons.chevron_right, size: 16, color: t.brand),
