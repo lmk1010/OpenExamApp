@@ -594,19 +594,7 @@ class _Paper {
       );
 
   /// 国考 / 省份 / 联考 —— 考生真正用来筛卷的那一层。
-  ///
-  /// 光认省份不够：库里 37 套「全国联考」全落进"其他"，一整屏同一个标签
-  /// 等于没有标签。
-  String get region {
-    if (title.contains('国家公务员') || title.contains('国考')) return '国考';
-    for (final p in kProvinces) {
-      if (p != '国考' && title.contains(p)) return p;
-    }
-    if (title.contains('联考')) return '联考';
-    if (title.contains('事业单位') || title.contains('事业编')) return '事业';
-    if (title.contains('选调')) return '选调';
-    return '其他';
-  }
+  String get region => regionOfPaperTitle(title);
 
   /// 这张卷属于哪一类考试 —— 决定列表里显示哪个图标。
   String get typeArt {

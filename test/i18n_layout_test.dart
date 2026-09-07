@@ -102,11 +102,13 @@ void main() {
       final l = lookupAppL(Locale(lang));
       expect(find.text(l.onboardThreeThings), findsOneWidget);
       expect(find.text(l.onboardDailyGoal), findsOneWidget);
-      // 「考哪儿 / 考试哪天」在 320 高的屏上要滚下去才建出来。
+      // 「考试哪天」在 320 高的屏上要滚下去才建出来。
       await tester.scrollUntilVisible(find.text(l.onboardWhen), 120,
           scrollable: find.byType(Scrollable).last);
-      expect(find.text(l.onboardWhere), findsOneWidget);
       expect(find.text(l.onboardWhen), findsOneWidget);
+      // 测试环境没有内置题库，所以整段「你在哪考」不该出现 ——
+      // 一张中国卷都没有还问用户选国考还是北京，是在问一个他答不了的问题。
+      expect(find.text(l.onboardWhere), findsNothing);
     });
   }
 

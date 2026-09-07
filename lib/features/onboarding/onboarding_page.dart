@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/data/db/app_database.dart';
 import 'package:openexam_app/core/constants/app_constants.dart';
-import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
 import 'package:openexam_app/core/ui/shore_art.dart';
@@ -40,6 +39,11 @@ class _OnboardingPageState extends State<OnboardingPage> {
   DateTime? _examDate;
   String? _province;
 
+  /// 这台手机里真实存在的报考地区。空的就不问「你在哪考」——
+  /// 空库版一张中国卷都没有，列出国考 / 北京 / 上海是在问一个
+  /// 用户根本回答不了的问题。
+  List<String> _regions = const [];
+
   @override
   void initState() {
     super.initState();
@@ -48,7 +52,12 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   Future<void> _countBank() async {
     final n = await AppDatabase.instance.countAll();
-    if (mounted) setState(() => _bankCount = n);
+    final regions = await AppDatabase.instance.bankRegions();
+    if (!mounted) return;
+    setState(() {
+      _bankCount = n;
+      _regions = regions;
+    });
   }
 
   @override
@@ -147,6 +156,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                     goal: _goal,
                     examDate: _examDate,
                     province: _province,
+                    regions: _regions,
                     onGoal: (v) => setState(() => _goal = v),
                     onProvince: (v) => setState(() => _province = v),
                     onPickDate: _pickDate,
@@ -276,6 +286,7 @@ class _Setup extends StatelessWidget {
     required this.goal,
     required this.examDate,
     required this.province,
+    required this.regions,
     required this.onGoal,
     required this.onProvince,
     required this.onPickDate,
@@ -284,6 +295,9 @@ class _Setup extends StatelessWidget {
   final int goal;
   final DateTime? examDate;
   final String? province;
+
+  /// 题库里真实存在的报考地区。空的话整段「考哪儿」不出现。
+  final List<String> regions;
   final ValueChanged<int> onGoal;
   final ValueChanged<String> onProvince;
   final VoidCallback onPickDate;
@@ -327,25 +341,28 @@ class _Setup extends StatelessWidget {
           ],
         ),
 
+        // 题库里没有中国卷就不问这一段。
+        if (regions.isNotEmpty) ...[
         SizedBox(height: 26),
         _Field(label: AppL.of(context).onboardWhere, caption: AppL.of(context).onboardWhereHint),
         SizedBox(
           height: 38,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
-            itemCount: kProvinces.length,
+            itemCount: regions.length,
             separatorBuilder: (_, __) => const SizedBox(width: 8),
             itemBuilder: (_, i) => _Pick(
-              label: kProvinces[i],
-              on: province == kProvinces[i],
+              label: regions[i],
+              on: province == regions[i],
               onTap: () {
-                onProvince(kProvinces[i]);
+                onProvince(regions[i]);
                 HapticFeedback.selectionClick();
               },
             ),
           ),
         ),
 
+        ],
         SizedBox(height: 26),
         _Field(label: AppL.of(context).onboardWhen),
         GestureDetector(

@@ -237,8 +237,13 @@ const kFeedbackKinds = <String, String>{
   'other': '其他问题',
 };
 
-/// 报考地区 — matched against paper titles, so the list follows what the bank
-/// actually contains rather than a full administrative list.
+/// 认卷名用的地区词表。
+///
+/// **这不是给用户看的选项列表** —— 它是一张匹配词表，拿去在卷名里找地区。
+/// 界面上该给哪些选项，问 [AppDatabase.bankRegions]：那是这台手机里
+/// 真实存在的卷子算出来的。空库版（App Store 那个）一张中国卷都没有，
+/// 拿这张表当选项就成了「你在哪考：国考 / 北京 / 上海」——
+/// 用户手上什么都没有，纯属胡说。
 const kProvinces = <String>[
   '国考',
   '北京', '上海', '广东', '江苏', '浙江', '山东', '河南', '河北', '四川', '湖北',
@@ -246,3 +251,18 @@ const kProvinces = <String>[
   '云南', '贵州', '广西', '天津', '重庆', '内蒙古', '新疆', '甘肃', '海南',
   '宁夏', '青海', '西藏',
 ];
+
+/// 一张卷属于哪个地区 —— 国考 / 某个省 / 联考 / 事业 / 选调 / 其他。
+///
+/// 光认省份不够：库里 37 套「全国联考」会全落进「其他」，一整屏同一个
+/// 标签等于没有标签。
+String regionOfPaperTitle(String title) {
+  if (title.contains('国家公务员') || title.contains('国考')) return '国考';
+  for (final p in kProvinces) {
+    if (p != '国考' && title.contains(p)) return p;
+  }
+  if (title.contains('联考')) return '联考';
+  if (title.contains('事业单位') || title.contains('事业编')) return '事业';
+  if (title.contains('选调')) return '选调';
+  return '其他';
+}

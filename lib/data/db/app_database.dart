@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/ui/rich_content.dart';
 import 'package:openexam_app/data/models/question.dart';
 import 'package:path/path.dart' as p;
@@ -1262,6 +1263,38 @@ class AppDatabase {
       ORDER BY year DESC, paper_title
       LIMIT ?
     ''', [limit]);
+  }
+
+  /// 这台手机里真实存在的报考地区，卷子多的排前面。
+  ///
+  /// 「你在哪考」的选项必须从这儿来，不能拿 [kProvinces] 直接铺 ——
+  /// 那是一张认卷名用的匹配词表。空库版（App Store 那个）一张中国卷都
+  /// 没有，铺出来就是问用户「国考 / 北京 / 上海」选哪个，而他手上什么
+  /// 都没有。返回空表就是「这一段不该出现」。
+  Future<List<String>> bankRegions() async {
+    final db = await database;
+    final rows = await db.rawQuery('''
+      SELECT paper_title, COUNT(DISTINCT paper_id) AS papers
+      FROM questions
+      WHERE paper_title IS NOT NULL AND paper_title != ''
+      GROUP BY paper_title
+    ''');
+    final tally = <String, int>{};
+    for (final row in rows) {
+      final region = regionOfPaperTitle('${row['paper_title']}');
+      // 「其他」不是一个能选的报考地区，是兜底桶。
+      if (region == '其他') continue;
+      tally[region] = (tally[region] ?? 0) +
+          (int.tryParse('${row['papers'] ?? 0}') ?? 0);
+    }
+    final regions = tally.keys.toList()
+      ..sort((a, b) {
+        // 国考排第一：它是所有人都要考的那张。
+        if (a == '国考') return -1;
+        if (b == '国考') return 1;
+        return tally[b]!.compareTo(tally[a]!);
+      });
+    return regions;
   }
 
   /// Papers whose title mentions a region (or 国考), newest first.

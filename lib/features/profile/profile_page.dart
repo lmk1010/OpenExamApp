@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:openexam_app/core/i18n/locale_controller.dart';
 import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/constants/app_constants.dart';
-import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
 import 'package:openexam_app/core/ui/ambient.dart';
@@ -969,9 +968,12 @@ class _NameSheetState extends State<_NameSheet> {
 
 /// Region picker — drives the 本省真题 card and the 题库 default filter.
 class _ProvinceSheet extends StatelessWidget {
-  const _ProvinceSheet({required this.current});
+  const _ProvinceSheet({required this.current, required this.regions});
 
   final String? current;
+
+  /// 题库里真实存在的地区。用户只导了安徽的卷，就不该给他 31 个省份挑。
+  final List<String> regions;
 
   @override
   Widget build(BuildContext context) {
@@ -995,7 +997,7 @@ class _ProvinceSheet extends StatelessWidget {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  for (final p in kProvinces)
+                  for (final p in regions)
                     GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onTap: () => Navigator.of(context).pop(p),
@@ -1236,6 +1238,9 @@ class PracticePrefsPage extends StatefulWidget {
 
 class _PracticePrefsPageState extends State<PracticePrefsPage> {
   String _province = '国考';
+
+  /// 题库里真实存在的地区，给地区选择器用。
+  List<String> _regions = const [];
   DateTime? _examDate;
   int _goal = 30;
   int _count = 20;
@@ -1249,8 +1254,10 @@ class _PracticePrefsPageState extends State<PracticePrefsPage> {
 
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
+    final regions = await AppDatabase.instance.bankRegions();
     if (!mounted) return;
     setState(() {
+      _regions = regions;
       _province = prefs.getString(Prefs.province) ?? '国考';
       _examDate = DateTime.tryParse(prefs.getString(Prefs.examDate) ?? '');
       _goal = prefs.getInt(Prefs.dailyGoal) ?? 30;
@@ -1413,7 +1420,10 @@ class _PracticePrefsPageState extends State<PracticePrefsPage> {
                             context: context,
                             backgroundColor: Colors.transparent,
                             builder: (_) =>
-                                _ProvinceSheet(current: _province),
+                                _ProvinceSheet(
+                              current: _province,
+                              regions: _regions,
+                            ),
                           );
                           if (picked == null) return;
                           final prefs =
