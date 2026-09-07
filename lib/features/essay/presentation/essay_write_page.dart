@@ -7,6 +7,7 @@ import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
 import 'package:openexam_app/features/ai/ai_settings_page.dart';
 import 'package:openexam_app/features/essay/data/essay_grader.dart';
+import 'package:openexam_app/data/db/app_database.dart';
 import 'package:openexam_app/features/essay/data/essay_repository.dart';
 import 'package:openexam_app/features/essay/domain/essay_models.dart';
 import 'package:openexam_app/features/essay/presentation/essay_result_page.dart';
@@ -152,6 +153,18 @@ class _EssayWritePageState extends State<EssayWritePage> {
       createdAt: DateTime.now(),
     );
     await EssayRepository.instance.saveAttempt(attempt);
+    await AppDatabase.instance.saveReport(
+      title: widget.prompt.title,
+      kind: 'essay',
+      questionIds: [widget.prompt.id],
+      answers: const {},
+      correct: 0,
+      elapsed: Duration(seconds: _seconds),
+      cursor: 1,
+      done: true,
+      score: review?.score,
+      maxScore: review?.maxScore,
+    );
     return attempt;
   }
 

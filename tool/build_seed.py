@@ -3,7 +3,7 @@
 
 Reads ../openexam/data/openexam.seed.db (+ data/question-assets) and writes a
 ready-to-open SQLite file with the mobile schema, images embedded as BLOBs, then
-gzips it into assets/seed/. The app decompresses it on first launch, so there is
+gzips it into bank/ (run tool/bank.py link to bundle it). The app decompresses it on first launch, so there is
 no runtime download and no network access at all.
 
     python3 tool/build_seed.py [--limit N]
@@ -27,7 +27,9 @@ DESKTOP = os.path.join(os.path.dirname(APP), "openexam")
 SRC_DB = os.path.join(DESKTOP, "data", "openexam.seed.db")
 SRC_DB_GZ = SRC_DB + ".gz"
 ASSET_DIR = os.path.join(DESKTOP, "data", "question-assets")
-OUT_GZ = os.path.join(APP, "assets", "seed", "openexam_seed.db.gz")
+# 产物落在 bank/，不落 assets/ —— assets/ 里有没有它决定这次构建带不带题库，
+# 由 tool/bank.py 管。生成完要 `python3 tool/bank.py link` 才会打进包里。
+OUT_GZ = os.path.join(APP, "bank", "openexam_seed.db.gz")
 
 ASSET_REF = re.compile(r"openexam-asset://question-assets/([A-Za-z0-9._-]+)")
 TAG = re.compile(r"<[^>]+>")

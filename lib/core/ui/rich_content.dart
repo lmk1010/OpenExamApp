@@ -48,10 +48,50 @@ class RichContent extends StatelessWidget {
                       maxHeight: maxImageHeight,
                     ),
                   )
-                : Text(blocks[i].value, style: textStyle),
+                : Text.rich(
+                    TextSpan(children: _spans(blocks[i].value)),
+                    style: textStyle,
+                  ),
           ),
       ],
     );
+  }
+
+  /// 题干里的空缺。
+  ///
+  /// 同一个空在题库里有两种写法，取决于这批题是从哪儿抓的：
+  ///
+  /// * 一串空格 —— 抓取时 `<u>` 标签掉了，只剩下宽度；
+  /// * 一串下划线 `________` —— 现在库里 2018 道逻辑填空是这种，只有 56 道
+  ///   是空格。以前这里只认空格，于是 97% 的题走的是"原样打印下划线字符"，
+  ///   长度随原文飘（有 6 个的也有 12 个的），还会在空缺中间断行。
+  ///
+  /// 两种一律换成同一个固定宽度的下划线，长度稳定、也不会被拆到两行。
+  static final _blank = RegExp(r'[ \u3000]{3,}|[_\uFF3F]{2,}');
+
+  /// 画出来的空缺有多宽。四个全角空格 ≈ 四个汉字，跟真题卷面上的横线差不多。
+  static const _blankFill = '\u2003\u2003\u2003\u2003';
+
+  /// 把一段文本拆成普通文字 + 带下划线的空缺。
+  static List<InlineSpan> _spans(String text) {
+    final spans = <InlineSpan>[];
+    var last = 0;
+    for (final m in _blank.allMatches(text)) {
+      final raw = m.group(0)!;
+      // 行首的一串空格是段落缩进，不是空缺，画上线反而莫名其妙。
+      // 下划线不受这条限制 —— 没人拿下划线做缩进。
+      final isSpaces = raw.codeUnitAt(0) != 0x5F && raw.codeUnitAt(0) != 0xFF3F;
+      if (isSpaces && (m.start == 0 || text[m.start - 1] == '\n')) continue;
+      spans.add(TextSpan(text: text.substring(last, m.start)));
+      spans.add(const TextSpan(
+        text: _blankFill,
+        style: TextStyle(decoration: TextDecoration.underline),
+      ));
+      last = m.end;
+    }
+    if (spans.isEmpty) return [TextSpan(text: text)];
+    spans.add(TextSpan(text: text.substring(last)));
+    return spans;
   }
 
   static List<_Block> _parse(String markup) {

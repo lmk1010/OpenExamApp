@@ -18,6 +18,58 @@ class AiResult<T> {
   final bool isOk;
 }
 
+/// 一次调用花了多少 token。
+class AiUsage {
+  const AiUsage({this.inputTokens = 0, this.outputTokens = 0});
+
+  final int inputTokens;
+  final int outputTokens;
+
+  bool get isEmpty => inputTokens == 0 && outputTokens == 0;
+
+  AiUsage operator +(AiUsage other) => AiUsage(
+        inputTokens: inputTokens + other.inputTokens,
+        outputTokens: outputTokens + other.outputTokens,
+      );
+
+  /// 两家的字段名不一样：OpenAI 是 prompt/completion_tokens，
+  /// Anthropic 是 input/output_tokens。
+  static AiUsage? from(dynamic decoded) {
+    if (decoded is! Map) return null;
+    // Anthropic 流式的第一条把 usage 塞在 message 里
+    // （message_start → message.usage.input_tokens），
+    // 只看顶层的话输入 token 一个都记不到。
+    final raw = decoded['usage'] ??
+        (decoded['message'] is Map
+            ? (decoded['message'] as Map)['usage']
+            : null);
+    if (raw is! Map) return null;
+    final u = raw;
+    int pick(List<String> keys) {
+      for (final k in keys) {
+        final v = int.tryParse('${u[k]}');
+        if (v != null) return v;
+      }
+      return 0;
+    }
+
+    final usage = AiUsage(
+      inputTokens: pick(['prompt_tokens', 'input_tokens']),
+      outputTokens: pick(['completion_tokens', 'output_tokens']),
+    );
+    return usage.isEmpty ? null : usage;
+  }
+}
+
+/// 流式过程中的失败。流没法用 [AiResult] 包，只能抛。
+class AiException implements Exception {
+  const AiException(this.message);
+  final String message;
+
+  @override
+  String toString() => message;
+}
+
 /// 对话模型客户端。除 Anthropic 外都走 OpenAI 兼容的 /chat/completions。
 ///
 /// 这是 app 里唯一一处联网的地方 —— 除了用户自己配的那个服务商，
@@ -28,6 +80,20 @@ class AiClient {
   final AiSettings settings;
 
   static const _timeout = Duration(seconds: 120);
+
+  /// 每次调用报一次账。
+  ///
+  /// 挂成钩子而不是直接写库：core 层不该反过来依赖 data 层，
+  /// 而且测试里也不想因为记一笔账就得开数据库。app 启动时接上。
+  static void Function(String feature, String model, AiUsage usage)? onUsage;
+
+  /// 这次调用算在哪个功能头上。用量页按它分组。
+  static String feature = 'other';
+
+  void _report(AiUsage? usage) {
+    if (usage == null || usage.isEmpty) return;
+    onUsage?.call(feature, settings.effectiveModel, usage);
+  }
 
   Map<String, String> get _headers {
     if (settings.provider.isAnthropic) {
@@ -175,6 +241,110 @@ class AiClient {
     };
   }
 
+  /// 边生成边吐字。
+  ///
+  /// 讲一道题要几十秒，一次性等到底的话，屏幕上就是一个转圈 —— 看不出它是在
+  /// 想还是已经卡死。逐字出来至少能读起来。
+  ///
+  /// 每段增量文本是一个事件；出错抛 [AiException]，调用方自己接。
+  Stream<String> completeStream({
+    required String system,
+    required String prompt,
+    int maxTokens = 4096,
+  }) async* {
+    if (!settings.isConfigured) {
+      throw const AiException('还没配置 AI，去「我的 → AI 设置」里填一下');
+    }
+    final body = {
+      ..._bodyFor(system: system, prompt: prompt, maxTokens: maxTokens),
+      'stream': true,
+      // OpenAI 兼容接口默认不在流里报用量，得显式要；Anthropic 本来就给。
+      // 不支持这个参数的网关会忽略它，不至于报错。
+      if (!settings.provider.isAnthropic)
+        'stream_options': {'include_usage': true},
+    };
+
+    final request = http.Request('POST', _chatUri)
+      ..headers.addAll(_headers)
+      ..body = jsonEncode(body);
+
+    http.StreamedResponse response;
+    try {
+      response = await http.Client().send(request).timeout(_timeout);
+    } on TimeoutException {
+      throw const AiException('请求超时了，检查一下网络或换个接口地址');
+    } catch (error) {
+      throw AiException('请求失败：$error');
+    }
+
+    if (response.statusCode != 200) {
+      final text = await response.stream.bytesToString();
+      throw AiException(_describeError(response.statusCode, text));
+    }
+
+    var any = false;
+    var usage = const AiUsage();
+    await for (final line in response.stream
+        .transform(utf8.decoder)
+        .transform(const LineSplitter())) {
+      if (!line.startsWith('data:')) continue;
+      final payload = line.substring(5).trim();
+      if (payload.isEmpty || payload == '[DONE]') continue;
+      Object? decoded;
+      try {
+        decoded = jsonDecode(payload);
+      } catch (_) {
+        continue; // 半行 JSON，跳过等下一行
+      }
+      // 用量分片没有正文，但要收下 —— Anthropic 分两次报（开头报输入、
+      // 结尾报输出），所以是累加不是覆盖
+      final u = AiUsage.from(decoded);
+      if (u != null) usage = usage + u;
+
+      final delta = _deltaFrom(decoded);
+      if (delta == null || delta.isEmpty) continue;
+      any = true;
+      yield delta;
+    }
+    _report(usage);
+
+    if (!any) {
+      throw const AiException(
+        '模型没吐出正文。多半是这个模型要先"想"一轮，配额被想的部分吃完了 —— '
+        '换成非推理模型，或者稍后再试。',
+      );
+    }
+  }
+
+  /// 从一个流式分片里取出新增的那点文字。两家协议的字段位置不一样。
+  static String? _deltaFrom(dynamic decoded) {
+    if (decoded is! Map) return null;
+
+    // Anthropic: {"type":"content_block_delta","delta":{"type":"text_delta","text":"…"}}
+    final delta = decoded['delta'];
+    if (delta is Map) {
+      final text = delta['text'];
+      if (text is String) return text;
+      // OpenAI 兼容的 delta 在 choices 里，这里的是 Anthropic 的
+      final content = delta['content'];
+      if (content is String) return content;
+    }
+
+    // OpenAI: {"choices":[{"delta":{"content":"…"}}]}
+    final choices = decoded['choices'];
+    if (choices is List && choices.isNotEmpty) {
+      final first = choices.first;
+      if (first is Map) {
+        final d = first['delta'];
+        if (d is Map && d['content'] is String) return d['content'] as String;
+        // 有的网关流式也照非流式那样塞 message
+        final m = first['message'];
+        if (m is Map && m['content'] is String) return m['content'] as String;
+      }
+    }
+    return null;
+  }
+
   Future<AiResult<String>> _post(Map<String, dynamic> body) async {
     try {
       final response = await http
@@ -186,6 +356,7 @@ class AiClient {
       }
 
       final decoded = jsonDecode(utf8.decode(response.bodyBytes));
+      _report(AiUsage.from(decoded));
       final text = _textFrom(decoded);
       if (text == null || text.trim().isEmpty) {
         return const AiResult.fail(

@@ -96,6 +96,7 @@ class _StudyTaskEditorSheetState extends State<_StudyTaskEditorSheet> {
   late bool _timed;
   late bool _custom;
   late RepeatRule _repeat;
+  late bool _advanced;
 
   @override
   void initState() {
@@ -107,11 +108,13 @@ class _StudyTaskEditorSheetState extends State<_StudyTaskEditorSheet> {
     _minutes = TextEditingController(
       text: i?.minutes != null ? i!.minutes.toString() : '',
     );
-    _action = i?.action ?? StudyAction.note;
-    _category = i?.category ?? kGongkaoCategories.first.key;
+    _action = i?.action ?? StudyAction.check;
+    // 已经是做题任务的，进来就把高级区摊开；纯打卡的收着
+    _advanced = i != null && i.action != StudyAction.check;
+    _category = i?.category ?? CategoryRegistry.current.first.key;
     _timed = i?.timed ?? false;
     _custom = i?.custom ?? widget.create;
-    _repeat = i?.repeat ?? RepeatRule.once;
+    _repeat = i?.repeat ?? (widget.create ? RepeatRule.daily : RepeatRule.once);
   }
 
   @override
@@ -144,7 +147,7 @@ class _StudyTaskEditorSheetState extends State<_StudyTaskEditorSheet> {
       timed: _timed || minutes != null,
       minutes: minutes,
       custom: _custom,
-      repeat: _custom ? _repeat : RepeatRule.once,
+      repeat: _repeat,
       startedOn: widget.initial?.startedOn,
     );
   }
@@ -200,81 +203,118 @@ class _StudyTaskEditorSheetState extends State<_StudyTaskEditorSheet> {
                   children: [
                     TextField(
                       controller: _title,
+                      autofocus: widget.create,
                       decoration: const InputDecoration(
-                        labelText: '名称',
+                        labelText: '做什么',
+                        hintText: '例如 背 20 个成语',
                         border: OutlineInputBorder(),
                         isDense: true,
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: _subtitle,
-                      decoration: const InputDecoration(
-                        labelText: '备注 / 时段（可选）',
-                        hintText: '例如 20:10–21:20',
-                        border: OutlineInputBorder(),
-                        isDense: true,
-                      ),
+                    const SizedBox(height: 18),
+                    Text('多久做一次', style: text.titleSmall),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        for (final rule in RepeatRule.values)
+                          _RepeatChip(
+                            label: rule.label,
+                            on: _repeat == rule,
+                            onTap: () => setState(() => _repeat = rule),
+                          ),
+                      ],
                     ),
-                    const SizedBox(height: 16),
-                    Text('安排类型', style: text.titleSmall),
                     const SizedBox(height: 6),
-                    for (final action in StudyAction.values)
-                      _ActionTile(
-                        selected: _action == action,
-                        title: studyActionLabel(action),
-                        subtitle: studyActionHint(action),
-                        onTap: () => setState(() => _action = action),
-                      ),
-                    if (_needsCategory) ...[
-                      const SizedBox(height: 12),
-                      Text('题型', style: text.titleSmall),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          for (final c in kGongkaoCategories)
-                            ChoiceChip(
-                              label: Text(c.short),
-                              selected: _category == c.key,
-                              onSelected: (_) =>
-                                  setState(() => _category = c.key),
+                    Text(
+                      _repeat == RepeatRule.once
+                          ? '只出现在这一天'
+                          : '改这条任务，往后每次都跟着变',
+                      style: text.bodySmall?.copyWith(color: t.textSoft),
+                    ),
+
+                    // 到这儿一条待办就齐了。下面全是"顺便还想练题"才用得上的东西，
+                    // 平铺出来会让"加个待办"这么点事看着像填表。
+                    const SizedBox(height: 18),
+                    InkWell(
+                      onTap: () => setState(() => _advanced = !_advanced),
+                      borderRadius: BorderRadius.circular(10),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Row(
+                          children: [
+                            Icon(
+                              _advanced
+                                  ? Icons.keyboard_arrow_down
+                                  : Icons.keyboard_arrow_right,
+                              size: 20,
+                              color: t.textSoft,
                             ),
-                        ],
+                            const SizedBox(width: 4),
+                            Text('顺便练题', style: text.titleSmall),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                _advanced ? '' : '勾完就算，不用设也行',
+                                style: text.bodySmall?.copyWith(color: t.textSoft),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ],
-                    if (_needsCount) ...[
+                    ),
+                    if (_advanced) ...[
+                      const SizedBox(height: 4),
+                      for (final action in StudyAction.values)
+                        _ActionTile(
+                          selected: _action == action,
+                          title: studyActionLabel(action),
+                          subtitle: studyActionHint(action),
+                          onTap: () => setState(() => _action = action),
+                        ),
+                      if (_needsCategory) ...[
+                        const SizedBox(height: 12),
+                        Text('题型', style: text.titleSmall),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            for (final c in CategoryRegistry.current)
+                              ChoiceChip(
+                                label: Text(c.short),
+                                selected: _category == c.key,
+                                onSelected: (_) =>
+                                    setState(() => _category = c.key),
+                              ),
+                          ],
+                        ),
+                      ],
+                      if (_needsCount) ...[
+                        const SizedBox(height: 12),
+                        TextField(
+                          controller: _count,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            labelText: '题量',
+                            border: OutlineInputBorder(),
+                            isDense: true,
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 12),
                       TextField(
-                        controller: _count,
-                        keyboardType: TextInputType.number,
+                        controller: _subtitle,
                         decoration: const InputDecoration(
-                          labelText: '题量',
+                          labelText: '备注（可选）',
                           border: OutlineInputBorder(),
                           isDense: true,
                         ),
                       ),
                     ],
-                    // 重复只对自己加的任务有意义 —— 模板任务本来就按星期几排。
-                    if (_custom) ...[
-                      const SizedBox(height: 16),
-                      Text('重复', style: text.titleSmall),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          for (final rule in RepeatRule.values)
-                            _RepeatChip(
-                              label: rule.label,
-                              on: _repeat == rule,
-                              onTap: () => setState(() => _repeat = rule),
-                            ),
-                        ],
-                      ),
-                    ],
-                    if (_action != StudyAction.note &&
+                    if (_advanced &&
+                        _action != StudyAction.note &&
                         _action != StudyAction.check &&
                         _action != StudyAction.openWrongBook) ...[
                       const SizedBox(height: 12),
@@ -446,18 +486,21 @@ Future<void> showStudyTaskActions(
 Future<String?> showRenameTaskDialog(
   BuildContext context, {
   required String initial,
+  String title = '重命名',
+  String? hint,
 }) {
   final ctrl = TextEditingController(text: initial);
   return showDialog<String>(
     context: context,
     builder: (ctx) {
       return AlertDialog(
-        title: const Text('重命名'),
+        title: Text(title),
         content: TextField(
           controller: ctrl,
           autofocus: true,
-          decoration: const InputDecoration(
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            hintText: hint,
+            border: const OutlineInputBorder(),
             isDense: true,
           ),
           onSubmitted: (v) => Navigator.of(ctx).pop(v.trim()),

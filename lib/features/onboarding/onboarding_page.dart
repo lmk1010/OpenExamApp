@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:openexam_app/data/db/app_database.dart';
 import 'package:openexam_app/core/constants/app_constants.dart';
 import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
@@ -27,8 +28,27 @@ class _OnboardingPageState extends State<OnboardingPage> {
   final _pager = PageController();
   int _page = 0;
   int _goal = 30;
+
+  /// 库里到底有多少题。
+  ///
+  /// 以前这里写死「18686 道真题在这台手机里」。不打包题库的那个发行版
+  /// （App Store）一装上，第一屏就在说一句假话 —— 一道题都没有。而且
+  /// 「真题」两个字本身就是我们最不该在商店版里声称的东西。
+  /// 现在读实际题量，空库时换一句话说清这个版本是什么。
+  int? _bankCount;
   DateTime? _examDate;
   String? _province;
+
+  @override
+  void initState() {
+    super.initState();
+    _countBank();
+  }
+
+  Future<void> _countBank() async {
+    final n = await AppDatabase.instance.countAll();
+    if (mounted) setState(() => _bankCount = n);
+  }
 
   @override
   void dispose() {
@@ -110,7 +130,11 @@ class _OnboardingPageState extends State<OnboardingPage> {
                       Theme.of(context).brightness,
                     ),
                     title: '上岸\n是划出来的',
-                    body: '18686 道真题在这台手机里\n不用登录，没网也能划',
+                    body: switch (_bankCount) {
+                      null => '不用登录，没网也能划',
+                      0 => '题库和 App 是分开的\n导入一份就能开始，不用登录、没网也能划',
+                      final n => '$n 道题在这台手机里\n不用登录，没网也能划',
+                    },
                   ),
                   _Slide(
                     art: dark ? ShoreArt.nightCalm : ShoreArt.chart,

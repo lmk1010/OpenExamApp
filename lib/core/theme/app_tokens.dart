@@ -97,7 +97,19 @@ class AppTokens extends ThemeExtension<AppTokens> {
   final Color chip;
   final Color onChip;
 
-  Color category(String key) => categories[key] ?? brand;
+  /// 分类色。内置的照表取；导入进来的新科目没有配色，就按名字从同一张表里
+  /// 挑一个 —— 全都回落到 brand 的话，一屏卡片会是清一色，谁也分不出谁。
+  Color category(String key) {
+    final known = categories[key];
+    if (known != null) return known;
+    if (categories.isEmpty || key.isEmpty) return brand;
+    final palette = categories.values.toList();
+    var h = 0;
+    for (final unit in key.codeUnits) {
+      h = (h * 31 + unit) & 0x7fffffff;
+    }
+    return palette[h % palette.length];
+  }
 
   @override
   AppTokens copyWith({

@@ -19,13 +19,20 @@ import 'package:openexam_app/features/vocab/domain/vocab_word.dart';
 /// 辨析：一蹴而就 / 一挥而就 / 一气呵成 单看释义永远分不清，得摆在一起。
 /// 我的：做错的题自动收进来的生词，加上手动加的。
 class VocabPage extends StatefulWidget {
-  const VocabPage({super.key});
+  const VocabPage({super.key, this.initialTab = VocabTab.today});
+
+  /// 进来先停在哪一栏。工具页里"辨析""高频"各是一个入口，
+  /// 点进来必须直接是那一栏。
+  final VocabTab initialTab;
 
   @override
   State<VocabPage> createState() => _VocabPageState();
 }
 
-enum _Tab { today, top, confuse, mine }
+/// 词语页的四栏。工具页要按名字跳，所以是公开的。
+enum VocabTab { today, top, confuse, mine }
+
+typedef _Tab = VocabTab;
 
 const _tabLabels = {
   _Tab.today: '今日',
@@ -35,16 +42,18 @@ const _tabLabels = {
 };
 
 class _VocabPageState extends State<VocabPage> {
-  _Tab _tab = _Tab.today;
+  late _Tab _tab;
   bool _loading = true;
   List<VocabWord> _deck = const [];
   int _index = 0;
   bool _flipped = false;
   int _right = 0;
+  DateTime _startedAt = DateTime.now();
 
   @override
   void initState() {
     super.initState();
+    _tab = widget.initialTab;
     _load();
   }
 
@@ -57,6 +66,7 @@ class _VocabPageState extends State<VocabPage> {
       _index = 0;
       _flipped = false;
       _right = 0;
+      _startedAt = DateTime.now();
       _loading = false;
     });
   }
@@ -71,6 +81,21 @@ class _VocabPageState extends State<VocabPage> {
       _flipped = false;
       _index++;
     });
+    // 背词以前完全不进练习历史 —— 背了半小时，记录页上一片空白，
+    // 看起来就像今天什么都没干。过完一轮记一条。
+    if (_index >= _deck.length) await _logRound();
+  }
+
+  Future<void> _logRound() async {
+    if (_deck.isEmpty) return;
+    await AppDatabase.instance.saveReport(
+      title: '背词语',
+      kind: 'vocab',
+      questionIds: _deck.map((w) => w.word).toList(),
+      answers: const {},
+      correct: _right,
+      elapsed: DateTime.now().difference(_startedAt),
+    );
   }
 
   Widget _body() {

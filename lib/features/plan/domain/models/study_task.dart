@@ -19,16 +19,17 @@ enum StudyAction {
   check,
 }
 
-/// 一条自定义任务的重复规则。
+/// 一条任务的重复规则。
 ///
-/// 模板里的任务本来就按星期几循环，但用户自己加的任务原来只活在那一天 ——
-/// "每天背单词"得每天手加一遍，没人会这么用。
-enum RepeatRule { once, daily, weekly, everyOtherDay }
+/// 每条任务都有 —— 不分是自己加的还是从起始包导进来的。以前只有自定义任务
+/// 能设，导入的任务被钉在星期几上，用户想把"资料分析"从每天改成隔天都做不到。
+enum RepeatRule { once, daily, weekdays, weekly, everyOtherDay }
 
 extension RepeatRuleX on RepeatRule {
   String get label => switch (this) {
         RepeatRule.once => '只这一次',
         RepeatRule.daily => '每天',
+        RepeatRule.weekdays => '工作日',
         RepeatRule.weekly => '每周这天',
         RepeatRule.everyOtherDay => '隔一天',
       };
@@ -41,6 +42,8 @@ extension RepeatRuleX on RepeatRule {
     return switch (this) {
       RepeatRule.once => a == b,
       RepeatRule.daily => true,
+      // 在职备考的主力节奏：周一到周五练，周末另算
+      RepeatRule.weekdays => b.weekday <= DateTime.friday,
       RepeatRule.weekly => a.weekday == b.weekday,
       // 用天数差取模，不能用"上次是不是昨天"——中间隔了几天没开 app 就错位了
       RepeatRule.everyOtherDay => b.difference(a).inDays % 2 == 0,
@@ -76,10 +79,12 @@ class StudyTask {
   /// Soft time budget shown in the UI (and used as session limit when set).
   final int? minutes;
 
-  /// User-added task — can be deleted. Template tasks cannot.
+  /// 历史字段：以前用来区分"导入的任务不能删"。现在任务全归用户所有，
+  /// 都能改能删，只留着读老数据。
   final bool custom;
 
-  /// 重复规则，只对自定义任务有意义（模板任务本来就按星期几排）。
+  /// 重复规则。决定这条任务哪天出现，也决定它存在哪：
+  /// [RepeatRule.once] 落在那一天，其余存进用户的计划清单。
   final RepeatRule repeat;
 
   /// 创建日，重复规则从这天开始算。

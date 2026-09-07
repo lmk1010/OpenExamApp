@@ -2,14 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
-import 'package:openexam_app/core/ui/stroke_icons.dart';
+import 'package:openexam_app/core/ui/ambient.dart';
+import 'package:openexam_app/core/ui/responsive.dart';
 import 'package:openexam_app/core/ui/ui_kit.dart';
 import 'package:openexam_app/data/db/app_database.dart';
-import 'package:openexam_app/features/practice/practice_session_page.dart';
+import 'package:openexam_app/data/models/question.dart';
 
-/// 题库体检 — coverage matrix + structural dirty rows.
-/// Answers are not certified against official keys; this page makes gaps and
-/// broken fields visible so you can spot-check and 纠错.
+/// 题库体检。
+///
+/// 原来这一页摆的是覆盖矩阵、年份分布、抽样对标清单 —— 数据是真的，但看完
+/// 也不知道该干什么。现在只回答两个问题：**有多少题**、**哪些题有毛病**，
+/// 而且每条毛病都能在这一页当场解决，不用记下题号再去别处找。
 class BankHealthPage extends StatefulWidget {
   const BankHealthPage({super.key});
 
@@ -19,7 +22,10 @@ class BankHealthPage extends StatefulWidget {
 
 class _BankHealthPageState extends State<BankHealthPage> {
   bool _loading = true;
-  BankHealthReport? _report;
+  List<CategoryStat> _stats = const [];
+  List<Question> _noAnswer = const [];
+  List<Question> _broken = const [];
+  List<List<Question>> _dupes = const [];
 
   @override
   void initState() {
@@ -28,438 +34,491 @@ class _BankHealthPageState extends State<BankHealthPage> {
   }
 
   Future<void> _load() async {
-    final report = await AppDatabase.instance.bankHealth();
+    final results = await Future.wait([
+      AppDatabase.instance.categoryStats(),
+      AppDatabase.instance.questionsMissingAnswer(),
+      AppDatabase.instance.questionsBrokenOptions(),
+      AppDatabase.instance.duplicateQuestions(),
+    ]);
     if (!mounted) return;
     setState(() {
-      _report = report;
+      _stats = (results[0] as List<CategoryStat>)
+          .where((s) => s.total > 0)
+          .toList();
+      _noAnswer = results[1] as List<Question>;
+      _broken = results[2] as List<Question>;
+      _dupes = results[3] as List<List<Question>>;
       _loading = false;
     });
   }
 
-  Future<void> _openDirty(BankDirtyItem item) async {
-    final q = await AppDatabase.instance.questionById(item.id);
-    if (!mounted || q == null) return;
-    await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => PracticeSessionPage(
-          questions: [q],
-          reviewAnswers: {q.id: q.answer.toUpperCase()},
-          title: '脏数据回看',
-        ),
+  int get _total => _stats.fold(0, (sum, s) => sum + s.total);
+  int get _problems =>
+      _noAnswer.length + _broken.length + _dupes.length;
+
+  /// 就地补答案。补完这道题立刻从列表里消失 —— 修好了就该看不见。
+  Future<void> _fixAnswer(Question q) async {
+    final picked = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _AnswerSheet(question: q),
+    );
+    if (picked == null || picked.isEmpty) return;
+    await AppDatabase.instance.setQuestionAnswer(q.id, picked);
+    await _load();
+  }
+
+  Future<void> _delete(Question q) async {
+    await AppDatabase.instance.deleteQuestion(q.id);
+    await _load();
+  }
+
+  /// 一组重复里只留第一道，其余删掉。同卷重复才会进到这里 —— 跨卷共用的题
+  /// （联考各省同题、国考三卷同题）本来就该各卷都有一份，不算毛病。
+  Future<void> _dedupe(List<Question> group) async {
+    await AppDatabase.instance
+        .deleteQuestions(group.skip(1).map((q) => q.id).toList());
+    await _load();
+  }
+
+  Future<void> _dedupeAll() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('清理全部重复'),
+        content: Text('${_dupes.length} 组卷内重复，每组留一道，'
+            '共删掉 ${_dupes.fold<int>(0, (s, g) => s + g.length - 1)} 道。'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('清理'),
+          ),
+        ],
       ),
     );
+    if (ok != true) return;
+    final ids = <String>[];
+    for (final g in _dupes) {
+      ids.addAll(g.skip(1).map((q) => q.id));
+    }
+    await AppDatabase.instance.deleteQuestions(ids);
+    await _load();
   }
 
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
     final text = Theme.of(context).textTheme;
-    final r = _report;
 
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, size: 21),
-          onPressed: () => Navigator.of(context).maybePop(),
-        ),
-        titleSpacing: 0,
-        title: const Text('题库体检'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh_rounded, size: 21),
-            onPressed: () {
-              setState(() => _loading = true);
-              _load();
-            },
-          ),
-        ],
-      ),
-      body: _loading || r == null
-          ? const LoadingState()
-          : ListView(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.paddingOf(context).bottom + 28,
-              ),
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppTheme.gutter,
-                    8,
-                    AppTheme.gutter,
-                    4,
+      backgroundColor: t.gradient.last,
+      body: SafeArea(
+        child: ReadableWidth(
+          child: _loading
+              ? const LoadingState()
+              : ListView(
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.paddingOf(context).bottom + 28,
                   ),
-                  child: Text(
-                    '结构体检自动跑；答案是否等于官方键，仍需抽样对照 PDF。'
-                    '发现问题时做题长按题号可记入纠错。',
-                    style: text.bodySmall?.copyWith(height: 1.45),
-                  ),
-                ),
-                const SizedBox(height: 14),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
-                  child: Wrap(
-                    spacing: 10,
-                    runSpacing: 10,
-                    children: [
-                      _StatChip(
-                        label: '题目',
-                        value: '${r.questions}',
-                        color: t.brand,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                          AppTheme.gutter, 8, AppTheme.gutter, 10),
+                      child: Row(
+                        children: [
+                          PlainIconButton(
+                            icon: Icons.arrow_back,
+                            onTap: () => Navigator.of(context).maybePop(),
+                          ),
+                          const SizedBox(width: 4),
+                          Text('题库体检', style: text.titleMedium),
+                        ],
                       ),
-                      _StatChip(
-                        label: '试卷',
-                        value: '${r.papers}',
-                        color: t.brand,
+                    ),
+
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: AppTheme.gutter),
+                      child: _Summary(
+                        total: _total,
+                        problems: _problems,
+                        categories: _stats.length,
                       ),
-                      _StatChip(
-                        label: '年份',
-                        value: r.yearMin == 0
-                            ? '—'
-                            : '${r.yearMin}–${r.yearMax}',
-                        color: t.brand,
-                      ),
-                      _StatChip(
-                        label: '脏答案',
-                        value: '${r.dirty.length}',
-                        color: r.dirty.isEmpty ? t.success : t.danger,
-                      ),
-                      _StatChip(
-                        label: '缺答案',
-                        value: '${r.noAnswer}',
-                        color: r.noAnswer == 0 ? t.success : t.danger,
-                      ),
-                      _StatChip(
-                        label: '缺解析',
-                        value: '${r.noAnalysis}',
-                        color: r.noAnalysis == 0 ? t.success : t.danger,
-                      ),
-                      _StatChip(
-                        label: '配图题',
-                        value: '${r.withImage}',
-                        color: t.muted,
-                      ),
-                      _StatChip(
-                        label: '纠错',
-                        value: '${r.feedback}',
-                        color: t.muted,
+                    ),
+
+                    if (_problems == 0) ...[
+                      const SizedBox(height: 26),
+                      EmptyState(
+                        icon: Icons.verified_outlined,
+                        title: _total == 0 ? '题库还是空的' : '没查出问题',
+                        message: _total == 0
+                            ? '导入题目之后，这里会告诉你哪些题有毛病。'
+                            : '每道题都有答案、有选项，卷内也没有收重。',
                       ),
                     ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppTheme.gutter,
-                    10,
-                    AppTheme.gutter,
-                    0,
-                  ),
-                  child: Text(
-                    'seed v${r.seedVersion} · data patch v${r.dataPatch}'
-                    ' · 短题干 ${r.shortContent}（多为图形题）',
-                    style: text.bodySmall?.copyWith(fontSize: 12),
-                  ),
-                ),
-                const SizedBox(height: 22),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: AppTheme.gutter),
-                  child: SectionHeader(
-                    title: '模块分布',
-                    caption: '五科题量',
-                  ),
-                ),
-                const SizedBox(height: 8),
-                for (final c in kGongkaoCategories)
-                  _BarRow(
-                    label: c.label,
-                    value: r.byCategory[c.key] ?? 0,
-                    max: r.questions,
-                    color: t.category(c.key),
-                  ),
-                const SizedBox(height: 22),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: AppTheme.gutter),
-                  child: SectionHeader(
-                    title: '年份分布',
-                    caption: '套数 / 题量',
-                  ),
-                ),
-                const SizedBox(height: 6),
-                for (final y in r.byYear)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppTheme.gutter,
-                      vertical: 7,
-                    ),
-                    child: Row(
-                      children: [
-                        SizedBox(
-                          width: 52,
-                          child: Text(
-                            '${y.year}',
-                            style: text.titleMedium?.copyWith(fontSize: 15),
-                          ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            '${y.papers} 套 · ${y.questions} 题',
-                            style: text.bodySmall,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                const SizedBox(height: 22),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: AppTheme.gutter),
-                  child: SectionHeader(
-                    title: '覆盖矩阵',
-                    caption: '地区 × 年份（按题量）',
-                  ),
-                ),
-                const SizedBox(height: 6),
-                for (final cell in r.coverage.take(40)) ...[
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppTheme.gutter,
-                      vertical: 8,
-                    ),
-                    child: Row(
-                      children: [
-                        SizedBox(
-                          width: 72,
-                          child: Text(
-                            cell.region,
-                            style: text.titleMedium?.copyWith(fontSize: 14),
-                          ),
-                        ),
-                        SizedBox(
-                          width: 48,
-                          child: Text(
-                            '${cell.year}',
-                            style: text.bodySmall?.copyWith(
-                              fontFeatures: AppTheme.numeric,
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            '${cell.papers} 套 · ${cell.questions} 题',
-                            style: text.bodySmall,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const RowDivider(),
-                ],
-                if (r.coverage.length > 40)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppTheme.gutter,
-                      4,
-                      AppTheme.gutter,
-                      0,
-                    ),
-                    child: Text(
-                      '仅展示题量前 40 格，共 ${r.coverage.length} 格。',
-                      style: text.bodySmall?.copyWith(fontSize: 12),
-                    ),
-                  ),
-                const SizedBox(height: 22),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
-                  child: SectionHeader(
-                    title: '脏数据',
-                    caption: r.dirty.isEmpty ? '未发现异常答案' : '${r.dirty.length} 条待核',
-                  ),
-                ),
-                const SizedBox(height: 6),
-                if (r.dirty.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppTheme.gutter,
-                      vertical: 12,
-                    ),
-                    child: Row(
-                      children: [
-                        StrokeIcon(AppIcon.info, size: 16, color: t.success),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            '答案字段格式正常。仍建议按模块抽样对照官方 PDF。',
-                            style: text.bodySmall?.copyWith(height: 1.4),
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                else
-                  for (var i = 0; i < r.dirty.length; i++) ...[
-                    if (i > 0) const RowDivider(),
-                    GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () => _openDirty(r.dirty[i]),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppTheme.gutter,
-                          vertical: 12,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Text(
-                                  '答案「${r.dirty[i].answer.isEmpty ? '空' : r.dirty[i].answer}」',
-                                  style: text.titleMedium?.copyWith(
-                                    fontSize: 14,
-                                    color: t.danger,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  categoryLabel(r.dirty[i].category),
-                                  style: text.bodySmall,
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '${r.dirty[i].year} · ${r.dirty[i].paperTitle}',
-                              style: text.bodySmall?.copyWith(fontSize: 12),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              r.dirty[i].preview,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: text.bodySmall?.copyWith(height: 1.35),
-                            ),
-                          ],
-                        ),
+
+                    if (_noAnswer.isNotEmpty) ...[
+                      const SizedBox(height: 22),
+                      SectionHeader(
+                        title: '没有答案',
+                        caption: '${_noAnswer.length} 题 · 这些题做了也判不了对错',
                       ),
-                    ),
+                      for (final q in _noAnswer.take(50))
+                        _ProblemRow(
+                          question: q,
+                          actionLabel: '补答案',
+                          onAction: () => _fixAnswer(q),
+                          onDelete: () => _delete(q),
+                        ),
+                      if (_noAnswer.length > 50)
+                        _More(n: _noAnswer.length - 50),
+                    ],
+
+                    if (_broken.isNotEmpty) ...[
+                      const SizedBox(height: 22),
+                      SectionHeader(
+                        title: '选项残缺',
+                        caption: '${_broken.length} 题 · 不足两个选项，多半是解析出错',
+                      ),
+                      for (final q in _broken.take(50))
+                        _ProblemRow(
+                          question: q,
+                          onDelete: () => _delete(q),
+                        ),
+                      if (_broken.length > 50) _More(n: _broken.length - 50),
+                    ],
+
+                    if (_dupes.isNotEmpty) ...[
+                      const SizedBox(height: 22),
+                      SectionHeader(
+                        title: '重复的题',
+                        caption: '${_dupes.length} 组 · 同一份卷里收了两遍',
+                        trailing: '全部清理',
+                        onTapTrailing: _dedupeAll,
+                      ),
+                      for (final g in _dupes.take(30))
+                        _ProblemRow(
+                          question: g.first,
+                          badge: '${g.length} 份',
+                          actionLabel: '只留一道',
+                          onAction: () => _dedupe(g),
+                        ),
+                      if (_dupes.length > 30) _More(n: _dupes.length - 30),
+                    ],
+
+                    if (_stats.isNotEmpty) ...[
+                      const SizedBox(height: 26),
+                      const SectionHeader(title: '各科多少题'),
+                      for (final s in _stats)
+                        _CategoryBar(
+                          stat: s,
+                          ratio: _stats.first.total == 0
+                              ? 0
+                              : s.total / _stats.first.total,
+                        ),
+                    ],
                   ],
-                const SizedBox(height: 22),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: AppTheme.gutter),
-                  child: SectionHeader(
-                    title: '抽样对标清单',
-                    caption: '人工核对用',
-                  ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppTheme.gutter,
-                    10,
-                    AppTheme.gutter,
-                    0,
-                  ),
-                  child: Text(
-                    '1. 挑你的目标卷（国考 / 本省）各 1 套，对照官方 PDF 题量是否齐全。\n'
-                    '2. 每科每年抽 10–20 题，核答案字母与解析结论是否一致。\n'
-                    '3. 抽样正确率低于 98% 时，整年来源应降级信任。\n'
-                    '4. 发现问题：做题页长按题号 →「我的 → 纠错记录」。',
-                    style: text.bodySmall?.copyWith(height: 1.55),
-                  ),
-                ),
-              ],
-            ),
+        ),
+      ),
     );
   }
 }
 
-class _StatChip extends StatelessWidget {
-  const _StatChip({
-    required this.label,
-    required this.value,
-    required this.color,
+class _Summary extends StatelessWidget {
+  const _Summary({
+    required this.total,
+    required this.problems,
+    required this.categories,
   });
 
-  final String label;
-  final String value;
-  final Color color;
+  final int total;
+  final int problems;
+  final int categories;
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
     final t = context.tokens;
+
     return Container(
-      width: 104,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
+        color: t.surface,
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: t.shadow,
       ),
+      child: Row(
+        children: [
+          _Figure(value: '$total', label: '道题'),
+          _Figure(value: '$categories', label: '个科目'),
+          _Figure(
+            value: '$problems',
+            label: '处待修',
+            tint: problems == 0 ? t.success : t.danger,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Figure extends StatelessWidget {
+  const _Figure({required this.value, required this.label, this.tint});
+
+  final String value;
+  final String label;
+  final Color? tint;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+    return Expanded(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             value,
-            style: text.titleMedium?.copyWith(
-              fontSize: 18,
-              color: color,
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w700,
+              height: 1.1,
+              letterSpacing: -0.6,
+              color: tint ?? t.text,
               fontFeatures: AppTheme.numeric,
             ),
           ),
-          const SizedBox(height: 2),
-          Text(label, style: text.bodySmall?.copyWith(color: t.muted)),
+          const SizedBox(height: 3),
+          Text(label, style: text.bodySmall?.copyWith(color: t.textSoft)),
         ],
       ),
     );
   }
 }
 
-class _BarRow extends StatelessWidget {
-  const _BarRow({
-    required this.label,
-    required this.value,
-    required this.max,
-    required this.color,
-  });
+class _More extends StatelessWidget {
+  const _More({required this.n});
 
-  final String label;
-  final int value;
-  final int max;
-  final Color color;
+  final int n;
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
     final t = context.tokens;
-    final ratio = max == 0 ? 0.0 : value / max;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 8, AppTheme.gutter, 0),
+      child: Text(
+        '还有 $n 处，修完这批再刷新',
+        style: Theme.of(context)
+            .textTheme
+            .bodySmall
+            ?.copyWith(color: t.textSoft),
+      ),
+    );
+  }
+}
+
+/// 一条有毛病的题：题干两行 + 一个能当场解决它的按钮。
+class _ProblemRow extends StatelessWidget {
+  const _ProblemRow({
+    required this.question,
+    this.badge,
+    this.actionLabel,
+    this.onAction,
+    this.onDelete,
+  });
+
+  final Question question;
+  final String? badge;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+  final VoidCallback? onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+
     return Padding(
       padding: const EdgeInsets.symmetric(
-        horizontal: AppTheme.gutter,
-        vertical: 6,
-      ),
-      child: Row(
+          horizontal: AppTheme.gutter, vertical: 11),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 72,
-            child: Text(label, style: text.bodyMedium?.copyWith(fontSize: 14)),
+          Text(
+            question.content.trim().isEmpty ? '（空题干）' : question.content,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: text.bodyLarge?.copyWith(fontSize: 14.5, height: 1.45),
           ),
-          Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
-                value: ratio.clamp(0.0, 1.0),
-                minHeight: 7,
-                backgroundColor: t.line.withValues(alpha: 0.35),
-                color: color,
+          const SizedBox(height: 7),
+          Row(
+            children: [
+              if (question.category.isNotEmpty)
+                Text(
+                  CategoryRegistry.metaFor(question.category).label,
+                  style: text.bodySmall
+                      ?.copyWith(color: t.category(question.category)),
+                ),
+              if (badge != null) ...[
+                const SizedBox(width: 8),
+                Text(badge!,
+                    style: text.bodySmall?.copyWith(color: t.danger)),
+              ],
+              const Spacer(),
+              if (onDelete != null)
+                TextButton(
+                  onPressed: onDelete,
+                  child: Text('删掉',
+                      style: text.labelMedium?.copyWith(color: t.textSoft)),
+                ),
+              if (actionLabel != null && onAction != null)
+                TextButton(
+                  onPressed: onAction,
+                  child: Text(actionLabel!,
+                      style: text.labelMedium?.copyWith(color: t.brand)),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CategoryBar extends StatelessWidget {
+  const _CategoryBar({required this.stat, required this.ratio});
+
+  final CategoryStat stat;
+  final double ratio;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+    final color = t.category(stat.category);
+
+    return Padding(
+      padding:
+          const EdgeInsets.symmetric(horizontal: AppTheme.gutter, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  CategoryRegistry.metaFor(stat.category).label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: text.titleSmall?.copyWith(fontSize: 14),
+                ),
               ),
-            ),
+              Text('${stat.total}',
+                  style: text.bodyMedium?.copyWith(
+                    color: t.textSoft,
+                    fontFeatures: AppTheme.numeric,
+                  )),
+            ],
           ),
-          const SizedBox(width: 10),
-          SizedBox(
-            width: 48,
-            child: Text(
-              '$value',
-              textAlign: TextAlign.right,
-              style: text.bodySmall?.copyWith(fontFeatures: AppTheme.numeric),
+          const SizedBox(height: 5),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(99),
+            child: LinearProgressIndicator(
+              value: ratio.clamp(0.0, 1.0),
+              minHeight: 4,
+              backgroundColor: t.lineSoft,
+              color: color,
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// 补答案：把这道题的选项列出来，点一个就是答案。
+///
+/// 让人手打字母是没必要的 —— 选项就在眼前，而且手打还会打错大小写。
+class _AnswerSheet extends StatelessWidget {
+  const _AnswerSheet({required this.question});
+
+  final Question question;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+
+    return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.sizeOf(context).height * 0.8,
+      ),
+      decoration: BoxDecoration(
+        color: t.gradient.last,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        border: Border(top: BorderSide(color: t.lineSoft)),
+      ),
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 10),
+      child: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('正确答案是哪个', style: text.titleMedium),
+              const SizedBox(height: 10),
+              Text(
+                question.content,
+                maxLines: 6,
+                overflow: TextOverflow.ellipsis,
+                style: text.bodyMedium?.copyWith(height: 1.6),
+              ),
+              const SizedBox(height: 16),
+              for (final o in question.options)
+                InkWell(
+                  onTap: () => Navigator.of(context).pop(o.key),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 11),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 30,
+                          height: 30,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: t.accentSoft,
+                            borderRadius: BorderRadius.circular(9),
+                          ),
+                          child: Text(
+                            o.key,
+                            style: text.titleSmall
+                                ?.copyWith(color: t.onAccentSoft),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(o.text,
+                              style: text.bodyMedium?.copyWith(height: 1.5)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              const SizedBox(height: 6),
+              Text(
+                '选错了也不要紧，之后在做题页还能改。',
+                style: text.bodySmall?.copyWith(color: t.textSoft),
+              ),
+              const SizedBox(height: 6),
+            ],
+          ),
+        ),
       ),
     );
   }

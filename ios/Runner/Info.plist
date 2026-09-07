@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Openexam App</string>
+	<string>OpenExam</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -13,7 +13,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>openexam_app</string>
+	<string>OpenExam</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -44,6 +44,26 @@
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
+	<!-- 界面目前只有中文。App Store 不要求本地化，但要让系统和商店知道
+	     主语言是简体中文，否则在非中文区会被当成"英文 App 却全是中文"。 -->
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>zh_CN</string>
+	</array>
+	<!-- 只用系统 HTTPS/TLS 跟用户自己配的 AI 服务通信，属于豁免范围。
+	     不写这个键的话每次上传构建都会被问一遍出口合规。 -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<!-- 申论作答可以插图，file_picker 取图时可能走相册。缺这条 iOS 会直接
+	     杀掉进程，审核也过不了。 -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>用于从相册选择图片，插入你的申论作答或识别试卷图片。图片只存在本机。</string>
+	<!-- 空库版靠用户自己导题库。开这两个键，题库文件可以直接从"文件"App
+	     拖进来，不用每次走选择器 —— 审核员加载样例题库也方便。 -->
+	<key>UIFileSharingEnabled</key>
+	<true/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<true/>
 </dict>
 </plist>

@@ -31,5 +31,6 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/seed/openexam_seed.db.gz
+    # 目录形式：题库在不在都能构建。见 bank/README.md
+    - assets/seed/
     - assets/shore/

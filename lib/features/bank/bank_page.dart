@@ -13,7 +13,7 @@ import 'package:openexam_app/data/db/app_database.dart';
 import 'package:openexam_app/features/shell/tab_reload.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:openexam_app/features/bank/paper_page.dart';
-import 'package:openexam_app/features/reports/reports_page.dart';
+import 'package:openexam_app/features/bank/recent_papers_page.dart';
 
 /// 题库 — 137 real papers. Searchable, grouped by year, each row showing how
 /// far through that paper you are.
@@ -235,15 +235,42 @@ class _BankPageState extends State<BankPage> with TabReload {
                         : '${matched.length} / ${_papers.length} 套',
                     title: '题库',
                     actions: [
+                      // 「继续上次」原来平铺在搜索框下面，一进题库先看见一段
+                      // 最近记录，真正想找卷子的人得往下翻过去。收进这里。
                       ShoreRoundButton(
                         icon: StrokeIcon(
-                          AppIcon.chart,
+                          AppIcon.replay,
                           size: 19,
                           color: t.textSoft,
                         ),
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => const ReportsPage()),
-                        ),
+                        onTap: () async {
+                          final papers = {for (final p in _papers) p.id: p};
+                          final picked = await Navigator.of(context).push<String>(
+                            MaterialPageRoute(
+                              builder: (_) => RecentPapersPage(
+                                recent: [
+                                  for (final r in _recent)
+                                    if (papers[r.id] != null)
+                                      (
+                                        id: r.id,
+                                        title: papers[r.id]!.title,
+                                        total: papers[r.id]!.count,
+                                        done: _progress[r.id] ?? 0,
+                                        at: r.at,
+                                      ),
+                                ],
+                              ),
+                            ),
+                          );
+                          if (!mounted) return;
+                          // 在历史页点了某张卷：回到题库再把它打开，
+                          // 免得历史页自己也要抱一份打开卷子的逻辑
+                          final target = picked == null ? null : papers[picked];
+                          if (target != null) await _openPaper(target);
+                          if (!mounted) return;
+                          // 做完题回来，进度要跟着变
+                          await _reload();
+                        },
                       ),
                     ],
                   ),
@@ -290,32 +317,6 @@ class _BankPageState extends State<BankPage> with TabReload {
                       ),
                     ),
                   ),
-                  if (_recent.isNotEmpty && _query.isEmpty) ...[
-                    const SizedBox(height: 14),
-                    const Padding(
-                      padding: EdgeInsets.fromLTRB(
-                        AppTheme.gutter,
-                        0,
-                        AppTheme.gutter,
-                        8,
-                      ),
-                      child: SectionHeader(
-                        title: '继续上次',
-                        caption: '最近做过的卷',
-                      ),
-                    ),
-                    for (final r in _recent)
-                      if (_papers.any((p) => p.id == r.id))
-                        _PaperRow(
-                          paper: _papers.firstWhere((p) => p.id == r.id),
-                          done: _progress[r.id] ?? 0,
-                          onTap: () => _openPaper(
-                            _papers.firstWhere((p) => p.id == r.id),
-                          ),
-                        ),
-                    const SizedBox(height: 6),
-                    const RowDivider(indent: 0),
-                  ],
                   const SizedBox(height: 12),
                   FilterBar(
                     filters: [

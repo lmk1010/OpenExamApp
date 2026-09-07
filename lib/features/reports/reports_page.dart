@@ -6,6 +6,7 @@ import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/ui/stroke_icons.dart';
 import 'package:openexam_app/core/ui/ui_kit.dart';
 import 'package:openexam_app/data/db/app_database.dart';
+import 'package:openexam_app/features/diagnosis/diagnosis_page.dart';
 import 'package:openexam_app/data/models/question.dart';
 import 'package:openexam_app/features/practice/practice_session_page.dart';
 
@@ -25,6 +26,22 @@ class _ReportsPageState extends State<ReportsPage> {
   bool _loading = true;
   List<ExamReport> _reports = const [];
 
+  /// 只看某一类。null 是全部。
+  String? _kind;
+
+  /// 当前筛选下要显示的。
+  List<ExamReport> get _shown =>
+      _kind == null ? _reports : _reports.where((r) => r.kind == _kind).toList();
+
+  /// 有哪几类记录 —— 只列真的存在的，空筛子没意义。
+  List<String> get _kinds {
+    final seen = <String>[];
+    for (final r in _reports) {
+      if (!seen.contains(r.kind)) seen.add(r.kind);
+    }
+    return seen;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -42,7 +59,39 @@ class _ReportsPageState extends State<ReportsPage> {
     });
   }
 
+  /// 没做完的接着做 —— 从停下的那题开始，之前答过的都还在。
+  Future<void> _resume(ExamReport report) async {
+    final questions =
+        await AppDatabase.instance.fetchByIds(report.questionIds);
+    if (!mounted || questions.isEmpty) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => PracticeSessionPage(
+          questions: questions,
+          title: report.title,
+          startAt: report.cursor.clamp(0, questions.length - 1),
+          resumeAnswers: report.answers,
+          resumeElapsed: report.elapsed,
+          resumeReportId: report.id,
+        ),
+      ),
+    );
+    _load();
+  }
+
   Future<void> _review(ExamReport report, {bool wrongOnly = false}) async {
+    // 背词记录存的是词，不是题 id，拿去查题库只会一无所获 ——
+    // 与其点了没反应，不如说清楚。
+    if (report.kind == 'vocab' || report.kind == 'essay') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            report.kind == 'essay' ? '申论记录去申论页看批改' : '背词记录没有题目可以逐题回顾',
+          ),
+        ),
+      );
+      return;
+    }
     final questions = await AppDatabase.instance.fetchByIds(report.questionIds);
     if (!mounted) return;
     final list = wrongOnly
@@ -64,6 +113,13 @@ class _ReportsPageState extends State<ReportsPage> {
 
   /// Pick another report and show a module-by-module diff — the only way to
   /// tell whether a module actually improved or just got easier questions.
+  /// 单份卷子的诊断。逐题用时对真题基准，本地就能出结论，AI 只是加一层。
+  void _diagnose(ExamReport r) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => DiagnosisPage.report(r)),
+    );
+  }
+
   Future<void> _compare(ExamReport a) async {
     final others = _reports.where((r) => r.id != a.id).toList();
     if (others.isEmpty) {
@@ -103,7 +159,6 @@ class _ReportsPageState extends State<ReportsPage> {
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
-    final text = Theme.of(context).textTheme;
 
     return Scaffold(
       appBar: AppBar(
@@ -123,17 +178,38 @@ class _ReportsPageState extends State<ReportsPage> {
                   icon: Icons.assignment_outlined,
                   title: '还没有成绩报告',
                   art: EmptyArt.chart,
-                  message: '完成一组 5 题以上的练习或模考后，成绩会保存在这里。',
+                  message: '练习、模考、背词都会记在这里。',
                 )
               : ListView(
                   padding: const EdgeInsets.only(top: 6, bottom: 28),
                   children: [
-                    for (var i = 0; i < _reports.length; i++) ...[
+                    if (_kinds.length > 1)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                            AppTheme.gutter, 2, AppTheme.gutter, 8),
+                        child: Wrap(
+                          spacing: 8,
+                          children: [
+                            _KindChip(
+                              label: '全部',
+                              on: _kind == null,
+                              onTap: () => setState(() => _kind = null),
+                            ),
+                            for (final k in _kinds)
+                              _KindChip(
+                                label: reportKindLabel(k),
+                                on: _kind == k,
+                                onTap: () => setState(() => _kind = k),
+                              ),
+                          ],
+                        ),
+                      ),
+                    for (var i = 0; i < _shown.length; i++) ...[
                       if (i > 0) const RowDivider(),
                       Dismissible(
-                        key: ValueKey(_reports[i].id),
+                        key: ValueKey(_shown[i].id),
                         direction: DismissDirection.endToStart,
-                        onDismissed: (_) => _delete(_reports[i]),
+                        onDismissed: (_) => _delete(_shown[i]),
                         background: Container(
                           alignment: Alignment.centerRight,
                           padding: const EdgeInsets.only(right: AppTheme.gutter),
@@ -148,22 +224,64 @@ class _ReportsPageState extends State<ReportsPage> {
                           ),
                         ),
                         child: _ReportRow(
-                          report: _reports[i],
-                          onReview: () => _review(_reports[i]),
-                          onReviewWrong: () => _review(_reports[i], wrongOnly: true),
-                          onCompare: () => _compare(_reports[i]),
+                          report: _shown[i],
+                          onReview: () => _shown[i].done
+                              ? _review(_shown[i])
+                              : _resume(_shown[i]),
+                          onReviewWrong: () => _review(_shown[i], wrongOnly: true),
+                          onCompare: () => _compare(_shown[i]),
+                          onDiagnose: () => _diagnose(_shown[i]),
                         ),
                       ),
                     ],
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 20, AppTheme.gutter, 0),
-                      child: Text(
-                        '左滑删除一条记录 · 长按任意一条与其他报告对比',
-                        style: text.bodySmall,
-                      ),
-                    ),
                   ],
                 ),
+      ),
+    );
+  }
+}
+
+/// 记录类型的中文名。练习、模考、背词现在都写进同一张表，
+/// 列表上得分得出谁是谁。
+String reportKindLabel(String kind) => switch (kind) {
+      'exam' => '模考',
+      'vocab' => '背词',
+      'daily' => '每日一练',
+      'essay' => '申论',
+      _ => '练习',
+    };
+
+class _KindChip extends StatelessWidget {
+  const _KindChip({
+    required this.label,
+    required this.on,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool on;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 6),
+        decoration: BoxDecoration(
+          color: on ? t.brand : t.accentSoft,
+          borderRadius: BorderRadius.circular(99),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12.5,
+            fontWeight: FontWeight.w600,
+            color: on ? t.onAccent : t.onAccentSoft,
+          ),
+        ),
       ),
     );
   }
@@ -175,12 +293,14 @@ class _ReportRow extends StatelessWidget {
     required this.onReview,
     required this.onReviewWrong,
     required this.onCompare,
+    required this.onDiagnose,
   });
 
   final ExamReport report;
   final VoidCallback onReview;
   final VoidCallback onReviewWrong;
   final VoidCallback onCompare;
+  final VoidCallback onDiagnose;
 
   String get _when {
     final d = report.createdAt;
@@ -202,6 +322,7 @@ class _ReportRow extends StatelessWidget {
     final t = context.tokens;
     final text = Theme.of(context).textTheme;
     final wrong = report.total - report.correct;
+    final ongoing = !report.done;
     final tint = report.rate >= 70
         ? t.success
         : (report.rate >= 50 ? t.category('shuliang') : t.danger);
@@ -221,28 +342,47 @@ class _ReportRow extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // 没做完的别摆正确率 —— 二十题做了八题，按总题数一算永远
+                  // 是个难看的低分，那不是成绩，是还没做完。
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.baseline,
                     textBaseline: TextBaseline.alphabetic,
                     children: [
                       Text(
-                        '${report.rate}',
+                        ongoing
+                            ? '${report.answered}'
+                            : (report.score != null
+                                ? report.score!.round().toString()
+                                : '${report.rate}'),
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.w700,
                           height: 1,
                           letterSpacing: -0.8,
-                          color: tint,
+                          color: ongoing ? t.brand : tint,
                           fontFeatures: AppTheme.numeric,
                         ),
                       ),
-                      Text('%', style: text.bodySmall?.copyWith(color: tint, fontSize: 11)),
+                      Text(
+                        ongoing
+                            ? '/${report.total}'
+                            : (report.maxScore != null
+                                ? '/${report.maxScore!.round()}'
+                                : '%'),
+                        style: text.bodySmall?.copyWith(
+                          color: ongoing ? t.brand : tint,
+                          fontSize: 11,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    report.isExam ? '模考' : '练习',
-                    style: text.bodySmall?.copyWith(fontSize: 11),
+                    ongoing ? '未做完' : reportKindLabel(report.kind),
+                    style: text.bodySmall?.copyWith(
+                      fontSize: 11,
+                      color: ongoing ? t.brand : null,
+                    ),
                   ),
                 ],
               ),
@@ -260,24 +400,34 @@ class _ReportRow extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    '$_when · 答对 ${report.correct}/${report.total} · $_duration',
+                    ongoing
+                        ? '$_when · 停在第 ${report.cursor + 1} 题 · 点开接着做'
+                        : (report.score != null
+                            ? '$_when · $_duration'
+                            : '$_when · 答对 ${report.correct}/${report.total} · $_duration'),
                     style: text.bodySmall,
                   ),
-                  if (wrong > 0) ...[
+                  if (!ongoing || wrong > 0) ...[
                     const SizedBox(height: 9),
-                    GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: onReviewWrong,
-                      child: Row(
-                        children: [
-                          StrokeIcon(AppIcon.wrongBook, size: 14, color: t.brand),
-                          const SizedBox(width: 6),
-                          Text(
-                            '看这 $wrong 道错题',
-                            style: text.labelMedium?.copyWith(color: t.brand),
+                    Wrap(
+                      spacing: 16,
+                      runSpacing: 7,
+                      children: [
+                        if (wrong > 0)
+                          _RowLink(
+                            icon: AppIcon.wrongBook,
+                            label: '看这 $wrong 道错题',
+                            onTap: onReviewWrong,
                           ),
-                        ],
-                      ),
+                        // 一份成绩单只说了对几道，说不了"时间花在哪、
+                        // 哪个模块拖了后腿"—— 那要拿逐题用时去比真题基准。
+                        if (!ongoing)
+                          _RowLink(
+                            icon: AppIcon.chart,
+                            label: '诊断这份卷子',
+                            onTap: onDiagnose,
+                          ),
+                      ],
                     ),
                   ],
                 ],
@@ -539,5 +689,36 @@ class _CompareSheet extends StatelessWidget {
     if (pb > pa + 0.02) return t.success;
     if (pb < pa - 0.02) return t.danger;
     return t.text;
+  }
+}
+
+/// 记录行下面那排小链接。
+class _RowLink extends StatelessWidget {
+  const _RowLink({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final AppIcon icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          StrokeIcon(icon, size: 14, color: t.brand),
+          const SizedBox(width: 6),
+          Text(label, style: text.labelMedium?.copyWith(color: t.brand)),
+        ],
+      ),
+    );
   }
 }

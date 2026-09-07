@@ -53,3 +53,8 @@ tool/.imagekey
 
 # 设计画布的中间产物（每次 seed 重新生成，2MB+）
 design/openexam-ui.html
+
+# 题库产物：46MB，可由 tool/build_seed.py 重新生成，别进版本库
+bank/*.db.gz
+bank/*.db
+assets/seed/*.db.gz

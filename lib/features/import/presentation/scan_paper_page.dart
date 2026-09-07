@@ -585,7 +585,7 @@ class _ReviewBody extends StatelessWidget {
                     on: overrideCategory == null,
                     onTap: () => onOverride(null),
                   ),
-                  for (final c in kGongkaoCategories)
+                  for (final c in CategoryRegistry.current)
                     _Chip(
                       label: c.label,
                       on: overrideCategory == c.key,

@@ -23,6 +23,10 @@ class _NotesPageState extends State<NotesPage> {
   bool _loading = true;
   List<({Question question, String body, DateTime at})> _items = const [];
 
+  /// 不挂在题上的笔记。经验、公式、教训这些跟具体某道题无关的，
+  /// 以前根本没地方写。
+  List<Memo> _memos = const [];
+
   /// 笔记攒到几十条以后，翻是翻不动的 —— 得能搜、能按题型收窄。
   final TextEditingController _search = TextEditingController();
   String _query = '';
@@ -48,12 +52,45 @@ class _NotesPageState extends State<NotesPage> {
   }
 
   Future<void> _load() async {
-    final items = await AppDatabase.instance.notedQuestions();
+    final results = await Future.wait([
+      AppDatabase.instance.notedQuestions(),
+      AppDatabase.instance.listMemos(),
+    ]);
     if (!mounted) return;
     setState(() {
-      _items = items;
+      _items = results[0] as List<({Question question, String body, DateTime at})>;
+      _memos = results[1] as List<Memo>;
       _loading = false;
     });
+  }
+
+  List<Memo> get _shownMemos => _memos.where((m) {
+        // 随手记没有题型，题型筛选一开就该把它们收起来
+        if (_category != 'all') return false;
+        if (_query.isEmpty) return true;
+        return m.body.contains(_query) || m.title.contains(_query);
+      }).toList();
+
+  Future<void> _editMemo([Memo? memo]) async {
+    final result = await showModalBottomSheet<Memo>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => _MemoSheet(memo: memo ?? Memo.blank()),
+    );
+    if (result == null) return;
+    if (result.body.trim().isEmpty && result.title.trim().isEmpty) {
+      // 什么都没写就当没建，别在列表里留一条空的
+      if (memo != null) await AppDatabase.instance.deleteMemo(memo.id);
+    } else {
+      await AppDatabase.instance.saveMemo(result);
+    }
+    await _load();
+  }
+
+  Future<void> _deleteMemo(Memo memo) async {
+    await AppDatabase.instance.deleteMemo(memo.id);
+    await _load();
   }
 
   Future<void> _open(Question q) async {
@@ -88,6 +125,11 @@ class _NotesPageState extends State<NotesPage> {
         titleSpacing: 0,
         title: const Text('我的笔记'),
         actions: [
+          IconButton(
+            tooltip: '写一条',
+            icon: const Icon(Icons.add, size: 22),
+            onPressed: () => _editMemo(),
+          ),
           if (_items.isNotEmpty)
             TextButton(
               onPressed: () => Navigator.of(context).push(
@@ -109,12 +151,25 @@ class _NotesPageState extends State<NotesPage> {
       ),
       body: _loading
           ? const LoadingState()
-          : _items.isEmpty
-              ? const EmptyState(
-                  icon: Icons.sticky_note_2_outlined,
-                  title: '还没有笔记',
-                  art: EmptyArt.note,
-                  message: '做题时点右上角的便签图标，写下方法或坑点，这里会汇总。',
+          : (_items.isEmpty && _memos.isEmpty)
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const EmptyState(
+                        icon: Icons.sticky_note_2_outlined,
+                        title: '还没有笔记',
+                        art: EmptyArt.note,
+                        message: '做题时点便签图标记这道题的心得；'
+                            '跟具体题无关的经验，点下面写一条。',
+                      ),
+                      const SizedBox(height: 8),
+                      FilledButton(
+                        onPressed: () => _editMemo(),
+                        child: const Text('写一条'),
+                      ),
+                    ],
+                  ),
                 )
               : Column(
                   children: [
@@ -171,7 +226,7 @@ class _NotesPageState extends State<NotesPage> {
                           icon: AppIcon.logic,
                           options: [
                             FilterOption('all', '全部题型', count: _items.length),
-                            for (final c in kGongkaoCategories)
+                            for (final c in CategoryRegistry.current)
                               if (_items.any(
                                   (e) => e.question.category == c.key))
                                 FilterOption(
@@ -193,7 +248,7 @@ class _NotesPageState extends State<NotesPage> {
                         _search.clear();
                       }),
                     ),
-                    if (_shown.isEmpty)
+                    if (_shown.isEmpty && _shownMemos.isEmpty)
                       const Expanded(
                         child: EmptyState(
                           icon: Icons.search_off,
@@ -206,16 +261,30 @@ class _NotesPageState extends State<NotesPage> {
                       Expanded(
                         child: ListView.separated(
                           padding: const EdgeInsets.only(top: 4, bottom: 28),
-                          itemCount: _shown.length,
+                          itemCount: _shownMemos.length + _shown.length,
                           separatorBuilder: (_, __) => const RowDivider(),
-                          itemBuilder: (context, i) => Reveal(
-                            index: i,
-                            child: _NoteRow(
-                              item: _shown[i],
-                              onTap: () => _open(_shown[i].question),
-                              onDelete: () => _delete(_shown[i].question),
-                            ),
-                          ),
+                          itemBuilder: (context, i) {
+                            if (i < _shownMemos.length) {
+                              final m = _shownMemos[i];
+                              return Reveal(
+                                index: i,
+                                child: _MemoRow(
+                                  memo: m,
+                                  onTap: () => _editMemo(m),
+                                  onDelete: () => _deleteMemo(m),
+                                ),
+                              );
+                            }
+                            final item = _shown[i - _shownMemos.length];
+                            return Reveal(
+                              index: i,
+                              child: _NoteRow(
+                                item: item,
+                                onTap: () => _open(item.question),
+                                onDelete: () => _delete(item.question),
+                              ),
+                            );
+                          },
                         ),
                       ),
                   ],
@@ -330,6 +399,206 @@ class _NoteRow extends StatelessWidget {
                   ),
                 ],
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 一条随手记：标题 + 正文，左滑删除。
+///
+/// 跟题笔记摆在同一个列表里，但左边多一个便签图标 —— 不然分不清哪条能点开
+/// 看题、哪条点开是编辑。
+class _MemoRow extends StatelessWidget {
+  const _MemoRow({
+    required this.memo,
+    required this.onTap,
+    required this.onDelete,
+  });
+
+  final Memo memo;
+  final VoidCallback onTap;
+  final VoidCallback onDelete;
+
+  String get _when {
+    final now = DateTime.now();
+    final days = DateTime(now.year, now.month, now.day)
+        .difference(DateTime(memo.at.year, memo.at.month, memo.at.day))
+        .inDays;
+    return switch (days) {
+      0 => '今天',
+      1 => '昨天',
+      < 7 => '$days 天前',
+      _ => '${memo.at.month}/${memo.at.day}',
+    };
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+
+    return Dismissible(
+      key: ValueKey(memo.id),
+      direction: DismissDirection.endToStart,
+      onDismissed: (_) => onDelete(),
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: AppTheme.gutter),
+        color: t.dangerSoft,
+        child: Text(
+          '删除',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: t.danger,
+          ),
+        ),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+              horizontal: AppTheme.gutter, vertical: 13),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: t.accentSoft,
+                  borderRadius: BorderRadius.circular(11),
+                ),
+                child: Icon(Icons.edit_note_rounded,
+                    size: 19, color: t.onAccentSoft),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            memo.displayTitle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: text.titleSmall?.copyWith(fontSize: 14.5),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(_when,
+                            style:
+                                text.bodySmall?.copyWith(color: t.textSoft)),
+                      ],
+                    ),
+                    if (memo.body.trim().isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        memo.body.trim(),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: text.bodySmall?.copyWith(
+                          color: t.textSoft,
+                          height: 1.5,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 写一条随手记。
+class _MemoSheet extends StatefulWidget {
+  const _MemoSheet({required this.memo});
+
+  final Memo memo;
+
+  @override
+  State<_MemoSheet> createState() => _MemoSheetState();
+}
+
+class _MemoSheetState extends State<_MemoSheet> {
+  late final _title = TextEditingController(text: widget.memo.title);
+  late final _body = TextEditingController(text: widget.memo.body);
+
+  @override
+  void dispose() {
+    _title.dispose();
+    _body.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: Container(
+        decoration: BoxDecoration(
+          color: t.gradient.last,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          border: Border(top: BorderSide(color: t.lineSoft)),
+        ),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(child: Text('随手记', style: text.titleMedium)),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(
+                      widget.memo.copyWith(
+                        title: _title.text,
+                        body: _body.text,
+                      ),
+                    ),
+                    child: Text('保存',
+                        style: text.labelMedium?.copyWith(color: t.brand)),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              TextField(
+                controller: _title,
+                decoration: const InputDecoration(
+                  labelText: '标题（可选）',
+                  hintText: '不写就取正文第一行',
+                  border: OutlineInputBorder(),
+                  isDense: true,
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _body,
+                autofocus: true,
+                maxLines: 8,
+                minLines: 5,
+                decoration: const InputDecoration(
+                  labelText: '内容',
+                  hintText: '公式、坑点、这次模考的教训…',
+                  border: OutlineInputBorder(),
+                  alignLabelWithHint: true,
+                ),
+              ),
+              const SizedBox(height: 8),
             ],
           ),
         ),

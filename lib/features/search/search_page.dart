@@ -196,7 +196,7 @@ class _SearchPageState extends State<SearchPage> {
                     color: t.brand,
                     onTap: () => setState(() => _category = 'all'),
                   ),
-                  for (final c in kGongkaoCategories)
+                  for (final c in CategoryRegistry.current)
                     if (_results.any((q) => q.category == c.key))
                       Padding(
                         padding: const EdgeInsets.only(left: 8),

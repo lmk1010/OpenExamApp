@@ -8,8 +8,9 @@ import 'package:openexam_app/core/ui/responsive.dart';
 import 'package:openexam_app/core/ui/ui_kit.dart';
 import 'package:openexam_app/data/db/app_database.dart';
 import 'package:openexam_app/data/models/question.dart';
-import 'package:openexam_app/features/plan/data/plan_templates.dart';
+import 'package:openexam_app/features/plan/data/starter_packs.dart';
 import 'package:openexam_app/features/plan/data/study_plan_store.dart';
+import 'package:openexam_app/features/plan/domain/models/plan_set.dart';
 import 'package:openexam_app/features/plan/domain/models/study_task.dart';
 import 'package:openexam_app/features/plan/presentation/widgets/study_task_editor_sheet.dart';
 import 'package:openexam_app/features/practice/practice_session_page.dart';
@@ -39,7 +40,8 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
   late DateTime _selected;
   DayPlan? _plan;
   Set<String> _done = {};
-  String _templateId = PlanTemplates.workingId;
+  String _setId = StudyPlanStore.offId;
+  List<PlanSet> _sets = const [];
   int _streak = 0;
   bool _loading = true;
   late final ScrollController _dayScroll;
@@ -91,7 +93,8 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
     if (!mounted) return;
     setState(() {
       _store = store;
-      _templateId = store.templateId;
+      _setId = store.activeSetId;
+      _sets = store.loadSets();
       _plan = plan;
       _done = done;
       _streak = store.streak(DateTime.now());
@@ -211,15 +214,73 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
     await _reload();
   }
 
-  Future<void> _pickTemplate() async {
-    final picked = await showModalBottomSheet<String>(
+  Future<void> _pickPlanSet() async {
+    final store = _store;
+    if (store == null) return;
+    final picked = await showModalBottomSheet<PlanSetAction>(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (_) => _TemplateSheet(current: _templateId),
+      isScrollControlled: true,
+      builder: (_) => _PlanSetSheet(current: _setId, sets: _sets),
     );
-    if (picked == null || _store == null) return;
-    await _store!.setTemplateId(picked);
+    if (picked == null || !mounted) return;
+
+    switch (picked) {
+      case UseSet(:final id):
+        await store.setActiveSet(id);
+      case TurnOffPlan():
+        await store.setActiveSet(StudyPlanStore.offId);
+      case StartNewSet():
+        final created = await showModalBottomSheet<(String, StarterPack?)>(
+          context: context,
+          backgroundColor: Colors.transparent,
+          isScrollControlled: true,
+          builder: (_) => const _NewPlanSheet(),
+        );
+        if (created == null) return;
+        final (name, pack) = created;
+        await store.createSet(
+          name,
+          tasks: pack?.expand(DateTime.now()) ?? const [],
+        );
+      case RenamePlanSet(:final set):
+        final name = await showRenameTaskDialog(context, initial: set.name);
+        if (name == null || name.isEmpty) return;
+        await store.renameSet(set.id, name);
+      case DeletePlanSet(:final set):
+        final ok = await _confirm(
+          title: '删除计划',
+          body: '「${set.name}」和里面的 ${set.tasks.length} 条任务都会删掉，已打的勾不受影响。',
+          action: '删除',
+        );
+        if (ok != true) return;
+        await store.deleteSet(set.id);
+    }
     await _reload();
+  }
+
+  Future<bool?> _confirm({
+    required String title,
+    required String body,
+    required String action,
+  }) {
+    return showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(title),
+        content: Text(body),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(action),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _addTask() async {
@@ -227,7 +288,7 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
     if (result == null || result.delete || result.task == null || _store == null) {
       return;
     }
-    await _store!.upsertTask(_selected, result.task!.copyWith(custom: true));
+    await _store!.upsertTask(_selected, result.task!);
     await _reload();
   }
 
@@ -235,8 +296,7 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
     final result = await showStudyTaskEditor(context, initial: task);
     if (result == null || _store == null) return;
     if (result.delete) {
-      await _store!.deleteTask(_selected, task);
-      await _reload();
+      await _deleteTask(task);
       return;
     }
     if (result.task != null) {
@@ -254,25 +314,44 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
 
   Future<void> _deleteTask(StudyTask task) async {
     if (_store == null) return;
-    final ok = await showDialog<bool>(
+
+    // 一次性任务只活在这一天，删就是删，没什么可问的
+    if (task.repeat == RepeatRule.once) {
+      final ok = await _confirm(
+        title: '删除安排',
+        body: '确定删除「${task.title}」？',
+        action: '删除',
+      );
+      if (ok != true) return;
+      await _store!.deleteTask(_selected, task);
+      await _reload();
+      return;
+    }
+
+    // 重复任务问清楚：今天不想做，和以后都不做，是两回事
+    final scope = await showDialog<PlanEditScope>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('删除安排'),
-        content: Text('确定删除「${task.title}」？'),
+        content: Text('「${task.title}」是${task.repeat.label}的任务。'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
+            onPressed: () => Navigator.of(ctx).pop(),
             child: const Text('取消'),
           ),
           TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('删除'),
+            onPressed: () => Navigator.of(ctx).pop(PlanEditScope.today),
+            child: const Text('今天先跳过'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(PlanEditScope.forever),
+            child: const Text('以后都删'),
           ),
         ],
       ),
     );
-    if (ok != true) return;
-    await _store!.deleteTask(_selected, task);
+    if (scope == null) return;
+    await _store!.deleteTask(_selected, task, scope: scope);
     await _reload();
   }
 
@@ -324,9 +403,9 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
                             Text('复习计划', style: text.titleMedium),
                             const Spacer(),
                             TextButton(
-                              onPressed: _pickTemplate,
+                              onPressed: _pickPlanSet,
                               child: Text(
-                                _templateLabel(_templateId),
+                                _setLabel(),
                                 style: text.labelMedium?.copyWith(
                                   color: t.brand,
                                 ),
@@ -436,7 +515,9 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
                           ),
                           child: GestureDetector(
                             behavior: HitTestBehavior.opaque,
-                            onTap: _pickTemplate,
+                            // 空计划要能就地加第一条 —— 以前这里只能去挑模板，
+                            // 新建一份空的之后就卡死在这，一条也加不进去
+                            onTap: _addTask,
                             child: Container(
                               padding: const EdgeInsets.all(18),
                               decoration: BoxDecoration(
@@ -457,7 +538,7 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
                                         ),
                                         const SizedBox(height: 4),
                                         Text(
-                                          '挑个模板，之后每条都能改',
+                                          '加一条，或从范例开一份',
                                           style: text.bodySmall?.copyWith(
                                             fontSize: 12.5,
                                             color: t.onAccentSoft,
@@ -477,7 +558,7 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
                                       borderRadius: BorderRadius.circular(99),
                                     ),
                                     child: Text(
-                                      '选模板',
+                                      '加安排',
                                       style: TextStyle(
                                         fontSize: 14,
                                         fontWeight: FontWeight.w700,
@@ -498,7 +579,7 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
                           title: '今日安排',
                           caption: '${_done.intersection(_plan!.tasks.map((e) => e.id).toSet()).length} / ${_plan!.tasks.length}',
                           action: '管理',
-                          onAction: _pickTemplate,
+                          onAction: _pickPlanSet,
                           child: RouteList(
                             tasks: _plan!.tasks,
                             doneIds: _done,
@@ -510,30 +591,30 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
                                 _sameDay(_selected, DateTime.now()),
                           ),
                         ),
-                        const SizedBox(height: 14),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: ShoreGap.page,
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: OutlinedButton(
-                                  onPressed: _addTask,
-                                  child: const Text('添加安排'),
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: OutlinedButton(
-                                  onPressed: _pickTemplate,
-                                  child: const Text('换模板'),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
                       ],
+                      const SizedBox(height: 14),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: ShoreGap.page,
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: _addTask,
+                                child: const Text('添加安排'),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: _pickPlanSet,
+                                child: const Text('我的计划'),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -542,9 +623,12 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
     );
   }
 
-  static String _templateLabel(String id) {
-    if (id == PlanTemplates.offId) return '未启用';
-    return PlanTemplates.byId(id)?.title ?? '换模板';
+  String _setLabel() {
+    if (_setId == StudyPlanStore.offId) return '未启用';
+    for (final s in _sets) {
+      if (s.id == _setId) return s.name;
+    }
+    return '选计划';
   }
 
   static bool _sameDay(DateTime a, DateTime b) =>
@@ -631,76 +715,401 @@ class _DayChip extends StatelessWidget {
   }
 }
 
-class _TemplateSheet extends StatelessWidget {
-  const _TemplateSheet({required this.current});
+/// 在计划管理面板上选了什么。
+sealed class PlanSetAction {
+  const PlanSetAction();
+}
+
+class UseSet extends PlanSetAction {
+  const UseSet(this.id);
+  final String id;
+}
+
+/// 去新建流程 —— 名字和起点在那一步里选，不摊在这个面板上。
+class StartNewSet extends PlanSetAction {
+  const StartNewSet();
+}
+
+class RenamePlanSet extends PlanSetAction {
+  const RenamePlanSet(this.set);
+  final PlanSet set;
+}
+
+class DeletePlanSet extends PlanSetAction {
+  const DeletePlanSet(this.set);
+  final PlanSet set;
+}
+
+class TurnOffPlan extends PlanSetAction {
+  const TurnOffPlan();
+}
+
+/// 管计划清单：换一份、新建、改名、删掉。
+///
+/// 只列用户自己的几份清单。新建和关闭是顶上两个图标 —— 它们不是"另一份计划"，
+/// 跟清单平铺成一样的行会让人一眼分不清哪些是自己的东西。范例也不在这儿，
+/// 挪进新建那一步：想开新的才需要看见它们。
+class _PlanSetSheet extends StatelessWidget {
+  const _PlanSetSheet({required this.current, required this.sets});
 
   final String current;
+  final List<PlanSet> sets;
 
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
     final text = Theme.of(context).textTheme;
-    final items = <(String, String, String)>[
-      (
-        PlanTemplates.workingId,
-        PlanTemplates.working.title,
-        PlanTemplates.working.blurb,
-      ),
-      (
-        PlanTemplates.lightId,
-        PlanTemplates.light.title,
-        PlanTemplates.light.blurb,
-      ),
-      (PlanTemplates.offId, '关闭计划', '首页不再显示今日安排'),
-    ];
+    final off = current == StudyPlanStore.offId;
 
     return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.sizeOf(context).height * 0.75,
+      ),
       decoration: BoxDecoration(
         color: t.gradient.last,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         border: Border(top: BorderSide(color: t.lineSoft)),
       ),
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 12),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
       child: SafeArea(
         top: false,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('复习节奏模板', style: text.titleMedium),
-            const SizedBox(height: 6),
-            Text('可随时更换；当天勾选进度会保留', style: text.bodySmall),
-            const SizedBox(height: 6),
-            for (final item in items)
-              GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => Navigator.of(context).pop(item.$1),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              item.$2,
-                              style: text.titleSmall?.copyWith(
-                                color: item.$1 == current ? t.brand : t.text,
-                              ),
-                            ),
-                            const SizedBox(height: 3),
-                            Text(item.$3, style: text.bodySmall),
-                          ],
+            Row(
+              children: [
+                const SizedBox(width: 4),
+                Expanded(child: Text('我的计划', style: text.titleMedium)),
+                IconButton(
+                  tooltip: '新建',
+                  icon: const Icon(Icons.add, size: 22),
+                  color: t.brand,
+                  onPressed: () =>
+                      Navigator.of(context).pop(const StartNewSet()),
+                ),
+                IconButton(
+                  tooltip: off ? '计划已关闭' : '关闭计划',
+                  icon: Icon(
+                    off ? Icons.visibility_off : Icons.visibility_off_outlined,
+                    size: 21,
+                  ),
+                  color: off ? t.brand : t.textSoft,
+                  onPressed: () =>
+                      Navigator.of(context).pop(const TurnOffPlan()),
+                ),
+              ],
+            ),
+            if (off)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(6, 2, 6, 8),
+                child: Text(
+                  '计划已关闭，点下面任意一份重新用起来',
+                  style: text.bodySmall?.copyWith(color: t.textSoft),
+                ),
+              ),
+            Flexible(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (final set in sets)
+                      _SetRow(
+                        set: set,
+                        selected: set.id == current,
+                        onTap: () => Navigator.of(context).pop(UseSet(set.id)),
+                        onRename: () =>
+                            Navigator.of(context).pop(RenamePlanSet(set)),
+                        onDelete: () =>
+                            Navigator.of(context).pop(DeletePlanSet(set)),
+                      ),
+                    if (sets.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 26),
+                        child: Text(
+                          '还没有计划，点右上角 ＋ 建一份',
+                          style: text.bodySmall?.copyWith(color: t.textSoft),
                         ),
                       ),
-                      if (item.$1 == current)
-                        Icon(Icons.check, size: 18, color: t.brand),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 一份计划一行：左边图标，中间名字和条数，右边改名 / 删除。
+class _SetRow extends StatelessWidget {
+  const _SetRow({
+    required this.set,
+    required this.selected,
+    required this.onTap,
+    required this.onRename,
+    required this.onDelete,
+  });
+
+  final PlanSet set;
+  final bool selected;
+  final VoidCallback onTap;
+  final VoidCallback onRename;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 4),
+        child: Row(
+          children: [
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: selected ? t.brand : t.accentSoft,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                selected ? Icons.check : Icons.checklist_rounded,
+                size: 20,
+                color: selected ? t.onAccent : t.onAccentSoft,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    set.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: text.titleSmall
+                        ?.copyWith(color: selected ? t.brand : t.text),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${set.tasks.length} 条',
+                    style: text.bodySmall?.copyWith(color: t.textSoft),
+                  ),
+                ],
+              ),
+            ),
+            _MiniIcon(icon: Icons.drive_file_rename_outline, onTap: onRename),
+            _MiniIcon(icon: Icons.delete_outline, onTap: onDelete),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MiniIcon extends StatelessWidget {
+  const _MiniIcon({required this.icon, required this.onTap});
+
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    return InkResponse(
+      onTap: onTap,
+      radius: 20,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 8),
+        child: Icon(icon, size: 18, color: t.textSoft),
+      ),
+    );
+  }
+}
+
+/// 新建一份计划：起个名字，选个起点。
+///
+/// 范例只在这一步露面 —— 平时管计划的时候不该有一堆"别人的模板"杵在那儿。
+class _NewPlanSheet extends StatefulWidget {
+  const _NewPlanSheet();
+
+  @override
+  State<_NewPlanSheet> createState() => _NewPlanSheetState();
+}
+
+class _NewPlanSheetState extends State<_NewPlanSheet> {
+  final _name = TextEditingController();
+  StarterPack? _pack;
+
+  @override
+  void dispose() {
+    _name.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final name = _name.text.trim().isEmpty
+        ? (_pack?.name ?? '我的计划')
+        : _name.text.trim();
+    Navigator.of(context).pop((name, _pack));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(context).height * 0.8,
+        ),
+        decoration: BoxDecoration(
+          color: t.gradient.last,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          border: Border(top: BorderSide(color: t.lineSoft)),
+        ),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 10),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(child: Text('新建计划', style: text.titleMedium)),
+                  TextButton(
+                    onPressed: _submit,
+                    child: Text(
+                      '建好',
+                      style: text.labelMedium?.copyWith(color: t.brand),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _name,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  labelText: '名字',
+                  hintText: '例如 考前冲刺',
+                  border: OutlineInputBorder(),
+                  isDense: true,
+                ),
+              ),
+              const SizedBox(height: 18),
+              Text('从哪儿开始', style: text.titleSmall),
+              const SizedBox(height: 8),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _StartOption(
+                        icon: Icons.edit_outlined,
+                        title: '空白',
+                        subtitle: '自己一条条加',
+                        selected: _pack == null,
+                        onTap: () => setState(() => _pack = null),
+                      ),
+                      for (final pack in StarterPacks.all)
+                        _StartOption(
+                          icon: Icons.auto_awesome_outlined,
+                          title: pack.name,
+                          subtitle: pack.blurb,
+                          selected: _pack?.id == pack.id,
+                          onTap: () => setState(() => _pack = pack),
+                        ),
                     ],
                   ),
                 ),
               ),
+              const SizedBox(height: 4),
+              Text(
+                '范例只是抄一份过来，每条都能改能删',
+                style: text.bodySmall?.copyWith(color: t.textSoft),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _StartOption extends StatelessWidget {
+  const _StartOption({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: selected ? t.brand : t.accentSoft,
+                borderRadius: BorderRadius.circular(11),
+              ),
+              child: Icon(
+                icon,
+                size: 19,
+                color: selected ? t.onAccent : t.onAccentSoft,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: text.titleSmall
+                        ?.copyWith(color: selected ? t.brand : t.text),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: text.bodySmall?.copyWith(color: t.textSoft),
+                  ),
+                ],
+              ),
+            ),
+            if (selected) Icon(Icons.check, size: 18, color: t.brand),
           ],
         ),
       ),

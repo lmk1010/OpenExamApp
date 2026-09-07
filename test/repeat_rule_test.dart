@@ -17,6 +17,15 @@ void main() {
     }
   });
 
+  test('工作日：周一到周五在，周末不在', () {
+    // 9/7 周一 … 9/13 周日
+    for (var i = 7; i <= 11; i++) {
+      expect(RepeatRule.weekdays.occursOn(d(i), from), isTrue, reason: '9/$i');
+    }
+    expect(RepeatRule.weekdays.occursOn(d(12), from), isFalse); // 周六
+    expect(RepeatRule.weekdays.occursOn(d(13), from), isFalse); // 周日
+  });
+
   test('每周这天：只在同一个星期几', () {
     expect(RepeatRule.weekly.occursOn(d(11), from), isTrue); // 下周五
     expect(RepeatRule.weekly.occursOn(d(10), from), isFalse);

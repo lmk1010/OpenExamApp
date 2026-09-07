@@ -10,6 +10,7 @@ import 'package:openexam_app/data/db/app_database.dart';
 import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/ui/stroke_icons.dart';
 import 'package:openexam_app/data/importers/question_importer.dart';
+import 'package:openexam_app/features/import/presentation/doc_import_page.dart';
 
 class ImportPage extends StatefulWidget {
   const ImportPage({super.key, this.standalone = false});
@@ -26,6 +27,17 @@ class _ImportPageState extends State<ImportPage> {
   String? _result;
   bool _failed = false;
   bool _showFormat = false;
+
+  Future<void> _openDocImport() async {
+    final added = await Navigator.of(context).push<int>(
+      MaterialPageRoute(builder: (_) => const DocImportPage()),
+    );
+    if (added != null && added > 0 && mounted) {
+      ScaffoldMessenger.of(context)
+        ..clearSnackBars()
+        ..showSnackBar(SnackBar(content: Text('已导入 $added 道题')));
+    }
+  }
 
   Future<void> _pickAndImport() async {
     setState(() => _busy = true);
@@ -129,6 +141,16 @@ class _ImportPageState extends State<ImportPage> {
           desc: '试卷、截图、买来的 PDF，AI 逐页认成题目',
           primary: true,
           onTap: _busy ? null : _scan,
+        ),
+        const SizedBox(height: 12),
+        const SizedBox(height: 12),
+        // 文字文件不该走渲染成图那条路 —— 里面本来就有字，
+        // 转成图再让模型认一遍，慢、贵、还更容易认错。
+        _Way(
+          art: ShoreArt.icoNote,
+          title: 'Word / Excel / 文本',
+          desc: 'docx、xlsx、csv、txt，AI 直接读文字认成题目',
+          onTap: _busy ? null : _openDocImport,
         ),
         const SizedBox(height: 12),
         _Way(

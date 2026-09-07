@@ -3,6 +3,35 @@ import 'dart:convert';
 /// Which slice of the bank a practice set is drawn from.
 enum QuestionScope { all, unseen, wrong }
 
+/// 只抽最近几年的真题。
+///
+/// 常识判断这几年一半的题引的是考前一年的讲话原文和新出台文件，旧题只剩
+/// 「出题角度」的参考价值，答案本身已经作废；言语、判断、资料的题型结构则
+/// 常年不动，五年前的题照样能练。所以年份范围是个真的开关，不是装饰。
+///
+/// 基准是**题库里最新的年份**，不是今天的日期 —— 库里最新是 2026 年卷，
+/// 按系统时间算会把整个 2026 年的题算成"未来"，一道都抽不出来。
+enum YearRange {
+  all,
+  /// 只要最新那一年。
+  last1,
+  /// 最新三年。
+  last3;
+
+  /// 起始年份（含）。[latest] 是题库里的最大 year。
+  int? floor(int latest) => switch (this) {
+        YearRange.all => null,
+        YearRange.last1 => latest,
+        YearRange.last3 => latest - 2,
+      };
+
+  String get label => switch (this) {
+        YearRange.all => '不限年份',
+        YearRange.last1 => '最近一年',
+        YearRange.last3 => '最近三年',
+      };
+}
+
 class QuestionOption {
   const QuestionOption({required this.key, required this.text, this.html = ''});
 
@@ -291,6 +320,10 @@ class ExamReport {
     required this.questionIds,
     required this.answers,
     required this.createdAt,
+    this.cursor = 0,
+    this.done = true,
+    this.score,
+    this.maxScore,
   });
 
   final int id;
@@ -302,6 +335,16 @@ class ExamReport {
   final int answered;
   final int correct;
   final Duration elapsed;
+
+  /// 停在第几题。没做完的记录靠它接着做。
+  final int cursor;
+
+  /// 交卷了没有。没交的在记录页里是"继续做"，不是成绩。
+  final bool done;
+
+  /// 申论的得分。行测题按对错算，这两个是空的。
+  final double? score;
+  final double? maxScore;
   final List<String> questionIds;
   final Map<String, String> answers;
   final DateTime createdAt;
@@ -324,6 +367,11 @@ class ExamReport {
             .map((k, v) => MapEntry('$k', '$v')),
         createdAt:
             DateTime.tryParse('${row['created_at'] ?? ''}') ?? DateTime.now(),
+        cursor: int.tryParse('${row['cursor']}') ?? 0,
+        score: double.tryParse('${row['score']}'),
+        maxScore: double.tryParse('${row['max_score']}'),
+        // 老记录里没有这一列，一律当作已完成 —— 它们本来就是交卷才写的
+        done: '${row['done'] ?? 1}' != '0',
       );
 }
 
@@ -450,5 +498,91 @@ class WordFreq {
         word: '${row['word'] ?? ''}',
         count: int.tryParse('${row['count'] ?? 0}') ?? 0,
         sampleQuestionId: '${row['sample_question_id'] ?? ''}',
+      );
+}
+
+/// AI 给一道题写的讲解，连同是谁、什么时候写的。
+class AiExplanation {
+  const AiExplanation({
+    required this.body,
+    required this.model,
+    required this.createdAt,
+  });
+
+  final String body;
+  final String model;
+  final DateTime createdAt;
+
+  /// 落款：「deepseek-chat · 9/7 11:20」。
+  String get stamp {
+    final d = createdAt;
+    final hm = '${d.hour.toString().padLeft(2, '0')}:'
+        '${d.minute.toString().padLeft(2, '0')}';
+    final when = '${d.month}/${d.day} $hm';
+    return model.isEmpty ? when : '$model · $when';
+  }
+}
+
+/// 一组 AI 用量汇总：按功能或按模型分的。
+class AiUsageGroup {
+  const AiUsageGroup({
+    required this.key,
+    required this.calls,
+    required this.inputTokens,
+    required this.outputTokens,
+  });
+
+  final String key;
+  final int calls;
+  final int inputTokens;
+  final int outputTokens;
+
+  int get total => inputTokens + outputTokens;
+}
+
+/// 不挂在任何题上的笔记。
+///
+/// 备考时想记的东西一多半跟某道具体的题无关 —— 一个公式、一次模考的教训、
+/// 某类坑的通用解法。以前 notes 表主键是 question_id，这些一个字都存不下。
+class Memo {
+  const Memo({
+    required this.id,
+    required this.title,
+    required this.body,
+    required this.at,
+  });
+
+  final String id;
+  final String title;
+  final String body;
+  final DateTime at;
+
+  /// 没写标题就拿正文第一行顶上 —— 列表里总得有个能认出来的抬头。
+  String get displayTitle {
+    if (title.trim().isNotEmpty) return title.trim();
+    final first = body.trim().split('\n').first.trim();
+    if (first.isEmpty) return '无标题';
+    return first.length <= 24 ? first : '${first.substring(0, 24)}…';
+  }
+
+  static Memo blank() => Memo(
+        id: 'memo_${DateTime.now().millisecondsSinceEpoch}',
+        title: '',
+        body: '',
+        at: DateTime.now(),
+      );
+
+  Memo copyWith({String? title, String? body}) => Memo(
+        id: id,
+        title: title ?? this.title,
+        body: body ?? this.body,
+        at: at,
+      );
+
+  factory Memo.fromRow(Map<String, Object?> row) => Memo(
+        id: '${row['id']}',
+        title: '${row['title'] ?? ''}',
+        body: '${row['body'] ?? ''}',
+        at: DateTime.tryParse('${row['updated_at'] ?? ''}') ?? DateTime.now(),
       );
 }

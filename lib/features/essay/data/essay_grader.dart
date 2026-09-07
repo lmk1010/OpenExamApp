@@ -26,6 +26,7 @@ class EssayGrader {
     required EssayPrompt prompt,
     required String answer,
   }) async {
+    AiClient.feature = 'essay';
     final result = await AiClient(settings).completeJson(
       system: _graderSystem,
       prompt: _buildPrompt(prompt, answer),
@@ -99,6 +100,7 @@ $answer
 }
 材料要一字不漏地抄下来，这是批改的依据。''';
 
+    AiClient.feature = 'ocr';
     final result = await AiClient(settings).completeWithImage(
       system: _ocrSystem,
       prompt: prompt,

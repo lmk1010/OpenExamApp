@@ -514,10 +514,12 @@ class IsleStrip extends StatelessWidget {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: ShoreGap.page),
-        itemCount: kGongkaoCategories.length,
+        // 跟着题库里实际有的分类走。写死五个的时候，导进来的医师、法考题
+        // 在这排卡片里一张都不出现，题在库里却没有入口点得到。
+        itemCount: CategoryRegistry.current.length,
         separatorBuilder: (_, __) => const SizedBox(width: 12),
         itemBuilder: (_, i) {
-          final c = kGongkaoCategories[i];
+          final c = CategoryRegistry.current[i];
           return _IsleCard(
             meta: c,
             stat: stats[c.key],
@@ -528,6 +530,16 @@ class IsleStrip extends StatelessWidget {
       ),
     );
   }
+}
+
+/// 正确率的颜色：低于 60% 报警，80% 以上算稳。
+///
+/// 题数太少时不上色 —— 三题对两题算 67%，染成红的只会吓人。
+Color _rateColor(AppTokens t, CategoryStat s) {
+  if (s.done < 10) return t.textSoft;
+  if (s.accuracy < 0.6) return t.danger;
+  if (s.accuracy >= 0.8) return t.brand;
+  return t.text;
 }
 
 class _IsleCard extends StatelessWidget {
@@ -590,12 +602,42 @@ class _IsleCard extends StatelessWidget {
                     style: text.titleSmall?.copyWith(fontSize: _isleLabelSize),
                   ),
                   const SizedBox(height: _isleTextGap),
-                  Text(
-                    s == null ? '未开航' : '${s.done} / ${s.total}',
-                    style: text.bodySmall?.copyWith(
-                      fontSize: _isleCountSize,
-                      fontFeatures: AppTheme.numeric,
-                    ),
+                  // 卡片上原来只有"练了几题"。做了多少是过程，做对多少才是
+                  // 想知道的事 —— 正确率本来就在 CategoryStat 里，只是没拿出来。
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          s == null || s.done == 0
+                              ? '未开航'
+                              : '${s.done} / ${s.total}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: text.bodySmall?.copyWith(
+                            fontSize: _isleCountSize,
+                            fontFeatures: AppTheme.numeric,
+                          ),
+                        ),
+                      ),
+                      if (s != null && s.done > 0) ...[
+                        Text(
+                          ' · ',
+                          style: text.bodySmall?.copyWith(
+                            fontSize: _isleCountSize,
+                            color: t.textSoft,
+                          ),
+                        ),
+                        Text(
+                          '${(s.accuracy * 100).round()}%',
+                          style: text.bodySmall?.copyWith(
+                            fontSize: _isleCountSize,
+                            fontWeight: FontWeight.w700,
+                            fontFeatures: AppTheme.numeric,
+                            color: _rateColor(t, s),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ],
               ),

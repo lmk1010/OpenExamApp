@@ -9,6 +9,7 @@ import 'package:openexam_app/core/ui/glass.dart';
 import 'package:openexam_app/core/ui/stroke_icons.dart';
 import 'package:openexam_app/core/ui/ui_kit.dart';
 import 'package:openexam_app/data/db/app_database.dart';
+import 'package:openexam_app/features/backup/prefs_backup.dart';
 import 'package:path_provider/path_provider.dart';
 
 /// 备份与恢复 — the app has no account, so换手机 or 清数据 would otherwise lose
@@ -64,6 +65,9 @@ class _BackupPageState extends State<BackupPage> {
     setState(() => _busy = true);
     try {
       final data = await AppDatabase.instance.exportUserData();
+      // 学习计划和考试日期存在 SharedPreferences 里，不在数据库里 ——
+      // 以前备份漏了这一整块，换台手机计划就没了。
+      data['settings'] = await PrefsBackup.export();
       final json = const JsonEncoder.withIndent('  ').convert(data);
       final now = DateTime.now();
       final name = 'openexam-backup-'
@@ -97,8 +101,8 @@ class _BackupPageState extends State<BackupPage> {
       backgroundColor: Colors.transparent,
       builder: (_) => const _ConfirmSheet(
         title: '恢复备份',
-        message: '恢复会用备份中的答题记录与成绩报告覆盖当前数据，收藏、笔记、错因会合并。'
-            '题库本身不受影响。',
+        message: '恢复会用备份中的答题记录与成绩报告覆盖当前数据，收藏、笔记、错因会合并，'
+            '学习计划和考试日期按备份里的写回。题库本身不受影响。',
         confirm: '选择文件恢复',
       ),
     );
@@ -128,6 +132,8 @@ class _BackupPageState extends State<BackupPage> {
         return;
       }
       final restored = await AppDatabase.instance.importUserData(data);
+      // 老备份没有 settings 这一节，import 会当 0 条处理，不清空现有计划。
+      await PrefsBackup.import(data['settings']);
       await _counts();
       _say('已恢复 $restored 条记录');
     } catch (e) {

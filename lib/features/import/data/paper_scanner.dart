@@ -133,6 +133,7 @@ band 是这道题里**图形部分**的纵向范围（0–1 的比例）：
   Future<void> scanPage(ScanPage page) async {
     page.state = PageState.running;
     page.error = null;
+    AiClient.feature = 'scan';
     final result = await _ai.completeJson(
       system: _system,
       prompt: _prompt,

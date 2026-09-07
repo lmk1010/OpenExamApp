@@ -16,6 +16,7 @@ import 'package:openexam_app/core/ui/stroke_icons.dart';
 import 'package:openexam_app/core/ui/ui_kit.dart';
 import 'package:openexam_app/data/db/app_database.dart';
 import 'package:openexam_app/data/models/question.dart';
+import 'package:openexam_app/features/ai/ai_explain_panel.dart';
 import 'package:openexam_app/features/achievements/achievements.dart';
 import 'package:openexam_app/features/achievements/achievements_page.dart';
 import 'package:openexam_app/features/practice/scratch_pad.dart';
@@ -32,12 +33,16 @@ class PracticeSessionPage extends StatefulWidget {
     this.startAt = 0,
     this.resumeAnswers,
     this.resumeElapsed,
+    this.resumeReportId,
     this.preferScroll = false,
   });
 
   /// Answers carried over from an interrupted session.
   final Map<String, String>? resumeAnswers;
   final Duration? resumeElapsed;
+
+  /// 接着做时，继续写原来那条记录，而不是另起一行。
+  final int? resumeReportId;
 
   /// When set the session opens in review mode: the same question UI, but
   /// answers are already filled in and locked — reading a report should look
@@ -117,9 +122,13 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
   Duration get _left =>
       widget.limit == null ? Duration.zero : widget.limit! - _elapsed;
 
+  /// 这场练习在 exam_reports 里的那一行。续做时是传进来的那条。
+  int? _reportId;
+
   @override
   void initState() {
     super.initState();
+    _reportId = widget.resumeReportId;
     _loadPrefs();
     if (_isReview) {
       _answers.addAll(widget.reviewAnswers!);
@@ -410,33 +419,82 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
     await BadgeUnlockedDialog.show(context, fresh);
   }
 
-  /// Keeps an up-to-date copy of the session so an accidental exit, a phone
-  /// call or a killed app doesn't throw the work away.
+  /// 把进度写进这场练习自己的那一行记录。
+  ///
+  /// 以前进度只存在 meta 表的一个 key 里，全 app 就一份 —— 开一组新的，
+  /// 上一组没做完的就被覆盖没了；而且五题以下压根不存。现在每场练习在
+  /// exam_reports 里各占一行，做到哪存到哪，记录页里全看得见、都能接着做。
   Future<void> _snapshot() async {
-    if (_isReview || _finished || _questions.length < 5) return;
-    await AppDatabase.instance.saveResume(
-      title: widget.title ?? (_isExam ? '限时模考' : '练习 ${_questions.length} 题'),
-      questionIds: _questions.map((q) => q.id).toList(),
-      answers: _answers,
-      index: _index,
-      limit: widget.limit,
-      elapsed: _elapsed,
-    );
-  }
+    if (_isReview || _finished || _questions.isEmpty) return;
 
-  /// Sessions worth revisiting are kept; a two-question retry is not.
-  Future<void> _saveReport() async {
-    if (_isReview || _answers.isEmpty || _questions.length < 5) return;
     final correct = _questions
         .where((q) => _answers[q.id] == q.answer.toUpperCase())
         .length;
-    await AppDatabase.instance.saveReport(
-      title: widget.title ?? (_isExam ? '限时模考' : '练习 ${_questions.length} 题'),
-      kind: _isExam ? 'exam' : 'practice',
+
+    if (_reportId == null) {
+      // 一题都没作答就先别占一行，否则点进去又退出会攒一堆空记录
+      if (_answers.isEmpty) return;
+      _reportId = await AppDatabase.instance.saveReport(
+        title: _reportTitle,
+        kind: _reportKind,
+        questionIds: _questions.map((q) => q.id).toList(),
+        answers: _answers,
+        correct: correct,
+        elapsed: _elapsed,
+        cursor: _index,
+        done: false,
+      );
+      return;
+    }
+    await AppDatabase.instance.updateReportProgress(
+      _reportId!,
+      answers: _answers,
+      correct: correct,
+      elapsed: _elapsed,
+      cursor: _index,
+      done: false,
+    );
+  }
+
+  String get _reportTitle =>
+      widget.title ?? (_isExam ? '限时模考' : '练习 ${_questions.length} 题');
+
+  /// 每日一练在记录页里值得单独一类 —— 它是每天固定的那一卷，
+  /// 跟随手抽的练习不是一回事。各入口传的都是同一个标题。
+  String get _reportKind => _isExam
+      ? 'exam'
+      : (widget.title == '每日一练' ? 'daily' : 'practice');
+
+  /// 交卷：把这场练习那一行标成完成。
+  ///
+  /// 原来这里是另插一条，而且卡着"五题以下不记"—— 于是小份练习一条不留，
+  /// 做到一半退出的也一条不留。现在从第一次作答起就有行，交卷只是收尾。
+  Future<void> _saveReport() async {
+    if (_isReview || _answers.isEmpty) return;
+    final correct = _questions
+        .where((q) => _answers[q.id] == q.answer.toUpperCase())
+        .length;
+
+    if (_reportId != null) {
+      await AppDatabase.instance.updateReportProgress(
+        _reportId!,
+        answers: _answers,
+        correct: correct,
+        elapsed: _elapsed,
+        cursor: _questions.length,
+        done: true,
+      );
+      return;
+    }
+    _reportId = await AppDatabase.instance.saveReport(
+      title: _reportTitle,
+      kind: _reportKind,
       questionIds: _questions.map((q) => q.id).toList(),
       answers: _answers,
       correct: correct,
       elapsed: _elapsed,
+      cursor: _questions.length,
+      done: true,
     );
   }
 
@@ -1456,6 +1514,9 @@ class _QuestionView extends StatelessWidget {
               ],
             ),
           ),
+          // 题库自带的解析常常只把答案又说一遍。配了 AI 的人可以点一下，
+          // 听一段真讲思路的 —— 没配 AI 就整栏不显示，不占地方。
+          AiExplainPanel(question: question, userAnswer: selected),
           const SizedBox(height: 10),
           _PastAttempts(questionId: question.id, answer: question.answer),
           _DifficultyPicker(level: difficulty, onPick: onDifficulty),
@@ -1939,12 +2000,14 @@ class _ResultView extends StatelessWidget {
                   color: t.danger,
                 ),
                 // Opens the real question view at this question, not a list row.
+                // 从错题列表点进去就只翻这几道 —— 以前传的是整组题，
+                // 点开"错题回顾"却能左右滑到二十道全的，等于没筛
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (_) => PracticeSessionPage(
-                      questions: questions,
+                      questions: wrong,
                       reviewAnswers: answers,
-                      startAt: questions.indexOf(wrong[i]),
+                      startAt: i,
                       title: '错题回顾',
                     ),
                   ),

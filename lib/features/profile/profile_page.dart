@@ -3,6 +3,7 @@ import 'package:openexam_app/core/constants/app_constants.dart';
 import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
+import 'package:openexam_app/core/ui/ambient.dart';
 import 'package:openexam_app/core/ui/responsive.dart';
 import 'package:openexam_app/core/theme/theme_controller.dart';
 import 'package:openexam_app/core/ui/glass.dart';
@@ -18,6 +19,10 @@ import 'package:openexam_app/features/backup/backup_page.dart';
 import 'package:openexam_app/features/bank/bank_health_page.dart';
 import 'package:openexam_app/features/feedback/feedback_page.dart';
 import 'package:openexam_app/features/profile/dashboard_page.dart';
+import 'package:openexam_app/features/ai/ai_usage_page.dart';
+import 'package:openexam_app/features/bank/category_manage_page.dart';
+import 'package:openexam_app/features/profile/domain/exam_profile.dart';
+import 'package:openexam_app/features/profile/presentation/exam_profile_page.dart';
 import 'package:openexam_app/features/import/import_page.dart';
 import 'package:openexam_app/features/marks/marked_page.dart';
 import 'package:openexam_app/features/notes/notes_page.dart';
@@ -66,7 +71,6 @@ class _ProfilePageState extends State<ProfilePage> with TabReload {
   int _imported = 0;
   int _answers = 0;
   int _rate = 0;
-  int _count = 20;
   int _marked = 0;
   int _reports = 0;
   int _vocabDue = 0;
@@ -75,7 +79,6 @@ class _ProfilePageState extends State<ProfilePage> with TabReload {
   int _feedback = 0;
   int _badges = 0;
   int _badgeTotal = 0;
-  String? _province;
   List<int> _week = const [0, 0, 0, 0, 0, 0, 0];
   String _name = '备考中';
   DateTime? _examDate;
@@ -135,9 +138,7 @@ class _ProfilePageState extends State<ProfilePage> with TabReload {
       _rate = done == 0 ? 0 : (correct * 100 / done).round();
       _week = week;
       _vocabDue = vocab.due;
-      _count = prefs.getInt(Prefs.defaultCount) ?? 20;
       _goal = prefs.getInt(Prefs.dailyGoal) ?? 30;
-      _province = prefs.getString(Prefs.province);
       _name = prefs.getString(Prefs.nickname) ?? '备考中';
       final examRaw = prefs.getString(Prefs.examDate);
       _examDate = examRaw == null ? null : DateTime.tryParse(examRaw);
@@ -158,31 +159,10 @@ class _ProfilePageState extends State<ProfilePage> with TabReload {
     if (mounted) setState(() => _name = name);
   }
 
-  Future<void> _pickExamDate() async {
-    final now = DateTime.now();
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _examDate ?? now.add(const Duration(days: 60)),
-      firstDate: now.subtract(const Duration(days: 1)),
-      lastDate: now.add(const Duration(days: 1500)),
-      helpText: '选择考试日期',
-    );
-    if (picked == null) return;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(Prefs.examDate, picked.toIso8601String());
-    if (mounted) setState(() => _examDate = picked);
-  }
-
   int? get _daysLeft {
     if (_examDate == null) return null;
     final now = DateTime.now();
     return _examDate!.difference(DateTime(now.year, now.month, now.day)).inDays;
-  }
-
-  Future<void> _setCount(int n) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(Prefs.defaultCount, n);
-    if (mounted) setState(() => _count = n);
   }
 
   Future<void> _confirmClear() async {
@@ -205,6 +185,75 @@ class _ProfilePageState extends State<ProfilePage> with TabReload {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('练习记录已清除')),
+    );
+  }
+
+  /// 关于页。
+  ///
+  /// 「清除练习记录」和「重看引导」收在这儿：前者不可逆，摆在能误触的地方
+  /// 本身就不对；后者一年用一次，不值得占首屏一行。
+  Future<void> _openAbout() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        final t = ctx.tokens;
+        final text = Theme.of(ctx).textTheme;
+        return Container(
+          decoration: BoxDecoration(
+            color: t.gradient.last,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            border: Border(top: BorderSide(color: t.lineSoft)),
+          ),
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
+          child: SafeArea(
+            top: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('关于 OpenExam · $_total 题在库',
+                    style: text.titleMedium),
+                const SizedBox(height: 8),
+                Text(
+                  '本地优先的刷题工具，与 OpenExam 桌面端同源。\n\n'
+                  '商业题库请自行合法导入，App 不会爬取第三方付费内容。',
+                  style: text.bodySmall,
+                ),
+                const SizedBox(height: 16),
+                Divider(color: t.lineSoft, height: 1),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text('重看引导', style: text.titleSmall),
+                  onTap: () async {
+                    Navigator.of(ctx).pop();
+                    await Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => OnboardingPage(
+                          onDone: () => Navigator.of(context).maybePop(),
+                        ),
+                      ),
+                    );
+                    _reload();
+                  },
+                ),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text('清除练习记录',
+                      style: text.titleSmall?.copyWith(color: t.danger)),
+                  subtitle: Text('答题记录、错题本、成绩报告都会清空',
+                      style: text.bodySmall),
+                  onTap: () {
+                    Navigator.of(ctx).pop();
+                    _confirmClear();
+                  },
+                ),
+                const SizedBox(height: 6),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -274,12 +323,13 @@ class _ProfilePageState extends State<ProfilePage> with TabReload {
                     badge: _badges == 0 ? null : '$_badges/$_badgeTotal',
                     onTap: () => _open(const AchievementsPage()),
                   ),
-                  _QuickTile(
-                    art: ShoreArt.icoVocab,
-                    label: '词语',
-                    badge: _vocabDue == 0 ? null : '$_vocabDue',
-                    onTap: () => _open(const VocabPage()),
-                  ),
+                  if (ExamProfileStore.current.has(ExamFeature.vocab))
+                    _QuickTile(
+                      art: ShoreArt.icoVocab,
+                      label: '词语',
+                      badge: _vocabDue == 0 ? null : '$_vocabDue',
+                      onTap: () => _open(const VocabPage()),
+                    ),
                   _QuickTile(
                     art: ShoreArt.icoNote,
                     label: '笔记',
@@ -307,11 +357,12 @@ class _ProfilePageState extends State<ProfilePage> with TabReload {
                     label: '统计',
                     onTap: () => _open(const StatsPage()),
                   ),
-                  _QuickTile(
-                    art: ShoreArt.icoTips,
-                    label: '技巧',
-                    onTap: () => _open(const TipsPage()),
-                  ),
+                  if (ExamProfileStore.current.has(ExamFeature.tips))
+                    _QuickTile(
+                      art: ShoreArt.icoTips,
+                      label: '技巧',
+                      onTap: () => _open(const TipsPage()),
+                    ),
                   _QuickTile(
                     art: ShoreArt.icoFix,
                     label: '纠错',
@@ -329,6 +380,13 @@ class _ProfilePageState extends State<ProfilePage> with TabReload {
           title: '备考',
           child: Column(children: [
         _SettingRow(
+          icon: AppIcon.papers,
+          title: '界面模块',
+          value: '${ExamProfileStore.current.features.length} 项开启',
+          // _open 回来会走 _reload，名字改了这一行跟着更新
+          onTap: () => _open(const ExamProfilePage()),
+        ),
+        _SettingRow(
           icon: AppIcon.plan,
           title: '复习计划',
           onTap: () {
@@ -341,55 +399,10 @@ class _ProfilePageState extends State<ProfilePage> with TabReload {
           },
         ),
         _SettingRow(
-          icon: AppIcon.region,
-          title: '报考地区',
-          value: _province,
-          onTap: () async {
-            final picked = await showModalBottomSheet<String>(
-              context: context,
-              backgroundColor: Colors.transparent,
-              builder: (_) => _ProvinceSheet(current: _province),
-            );
-            if (picked == null) return;
-            final prefs = await SharedPreferences.getInstance();
-            await prefs.setString(Prefs.province, picked);
-            if (mounted) setState(() => _province = picked);
-          },
-        ),
-        _SettingRow(
-          icon: AppIcon.calendar,
-          title: '考试日期',
-          value: days == null ? null : (days > 0 ? '还有 $days 天' : '就在今天'),
-          onTap: _pickExamDate,
-        ),
-        _SettingRow(
           icon: AppIcon.target,
-          title: '每日目标',
-          value: '$_goal 题',
-          onTap: () async {
-            final picked = await showModalBottomSheet<int>(
-              context: context,
-              backgroundColor: Colors.transparent,
-              builder: (_) => _GoalSheet(current: _goal),
-            );
-            if (picked == null) return;
-            final prefs = await SharedPreferences.getInstance();
-            await prefs.setInt(Prefs.dailyGoal, picked);
-            if (mounted) setState(() => _goal = picked);
-          },
-        ),
-        _SettingRow(
-          icon: AppIcon.stack,
-          title: '每组题量',
-          value: '$_count 题',
-          onTap: () async {
-            final picked = await showModalBottomSheet<int>(
-              context: context,
-              backgroundColor: Colors.transparent,
-              builder: (_) => _CountSheet(current: _count),
-            );
-            if (picked != null) await _setCount(picked);
-          },
+          title: '练习偏好',
+          value: '每日 $_goal 题',
+          onTap: () => _open(const PracticePrefsPage()),
         ),
 
           ]),
@@ -405,6 +418,11 @@ class _ProfilePageState extends State<ProfilePage> with TabReload {
           value: _imported == 0 ? null : '$_imported 题',
           onTap: () => _open(const ImportPage(standalone: true)),
           active: _detail is ImportPage,
+        ),
+        _SettingRow(
+          icon: AppIcon.logic,
+          title: '题库管理',
+          onTap: () => _open(const CategoryManagePage()),
         ),
         _SettingRow(
           icon: AppIcon.health,
@@ -438,6 +456,11 @@ class _ProfilePageState extends State<ProfilePage> with TabReload {
           },
         ),
         _SettingRow(
+          icon: AppIcon.chart,
+          title: 'AI 用量',
+          onTap: () => _open(const AiUsagePage()),
+        ),
+        _SettingRow(
           icon: AppIcon.privacy,
           title: '数据与隐私',
           onTap: () => showModalBottomSheet<void>(
@@ -456,35 +479,7 @@ class _ProfilePageState extends State<ProfilePage> with TabReload {
           icon: AppIcon.info,
           title: '关于',
           value: 'v1.0.1',
-          onTap: () => showModalBottomSheet<void>(
-            context: context,
-            backgroundColor: Colors.transparent,
-            builder: (_) => _InfoSheet(
-              title: '关于 OpenExam · $_total 题在库',
-              body: '本地优先的公务员行测刷题工具，与 OpenExam 桌面端同源。\n\n'
-                  '商业题库请自行合法导入，App 不会爬取第三方付费内容。',
-            ),
-          ),
-        ),
-        _SettingRow(
-          icon: AppIcon.privacy,
-          title: '清除练习记录',
-          danger: true,
-          onTap: _confirmClear,
-        ),
-        _SettingRow(
-          icon: AppIcon.info,
-          title: '重看引导',
-          onTap: () async {
-            await Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => OnboardingPage(
-                  onDone: () => Navigator.of(context).maybePop(),
-                ),
-              ),
-            );
-            _reload();
-          },
+          onTap: _openAbout,
         ),
           ]),
         ),
@@ -753,7 +748,6 @@ class _SettingRow extends StatelessWidget {
     required this.title,
     required this.onTap,
     this.value,
-    this.danger = false,
     this.active = false,
   });
 
@@ -767,7 +761,6 @@ class _SettingRow extends StatelessWidget {
   final String? value;
 
   final VoidCallback onTap;
-  final bool danger;
 
   /// 宽屏主从视图里，右栏正在显示的那一项要标出来。
   final bool active;
@@ -784,13 +777,13 @@ class _SettingRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
         child: Row(
           children: [
-            StrokeIcon(icon, size: 20, color: danger ? t.danger : t.textSoft, weight: 1.8),
+            StrokeIcon(icon, size: 20, color: t.textSoft, weight: 1.8),
             const SizedBox(width: 14),
             Expanded(
               child: Text(
                 title,
                 style: text.bodyLarge?.copyWith(
-                  color: danger ? t.danger : t.text,
+                  color: t.text,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -1215,6 +1208,222 @@ class _SheetShell extends StatelessWidget {
       ),
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
       child: SafeArea(top: false, child: child),
+    );
+  }
+}
+
+/// 练习偏好。
+///
+/// 报考地区、考试日期、每日目标、每组题量、模考节奏 —— 这几样都是"设一次
+/// 就不再动"的数字，原来各占设置页一行，把「复习计划」这种天天要点的入口
+/// 挤到了下面。收进这一页，设置页第一屏就清爽了。
+class PracticePrefsPage extends StatefulWidget {
+  const PracticePrefsPage({super.key});
+
+  @override
+  State<PracticePrefsPage> createState() => _PracticePrefsPageState();
+}
+
+class _PracticePrefsPageState extends State<PracticePrefsPage> {
+  String _province = '国考';
+  DateTime? _examDate;
+  int _goal = 30;
+  int _count = 20;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    setState(() {
+      _province = prefs.getString(Prefs.province) ?? '国考';
+      _examDate = DateTime.tryParse(prefs.getString(Prefs.examDate) ?? '');
+      _goal = prefs.getInt(Prefs.dailyGoal) ?? 30;
+      _count = prefs.getInt(Prefs.defaultCount) ?? 20;
+      _loading = false;
+    });
+  }
+
+  int? get _daysLeft {
+    if (_examDate == null) return null;
+    final now = DateTime.now();
+    return _examDate!.difference(DateTime(now.year, now.month, now.day)).inDays;
+  }
+
+  Future<void> _pickExamDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _examDate ?? now.add(const Duration(days: 60)),
+      firstDate: now.subtract(const Duration(days: 1)),
+      lastDate: now.add(const Duration(days: 1500)),
+      helpText: '选择考试日期',
+    );
+    if (picked == null) return;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(Prefs.examDate, picked.toIso8601String());
+    if (mounted) setState(() => _examDate = picked);
+  }
+
+  Future<void> _editMock({required bool count}) async {
+    final profile = ExamProfileStore.current;
+    final ctrl = TextEditingController(
+      text: '${count ? profile.mockCount : profile.mockMinutes}',
+    );
+    final result = await showDialog<int>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(count ? '模考题量' : '模考时长'),
+        content: TextField(
+          controller: ctrl,
+          autofocus: true,
+          keyboardType: TextInputType.number,
+          decoration: InputDecoration(
+            suffixText: count ? '题' : '分钟',
+            border: const OutlineInputBorder(),
+            isDense: true,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () =>
+                Navigator.of(ctx).pop(int.tryParse(ctrl.text.trim())),
+            child: const Text('确定'),
+          ),
+        ],
+      ),
+    ).whenComplete(ctrl.dispose);
+    if (result == null || result <= 0) return;
+    await ExamProfileStore.save(
+      count
+          ? profile.copyWith(mockCount: result)
+          : profile.copyWith(mockMinutes: result),
+    );
+    if (mounted) setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+    final days = _daysLeft;
+    final profile = ExamProfileStore.current;
+
+    return Scaffold(
+      backgroundColor: t.gradient.last,
+      body: SafeArea(
+        child: ReadableWidth(
+          child: _loading
+              ? const LoadingState()
+              : ListView(
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.paddingOf(context).bottom + 28,
+                  ),
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                          AppTheme.gutter, 8, AppTheme.gutter, 10),
+                      child: Row(
+                        children: [
+                          PlainIconButton(
+                            icon: Icons.arrow_back,
+                            onTap: () => Navigator.of(context).maybePop(),
+                          ),
+                          const SizedBox(width: 4),
+                          Text('练习偏好', style: text.titleMedium),
+                        ],
+                      ),
+                    ),
+                    _SettingRow(
+                      icon: AppIcon.target,
+                      title: '每日目标',
+                      value: '$_goal 题',
+                      onTap: () async {
+                        final picked = await showModalBottomSheet<int>(
+                          context: context,
+                          backgroundColor: Colors.transparent,
+                          builder: (_) => _GoalSheet(current: _goal),
+                        );
+                        if (picked == null) return;
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.setInt(Prefs.dailyGoal, picked);
+                        if (mounted) setState(() => _goal = picked);
+                      },
+                    ),
+                    _SettingRow(
+                      icon: AppIcon.stack,
+                      title: '每组题量',
+                      value: '$_count 题',
+                      onTap: () async {
+                        final picked = await showModalBottomSheet<int>(
+                          context: context,
+                          backgroundColor: Colors.transparent,
+                          builder: (_) => _CountSheet(current: _count),
+                        );
+                        if (picked == null) return;
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.setInt(Prefs.defaultCount, picked);
+                        if (mounted) setState(() => _count = picked);
+                      },
+                    ),
+                    _SettingRow(
+                      icon: AppIcon.calendar,
+                      title: '考试日期',
+                      value: days == null
+                          ? null
+                          : (days > 0 ? '还有 $days 天' : '就在今天'),
+                      onTap: _pickExamDate,
+                    ),
+                    if (profile.has(ExamFeature.provinces))
+                      _SettingRow(
+                        icon: AppIcon.region,
+                        title: '报考地区',
+                        value: _province,
+                        onTap: () async {
+                          final picked =
+                              await showModalBottomSheet<String>(
+                            context: context,
+                            backgroundColor: Colors.transparent,
+                            builder: (_) =>
+                                _ProvinceSheet(current: _province),
+                          );
+                          if (picked == null) return;
+                          final prefs =
+                              await SharedPreferences.getInstance();
+                          await prefs.setString(Prefs.province, picked);
+                          if (mounted) setState(() => _province = picked);
+                        },
+                      ),
+                    const SizedBox(height: 12),
+                    const SectionHeader(
+                      title: '限时模考',
+                      caption: '按自己那门考试的节奏',
+                    ),
+                    _SettingRow(
+                      icon: AppIcon.stack,
+                      title: '题量',
+                      value: '${profile.mockCount} 题',
+                      onTap: () => _editMock(count: true),
+                    ),
+                    _SettingRow(
+                      icon: AppIcon.timer,
+                      title: '时长',
+                      value: '${profile.mockMinutes} 分钟',
+                      onTap: () => _editMock(count: false),
+                    ),
+                  ],
+                ),
+        ),
+      ),
     );
   }
 }

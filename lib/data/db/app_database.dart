@@ -25,6 +25,28 @@ class AppDatabase {
 
   Future<Database> get database => _opening ??= _open();
 
+  /// 内置题库的版本。**换了 assets/seed/openexam_seed.db.gz 就要把它 +1**，
+  /// 否则老用户永远拿不到新题库。
+  ///
+  /// 以前 [_installSeed] 只在数据库文件不存在时跑一次，于是题库等于"装机时
+  /// 快照"：后来补进种子的资料分析材料、修好的分类标签、改对的题干，装过 app
+  /// 的人一个都拿不到 —— 升级 APK 也没用。用户报的"横线还是没有"就是这么来的，
+  /// 那批题在新种子里早就是对的。
+  static const _seedVersion = 5;
+
+  /// 题库自己的表。换种子时这些整体来自新种子，其余表都是用户数据，要搬过来。
+  ///
+  /// 用"排除法"而不是列一份用户表清单：以后加了新表忘了往清单里补，
+  /// 是会把用户数据搬丢的，而漏掉一张题库表最多只是白搬一次。
+  static const _bankTables = {
+    'questions',
+    'materials',
+    'images',
+    'word_freq',
+    'android_metadata',
+    'sqlite_sequence',
+  };
+
   Future<Database> _open() async {
     final dir = await getDatabasesPath();
     final path = p.join(dir, _dbFile);
@@ -32,20 +54,179 @@ class AppDatabase {
     if (!await File(path).exists()) {
       await _installSeed(path);
       await _migrateLegacyHistory(dir, path);
+    } else {
+      await _refreshSeedIfStale(path);
     }
 
     final db = await openDatabase(path);
+    await _ensureBankTables(db);
     await _ensureRuntimeTables(db);
     return db;
   }
 
+  /// 内置题库比本机的新时，换掉题库、把用户数据原样搬过去。
+  ///
+  /// 全程不动 [path]，直到新库建好、数据搬完为止；中途任何一步出错就把临时
+  /// 文件删掉走人，用户库保持原样 —— 宁可这次没升级成题库，也不能弄丢做题记录。
+  Future<void> _refreshSeedIfStale(String path) async {
+    int installed;
+    try {
+      final probe = await openDatabase(path, readOnly: true);
+      final rows = await probe.query(
+        'meta',
+        where: 'key = ?',
+        whereArgs: ['seed_version'],
+        limit: 1,
+      );
+      await probe.close();
+      installed = int.tryParse('${rows.isEmpty ? 0 : rows.first['value']}') ?? 0;
+    } catch (_) {
+      // meta 表都读不出来的库，不敢拿它做判断，更不敢动它。
+      return;
+    }
+    if (installed >= _seedVersion) return;
+    // 不打包题库的版本没什么可换的，更不能拿一个空种子去盖掉用户导进来的题。
+    if (!await hasBundledBank) return;
+
+    final fresh = '$path.new';
+    final backup = '$path.bak';
+    try {
+      await File(fresh).delete();
+    } catch (_) {
+      // 上次中断留下的残骸，没有更好。
+    }
+
+    try {
+      await _installSeed(fresh);
+      await _carryUserData(from: path, to: fresh);
+
+      // 换文件而不是就地改：中途断电时，要么还是老库，要么已经是新库。
+      await File(path).rename(backup);
+      await File(fresh).rename(path);
+      try {
+        await File(backup).delete();
+      } catch (_) {
+        // 删不掉只是占地方，不影响用。
+      }
+    } catch (_) {
+      try {
+        await File(fresh).delete();
+      } catch (_) {
+        // 清不掉临时文件也不该拦住启动。
+      }
+      // 老库原封不动，这次就先不升级题库。
+    }
+  }
+
+  /// 把 [from] 里所有非题库表的数据搬进 [to]。
+  Future<void> _carryUserData({required String from, required String to}) async {
+    final db = await openDatabase(to);
+    try {
+      // 先把运行时表和后加的列在新库上补齐，再搬数据。
+      //
+      // 种子里的 practice_logs 没有 elapsed_ms（那列是后来 ALTER 加的），
+      // 不先补就会在"取两边都有的列"这一步把逐题用时整列丢掉 ——
+      // 而那正是弱点诊断算配速要用的东西。
+      await _ensureRuntimeTables(db);
+
+      // meta 里既有用户的东西（data_patch），也有题库自己的 seed_version。
+      // 整表 INSERT OR REPLACE 会把老库的 seed_version 盖回去，下次启动
+      // 又判定成"该升级了"，无限重装种子。先把新种子的版本记下来，搬完写回去。
+      final stamp = await db.query(
+        'meta',
+        where: 'key = ?',
+        whereArgs: ['seed_version'],
+        limit: 1,
+      );
+      final freshVersion = stamp.isEmpty ? null : '${stamp.first['value']}';
+
+      // 用户库里可能有新种子还没有的表（版本落后时反过来也一样），
+      // 所以先按老库的定义把表建出来，再灌数据。
+      await db.execute("ATTACH DATABASE ? AS old", [from]);
+      final tables = await db.rawQuery(
+        "SELECT name, sql FROM old.sqlite_master "
+        "WHERE type = 'table' AND name NOT LIKE 'sqlite_%'",
+      );
+      for (final row in tables) {
+        final name = '${row['name']}';
+        if (_bankTables.contains(name)) continue;
+        final ddl = '${row['sql'] ?? ''}';
+        if (ddl.isEmpty) continue;
+        // 新库里已经有的表保持新库的定义，只灌数据；没有的按老库建。
+        await db.execute(
+          ddl.replaceFirst(
+            RegExp('CREATE TABLE', caseSensitive: false),
+            'CREATE TABLE IF NOT EXISTS',
+          ),
+        );
+        var cols = await db.rawQuery('PRAGMA table_info("$name")');
+        final oldCols = await db.rawQuery('PRAGMA old.table_info("$name")');
+
+        // 老库有、新库没有的列直接补上。上一版 app 加过而这一版没在
+        // _ensureRuntimeTables 里声明的列，靠这一步兜住，不然那列就没了。
+        for (final o in oldCols) {
+          final col = '${o['name']}';
+          if (cols.any((c) => '${c['name']}' == col)) continue;
+          try {
+            await db.execute('ALTER TABLE "$name" ADD COLUMN "$col" ${o['type']}');
+          } catch (_) {
+            // 加不上就只能放弃这一列，不该拖垮整次迁移。
+          }
+        }
+        cols = await db.rawQuery('PRAGMA table_info("$name")');
+
+        final shared = cols
+            .map((c) => '${c['name']}')
+            .where((c) => oldCols.any((o) => '${o['name']}' == c))
+            .map((c) => '"$c"')
+            .join(', ');
+        if (shared.isEmpty) continue;
+        await db.execute(
+          'INSERT OR REPLACE INTO main."$name" ($shared) '
+          'SELECT $shared FROM old."$name"',
+        );
+      }
+      await db.execute('DETACH DATABASE old');
+
+      if (freshVersion != null) {
+        await db.insert(
+          'meta',
+          {'key': 'seed_version', 'value': freshVersion},
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+      }
+    } finally {
+      await db.close();
+    }
+  }
+
   /// Unpacks the bundled seed. gzip decode runs off the UI isolate — the file
   /// is ~90 MB expanded.
-  Future<void> _installSeed(String path) async {
-    final data = await rootBundle.load(_seedAsset);
+  ///
+  /// 返回有没有真的装上。**内置题库是可选的** —— App Store 那个版本不打包题库
+  /// （题库是别人的真题，体积也压不进审核友好的范围），装不到就开一个空库，
+  /// 用户自己导入。所以这里找不到 asset 不是错误，是一种正常的发行形态。
+  Future<bool> _installSeed(String path) async {
+    final ByteData data;
+    try {
+      data = await rootBundle.load(_seedAsset);
+    } catch (_) {
+      return false;
+    }
     final bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
     final decoded = await compute(_gunzip, bytes);
     await File(path).writeAsBytes(decoded, flush: true);
+    return true;
+  }
+
+  /// 这个包里带没带题库。空库版的引导文案要靠它区分「还没导入」和「导入失败」。
+  static Future<bool> get hasBundledBank async {
+    try {
+      await rootBundle.load(_seedAsset);
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   static Uint8List _gunzip(Uint8List bytes) =>
@@ -74,6 +255,53 @@ class AppDatabase {
       await db.close();
     } catch (_) {
       // A broken legacy file must never block the new install.
+    }
+  }
+
+  /// 题库自己的两张表。
+  ///
+  /// 平时它们随种子一起来，app 从不建 —— 于是不打包题库的那个版本一开库就
+  /// 崩在第一条查询上。空库也得是一个结构完整的库：能打开、能导入、能刷。
+  /// 字段跟 tool/build_seed.py 写出来的种子逐列对齐，改一边要改另一边。
+  Future<void> _ensureBankTables(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS questions (
+        id TEXT PRIMARY KEY,
+        content TEXT NOT NULL,
+        content_html TEXT,
+        options TEXT NOT NULL,
+        answer TEXT NOT NULL,
+        category TEXT,
+        sub_category TEXT,
+        analysis TEXT,
+        analysis_html TEXT,
+        paper_id TEXT,
+        paper_title TEXT,
+        year INTEGER DEFAULT 0,
+        difficulty INTEGER DEFAULT 2,
+        source TEXT DEFAULT 'builtin',
+        has_image INTEGER DEFAULT 0,
+        order_num INTEGER DEFAULT 0,
+        material_id TEXT DEFAULT '',
+        type TEXT NOT NULL DEFAULT 'single'
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS images (
+        name TEXT PRIMARY KEY,
+        bytes BLOB NOT NULL
+      )
+    ''');
+    for (final sql in const [
+      'CREATE INDEX IF NOT EXISTS idx_q_cat ON questions(category)',
+      'CREATE INDEX IF NOT EXISTS idx_q_source ON questions(source)',
+      'CREATE INDEX IF NOT EXISTS idx_q_paper ON questions(paper_id)',
+    ]) {
+      try {
+        await db.execute(sql);
+      } catch (_) {
+        // 老库上 questions 可能是只读附加表，建不了索引也不该拦住启动。
+      }
     }
   }
 
@@ -166,7 +394,11 @@ class AppDatabase {
         elapsed_ms INTEGER NOT NULL,
         question_ids TEXT NOT NULL,
         answers TEXT NOT NULL,
-        created_at TEXT NOT NULL
+        created_at TEXT NOT NULL,
+        cursor INTEGER NOT NULL DEFAULT 0,
+        done INTEGER NOT NULL DEFAULT 1,
+        score REAL,
+        max_score REAL
       )
     ''');
     // 复盘的关键不是"我错了"，而是"我为什么错"。
@@ -174,6 +406,19 @@ class AppDatabase {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS notes (
         question_id TEXT PRIMARY KEY,
+        body TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      )
+    ''');
+    // 不挂在任何题上的笔记。
+    //
+    // notes 表的主键是 question_id，天生只能记"这道题的心得"。可备考时更想
+    // 随手记的往往是跟具体某道题无关的东西：一个公式、一次考试的教训、
+    // 某个坑的通用解法。那些原来一个字都存不下。
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS memos (
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL DEFAULT '',
         body TEXT NOT NULL,
         updated_at TEXT NOT NULL
       )
@@ -246,6 +491,63 @@ class AppDatabase {
         started_at TEXT NOT NULL,
         done_days TEXT NOT NULL DEFAULT '',
         last_done TEXT
+      )
+    ''');
+    // 进度两列是后加的：以前只有交完卷才写一行，做到一半退出就什么都不剩。
+    // 老库里没有这两列，补上，默认当作已完成。
+    final cols = await db.rawQuery('PRAGMA table_info(exam_reports)');
+    final names = cols.map((c) => '${c['name']}').toSet();
+    if (!names.contains('cursor')) {
+      await db.execute(
+        'ALTER TABLE exam_reports ADD COLUMN cursor INTEGER NOT NULL DEFAULT 0',
+      );
+    }
+    if (!names.contains('done')) {
+      await db.execute(
+        'ALTER TABLE exam_reports ADD COLUMN done INTEGER NOT NULL DEFAULT 1',
+      );
+    }
+    // 申论按分数算，没有对错，另存两列
+    if (!names.contains('score')) {
+      await db.execute('ALTER TABLE exam_reports ADD COLUMN score REAL');
+      await db.execute('ALTER TABLE exam_reports ADD COLUMN max_score REAL');
+    }
+
+    // AI 用量。key 是用户自己的，花的是他自己的钱 —— 花在哪、花了多少，
+    // 得让他看得见，而不是只能去服务商后台猜。
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS ai_usage (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        at INTEGER NOT NULL,
+        feature TEXT NOT NULL,
+        model TEXT NOT NULL DEFAULT '',
+        input_tokens INTEGER NOT NULL DEFAULT 0,
+        output_tokens INTEGER NOT NULL DEFAULT 0,
+        ok INTEGER NOT NULL DEFAULT 1
+      )
+    ''');
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_ai_usage_at ON ai_usage(at)',
+    );
+
+    // AI 讲的那一段。同一道题会反复回看，每看一次都重新问一遍模型
+    // 既慢又费钱，讲完就存下来。
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS ai_explanations (
+        question_id TEXT PRIMARY KEY,
+        body TEXT NOT NULL,
+        model TEXT NOT NULL DEFAULT '',
+        created_at INTEGER NOT NULL
+      )
+    ''');
+    // AI 写的弱点诊断。key 是诊断对象：'history' 或 'report:<id>'。
+    // 存下来是因为一次诊断要几十秒也要花钱，切走再回来不该重来一遍。
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS ai_diagnoses (
+        key TEXT PRIMARY KEY,
+        body TEXT NOT NULL,
+        model TEXT NOT NULL DEFAULT '',
+        created_at INTEGER NOT NULL
       )
     ''');
     await db.execute('''
@@ -359,6 +661,390 @@ class AppDatabase {
     return Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM questions')) ?? 0;
   }
 
+  // --------------------------------------------------------------- AI 用量
+
+  Future<void> logAiUsage({
+    required String feature,
+    required String model,
+    required int inputTokens,
+    required int outputTokens,
+    bool ok = true,
+  }) async {
+    final db = await database;
+    await db.insert('ai_usage', {
+      'at': DateTime.now().millisecondsSinceEpoch,
+      'feature': feature,
+      'model': model,
+      'input_tokens': inputTokens,
+      'output_tokens': outputTokens,
+      'ok': ok ? 1 : 0,
+    });
+  }
+
+  /// [since] 之后的用量，按 [groupBy] 汇总（feature 或 model）。
+  Future<List<AiUsageGroup>> aiUsageBy(
+    String groupBy, {
+    DateTime? since,
+  }) async {
+    assert(groupBy == 'feature' || groupBy == 'model');
+    final db = await database;
+    final rows = await db.rawQuery(
+      'SELECT $groupBy AS k, COUNT(*) AS calls, '
+      'SUM(input_tokens) AS i, SUM(output_tokens) AS o '
+      'FROM ai_usage WHERE at >= ? GROUP BY $groupBy ORDER BY (SUM(input_tokens)+SUM(output_tokens)) DESC',
+      [since?.millisecondsSinceEpoch ?? 0],
+    );
+    return rows
+        .map((r) => AiUsageGroup(
+              key: '${r['k'] ?? ''}',
+              calls: int.tryParse('${r['calls']}') ?? 0,
+              inputTokens: int.tryParse('${r['i']}') ?? 0,
+              outputTokens: int.tryParse('${r['o']}') ?? 0,
+            ))
+        .toList();
+  }
+
+  /// 最近 [days] 天每天的 token 合计，缺的那天补 0 —— 折线图不能断。
+  Future<List<int>> aiUsageDaily({int days = 14}) async {
+    final db = await database;
+    final now = DateTime.now();
+    final start = DateTime(now.year, now.month, now.day)
+        .subtract(Duration(days: days - 1));
+    final rows = await db.rawQuery(
+      'SELECT at, input_tokens, output_tokens FROM ai_usage WHERE at >= ?',
+      [start.millisecondsSinceEpoch],
+    );
+    final out = List<int>.filled(days, 0);
+    for (final r in rows) {
+      final at = DateTime.fromMillisecondsSinceEpoch(
+          int.tryParse('${r['at']}') ?? 0);
+      final idx = DateTime(at.year, at.month, at.day).difference(start).inDays;
+      if (idx < 0 || idx >= days) continue;
+      out[idx] += (int.tryParse('${r['input_tokens']}') ?? 0) +
+          (int.tryParse('${r['output_tokens']}') ?? 0);
+    }
+    return out;
+  }
+
+  Future<void> clearAiUsage() async {
+    final db = await database;
+    await db.delete('ai_usage');
+  }
+
+  // ----------------------------------------------------------- AI 讲解缓存
+
+  /// 这道题 AI 讲过没有。讲过就直接拿出来，不再问模型。
+  ///
+  /// 连模型名和时间一起返回 —— 这段话是机器写的，得让人看得见是谁、什么时候
+  /// 写的，否则日子久了根本分不清哪些是题库的解析、哪些是 AI 的。
+  Future<AiExplanation?> aiDiagnosis(String key) async {
+    final db = await database;
+    final rows = await db.query(
+      'ai_diagnoses',
+      where: 'key = ?',
+      whereArgs: [key],
+      limit: 1,
+    );
+    if (rows.isEmpty) return null;
+    final body = '${rows.first['body'] ?? ''}';
+    if (body.isEmpty) return null;
+    return AiExplanation(
+      body: body,
+      model: '${rows.first['model'] ?? ''}',
+      createdAt: DateTime.fromMillisecondsSinceEpoch(
+        int.tryParse('${rows.first['created_at']}') ?? 0,
+      ),
+    );
+  }
+
+  Future<void> saveAiDiagnosis(String key, String body, {String model = ''}) async {
+    final db = await database;
+    await db.insert(
+      'ai_diagnoses',
+      {
+        'key': key,
+        'body': body,
+        'model': model,
+        'created_at': DateTime.now().millisecondsSinceEpoch,
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<void> deleteAiDiagnosis(String key) async {
+    final db = await database;
+    await db.delete('ai_diagnoses', where: 'key = ?', whereArgs: [key]);
+  }
+
+  Future<AiExplanation?> aiExplanation(String questionId) async {
+    final db = await database;
+    final rows = await db.query(
+      'ai_explanations',
+      where: 'question_id = ?',
+      whereArgs: [questionId],
+      limit: 1,
+    );
+    if (rows.isEmpty) return null;
+    final body = '${rows.first['body'] ?? ''}';
+    if (body.isEmpty) return null;
+    return AiExplanation(
+      body: body,
+      model: '${rows.first['model'] ?? ''}',
+      createdAt: DateTime.fromMillisecondsSinceEpoch(
+        int.tryParse('${rows.first['created_at']}') ?? 0,
+      ),
+    );
+  }
+
+  Future<void> saveAiExplanation(
+    String questionId,
+    String body, {
+    String model = '',
+  }) async {
+    final db = await database;
+    await db.insert(
+      'ai_explanations',
+      {
+        'question_id': questionId,
+        'body': body,
+        'model': model,
+        'created_at': DateTime.now().millisecondsSinceEpoch,
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<void> deleteAiExplanation(String questionId) async {
+    final db = await database;
+    await db.delete(
+      'ai_explanations',
+      where: 'question_id = ?',
+      whereArgs: [questionId],
+    );
+  }
+
+  /// 每道题最后一次填的答案。
+  ///
+  /// 错题速览要显示"你当时选的是什么"—— 光看正确答案，等于没在复盘。
+  Future<Map<String, String>> lastAnswers(List<String> questionIds) async {
+    if (questionIds.isEmpty) return const {};
+    final db = await database;
+    final marks = List.filled(questionIds.length, '?').join(',');
+    final rows = await db.rawQuery(
+      '''
+      SELECT question_id, user_answer
+      FROM practice_logs
+      WHERE question_id IN ($marks)
+      ORDER BY id ASC
+      ''',
+      questionIds,
+    );
+    // 按 id 升序覆盖，最后留下的就是最近一次
+    final out = <String, String>{};
+    for (final r in rows) {
+      final a = '${r['user_answer'] ?? ''}'.trim().toUpperCase();
+      if (a.isEmpty) continue;
+      out['${r['question_id']}'] = a;
+    }
+    return out;
+  }
+
+  // ------------------------------------------------------------- 题库问题排查
+
+  /// 答案缺失或不合法的题。
+  ///
+  /// 这类题在练习里怎么点都是错的 —— 导入时原资料没给答案、或者答案页
+  /// 单独列在别处没对上，最常见。
+  Future<List<Question>> questionsMissingAnswer({int limit = 300}) async {
+    final db = await database;
+    final rows = await db.rawQuery('''
+      SELECT * FROM questions
+      WHERE answer IS NULL OR TRIM(answer) = ''
+         OR UPPER(TRIM(answer)) NOT IN (
+           'A','B','C','D','E',
+           'AB','AC','AD','AE','BC','BD','BE','CD','CE','DE',
+           'ABC','ABD','ABE','ACD','ACE','ADE','BCD','BCE','BDE','CDE',
+           'ABCD','ABCE','ABDE','ACDE','BCDE','ABCDE'
+         )
+      LIMIT ?
+    ''', [limit]);
+    return rows.map(_fromRow).toList();
+  }
+
+  /// 选项少于两个的题。基本是解析出错留下的残骸，做不了。
+  ///
+  /// 选项是 JSON，SQL 里数不了个数，只能拿回来解析。但只取 id 和 options 两列
+  /// —— 以前是 `query('questions', limit: 2000)`，既把题干解析全拖了一遍内存，
+  /// 又只看前 2000 道，第 2001 道之后的残骸永远查不出来。
+  Future<List<Question>> questionsBrokenOptions({int limit = 300}) async {
+    final db = await database;
+    final rows = await db.query('questions', columns: ['id', 'options']);
+    final broken = <String>[];
+    for (final r in rows) {
+      // fromRow 缺列一律回退成空串，两列足够数选项个数。
+      if (Question.fromRow(r).options.length < 2) {
+        broken.add('${r['id']}');
+        if (broken.length >= limit) break;
+      }
+    }
+    if (broken.isEmpty) return const [];
+    final full = await db.query(
+      'questions',
+      where: 'id IN (${List.filled(broken.length, '?').join(',')})',
+      whereArgs: broken,
+    );
+    return full.map(_fromRow).toList();
+  }
+
+  /// 同一份卷子里出现了两遍的题。
+  ///
+  /// 原来这里按 `content` 全库分组，谁跟谁题干一样就算一组重复 —— 结果内置库
+  /// 18686 道题里有 14535 道（78%）被判成重复。原因是题干根本不能单独标识一道题：
+  ///
+  /// * 图形推理的题干是"从所给的四个选项中，选择最合适的一个填入问号处"，
+  ///   内置库 556 道共用这一句，真正的题在图里，选项也统一是 A/B/C/D；
+  /// * 资料分析的题干是"能够从上述资料中推出的是"，题在材料里。
+  ///
+  /// 于是"全部清理"会把图形推理和资料分析各删到只剩一道。
+  ///
+  /// 而且把题干、图、选项、材料全比上之后仍然撞在一起的 2956 组里，2953 组是
+  /// **跨卷**的 —— 联考各省共用题、国考三卷共用题，本来就该各卷都有一份，删掉
+  /// 就把别的卷打出窟窿。真正的脏数据只有同一份卷里收了两遍的，内置库 3 组 6 道。
+  /// 所以这里只查同卷重复，并且带上选项、
+  /// 材料、图片一起比，避免再拿共用题干当身份。图片比的是 content_html —— 图
+  /// 是 `oeimg://<内容哈希>` 引进来的，同图同哈希，正好当图形推理的身份。
+  Future<List<List<Question>>> duplicateQuestions({int limit = 100}) async {
+    final db = await database;
+    final keys = await db.rawQuery('''
+      SELECT paper_id, TRIM(content) AS c, content_html, options, material_id
+      FROM questions
+      WHERE TRIM(content) != '' AND paper_id IS NOT NULL AND paper_id != ''
+      GROUP BY paper_id, TRIM(content), content_html, options, material_id
+      HAVING COUNT(*) > 1
+      LIMIT ?
+    ''', [limit]);
+    final out = <List<Question>>[];
+    for (final k in keys) {
+      final dupes = await db.query(
+        'questions',
+        where: 'paper_id = ? AND TRIM(content) = ? AND content_html = ? '
+            'AND options = ? AND material_id = ?',
+        whereArgs: [
+          k['paper_id'],
+          k['c'],
+          k['content_html'],
+          k['options'],
+          k['material_id'],
+        ],
+        orderBy: 'order_num',
+      );
+      if (dupes.length > 1) out.add(dupes.map(_fromRow).toList());
+    }
+    return out;
+  }
+
+  Future<void> setQuestionAnswer(String id, String answer) async {
+    final db = await database;
+    await db.update(
+      'questions',
+      {'answer': answer.trim().toUpperCase()},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  Future<void> deleteQuestion(String id) async {
+    final db = await database;
+    await db.delete('questions', where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<void> deleteQuestions(List<String> ids) async {
+    if (ids.isEmpty) return;
+    final db = await database;
+    final batch = db.batch();
+    for (final id in ids) {
+      batch.delete('questions', where: 'id = ?', whereArgs: [id]);
+    }
+    await batch.commit(noResult: true);
+  }
+
+  /// 导出题库本身。
+  ///
+  /// 「备份与恢复」导的是用户数据（做题记录、笔记、错题原因），**不含题目** ——
+  /// 换手机之后记录都在，题却是空的。这个补上另一半。
+  Future<List<Map<String, Object?>>> exportQuestions() async {
+    final db = await database;
+    return db.query('questions', orderBy: 'paper_id, order_num');
+  }
+
+  /// 清空题库。
+  ///
+  /// 只删题和材料，不动做题记录 —— 记录按 question_id 存，重新导入同一批题
+  /// 还能对上。真要连记录一起清，那是「清除练习记录」那一项的事。
+  Future<int> clearQuestions() async {
+    final db = await database;
+    final n = await db.delete('questions');
+    await db.delete('materials');
+    return n;
+  }
+
+  /// 改一个分类的名字。改成已经存在的名字，就是把两类并成一类。
+  Future<int> renameCategory(String from, String to) async {
+    final db = await database;
+    return db.update(
+      'questions',
+      {'category': to.trim()},
+      where: 'category = ?',
+      whereArgs: [from],
+    );
+  }
+
+  /// 某个分类下的题，只取归类要用的那几列 —— 整题拉出来太重。
+  Future<List<({String id, String content})>> questionBriefs(
+    String category, {
+    int limit = 500,
+  }) async {
+    final db = await database;
+    final rows = await db.query(
+      'questions',
+      columns: ['id', 'content'],
+      where: 'category = ?',
+      whereArgs: [category],
+      limit: limit,
+    );
+    return [
+      for (final r in rows)
+        (id: '${r['id']}', content: '${r['content'] ?? ''}'),
+    ];
+  }
+
+  /// 按 id 逐条改分类。AI 归类完一批就落一批。
+  Future<void> setCategoryFor(Map<String, String> idToCategory) async {
+    if (idToCategory.isEmpty) return;
+    final db = await database;
+    final batch = db.batch();
+    for (final e in idToCategory.entries) {
+      batch.update(
+        'questions',
+        {'category': e.value},
+        where: 'id = ?',
+        whereArgs: [e.key],
+      );
+    }
+    await batch.commit(noResult: true);
+  }
+
+  /// 题库里实际有哪些分类。导入别的考试之后，各处筛选器靠它才知道多了什么。
+  Future<List<String>> categoryKeys() async {
+    final db = await database;
+    final rows = await db.rawQuery(
+      "SELECT category, COUNT(*) AS n FROM questions "
+      "WHERE category IS NOT NULL AND category != '' "
+      "GROUP BY category ORDER BY n DESC",
+    );
+    return rows.map((r) => '${r['category']}').toList();
+  }
+
   Future<List<CategoryStat>> categoryStats() async {
     final db = await database;
     final totals = await db.rawQuery('''
@@ -404,12 +1090,57 @@ class AppDatabase {
     return _withMaterials(rows.map(_fromRow).toList());
   }
 
+  /// 题库里最新的年份。年份范围筛选拿它当基准。
+  ///
+  /// 一次查询就够，之后缓着 —— 每次抽题都跑一遍 MAX(year) 是白花的全表扫。
+  int? _latestYear;
+
+  Future<int> latestYear() async {
+    final cached = _latestYear;
+    if (cached != null) return cached;
+    final db = await database;
+    final v = Sqflite.firstIntValue(
+          await db.rawQuery('SELECT MAX(year) FROM questions'),
+        ) ??
+        0;
+    return _latestYear = v;
+  }
+
+  /// 每个年份范围里还剩多少题。挑范围的时候得先知道有没有题，
+  /// 不然选完「最近一年」才发现一道都抽不出来。
+  Future<Map<YearRange, int>> yearRangeCounts({String? category}) async {
+    final db = await database;
+    final latest = await latestYear();
+    final out = <YearRange, int>{};
+    for (final r in YearRange.values) {
+      final where = <String>[];
+      final args = <Object?>[];
+      if (category != null && category.isNotEmpty && category != 'all') {
+        where.add('category = ?');
+        args.add(category);
+      }
+      final floor = r.floor(latest);
+      if (floor != null) {
+        where.add('year >= ?');
+        args.add(floor);
+      }
+      final sql = StringBuffer('SELECT COUNT(*) FROM questions');
+      if (where.isNotEmpty) sql.write(' WHERE ${where.join(' AND ')}');
+      out[r] = Sqflite.firstIntValue(
+            await db.rawQuery(sql.toString(), args),
+          ) ??
+          0;
+    }
+    return out;
+  }
+
   Future<List<Question>> fetchPractice({
     String? category,
     String? subCategory,
     int limit = 20,
     bool shuffle = true,
     QuestionScope scope = QuestionScope.all,
+    YearRange years = YearRange.all,
   }) async {
     final db = await database;
     final where = <String>[];
@@ -417,6 +1148,11 @@ class AppDatabase {
     if (category != null && category.isNotEmpty && category != 'all') {
       where.add('category = ?');
       args.add(category);
+    }
+    final floor = years.floor(await latestYear());
+    if (floor != null) {
+      where.add('year >= ?');
+      args.add(floor);
     }
     if (subCategory != null && subCategory.isNotEmpty) {
       where.add('sub_category = ?');
@@ -994,6 +1730,37 @@ class AppDatabase {
         .toList();
   }
 
+  // ------------------------------------------------------------------ 随手记
+
+  Future<List<Memo>> listMemos({int limit = 300}) async {
+    final db = await database;
+    final rows = await db.query(
+      'memos',
+      orderBy: 'updated_at DESC',
+      limit: limit,
+    );
+    return rows.map(Memo.fromRow).toList();
+  }
+
+  Future<void> saveMemo(Memo memo) async {
+    final db = await database;
+    await db.insert(
+      'memos',
+      {
+        'id': memo.id,
+        'title': memo.title,
+        'body': memo.body,
+        'updated_at': DateTime.now().toIso8601String(),
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<void> deleteMemo(String id) async {
+    final db = await database;
+    await db.delete('memos', where: 'id = ?', whereArgs: [id]);
+  }
+
   // ------------------------------------------------------------- resume state
 
   static const _resumeKey = 'resume_session';
@@ -1384,9 +2151,15 @@ class AppDatabase {
     required Map<String, String> answers,
     required int correct,
     required Duration elapsed,
+    int cursor = 0,
+    bool done = true,
+    double? score,
+    double? maxScore,
   }) async {
     final db = await database;
     return db.insert('exam_reports', {
+      'score': score,
+      'max_score': maxScore,
       'title': title,
       'kind': kind,
       'total': questionIds.length,
@@ -1396,8 +2169,52 @@ class AppDatabase {
       'question_ids': jsonEncode(questionIds),
       'answers': jsonEncode(answers),
       'created_at': DateTime.now().toIso8601String(),
+      'cursor': cursor,
+      'done': done ? 1 : 0,
     });
   }
+
+  /// 边做边更新同一行。
+  ///
+  /// 一次练习从头到尾只占一条记录 —— 每答一题新插一行的话，记录页会被
+  /// 同一组练习的二十个残影填满。
+  Future<void> updateReportProgress(
+    int id, {
+    required Map<String, String> answers,
+    required int correct,
+    required Duration elapsed,
+    required int cursor,
+    required bool done,
+  }) async {
+    final db = await database;
+    await db.update(
+      'exam_reports',
+      {
+        'answered': answers.length,
+        'correct': correct,
+        'elapsed_ms': elapsed.inMilliseconds,
+        'answers': jsonEncode(answers),
+        'cursor': cursor,
+        'done': done ? 1 : 0,
+      },
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  /// 最近一条没做完的，首页拿它显示"接着做"。
+  Future<ExamReport?> latestUnfinished() async {
+    final db = await database;
+    final rows = await db.query(
+      'exam_reports',
+      where: 'done = 0',
+      orderBy: 'id DESC',
+      limit: 1,
+    );
+    if (rows.isEmpty) return null;
+    return ExamReport.fromRow(rows.first);
+  }
+
 
   Future<List<ExamReport>> listReports({int limit = 60, String? paperId}) async {
     final db = await database;
@@ -1501,6 +2318,180 @@ class AppDatabase {
       'elapsed_ms': elapsedMs,
       'created_at': DateTime.now().toIso8601String(),
     });
+  }
+
+  /// 弱点诊断的全部输入，一次查完。
+  ///
+  /// 页面上的结论要能在没配 AI 的时候照样出，所以这里给的是**算好的数**，
+  /// 不是等着模型去数的原始记录。模型拿到的也是这一份的压缩版。
+  Future<DiagnosisData> diagnosisData({int recentDays = 14}) async {
+    final db = await database;
+    final now = DateTime.now();
+    final cut = now.subtract(Duration(days: recentDays)).toIso8601String();
+
+    Future<DiagnosisSlice> window(String where, List<Object?> args) async {
+      final row = (await db.rawQuery('''
+        SELECT COUNT(*) AS n,
+               SUM(CASE WHEN is_correct = 1 THEN 1 ELSE 0 END) AS c,
+               AVG(CASE WHEN elapsed_ms > 0 THEN elapsed_ms END) AS ms
+        FROM practice_logs WHERE $where
+      ''', args))
+          .first;
+      return DiagnosisSlice(
+        key: '',
+        attempts: int.tryParse('${row['n']}') ?? 0,
+        correct: int.tryParse('${row['c']}') ?? 0,
+        avgSeconds: ((double.tryParse('${row['ms']}') ?? 0) / 1000).round(),
+      );
+    }
+
+    final overall = await window('1 = 1', const []);
+    final recent = await window('created_at >= ?', [cut]);
+    final earlier = await window('created_at < ?', [cut]);
+
+    Future<List<DiagnosisSlice>> group(String column, {int limit = 20}) async {
+      final rows = await db.rawQuery('''
+        SELECT q.$column AS k,
+               COUNT(*) AS n,
+               SUM(CASE WHEN l.is_correct = 1 THEN 1 ELSE 0 END) AS c,
+               AVG(CASE WHEN l.elapsed_ms > 0 THEN l.elapsed_ms END) AS ms
+        FROM practice_logs l
+        JOIN questions q ON q.id = l.question_id
+        WHERE q.$column IS NOT NULL AND TRIM(q.$column) != ''
+        GROUP BY q.$column
+        ORDER BY n DESC
+        LIMIT ?
+      ''', [limit]);
+      return [
+        for (final r in rows)
+          DiagnosisSlice(
+            key: '${r['k']}',
+            attempts: int.tryParse('${r['n']}') ?? 0,
+            correct: int.tryParse('${r['c']}') ?? 0,
+            avgSeconds: ((double.tryParse('${r['ms']}') ?? 0) / 1000).round(),
+          ),
+      ];
+    }
+
+    final activeDays = Sqflite.firstIntValue(await db.rawQuery(
+          'SELECT COUNT(DISTINCT substr(created_at, 1, 10)) FROM practice_logs',
+        )) ??
+        0;
+    final firstRow = await db.rawQuery(
+      'SELECT MIN(created_at) AS t FROM practice_logs',
+    );
+    final firstAt = DateTime.tryParse('${firstRow.first['t'] ?? ''}');
+
+    final reasonRows = await db.rawQuery(
+      'SELECT reason, COUNT(*) AS n FROM wrong_reasons GROUP BY reason',
+    );
+    final byReason = <String, int>{
+      for (final r in reasonRows)
+        '${r['reason']}': int.tryParse('${r['n']}') ?? 0,
+    };
+
+    // 错题本 = 最后一次作答是错的那些题。跟 fetchWrong 同一个口径。
+    const stillWrong = '''
+      SELECT l.question_id AS qid FROM practice_logs l
+      JOIN (SELECT question_id, MAX(id) AS last_id FROM practice_logs
+            GROUP BY question_id) last ON last.last_id = l.id
+      WHERE l.is_correct = 0
+    ''';
+    final wrongTotal = Sqflite.firstIntValue(
+          await db.rawQuery('SELECT COUNT(*) FROM ($stillWrong)'),
+        ) ??
+        0;
+    final repeatWrong = Sqflite.firstIntValue(await db.rawQuery('''
+          SELECT COUNT(*) FROM (
+            SELECT question_id FROM practice_logs
+            WHERE question_id IN ($stillWrong) AND is_correct = 0
+            GROUP BY question_id HAVING COUNT(*) > 1
+          )
+        ''')) ??
+        0;
+
+    final topRows = await db.rawQuery('''
+      SELECT q.category AS cat, q.sub_category AS sub,
+             COUNT(*) AS times, q.content AS content
+      FROM practice_logs l
+      JOIN questions q ON q.id = l.question_id
+      WHERE l.is_correct = 0 AND l.question_id IN ($stillWrong)
+      GROUP BY l.question_id
+      ORDER BY times DESC
+      LIMIT 8
+    ''');
+
+    final reportRows = await db.rawQuery('''
+      SELECT title, total, correct, elapsed_ms FROM exam_reports
+      WHERE done = 1 ORDER BY created_at DESC LIMIT 5
+    ''');
+
+    return DiagnosisData(
+      attempts: overall.attempts,
+      correct: overall.correct,
+      activeDays: activeDays,
+      firstAt: firstAt,
+      byCategory: await group('category'),
+      bySubCategory: await group('sub_category'),
+      byReason: byReason,
+      recent: recent,
+      earlier: earlier,
+      wrongTotal: wrongTotal,
+      repeatWrong: repeatWrong,
+      topWrong: [
+        for (final r in topRows)
+          (
+            category: '${r['cat'] ?? ''}',
+            subCategory: '${r['sub'] ?? ''}',
+            times: int.tryParse('${r['times']}') ?? 1,
+            preview: '${r['content'] ?? ''}'.replaceAll('\n', ' ').trim(),
+          ),
+      ],
+      reports: [
+        for (final r in reportRows)
+          (
+            title: '${r['title'] ?? ''}',
+            total: int.tryParse('${r['total']}') ?? 0,
+            correct: int.tryParse('${r['correct']}') ?? 0,
+            minutes:
+                ((int.tryParse('${r['elapsed_ms']}') ?? 0) / 60000).round(),
+          ),
+      ],
+    );
+  }
+
+  /// 一份成卷记录里，每道题分别花了多少秒、对没对。
+  ///
+  /// exam_reports 只存了总用时，逐题的时间在 practice_logs 里 —— 按这份记录
+  /// 的时间窗口去捞，避免把同一道题以前练的那次也算进来。
+  Future<Map<String, ({bool correct, int seconds})>> reportTimings(
+    ExamReport report,
+  ) async {
+    if (report.questionIds.isEmpty) return const {};
+    final db = await database;
+    final end = report.createdAt.add(const Duration(minutes: 2));
+    final start = report.createdAt.subtract(
+      report.elapsed + const Duration(hours: 1),
+    );
+    final marks = List.filled(report.questionIds.length, '?').join(',');
+    final rows = await db.rawQuery('''
+      SELECT question_id, is_correct, elapsed_ms
+      FROM practice_logs
+      WHERE question_id IN ($marks) AND created_at >= ? AND created_at <= ?
+      ORDER BY id
+    ''', [
+      ...report.questionIds,
+      start.toIso8601String(),
+      end.toIso8601String(),
+    ]);
+    final out = <String, ({bool correct, int seconds})>{};
+    for (final r in rows) {
+      out['${r['question_id']}'] = (
+        correct: '${r['is_correct']}' == '1',
+        seconds: ((int.tryParse('${r['elapsed_ms']}') ?? 0) / 1000).round(),
+      );
+    }
+    return out;
   }
 
   /// Median-ish pace per category: average seconds spent on answered questions.
@@ -2113,4 +3104,77 @@ class BankDirtyItem {
   final String category;
   final String answer;
   final String preview;
+}
+
+/// 诊断用的一片统计：某个模块 / 题型做了多少、对多少、平均花多少秒。
+class DiagnosisSlice {
+  const DiagnosisSlice({
+    required this.key,
+    required this.attempts,
+    required this.correct,
+    required this.avgSeconds,
+  });
+
+  final String key;
+  final int attempts;
+  final int correct;
+
+  /// 只统计记了用时的那些作答，没有记录时为 0。
+  final int avgSeconds;
+
+  double get accuracy => attempts == 0 ? 0 : correct / attempts;
+}
+
+/// 一次弱点诊断的全部输入。
+///
+/// 全部在本机算完，送给模型的只有这些聚合数字和几条错题的题干摘要 ——
+/// 不是整本错题本。既省 token，也不用把做题记录整体传出去。
+class DiagnosisData {
+  const DiagnosisData({
+    required this.attempts,
+    required this.correct,
+    required this.activeDays,
+    required this.firstAt,
+    required this.byCategory,
+    required this.bySubCategory,
+    required this.byReason,
+    required this.recent,
+    required this.earlier,
+    required this.wrongTotal,
+    required this.repeatWrong,
+    required this.topWrong,
+    required this.reports,
+  });
+
+  final int attempts;
+  final int correct;
+
+  /// 有作答记录的天数。
+  final int activeDays;
+  final DateTime? firstAt;
+
+  final List<DiagnosisSlice> byCategory;
+  final List<DiagnosisSlice> bySubCategory;
+
+  /// 错因 key → 题数。key 为 '_none' 的是没标错因的。
+  final Map<String, int> byReason;
+
+  /// 近 14 天 / 更早的正确率，用来看有没有在进步。
+  final DiagnosisSlice recent;
+  final DiagnosisSlice earlier;
+
+  /// 当前错题本里有多少题、其中错过两次以上的有多少。
+  final int wrongTotal;
+  final int repeatWrong;
+
+  /// 错得最多的几道题：题型 + 错了几次 + 题干开头。
+  final List<({String category, String subCategory, int times, String preview})>
+      topWrong;
+
+  /// 最近几次成卷记录。
+  final List<({String title, int total, int correct, int minutes})> reports;
+
+  bool get isEmpty => attempts == 0;
+
+  double get accuracy => attempts == 0 ? 0 : correct / attempts;
 }

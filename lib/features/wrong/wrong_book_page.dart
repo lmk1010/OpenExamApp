@@ -17,6 +17,7 @@ import 'package:openexam_app/core/ui/stroke_icons.dart';
 import 'package:openexam_app/core/ui/ui_kit.dart';
 import 'package:openexam_app/data/db/app_database.dart';
 import 'package:openexam_app/data/models/question.dart';
+import 'package:openexam_app/features/diagnosis/diagnosis_page.dart';
 import 'package:openexam_app/features/practice/practice_session_page.dart';
 
 /// 错题本 — the review loop 考公 users live in: everything answered wrong and
@@ -311,13 +312,19 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
   /// 只看答案与解析，不计入新一次作答。
   Future<void> _browse(List<Question> questions) async {
     if (questions.isEmpty) return;
+    // 这里原来填的是正确答案 —— 于是"你的答案"栏永远等于正确答案，
+    // speed-read 一遍看不出自己当初错在哪，复盘就成了走过场。
+    final mine = await AppDatabase.instance
+        .lastAnswers(questions.map((q) => q.id).toList());
+    if (!mounted) return;
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => PracticeSessionPage(
           questions: questions,
           preferScroll: true,
           reviewAnswers: {
-            for (final q in questions) q.id: q.answer.trim().toUpperCase(),
+            for (final q in questions)
+              q.id: mine[q.id] ?? q.answer.trim().toUpperCase(),
           },
           title: '错题速览',
         ),
@@ -367,6 +374,42 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
         );
 
     return [
+      // 诊断先于复盘：错题本只告诉你"错了哪些"，诊断告诉你"为什么一直错"——
+      // 是慢、是某个模块塌了、还是同一批题在反复犯。
+      Padding(
+        padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 0, AppTheme.gutter, 12),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(builder: (_) => DiagnosisPage.history()),
+          ),
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(16, 14, 14, 14),
+            decoration: GlassDecor.panel(t, radius: 18, raised: false),
+            child: Row(
+              children: [
+                StrokeIcon(AppIcon.chart, size: 19, color: t.brand),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('弱点诊断', style: text.titleSmall?.copyWith(fontSize: 15)),
+                      const SizedBox(height: 4),
+                      Text(
+                        '拿你的速度和正确率去比 161 套真题的基准',
+                        style: text.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(Icons.chevron_right, size: 20, color: t.muted),
+              ],
+            ),
+          ),
+        ),
+      ),
+
       // 今日复盘 — one tap into the questions that cost the most marks.
       Padding(
         padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
@@ -554,19 +597,6 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
             label: categoryLabel(e.key),
           ),
         ),
-
-      if (paperKeys.length > 1) ...[
-        header('错得最多的卷'),
-        for (final key in paperKeys.take(4))
-          _DistRow(
-            label: papers[key]!.title,
-            count: papers[key]!.items.length,
-            ratio: papers[key]!.items.length / papers[paperKeys.first]!.items.length,
-            color: t.brand,
-            icon: AppIcon.papers,
-            onTap: () => _focus(paper: key),
-          ),
-      ],
 
       const SizedBox(height: 26),
       if (!context.isExpanded)
@@ -783,7 +813,7 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
                   icon: AppIcon.logic,
                   options: [
                     FilterOption('all', '全部题型', count: _wrong.length),
-                    for (final c in kGongkaoCategories)
+                    for (final c in CategoryRegistry.current)
                       if ((counts[c.key] ?? 0) > 0)
                         FilterOption(c.key, c.label, count: counts[c.key]),
                   ],
@@ -1164,6 +1194,20 @@ class _WrongRow extends StatelessWidget {
                         ),
                       ],
                     ),
+                    // 这题是哪张卷子上的，就写在题目下面 —— 比在页尾单开一个
+                    // 「错得最多的卷」榜有用，那个榜只有一列被截断的长卷名。
+                    if (question.paperTitle.isNotEmpty) ...[
+                      const SizedBox(height: 3),
+                      Text(
+                        question.paperTitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: text.bodySmall?.copyWith(
+                          color: t.textSoft,
+                          fontSize: 11.5,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),

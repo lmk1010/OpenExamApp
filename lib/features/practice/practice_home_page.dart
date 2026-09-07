@@ -16,12 +16,15 @@ import 'package:openexam_app/features/plan/domain/models/study_task.dart';
 import 'package:openexam_app/features/plan/presentation/pages/study_plan_page.dart';
 import 'package:openexam_app/features/plan/presentation/widgets/study_task_editor_sheet.dart';
 import 'package:openexam_app/features/practice/practice_session_page.dart';
+import 'package:openexam_app/features/profile/domain/exam_profile.dart';
 import 'package:openexam_app/features/practice/shore_home.dart';
 import 'package:openexam_app/features/essay/presentation/essay_page.dart';
 import 'package:openexam_app/features/shell/app_shell.dart';
 import 'package:openexam_app/features/shell/tab_reload.dart';
 import 'package:openexam_app/features/vocab/presentation/vocab_page.dart';
 import 'package:openexam_app/features/search/search_page.dart';
+import 'package:openexam_app/features/import/import_page.dart';
+import 'package:openexam_app/features/tools/tools_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PracticeHomePage extends StatefulWidget {
@@ -47,9 +50,14 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
   List<int> _week = const [0, 0, 0, 0, 0, 0, 0];
   int _count = 20;
   QuestionScope _scope = QuestionScope.all;
+
+  /// 只抽最近几年的真题。常识判断里一半的题引的是考前一年的讲话原文和新政策，
+  /// 旧题的答案已经作废；言语、判断、资料的结构常年不动，老题照样能练。
+  /// 所以这是个真开关，尤其是练常识的时候。
+  YearRange _years = YearRange.all;
   DateTime? _examDate;
   int _goal = 30;
-  ResumeState? _resume;
+  ExamReport? _resume;
   String? _province;
   List<Question> _daily = const [];
   ({int answered, int correct}) _dailyProgress = (answered: 0, correct: 0);
@@ -83,7 +91,7 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
       db.categoryStats(),
       db.dailyActivity(),
       db.countWrong(),
-      db.loadResume(),
+      db.latestUnfinished(),
       province == null ? Future.value(0) : db.countByRegion(province),
       db.difficultyCounts(),
       db.reviewPlans(),
@@ -96,9 +104,12 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
 
     final total = results[0] as int;
     final stats = results[1] as List<CategoryStat>;
+    // 题库里有什么分类，界面上就给什么筛选项 —— 导入别的考试之后
+    // 这一步让新科目立刻出现在练习页、搜索和错题本里。
+    CategoryRegistry.updateFrom(stats.map((e) => e.category));
     final week = results[2] as List<int>;
     final wrong = results[3] as int;
-    final resume = results[4] as ResumeState?;
+    final resume = results[4] as ExamReport?;
     final provinceCount = results[5] as int;
     final hardCount = (results[6] as Map<int, int>)[3] ?? 0;
     final plans = results[7] as List<ReviewPlan>;
@@ -174,8 +185,9 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
       limit: limit ?? _count,
       shuffle: true,
       scope: _scope,
+      years: _years,
     );
-    if (questions.isEmpty && _scope != QuestionScope.all) {
+    if (questions.isEmpty && (_scope != QuestionScope.all || _years != YearRange.all)) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -203,6 +215,7 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
       limit: _count,
       shuffle: false,
       scope: _scope,
+      years: _years,
     );
     if (!mounted || questions.isEmpty) return;
     await Navigator.of(context).push(
@@ -248,6 +261,7 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
       limit: limit ?? _count,
       shuffle: true,
       scope: _scope,
+      years: _years,
     );
     if (questions.isEmpty) return;
     final duration = minutes != null
@@ -282,6 +296,10 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
   Future<void> _runStudyTask(StudyTask task) async {
     switch (task.action) {
       case StudyAction.vocab:
+        if (!ExamProfileStore.current.has(ExamFeature.vocab)) {
+          await _toggleStudyTask(task, !_todayPlanDone.contains(task.id));
+          return;
+        }
         await Navigator.of(context)
             .push(MaterialPageRoute(builder: (_) => const VocabPage()));
         if (mounted) _reload();
@@ -428,10 +446,10 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
 
   List<Widget> _featureCards(AppTokens t) {
     return [
-      if (_resume != null && _resume!.remaining > 0)
+      if (_resume != null && _resume!.total - _resume!.answered > 0)
         _FeatureCard(
           title: '继续上次',
-          meta: '${_resume!.title} · 还剩 ${_resume!.remaining} 题',
+          meta: '${_resume!.title} · 还剩 ${_resume!.total - _resume!.answered} 题',
           glyph: AppIcon.replay,
           colors: [t.category('shuliang')],
           onTap: _continueResume,
@@ -467,6 +485,7 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
         onTap: _wrong == 0 ? null : _startWrong,
       ),
       // 申论不该只能从当天的计划任务进。没排任务的日子它就消失了。
+      if (ExamProfileStore.current.has(ExamFeature.essay))
       _FeatureCard(
         title: '申论批改',
         meta: '写一篇，交给 AI 评',
@@ -482,7 +501,8 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
       ),
       _FeatureCard(
         title: '限时模考',
-        meta: '50 题 · 45 分钟',
+        meta: '${ExamProfileStore.current.mockCount} 题 · '
+            '${ExamProfileStore.current.mockMinutes} 分钟',
         glyph: AppIcon.timer,
         colors: [t.category('ziliao')],
         onTap: _startMock,
@@ -605,7 +625,10 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
                 ),
                 const SizedBox(height: 16),
                 // 练法的两个参数放在这里，首页不为它们留位置
-                Row(
+                // 四个开关一行放不下，用 Wrap —— Row + Spacer 在窄屏上会溢出。
+                Wrap(
+                  spacing: 18,
+                  runSpacing: 10,
                   children: [
                     _SheetLink(
                       label: '每组 $_count 题',
@@ -614,7 +637,6 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
                         _pickCount();
                       },
                     ),
-                    const SizedBox(width: 18),
                     _SheetLink(
                       label: _scopeLabel(_scope),
                       onTap: () {
@@ -622,7 +644,13 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
                         _pickScope();
                       },
                     ),
-                    const Spacer(),
+                    _SheetLink(
+                      label: _years.label,
+                      onTap: () {
+                        Navigator.of(sheetContext).pop();
+                        _pickYears();
+                      },
+                    ),
                     _SheetLink(
                       label: '共 $_total 题',
                       onTap: () => showModalBottomSheet<void>(
@@ -700,6 +728,16 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
     }
   }
 
+  /// 空库时首页唯一的出口。
+  Future<void> _openImport() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const ImportPage(standalone: true),
+      ),
+    );
+    if (mounted) _reload();
+  }
+
   Future<void> _pickScope() async {
     final counts = await AppDatabase.instance.scopeCounts();
     if (!mounted) return;
@@ -711,13 +749,30 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
     if (picked != null && mounted) setState(() => _scope = picked);
   }
 
+  Future<void> _pickYears() async {
+    final counts = await AppDatabase.instance.yearRangeCounts();
+    final latest = await AppDatabase.instance.latestYear();
+    if (!mounted) return;
+    final picked = await showModalBottomSheet<YearRange>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) =>
+          _YearSheet(current: _years, counts: counts, latest: latest),
+    );
+    if (picked != null && mounted) setState(() => _years = picked);
+  }
+
   /// Mock exam: fixed set, countdown, answers hidden until 交卷.
+  ///
+  /// 题量和时长跟着备考目标走。行测 45 分钟 50 题，医师一个单元 150 题，
+  /// 写死一套数字对第二种人毫无意义。
   Future<void> _startMock() async {
+    final profile = ExamProfileStore.current;
     final questions = await AppDatabase.instance.fetchPractice(
-      limit: 50,
+      limit: profile.mockCount,
       shuffle: true,
     );
-    await _open(questions, limit: const Duration(minutes: 45), title: '限时模考');
+    await _open(questions, limit: profile.mockLimit, title: '限时模考');
   }
 
   /// Today's fixed set. Finished sets reopen in review mode rather than being
@@ -812,13 +867,16 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
     await prefs.setInt(Prefs.dailyGoal, picked);
   }
 
-  /// Picks an interrupted session back up where it stopped.
+  /// 接着做上次没做完的那一场。
+  ///
+  /// 进度现在跟记录同一份数据（exam_reports 里那条 done=0 的），所以首页
+  /// 这张卡片和记录页里"未做完"的那条指的是同一件事，不会各说各的。
   Future<void> _continueResume() async {
     final state = _resume;
     if (state == null) return;
     final questions = await AppDatabase.instance.fetchByIds(state.questionIds);
     if (questions.isEmpty) {
-      await AppDatabase.instance.clearResume();
+      await AppDatabase.instance.deleteReport(state.id);
       _reload();
       return;
     }
@@ -828,10 +886,10 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
         builder: (_) => PracticeSessionPage(
           questions: questions,
           title: state.title,
-          limit: state.limit,
-          startAt: state.index.clamp(0, questions.length - 1),
+          startAt: state.cursor.clamp(0, questions.length - 1),
           resumeAnswers: state.answers,
           resumeElapsed: state.elapsed,
+          resumeReportId: state.id,
         ),
       ),
     );
@@ -839,7 +897,8 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
   }
 
   Future<void> _dismissResume() async {
-    await AppDatabase.instance.clearResume();
+    final state = _resume;
+    if (state != null) await AppDatabase.instance.deleteReport(state.id);
     if (mounted) setState(() => _resume = null);
   }
 
@@ -891,6 +950,13 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
         kicker: '${now.month} 月 ${now.day} 日 · ${_weekdayCn(now)}',
         title: _greeting(now),
         actions: [
+          // 工具箱一直埋在「我的」里，四个词语功能还都缩在词语页的 tab 后面，
+          // 结果就是"明明有，但没人找得到"。放到首页顶栏。
+          ShoreRoundButton(
+            icon: Icon(Icons.grid_view_rounded, size: 18, color: t.textSoft),
+            onTap: () => Navigator.of(context)
+                .push(MaterialPageRoute(builder: (_) => const ToolsPage())),
+          ),
           ShoreRoundButton(
             icon: Icon(Icons.search, size: 19, color: t.textSoft),
             onTap: () => Navigator.of(context)
@@ -904,6 +970,13 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
         ],
       ),
       const SizedBox(height: ShoreGap.titleToBody),
+      // 题库是空的：首页上"每日一练""资料分析·限时""五座岛"全都点不出题来。
+      // 照常显示等于摆一屏死按钮 —— 不打包题库的那个版本（App Store）一装上
+      // 就是这个状态，审核员点哪个都是空的，会直接判"功能不完整"。
+      // 所以空库时整页只说一件事：先导题库。
+      if (_total == 0) ...[
+        _NoBankCard(onImport: _openImport),
+      ] else ...[
       VoyageCard(
         done: _week.last,
         goal: _goal,
@@ -940,9 +1013,10 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
               : '「${plan.label}」第 ${plan.nextDay} 天还没做',
           onTap: () => AppShell.jumpTo.value = AppShell.wrongBookTab,
         ),
+      ],
     ];
 
-    final rest = <Widget>[
+    final rest = _total == 0 ? const <Widget>[] : <Widget>[
       const SizedBox(height: ShoreGap.section),
       ShoreSection(
         title: '五座岛',
@@ -1272,6 +1346,100 @@ class _ScopeSheet extends StatelessWidget {
                       Text('${counts[item.scope] ?? 0} 题', style: text.bodySmall),
                       const SizedBox(width: 10),
                       if (item.scope == current)
+                        Icon(Icons.check, size: 19, color: t.brand),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 年份范围。
+///
+/// 基准是题库里最新的年份，不是今天 —— 库里最新是 2026 年卷，按系统时间算
+/// 会把整个 2026 年的题当成"未来"，一道都抽不出来。
+class _YearSheet extends StatelessWidget {
+  const _YearSheet({
+    required this.current,
+    required this.counts,
+    required this.latest,
+  });
+
+  final YearRange current;
+  final Map<YearRange, int> counts;
+  final int latest;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+
+    final items = [
+      (
+        range: YearRange.all,
+        desc: '题库里有的都抽，仍然优先近年',
+      ),
+      (
+        range: YearRange.last3,
+        desc: '$latest—${latest - 2} 年 · 结构和考点最贴近今年',
+      ),
+      (
+        range: YearRange.last1,
+        desc: '只有 $latest 年 · 练常识时间政策题必用这一档',
+      ),
+    ];
+
+    return Container(
+      decoration: BoxDecoration(
+        color: t.gradient.last,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        border: Border(top: BorderSide(color: t.lineSoft)),
+      ),
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 12),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('年份范围', style: text.titleMedium),
+            const SizedBox(height: 6),
+            Text(
+              '常识判断一半的题引的是考前一年的讲话原文和新出台文件，'
+              '旧题的答案已经作废；言语、判断、资料的结构常年不动，老题照样能练。',
+              style: text.bodySmall,
+            ),
+            const SizedBox(height: 6),
+            for (final item in items)
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => Navigator.of(context).pop(item.range),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              item.range.label,
+                              style: text.titleSmall?.copyWith(
+                                color: item.range == current ? t.brand : t.text,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(item.desc, style: text.bodySmall),
+                          ],
+                        ),
+                      ),
+                      Text('${counts[item.range] ?? 0} 题', style: text.bodySmall),
+                      const SizedBox(width: 10),
+                      if (item.range == current)
                         Icon(Icons.check, size: 19, color: t.brand),
                     ],
                   ),
@@ -1800,6 +1968,74 @@ class _SheetLink extends StatelessWidget {
             color: context.tokens.brand,
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// 题库为空时首页显示的唯一一块内容。
+///
+/// 不打包题库的发行版（App Store）装上就是这个状态。它必须自己说清三件事：
+/// 现在没有题、为什么没有、下一步点哪 —— 少任何一件，用户和审核员都会认为
+/// 这是个坏掉的 App，而不是一个等你装题库的工具。
+class _NoBankCard extends StatelessWidget {
+  const _NoBankCard({required this.onImport});
+
+  final VoidCallback onImport;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 22, 20, 20),
+      decoration: GlassDecor.panel(t, radius: 22, raised: false),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          StrokeIcon(AppIcon.papers, size: 26, color: t.brand),
+          const SizedBox(height: 14),
+          Text('还没有题库', style: text.titleMedium?.copyWith(fontSize: 18)),
+          const SizedBox(height: 8),
+          Text(
+            '这个版本不预装题目 —— 题库和 App 是分开的，装哪套题库就是练哪门考试。'
+            '导入一份就能开始：做题、按卷模考、错题复盘、弱点诊断都不用联网。',
+            style: text.bodyMedium?.copyWith(height: 1.75),
+          ),
+          const SizedBox(height: 16),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: onImport,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+              decoration: BoxDecoration(
+                color: t.accent,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  StrokeIcon(AppIcon.download, size: 16, color: t.onAccent),
+                  const SizedBox(width: 8),
+                  Text(
+                    '导入题库',
+                    style: TextStyle(
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w700,
+                      color: t.onAccent,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            '也可以把题库文件放进「文件」App 的 OpenExam 文件夹，或者用「扫描试卷」'
+            '把纸质卷子拍成题目。',
+            style: text.bodySmall?.copyWith(height: 1.6),
+          ),
+        ],
       ),
     );
   }
