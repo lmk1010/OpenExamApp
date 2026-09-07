@@ -73,6 +73,12 @@ void main() {
       }
 
       expect(find.byType(AppShell), findsOneWidget);
+
+      // 底栏只给**选中**的那个 tab 配字，其余是纯图标。所以这里只能钉住
+      // 当前这一个 —— 「页面标题是英文、导航还是中文」这种夹生状态，
+      // 从这一条就能看出来。
+      final l = lookupAppL(Locale(lang));
+      expect(find.text(l.tabPractice), findsWidgets, reason: '底栏少了 ${l.tabPractice}');
     });
 
     testWidgets('$lang：引导页三屏在 320 宽下都不溢出', (tester) async {
@@ -83,10 +89,24 @@ void main() {
       await tester.pump(const Duration(milliseconds: 400));
 
       // 三屏都要翻过去看一遍 —— 最后一屏（设置考试日期）文字最长。
+      // 走按钮不走手势：PageView 在测试里拖不一定翻页，翻不过去就等于
+      // 什么都没测，还看不出来。
       for (var i = 0; i < 2; i++) {
-        await tester.drag(find.byType(PageView), const Offset(-320, 0));
+        await tester.tap(find.byType(FilledButton));
         await tester.pumpAndSettle();
       }
+
+      // 顺手钉死最后一屏的文案。这一屏是最晚搬的，装了旧包的人看见的是
+      // 「Skip / Let's go」夹着满屏中文 —— 那是包旧了，不是没搬；这条断言
+      // 就是用来分辨这两种情况的。
+      final l = lookupAppL(Locale(lang));
+      expect(find.text(l.onboardThreeThings), findsOneWidget);
+      expect(find.text(l.onboardDailyGoal), findsOneWidget);
+      // 「考哪儿 / 考试哪天」在 320 高的屏上要滚下去才建出来。
+      await tester.scrollUntilVisible(find.text(l.onboardWhen), 120,
+          scrollable: find.byType(Scrollable).last);
+      expect(find.text(l.onboardWhere), findsOneWidget);
+      expect(find.text(l.onboardWhen), findsOneWidget);
     });
   }
 
