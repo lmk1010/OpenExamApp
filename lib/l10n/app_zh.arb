@@ -2466,5 +2466,68 @@
   "notesTitleField": "标题（可选）",
   "notesTitleHint": "不写就取正文第一行",
   "notesBody": "内容",
-  "notesBodyHint": "公式、坑点、这次模考的教训…"
+  "notesBodyHint": "公式、坑点、这次模考的教训…",
+  "usageClear": "清空用量记录",
+  "usageClearBody": "只清掉这里的统计，不影响已经生成的讲解和导入的题。",
+  "usageClearShort": "清空",
+  "usageTitle": "AI 用量",
+  "usageLastDays": "近 {days} 天",
+  "@usageLastDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "usageNone": "还没有用量",
+  "usageNoneHint": "AI 讲题、导入解析、申论批改都会记在这里。",
+  "usageWhere": "花在哪",
+  "usageByTokens": "token 从多到少",
+  "usageByModel": "按模型",
+  "usageUnrecorded": "未记录",
+  "usageTokenNote": "token 数由模型返回，各家统计口径略有差别，这里的数字用来比较大小，跟账单可能差一点。",
+  "usageFeatureExplain": "AI 讲题",
+  "usageFeatureDoc": "文档导入",
+  "usageFeatureScan": "拍照 / PDF 识题",
+  "usageFeatureEssay": "申论批改",
+  "usageFeatureImage": "图片识题",
+  "usageFeatureSort": "分类整理",
+  "usageFeatureOther": "其他",
+  "usageCalls": "{count} 次调用",
+  "@usageCalls": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "usageLast14": "近 14 天",
+  "usageGroupLine": "{calls} 次 · 进 {inTok} · 出 {outTok}",
+  "@usageGroupLine": {
+    "placeholders": {
+      "calls": {
+        "type": "int"
+      },
+      "inTok": {
+        "type": "String"
+      },
+      "outTok": {
+        "type": "String"
+      }
+    }
+  },
+  "explainTitle": "出题人视角",
+  "explainRedo": "重讲",
+  "explainWorking": "正在看这道题",
+  "explainPitch": "让 AI 从出题人的角度讲一遍：这题考什么、干扰项怎么设的、你错在哪。",
+  "explainAsk": "AI 讲这道题",
+  "explainBackground": "可以先去做别的，回来接着看",
+  "explainStamp": "AI 生成 · {stamp}",
+  "@explainStamp": {
+    "placeholders": {
+      "stamp": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
 import 'package:openexam_app/core/ui/ambient.dart';
@@ -54,16 +55,16 @@ class _AiUsagePageState extends State<AiUsagePage> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('清空用量记录'),
-        content: const Text('只清掉这里的统计，不影响已经生成的讲解和导入的题。'),
+        title: Text(AppL.of(context).usageClear),
+        content: Text(AppL.of(context).usageClearBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('取消'),
+            child: Text(AppL.of(context).commonCancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('清空'),
+            child: Text(AppL.of(context).usageClearShort),
           ),
         ],
       ),
@@ -94,7 +95,7 @@ class _AiUsagePageState extends State<AiUsagePage> {
                   ),
                   children: [
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(
+                      padding: EdgeInsets.fromLTRB(
                           AppTheme.gutter, 8, AppTheme.gutter, 4),
                       child: Row(
                         children: [
@@ -102,13 +103,13 @@ class _AiUsagePageState extends State<AiUsagePage> {
                             icon: Icons.arrow_back,
                             onTap: () => Navigator.of(context).maybePop(),
                           ),
-                          const SizedBox(width: 4),
+                          SizedBox(width: 4),
                           Expanded(
-                              child: Text('AI 用量', style: text.titleMedium)),
+                              child: Text(AppL.of(context).usageTitle, style: text.titleMedium)),
                           if (_total > 0)
                             TextButton(
                               onPressed: _clear,
-                              child: Text('清空',
+                              child: Text(AppL.of(context).usageClearShort,
                                   style: text.labelMedium
                                       ?.copyWith(color: t.textSoft)),
                             ),
@@ -117,14 +118,14 @@ class _AiUsagePageState extends State<AiUsagePage> {
                     ),
 
                     Padding(
-                      padding: const EdgeInsets.symmetric(
+                      padding: EdgeInsets.symmetric(
                           horizontal: AppTheme.gutter),
                       child: Wrap(
                         spacing: 8,
                         children: [
-                          for (final d in const [7, 30, 0])
+                          for (final d in [7, 30, 0])
                             _RangeChip(
-                              label: d == 0 ? '全部' : '近 $d 天',
+                              label: d == 0 ? AppL.of(context).bankAllShort : AppL.of(context).usageLastDays(d),
                               on: _rangeDays == d,
                               onTap: () {
                                 setState(() {
@@ -139,12 +140,12 @@ class _AiUsagePageState extends State<AiUsagePage> {
                     ),
 
                     if (_total == 0)
-                      const Padding(
+                      Padding(
                         padding: EdgeInsets.only(top: 40),
                         child: EmptyState(
                           icon: Icons.data_usage_outlined,
-                          title: '还没有用量',
-                          message: 'AI 讲题、导入解析、申论批改都会记在这里。',
+                          title: AppL.of(context).usageNone,
+                          message: AppL.of(context).usageNoneHint,
                         ),
                       )
                     else ...[
@@ -158,31 +159,30 @@ class _AiUsagePageState extends State<AiUsagePage> {
                           daily: _daily,
                         ),
                       ),
-                      const SizedBox(height: 22),
-                      const SectionHeader(
-                        title: '花在哪',
-                        caption: 'token 从多到少',
+                      SizedBox(height: 22),
+                      SectionHeader(
+                        title: AppL.of(context).usageWhere,
+                        caption: AppL.of(context).usageByTokens,
                       ),
                       for (final g in _byFeature)
                         _UsageRow(
-                          label: _featureLabel(g.key),
+                          label: _featureLabel(context, g.key),
                           group: g,
                           ratio: _total == 0 ? 0 : g.total / _total,
                         ),
-                      const SizedBox(height: 18),
-                      const SectionHeader(title: '按模型'),
+                      SizedBox(height: 18),
+                      SectionHeader(title: AppL.of(context).usageByModel),
                       for (final g in _byModel)
                         _UsageRow(
-                          label: g.key.isEmpty ? '未记录' : g.key,
+                          label: g.key.isEmpty ? AppL.of(context).usageUnrecorded : g.key,
                           group: g,
                           ratio: _total == 0 ? 0 : g.total / _total,
                         ),
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(
+                        padding: EdgeInsets.fromLTRB(
                             AppTheme.gutter, 22, AppTheme.gutter, 0),
                         child: Text(
-                          'token 数由模型返回，各家统计口径略有差别，'
-                          '这里的数字用来比较大小，跟账单可能差一点。',
+                          AppL.of(context).usageTokenNote,
                           style: text.bodySmall?.copyWith(color: t.textSoft),
                         ),
                       ),
@@ -195,14 +195,14 @@ class _AiUsagePageState extends State<AiUsagePage> {
   }
 }
 
-String _featureLabel(String key) => switch (key) {
-      'explain' => 'AI 讲题',
-      'import' => '文档导入',
-      'scan' => '拍照 / PDF 识题',
-      'essay' => '申论批改',
-      'ocr' => '图片识题',
-      'classify' => '分类整理',
-      _ => '其他',
+String _featureLabel(BuildContext context, String key) => switch (key) {
+      'explain' => AppL.of(context).usageFeatureExplain,
+      'import' => AppL.of(context).usageFeatureDoc,
+      'scan' => AppL.of(context).usageFeatureScan,
+      'essay' => AppL.of(context).usageFeatureEssay,
+      'ocr' => AppL.of(context).usageFeatureImage,
+      'classify' => AppL.of(context).usageFeatureSort,
+      _ => AppL.of(context).usageFeatureOther,
     };
 
 /// 万位以上折成 k，一屏排得下。
@@ -256,8 +256,8 @@ class _TotalCard extends StatelessWidget {
               ),
               const SizedBox(width: 6),
               Text('tokens', style: text.bodySmall?.copyWith(color: t.textSoft)),
-              const Spacer(),
-              Text('$calls 次调用',
+              Spacer(),
+              Text(AppL.of(context).usageCalls(calls),
                   style: text.bodySmall?.copyWith(color: t.textSoft)),
             ],
           ),
@@ -286,8 +286,8 @@ class _TotalCard extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 7),
-            Text('近 14 天', style: text.bodySmall?.copyWith(color: t.textSoft)),
+            SizedBox(height: 7),
+            Text(AppL.of(context).usageLast14, style: text.bodySmall?.copyWith(color: t.textSoft)),
           ],
         ],
       ),
@@ -346,8 +346,11 @@ class _UsageRow extends StatelessWidget {
           ),
           const SizedBox(height: 5),
           Text(
-            '${group.calls} 次 · 进 ${formatTokens(group.inputTokens)}'
-            ' · 出 ${formatTokens(group.outputTokens)}',
+            AppL.of(context).usageGroupLine(
+              group.calls,
+              formatTokens(group.inputTokens),
+              formatTokens(group.outputTokens),
+            ),
             style: text.bodySmall?.copyWith(color: t.textSoft, fontSize: 11.5),
           ),
         ],

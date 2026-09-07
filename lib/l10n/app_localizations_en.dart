@@ -3234,4 +3234,104 @@ class AppLEn extends AppL {
 
   @override
   String get notesBodyHint => 'A formula, a trap, what this mock taught you…';
+
+  @override
+  String get usageClear => 'Clear usage history';
+
+  @override
+  String get usageClearBody =>
+      'Clears these numbers only — explanations already generated and questions already imported stay.';
+
+  @override
+  String get usageClearShort => 'Clear';
+
+  @override
+  String get usageTitle => 'AI usage';
+
+  @override
+  String usageLastDays(int days) {
+    return 'Last $days days';
+  }
+
+  @override
+  String get usageNone => 'No usage yet';
+
+  @override
+  String get usageNoneHint =>
+      'Explaining questions, parsing imports and marking essays all get logged here.';
+
+  @override
+  String get usageWhere => 'Where it goes';
+
+  @override
+  String get usageByTokens => 'Most tokens first';
+
+  @override
+  String get usageByModel => 'By model';
+
+  @override
+  String get usageUnrecorded => 'Not recorded';
+
+  @override
+  String get usageTokenNote =>
+      'Token counts come from the model, and providers count slightly differently. Use these to compare sizes — your bill may differ a little.';
+
+  @override
+  String get usageFeatureExplain => 'Explaining questions';
+
+  @override
+  String get usageFeatureDoc => 'Document import';
+
+  @override
+  String get usageFeatureScan => 'Photo / PDF reading';
+
+  @override
+  String get usageFeatureEssay => 'Essay marking';
+
+  @override
+  String get usageFeatureImage => 'Image reading';
+
+  @override
+  String get usageFeatureSort => 'Category sorting';
+
+  @override
+  String get usageFeatureOther => 'Other';
+
+  @override
+  String usageCalls(int count) {
+    return '$count calls';
+  }
+
+  @override
+  String get usageLast14 => 'Last 14 days';
+
+  @override
+  String usageGroupLine(int calls, String inTok, String outTok) {
+    return '$calls calls · in $inTok · out $outTok';
+  }
+
+  @override
+  String get explainTitle => 'From the examiner\'s side';
+
+  @override
+  String get explainRedo => 'Explain again';
+
+  @override
+  String get explainWorking => 'Working on this one';
+
+  @override
+  String get explainPitch =>
+      'Have AI walk through it the way the examiner built it: what\'s being tested, how the distractors were set, and where you went wrong.';
+
+  @override
+  String get explainAsk => 'Explain this one';
+
+  @override
+  String get explainBackground =>
+      'Go do something else — it keeps going and you can come back';
+
+  @override
+  String explainStamp(String stamp) {
+    return 'AI · $stamp';
+  }
 }

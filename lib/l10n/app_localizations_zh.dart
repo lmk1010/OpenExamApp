@@ -3145,4 +3145,99 @@ class AppLZh extends AppL {
 
   @override
   String get notesBodyHint => '公式、坑点、这次模考的教训…';
+
+  @override
+  String get usageClear => '清空用量记录';
+
+  @override
+  String get usageClearBody => '只清掉这里的统计，不影响已经生成的讲解和导入的题。';
+
+  @override
+  String get usageClearShort => '清空';
+
+  @override
+  String get usageTitle => 'AI 用量';
+
+  @override
+  String usageLastDays(int days) {
+    return '近 $days 天';
+  }
+
+  @override
+  String get usageNone => '还没有用量';
+
+  @override
+  String get usageNoneHint => 'AI 讲题、导入解析、申论批改都会记在这里。';
+
+  @override
+  String get usageWhere => '花在哪';
+
+  @override
+  String get usageByTokens => 'token 从多到少';
+
+  @override
+  String get usageByModel => '按模型';
+
+  @override
+  String get usageUnrecorded => '未记录';
+
+  @override
+  String get usageTokenNote => 'token 数由模型返回，各家统计口径略有差别，这里的数字用来比较大小，跟账单可能差一点。';
+
+  @override
+  String get usageFeatureExplain => 'AI 讲题';
+
+  @override
+  String get usageFeatureDoc => '文档导入';
+
+  @override
+  String get usageFeatureScan => '拍照 / PDF 识题';
+
+  @override
+  String get usageFeatureEssay => '申论批改';
+
+  @override
+  String get usageFeatureImage => '图片识题';
+
+  @override
+  String get usageFeatureSort => '分类整理';
+
+  @override
+  String get usageFeatureOther => '其他';
+
+  @override
+  String usageCalls(int count) {
+    return '$count 次调用';
+  }
+
+  @override
+  String get usageLast14 => '近 14 天';
+
+  @override
+  String usageGroupLine(int calls, String inTok, String outTok) {
+    return '$calls 次 · 进 $inTok · 出 $outTok';
+  }
+
+  @override
+  String get explainTitle => '出题人视角';
+
+  @override
+  String get explainRedo => '重讲';
+
+  @override
+  String get explainWorking => '正在看这道题';
+
+  @override
+  String get explainPitch => '让 AI 从出题人的角度讲一遍：这题考什么、干扰项怎么设的、你错在哪。';
+
+  @override
+  String get explainAsk => 'AI 讲这道题';
+
+  @override
+  String get explainBackground => '可以先去做别的，回来接着看';
+
+  @override
+  String explainStamp(String stamp) {
+    return 'AI 生成 · $stamp';
+  }
 }

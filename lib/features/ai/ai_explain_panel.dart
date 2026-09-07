@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/ai/ai_settings.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
 import 'package:openexam_app/core/ui/glass.dart';
@@ -100,8 +101,8 @@ class _AiExplainPanelState extends State<AiExplainPanel> {
                 Row(
                   children: [
                     Icon(Icons.psychology_outlined, size: 15, color: t.brand),
-                    const SizedBox(width: 6),
-                    Text('出题人视角',
+                    SizedBox(width: 6),
+                    Text(AppL.of(context).explainTitle,
                         style: text.labelLarge?.copyWith(color: t.brand)),
                     const Spacer(),
                     if (state.text.isNotEmpty && !state.streaming)
@@ -109,9 +110,9 @@ class _AiExplainPanelState extends State<AiExplainPanel> {
                         onTap: () => _ask(again: true),
                         borderRadius: BorderRadius.circular(8),
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(
+                          padding: EdgeInsets.symmetric(
                               horizontal: 6, vertical: 3),
-                          child: Text('重讲',
+                          child: Text(AppL.of(context).explainRedo,
                               style:
                                   text.bodySmall?.copyWith(color: t.textSoft)),
                         ),
@@ -127,7 +128,7 @@ class _AiExplainPanelState extends State<AiExplainPanel> {
                         // 还在吐字就在末尾留一根闪的光标：一段话停住不动时，
                         // 光看文字分不清是在想还是断了
                         if (state.streaming)
-                          const WidgetSpan(
+                          WidgetSpan(
                             alignment: PlaceholderAlignment.middle,
                             child: AiCaret(),
                           ),
@@ -142,18 +143,18 @@ class _AiExplainPanelState extends State<AiExplainPanel> {
                 else if (state.streaming) ...[
                   Row(
                     children: [
-                      Text('正在看这道题',
+                      Text(AppL.of(context).explainWorking,
                           style: text.bodySmall?.copyWith(color: t.textSoft)),
                       const SizedBox(width: 5),
                       const AiDots(),
                     ],
                   ),
                   const SizedBox(height: 14),
-                  const AiThinkingSkeleton(),
+                  AiThinkingSkeleton(),
                 ]
                 else if (state.error == null) ...[
                   Text(
-                    '让 AI 从出题人的角度讲一遍：这题考什么、干扰项怎么设的、你错在哪。',
+                    AppL.of(context).explainPitch,
                     style: text.bodySmall?.copyWith(color: t.textSoft),
                   ),
                   const SizedBox(height: 12),
@@ -161,22 +162,22 @@ class _AiExplainPanelState extends State<AiExplainPanel> {
                     width: double.infinity,
                     child: OutlinedButton(
                       onPressed: _ask,
-                      child: const Text('AI 讲这道题'),
+                      child: Text(AppL.of(context).explainAsk),
                     ),
                   ),
                 ],
                 // 落款要等写完才有模型和时间
                 if (state.streaming) ...[
-                  const SizedBox(height: 10),
-                  Text('可以先去做别的，回来接着看',
+                  SizedBox(height: 10),
+                  Text(AppL.of(context).explainBackground,
                       style: text.bodySmall?.copyWith(
                         color: t.textSoft,
                         fontSize: 11.5,
                       )),
                 ] else if (state.stamp != null) ...[
-                  const SizedBox(height: 10),
+                  SizedBox(height: 10),
                   Text(
-                    'AI 生成 · ${state.stamp}',
+                    AppL.of(context).explainStamp(state.stamp!),
                     style: text.bodySmall?.copyWith(
                       color: t.textSoft,
                       fontSize: 11.5,
@@ -190,7 +191,7 @@ class _AiExplainPanelState extends State<AiExplainPanel> {
                   const SizedBox(height: 8),
                   OutlinedButton(
                     onPressed: () => _ask(again: true),
-                    child: const Text('重试'),
+                    child: Text(AppL.of(context).commonRetry),
                   ),
                 ],
               ],

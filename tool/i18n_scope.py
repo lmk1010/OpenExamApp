@@ -37,6 +37,9 @@ CONTENT = {
     # 剩下的是「国考/联考/事业/选调」这批 —— 拿去 contains 匹配中文卷名的
     # key 和 switch 分支，决定试卷分类、图标和配色，翻了直接打断。
     'lib/features/bank/bank_page.dart': '匹配中文卷名的地区/考试类型 key',
+    # 拼给模型的题目上下文和禁用套话表（「这是一道很好的题」那种），
+    # 是给模型的指令不是界面。
+    'lib/features/ai/ai_explain_panel.dart': '讲题提示词与禁用套话表',
 }
 
 

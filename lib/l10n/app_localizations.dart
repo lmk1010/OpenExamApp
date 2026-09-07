@@ -5555,6 +5555,180 @@ abstract class AppL {
   /// In zh, this message translates to:
   /// **'公式、坑点、这次模考的教训…'**
   String get notesBodyHint;
+
+  /// No description provided for @usageClear.
+  ///
+  /// In zh, this message translates to:
+  /// **'清空用量记录'**
+  String get usageClear;
+
+  /// No description provided for @usageClearBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'只清掉这里的统计，不影响已经生成的讲解和导入的题。'**
+  String get usageClearBody;
+
+  /// No description provided for @usageClearShort.
+  ///
+  /// In zh, this message translates to:
+  /// **'清空'**
+  String get usageClearShort;
+
+  /// No description provided for @usageTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'AI 用量'**
+  String get usageTitle;
+
+  /// No description provided for @usageLastDays.
+  ///
+  /// In zh, this message translates to:
+  /// **'近 {days} 天'**
+  String usageLastDays(int days);
+
+  /// No description provided for @usageNone.
+  ///
+  /// In zh, this message translates to:
+  /// **'还没有用量'**
+  String get usageNone;
+
+  /// No description provided for @usageNoneHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'AI 讲题、导入解析、申论批改都会记在这里。'**
+  String get usageNoneHint;
+
+  /// No description provided for @usageWhere.
+  ///
+  /// In zh, this message translates to:
+  /// **'花在哪'**
+  String get usageWhere;
+
+  /// No description provided for @usageByTokens.
+  ///
+  /// In zh, this message translates to:
+  /// **'token 从多到少'**
+  String get usageByTokens;
+
+  /// No description provided for @usageByModel.
+  ///
+  /// In zh, this message translates to:
+  /// **'按模型'**
+  String get usageByModel;
+
+  /// No description provided for @usageUnrecorded.
+  ///
+  /// In zh, this message translates to:
+  /// **'未记录'**
+  String get usageUnrecorded;
+
+  /// No description provided for @usageTokenNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'token 数由模型返回，各家统计口径略有差别，这里的数字用来比较大小，跟账单可能差一点。'**
+  String get usageTokenNote;
+
+  /// No description provided for @usageFeatureExplain.
+  ///
+  /// In zh, this message translates to:
+  /// **'AI 讲题'**
+  String get usageFeatureExplain;
+
+  /// No description provided for @usageFeatureDoc.
+  ///
+  /// In zh, this message translates to:
+  /// **'文档导入'**
+  String get usageFeatureDoc;
+
+  /// No description provided for @usageFeatureScan.
+  ///
+  /// In zh, this message translates to:
+  /// **'拍照 / PDF 识题'**
+  String get usageFeatureScan;
+
+  /// No description provided for @usageFeatureEssay.
+  ///
+  /// In zh, this message translates to:
+  /// **'申论批改'**
+  String get usageFeatureEssay;
+
+  /// No description provided for @usageFeatureImage.
+  ///
+  /// In zh, this message translates to:
+  /// **'图片识题'**
+  String get usageFeatureImage;
+
+  /// No description provided for @usageFeatureSort.
+  ///
+  /// In zh, this message translates to:
+  /// **'分类整理'**
+  String get usageFeatureSort;
+
+  /// No description provided for @usageFeatureOther.
+  ///
+  /// In zh, this message translates to:
+  /// **'其他'**
+  String get usageFeatureOther;
+
+  /// No description provided for @usageCalls.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 次调用'**
+  String usageCalls(int count);
+
+  /// No description provided for @usageLast14.
+  ///
+  /// In zh, this message translates to:
+  /// **'近 14 天'**
+  String get usageLast14;
+
+  /// No description provided for @usageGroupLine.
+  ///
+  /// In zh, this message translates to:
+  /// **'{calls} 次 · 进 {inTok} · 出 {outTok}'**
+  String usageGroupLine(int calls, String inTok, String outTok);
+
+  /// No description provided for @explainTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'出题人视角'**
+  String get explainTitle;
+
+  /// No description provided for @explainRedo.
+  ///
+  /// In zh, this message translates to:
+  /// **'重讲'**
+  String get explainRedo;
+
+  /// No description provided for @explainWorking.
+  ///
+  /// In zh, this message translates to:
+  /// **'正在看这道题'**
+  String get explainWorking;
+
+  /// No description provided for @explainPitch.
+  ///
+  /// In zh, this message translates to:
+  /// **'让 AI 从出题人的角度讲一遍：这题考什么、干扰项怎么设的、你错在哪。'**
+  String get explainPitch;
+
+  /// No description provided for @explainAsk.
+  ///
+  /// In zh, this message translates to:
+  /// **'AI 讲这道题'**
+  String get explainAsk;
+
+  /// No description provided for @explainBackground.
+  ///
+  /// In zh, this message translates to:
+  /// **'可以先去做别的，回来接着看'**
+  String get explainBackground;
+
+  /// No description provided for @explainStamp.
+  ///
+  /// In zh, this message translates to:
+  /// **'AI 生成 · {stamp}'**
+  String explainStamp(String stamp);
 }
 
 class _AppLDelegate extends LocalizationsDelegate<AppL> {
