@@ -4367,6 +4367,222 @@ abstract class AppL {
   /// In zh, this message translates to:
   /// **'练习'**
   String get statsKindPractice;
+
+  /// No description provided for @vocabToday.
+  ///
+  /// In zh, this message translates to:
+  /// **'今日'**
+  String get vocabToday;
+
+  /// No description provided for @vocabFrequent.
+  ///
+  /// In zh, this message translates to:
+  /// **'高频'**
+  String get vocabFrequent;
+
+  /// No description provided for @vocabConfusable.
+  ///
+  /// In zh, this message translates to:
+  /// **'辨析'**
+  String get vocabConfusable;
+
+  /// No description provided for @vocabMine.
+  ///
+  /// In zh, this message translates to:
+  /// **'我的'**
+  String get vocabMine;
+
+  /// No description provided for @vocabMissedThis.
+  ///
+  /// In zh, this message translates to:
+  /// **'你在题里错过这个词'**
+  String get vocabMissedThis;
+
+  /// No description provided for @vocabThinkFirst.
+  ///
+  /// In zh, this message translates to:
+  /// **'先自己想一遍，再点开对答案'**
+  String get vocabThinkFirst;
+
+  /// No description provided for @vocabMeaning.
+  ///
+  /// In zh, this message translates to:
+  /// **'意思'**
+  String get vocabMeaning;
+
+  /// No description provided for @vocabUsage.
+  ///
+  /// In zh, this message translates to:
+  /// **'怎么用'**
+  String get vocabUsage;
+
+  /// No description provided for @vocabDontConfuse.
+  ///
+  /// In zh, this message translates to:
+  /// **'别混了'**
+  String get vocabDontConfuse;
+
+  /// No description provided for @vocabTapToFlip.
+  ///
+  /// In zh, this message translates to:
+  /// **'点一下翻开'**
+  String get vocabTapToFlip;
+
+  /// No description provided for @vocabForgot.
+  ///
+  /// In zh, this message translates to:
+  /// **'没记住'**
+  String get vocabForgot;
+
+  /// No description provided for @vocabGotIt.
+  ///
+  /// In zh, this message translates to:
+  /// **'记住了'**
+  String get vocabGotIt;
+
+  /// No description provided for @vocabFlip.
+  ///
+  /// In zh, this message translates to:
+  /// **'翻开'**
+  String get vocabFlip;
+
+  /// No description provided for @vocabNoneToday.
+  ///
+  /// In zh, this message translates to:
+  /// **'今天没有要背的词'**
+  String get vocabNoneToday;
+
+  /// No description provided for @vocabDoneToday.
+  ///
+  /// In zh, this message translates to:
+  /// **'今天的词过完了'**
+  String get vocabDoneToday;
+
+  /// No description provided for @vocabAutoCollect.
+  ///
+  /// In zh, this message translates to:
+  /// **'做错的逻辑填空会自动把词收进来'**
+  String get vocabAutoCollect;
+
+  /// No description provided for @vocabResult.
+  ///
+  /// In zh, this message translates to:
+  /// **'记住 {right} / {total} · 没记住的明天还会出现'**
+  String vocabResult(int right, int total);
+
+  /// No description provided for @vocabAgain.
+  ///
+  /// In zh, this message translates to:
+  /// **'再来一轮'**
+  String get vocabAgain;
+
+  /// No description provided for @vocabSearchHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'查一个词，比如「一以贯之」'**
+  String get vocabSearchHint;
+
+  /// No description provided for @vocabNoFreq.
+  ///
+  /// In zh, this message translates to:
+  /// **'这版题库还没带词频'**
+  String get vocabNoFreq;
+
+  /// No description provided for @vocabNeverAsked.
+  ///
+  /// In zh, this message translates to:
+  /// **'没有考过这个词'**
+  String get vocabNeverAsked;
+
+  /// No description provided for @vocabNoFreqHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'词频是从逻辑填空的选项统计出来的，重装一次 App 就有了。'**
+  String get vocabNoFreqHint;
+
+  /// No description provided for @vocabNeverAskedHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'换个说法试试，或者它确实没在真题里出现过。'**
+  String get vocabNeverAskedHint;
+
+  /// No description provided for @vocabAskedTimes.
+  ///
+  /// In zh, this message translates to:
+  /// **'考过 {count} 次'**
+  String vocabAskedTimes(int count);
+
+  /// No description provided for @vocabAskedTimesLong.
+  ///
+  /// In zh, this message translates to:
+  /// **'真题里考过 {count} 次'**
+  String vocabAskedTimesLong(int count);
+
+  /// No description provided for @vocabAlreadyAdded.
+  ///
+  /// In zh, this message translates to:
+  /// **'已在我的词表里'**
+  String get vocabAlreadyAdded;
+
+  /// No description provided for @vocabAdd.
+  ///
+  /// In zh, this message translates to:
+  /// **'加进我的词表'**
+  String get vocabAdd;
+
+  /// No description provided for @vocabQuestionsWith.
+  ///
+  /// In zh, this message translates to:
+  /// **'考过这个词的题'**
+  String get vocabQuestionsWith;
+
+  /// No description provided for @vocabNoSource.
+  ///
+  /// In zh, this message translates to:
+  /// **'这一版题库里没找到原题。'**
+  String get vocabNoSource;
+
+  /// No description provided for @vocabSourceLine.
+  ///
+  /// In zh, this message translates to:
+  /// **'{title} · 正确答案 {answer}'**
+  String vocabSourceLine(String title, String answer);
+
+  /// No description provided for @vocabNoConfusable.
+  ///
+  /// In zh, this message translates to:
+  /// **'还没有易混词'**
+  String get vocabNoConfusable;
+
+  /// No description provided for @vocabNoConfusableHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'内置词表里标了易混词的条目会出现在这里。'**
+  String get vocabNoConfusableHint;
+
+  /// No description provided for @vocabConfusableWith.
+  ///
+  /// In zh, this message translates to:
+  /// **'易混：{words}'**
+  String vocabConfusableWith(String words);
+
+  /// No description provided for @vocabEmpty.
+  ///
+  /// In zh, this message translates to:
+  /// **'词表还是空的'**
+  String get vocabEmpty;
+
+  /// No description provided for @vocabEmptyHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'逻辑填空做错的题，那对词会自动收进来；也可以在「高频」里手动加。'**
+  String get vocabEmptyHint;
+
+  /// No description provided for @vocabFromMistakes.
+  ///
+  /// In zh, this message translates to:
+  /// **'做错收的'**
+  String get vocabFromMistakes;
 }
 
 class _AppLDelegate extends LocalizationsDelegate<AppL> {

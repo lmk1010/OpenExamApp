@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
 import 'package:openexam_app/core/ui/shore.dart';
@@ -34,12 +35,13 @@ enum VocabTab { today, top, confuse, mine }
 
 typedef _Tab = VocabTab;
 
-const _tabLabels = {
-  _Tab.today: '今日',
-  _Tab.top: '高频',
-  _Tab.confuse: '辨析',
-  _Tab.mine: '我的',
-};
+/// 顶层 const map 里放不了本地化字符串 —— 那里没有 context。
+String _tabLabel(BuildContext context, _Tab tab) => switch (tab) {
+      _Tab.today => AppL.of(context).vocabToday,
+      _Tab.top => AppL.of(context).vocabFrequent,
+      _Tab.confuse => AppL.of(context).vocabConfusable,
+      _Tab.mine => AppL.of(context).vocabMine,
+    };
 
 class _VocabPageState extends State<VocabPage> {
   late _Tab _tab;
@@ -89,7 +91,7 @@ class _VocabPageState extends State<VocabPage> {
   Future<void> _logRound() async {
     if (_deck.isEmpty) return;
     await AppDatabase.instance.saveReport(
-      title: '背词语',
+      title: AppL.of(context).taskVocab,
       kind: 'vocab',
       questionIds: _deck.map((w) => w.word).toList(),
       answers: const {},
@@ -136,7 +138,7 @@ class _VocabPageState extends State<VocabPage> {
           onPressed: () => Navigator.of(context).maybePop(),
         ),
         titleSpacing: 0,
-        title: const Text('词语'),
+        title: Text(AppL.of(context).profileVocab),
         actions: [
           if (_tab == _Tab.today &&
               !_loading &&
@@ -222,7 +224,7 @@ class _Card extends StatelessWidget {
                         Padding(
                           padding: const EdgeInsets.only(bottom: 14),
                           child: Container(
-                            padding: const EdgeInsets.symmetric(
+                            padding: EdgeInsets.symmetric(
                               horizontal: 11,
                               vertical: 4,
                             ),
@@ -231,7 +233,7 @@ class _Card extends StatelessWidget {
                               borderRadius: BorderRadius.circular(99),
                             ),
                             child: Text(
-                              '你在题里错过这个词',
+                              AppL.of(context).vocabMissedThis,
                               style: TextStyle(
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.w600,
@@ -250,32 +252,32 @@ class _Card extends StatelessWidget {
                         ),
                       ),
                       if (!flipped) ...[
-                        const SizedBox(height: 20),
+                        SizedBox(height: 20),
                         Text(
-                          '先自己想一遍，再点开对答案',
+                          AppL.of(context).vocabThinkFirst,
                           style: text.bodySmall,
                         ),
                       ] else ...[
                         const SizedBox(height: 22),
                         Divider(color: t.lineSoft, height: 1),
-                        const SizedBox(height: 20),
-                        _Row(label: '意思', value: word.meaning),
+                        SizedBox(height: 20),
+                        _Row(label: AppL.of(context).vocabMeaning, value: word.meaning),
                         if (word.usage.isNotEmpty) ...[
-                          const SizedBox(height: 16),
-                          _Row(label: '怎么用', value: word.usage, accent: true),
+                          SizedBox(height: 16),
+                          _Row(label: AppL.of(context).vocabUsage, value: word.usage, accent: true),
                         ],
                         if (word.confusable.isNotEmpty) ...[
-                          const SizedBox(height: 16),
-                          _Row(label: '别混了', value: word.confusable),
+                          SizedBox(height: 16),
+                          _Row(label: AppL.of(context).vocabDontConfuse, value: word.confusable),
                         ],
                       ],
                     ],
                   ),
                 ),
                 if (!flipped) ...[
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20),
                   Center(
-                    child: Text('点一下翻开', style: text.bodySmall),
+                    child: Text(AppL.of(context).vocabTapToFlip, style: text.bodySmall),
                   ),
                 ],
               ],
@@ -297,14 +299,14 @@ class _Card extends StatelessWidget {
                       Expanded(
                         child: OutlinedButton(
                           onPressed: () => onAnswer(false),
-                          child: const Text('没记住'),
+                          child: Text(AppL.of(context).vocabForgot),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: FilledButton(
                           onPressed: () => onAnswer(true),
-                          child: const Text('记住了'),
+                          child: Text(AppL.of(context).vocabGotIt),
                         ),
                       ),
                     ],
@@ -313,7 +315,7 @@ class _Card extends StatelessWidget {
                     width: double.infinity,
                     child: FilledButton(
                       onPressed: onFlip,
-                      child: const Text('翻开'),
+                      child: Text(AppL.of(context).vocabFlip),
                     ),
                   ),
           ),
@@ -375,7 +377,7 @@ class _Done extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     return ListView(
-      padding: const EdgeInsets.fromLTRB(
+      padding: EdgeInsets.fromLTRB(
         AppTheme.gutter,
         30,
         AppTheme.gutter,
@@ -391,20 +393,20 @@ class _Done extends StatelessWidget {
             width: 200,
             height: 200,
             fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+            errorBuilder: (_, __, ___) => SizedBox.shrink(),
           ),
         ),
-        const SizedBox(height: 24),
+        SizedBox(height: 24),
         Text(
-          empty ? '今天没有要背的词' : '今天的词过完了',
+          empty ? AppL.of(context).vocabNoneToday : AppL.of(context).vocabDoneToday,
           textAlign: TextAlign.center,
           style: text.displaySmall?.copyWith(fontSize: 22),
         ),
-        const SizedBox(height: 10),
+        SizedBox(height: 10),
         Text(
           empty
-              ? '做错的逻辑填空会自动把词收进来'
-              : '记住 $right / $total · 没记住的明天还会出现',
+              ? AppL.of(context).vocabAutoCollect
+              : AppL.of(context).vocabResult(right, total),
           textAlign: TextAlign.center,
           style: text.bodySmall,
         ),
@@ -413,7 +415,7 @@ class _Done extends StatelessWidget {
           Center(
             child: OutlinedButton(
               onPressed: onAgain,
-              child: const Text('再来一轮'),
+              child: Text(AppL.of(context).vocabAgain),
             ),
           ),
       ],
@@ -459,7 +461,7 @@ class _TabBar extends StatelessWidget {
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
-                  _tabLabels[tab]!,
+                  _tabLabel(context, tab),
                   style: text.bodyMedium?.copyWith(
                     fontSize: 13,
                     color: tab == value ? Colors.white : t.textSoft,
@@ -536,7 +538,7 @@ class _TopWordsViewState extends State<_TopWordsView> {
             child: Row(
               children: [
                 Icon(Icons.search, size: 18, color: t.muted),
-                const SizedBox(width: 9),
+                SizedBox(width: 9),
                 Expanded(
                   child: TextField(
                     controller: _search,
@@ -544,7 +546,7 @@ class _TopWordsViewState extends State<_TopWordsView> {
                     decoration: InputDecoration(
                       isDense: true,
                       border: InputBorder.none,
-                      hintText: '查一个词，比如「一以贯之」',
+                      hintText: AppL.of(context).vocabSearchHint,
                       hintStyle: text.bodySmall?.copyWith(fontSize: 13),
                     ),
                     onChanged: (v) {
@@ -558,16 +560,16 @@ class _TopWordsViewState extends State<_TopWordsView> {
           ),
         ),
         if (_loading)
-          const Expanded(child: LoadingState())
+          Expanded(child: LoadingState())
         else if (_words.isEmpty)
           Expanded(
             child: EmptyState(
               icon: Icons.search_off,
-              title: _query.isEmpty ? '这版题库还没带词频' : '没有考过这个词',
+              title: _query.isEmpty ? AppL.of(context).vocabNoFreq : AppL.of(context).vocabNeverAsked,
               art: EmptyArt.search,
               message: _query.isEmpty
-                  ? '词频是从逻辑填空的选项统计出来的，重装一次 App 就有了。'
-                  : '换个说法试试，或者它确实没在真题里出现过。',
+                  ? AppL.of(context).vocabNoFreqHint
+                  : AppL.of(context).vocabNeverAskedHint,
             ),
           )
         else
@@ -607,7 +609,7 @@ class _WordRow extends StatelessWidget {
         builder: (_) => _WordSheet(entry: entry),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 14),
+        padding: EdgeInsets.symmetric(vertical: 14),
         child: Row(
           children: [
             Expanded(
@@ -617,7 +619,7 @@ class _WordRow extends StatelessWidget {
               ),
             ),
             Text(
-              '考过 ${entry.count} 次',
+              AppL.of(context).vocabAskedTimes(entry.count),
               style: text.bodySmall?.copyWith(
                 fontSize: 12,
                 fontFeatures: AppTheme.numeric,
@@ -715,9 +717,9 @@ class _WordSheetState extends State<_WordSheet> {
                   widget.entry.word,
                   style: text.titleLarge?.copyWith(fontSize: 22),
                 ),
-                const SizedBox(width: 10),
+                SizedBox(width: 10),
                 Text(
-                  '真题里考过 ${widget.entry.count} 次',
+                  AppL.of(context).vocabAskedTimesLong(widget.entry.count),
                   style: text.bodySmall?.copyWith(
                     fontSize: 12,
                     fontFeatures: AppTheme.numeric,
@@ -739,27 +741,27 @@ class _WordSheetState extends State<_WordSheet> {
               child: inDeck
                   ? OutlinedButton(
                       onPressed: null,
-                      child: const Text('已在我的词表里'),
+                      child: Text(AppL.of(context).vocabAlreadyAdded),
                     )
                   : FilledButton(
                       onPressed: _add,
-                      child: const Text('加进我的词表'),
+                      child: Text(AppL.of(context).vocabAdd),
                     ),
             ),
-            const SizedBox(height: 22),
+            SizedBox(height: 22),
             Text(
-              '考过这个词的题',
+              AppL.of(context).vocabQuestionsWith,
               style: text.titleSmall?.copyWith(fontSize: 14),
             ),
             const SizedBox(height: 10),
             if (_loading)
-              const Padding(
+              Padding(
                 padding: EdgeInsets.symmetric(vertical: 30),
                 child: LoadingState(),
               )
             else if (_questions.isEmpty)
               Text(
-                '这一版题库里没找到原题。',
+                AppL.of(context).vocabNoSource,
                 style: text.bodySmall?.copyWith(fontSize: 13),
               )
             else
@@ -784,9 +786,9 @@ class _WordSheetState extends State<_WordSheet> {
                           height: 1.6,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8),
                       Text(
-                        '${q.paperTitle} · 正确答案 ${q.answer}',
+                        AppL.of(context).vocabSourceLine(q.paperTitle, q.answer),
                         style: text.bodySmall?.copyWith(fontSize: 12),
                       ),
                     ],
@@ -845,11 +847,11 @@ class _ConfusableViewState extends State<_ConfusableView> {
     final text = Theme.of(context).textTheme;
     if (_loading) return const LoadingState();
     if (_words.isEmpty) {
-      return const EmptyState(
+      return EmptyState(
         icon: Icons.compare_arrows,
-        title: '还没有易混词',
+        title: AppL.of(context).vocabNoConfusable,
         art: EmptyArt.vocab,
-        message: '内置词表里标了易混词的条目会出现在这里。',
+        message: AppL.of(context).vocabNoConfusableHint,
       );
     }
     return ListView.builder(
@@ -882,9 +884,9 @@ class _ConfusableViewState extends State<_ConfusableView> {
                 _ConfuseLine(word: p, highlight: false),
               ],
               if (peers.isEmpty) ...[
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 Text(
-                  '易混：${w.confusable}',
+                  AppL.of(context).vocabConfusableWith(w.confusable),
                   style: text.bodySmall?.copyWith(fontSize: 12.5),
                 ),
               ],
@@ -970,11 +972,11 @@ class _MyWordsViewState extends State<_MyWordsView> {
     final text = Theme.of(context).textTheme;
     if (_loading) return const LoadingState();
     if (_words.isEmpty) {
-      return const EmptyState(
+      return EmptyState(
         icon: Icons.style_outlined,
-        title: '词表还是空的',
+        title: AppL.of(context).vocabEmpty,
         art: EmptyArt.vocab,
-        message: '逻辑填空做错的题，那对词会自动收进来；也可以在「高频」里手动加。',
+        message: AppL.of(context).vocabEmptyHint,
       );
     }
     return ListView.separated(
@@ -1003,7 +1005,7 @@ class _MyWordsViewState extends State<_MyWordsView> {
             widget.onChanged();
           },
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 13),
+            padding: EdgeInsets.symmetric(vertical: 13),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -1020,7 +1022,7 @@ class _MyWordsViewState extends State<_MyWordsView> {
                     // 从做错的题里收来的, 标出来 —— 这些是你自己的坑。
                     if (w.source == 'wrong')
                       Text(
-                        '做错收的',
+                        AppL.of(context).vocabFromMistakes,
                         style: text.bodySmall?.copyWith(
                           fontSize: 11.5,
                           color: t.danger,

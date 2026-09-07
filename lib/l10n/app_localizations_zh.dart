@@ -2472,4 +2472,122 @@ class AppLZh extends AppL {
 
   @override
   String get statsKindPractice => '练习';
+
+  @override
+  String get vocabToday => '今日';
+
+  @override
+  String get vocabFrequent => '高频';
+
+  @override
+  String get vocabConfusable => '辨析';
+
+  @override
+  String get vocabMine => '我的';
+
+  @override
+  String get vocabMissedThis => '你在题里错过这个词';
+
+  @override
+  String get vocabThinkFirst => '先自己想一遍，再点开对答案';
+
+  @override
+  String get vocabMeaning => '意思';
+
+  @override
+  String get vocabUsage => '怎么用';
+
+  @override
+  String get vocabDontConfuse => '别混了';
+
+  @override
+  String get vocabTapToFlip => '点一下翻开';
+
+  @override
+  String get vocabForgot => '没记住';
+
+  @override
+  String get vocabGotIt => '记住了';
+
+  @override
+  String get vocabFlip => '翻开';
+
+  @override
+  String get vocabNoneToday => '今天没有要背的词';
+
+  @override
+  String get vocabDoneToday => '今天的词过完了';
+
+  @override
+  String get vocabAutoCollect => '做错的逻辑填空会自动把词收进来';
+
+  @override
+  String vocabResult(int right, int total) {
+    return '记住 $right / $total · 没记住的明天还会出现';
+  }
+
+  @override
+  String get vocabAgain => '再来一轮';
+
+  @override
+  String get vocabSearchHint => '查一个词，比如「一以贯之」';
+
+  @override
+  String get vocabNoFreq => '这版题库还没带词频';
+
+  @override
+  String get vocabNeverAsked => '没有考过这个词';
+
+  @override
+  String get vocabNoFreqHint => '词频是从逻辑填空的选项统计出来的，重装一次 App 就有了。';
+
+  @override
+  String get vocabNeverAskedHint => '换个说法试试，或者它确实没在真题里出现过。';
+
+  @override
+  String vocabAskedTimes(int count) {
+    return '考过 $count 次';
+  }
+
+  @override
+  String vocabAskedTimesLong(int count) {
+    return '真题里考过 $count 次';
+  }
+
+  @override
+  String get vocabAlreadyAdded => '已在我的词表里';
+
+  @override
+  String get vocabAdd => '加进我的词表';
+
+  @override
+  String get vocabQuestionsWith => '考过这个词的题';
+
+  @override
+  String get vocabNoSource => '这一版题库里没找到原题。';
+
+  @override
+  String vocabSourceLine(String title, String answer) {
+    return '$title · 正确答案 $answer';
+  }
+
+  @override
+  String get vocabNoConfusable => '还没有易混词';
+
+  @override
+  String get vocabNoConfusableHint => '内置词表里标了易混词的条目会出现在这里。';
+
+  @override
+  String vocabConfusableWith(String words) {
+    return '易混：$words';
+  }
+
+  @override
+  String get vocabEmpty => '词表还是空的';
+
+  @override
+  String get vocabEmptyHint => '逻辑填空做错的题，那对词会自动收进来；也可以在「高频」里手动加。';
+
+  @override
+  String get vocabFromMistakes => '做错收的';
 }

@@ -2533,4 +2533,127 @@ class AppLEn extends AppL {
 
   @override
   String get statsKindPractice => 'practice';
+
+  @override
+  String get vocabToday => 'Today';
+
+  @override
+  String get vocabFrequent => 'Frequent';
+
+  @override
+  String get vocabConfusable => 'Easily confused';
+
+  @override
+  String get vocabMine => 'Mine';
+
+  @override
+  String get vocabMissedThis => 'You\'ve missed this one in a question';
+
+  @override
+  String get vocabThinkFirst => 'Try it yourself first, then flip';
+
+  @override
+  String get vocabMeaning => 'Meaning';
+
+  @override
+  String get vocabUsage => 'How it\'s used';
+
+  @override
+  String get vocabDontConfuse => 'Don\'t confuse it with';
+
+  @override
+  String get vocabTapToFlip => 'Tap to flip';
+
+  @override
+  String get vocabForgot => 'Didn\'t get it';
+
+  @override
+  String get vocabGotIt => 'Got it';
+
+  @override
+  String get vocabFlip => 'Flip';
+
+  @override
+  String get vocabNoneToday => 'Nothing due today';
+
+  @override
+  String get vocabDoneToday => 'You\'re through today\'s words';
+
+  @override
+  String get vocabAutoCollect =>
+      'Words you miss in fill-in-the-blank questions land here automatically';
+
+  @override
+  String vocabResult(int right, int total) {
+    return '$right of $total · the rest come back tomorrow';
+  }
+
+  @override
+  String get vocabAgain => 'Another round';
+
+  @override
+  String get vocabSearchHint => 'Look up a word';
+
+  @override
+  String get vocabNoFreq => 'This bank has no frequency data';
+
+  @override
+  String get vocabNeverAsked => 'That word hasn\'t come up';
+
+  @override
+  String get vocabNoFreqHint =>
+      'Frequencies are counted from fill-in-the-blank options; reinstalling the app rebuilds them.';
+
+  @override
+  String get vocabNeverAskedHint =>
+      'Try another wording, or it genuinely hasn\'t appeared in a real paper.';
+
+  @override
+  String vocabAskedTimes(int count) {
+    return 'asked $count times';
+  }
+
+  @override
+  String vocabAskedTimesLong(int count) {
+    return 'Asked $count times in real papers';
+  }
+
+  @override
+  String get vocabAlreadyAdded => 'Already in your list';
+
+  @override
+  String get vocabAdd => 'Add to my list';
+
+  @override
+  String get vocabQuestionsWith => 'Questions that use it';
+
+  @override
+  String get vocabNoSource => 'No source question in this bank.';
+
+  @override
+  String vocabSourceLine(String title, String answer) {
+    return '$title · answer $answer';
+  }
+
+  @override
+  String get vocabNoConfusable => 'No easily-confused pairs yet';
+
+  @override
+  String get vocabNoConfusableHint =>
+      'Entries in the built-in list that are tagged as easily confused show up here.';
+
+  @override
+  String vocabConfusableWith(String words) {
+    return 'Confused with: $words';
+  }
+
+  @override
+  String get vocabEmpty => 'Your word list is empty';
+
+  @override
+  String get vocabEmptyHint =>
+      'Miss a fill-in-the-blank and the pair is collected automatically; you can also add from Frequent.';
+
+  @override
+  String get vocabFromMistakes => 'From mistakes';
 }
