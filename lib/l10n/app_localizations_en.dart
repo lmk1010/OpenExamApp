@@ -3187,4 +3187,51 @@ class AppLEn extends AppL {
   @override
   String get reportsCompareNote =>
       'Different questions — this compares accuracy per module, not the same set.';
+
+  @override
+  String get notesReview => 'Note review';
+
+  @override
+  String get notesTitle => 'My notes';
+
+  @override
+  String get notesWriteOne => 'Write one';
+
+  @override
+  String get notesReviewAll => 'Review all';
+
+  @override
+  String get notesNone => 'No notes yet';
+
+  @override
+  String get notesNoneHint =>
+      'Tap the note icon while practising to jot down what you learned on a question; for anything not tied to a question, write one below.';
+
+  @override
+  String get notesSearchHint => 'Search notes or questions';
+
+  @override
+  String get notesNoMatch => 'No notes match';
+
+  @override
+  String get notesNoMatchHint =>
+      'Try another keyword, or clear the type filter.';
+
+  @override
+  String get notesDelete => 'Delete note';
+
+  @override
+  String get notesQuick => 'Quick note';
+
+  @override
+  String get notesTitleField => 'Title (optional)';
+
+  @override
+  String get notesTitleHint => 'Left blank, the first line is used';
+
+  @override
+  String get notesBody => 'Body';
+
+  @override
+  String get notesBodyHint => 'A formula, a trap, what this mock taught you…';
 }

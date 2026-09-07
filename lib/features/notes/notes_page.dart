@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
@@ -99,7 +100,7 @@ class _NotesPageState extends State<NotesPage> {
         builder: (_) => PracticeSessionPage(
           questions: [q],
           reviewAnswers: {q.id: q.answer.toUpperCase()},
-          title: '笔记回顾',
+          title: AppL.of(context).notesReview,
         ),
       ),
     );
@@ -119,15 +120,15 @@ class _NotesPageState extends State<NotesPage> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, size: 21),
+          icon: Icon(Icons.arrow_back, size: 21),
           onPressed: () => Navigator.of(context).maybePop(),
         ),
         titleSpacing: 0,
-        title: const Text('我的笔记'),
+        title: Text(AppL.of(context).notesTitle),
         actions: [
           IconButton(
-            tooltip: '写一条',
-            icon: const Icon(Icons.add, size: 22),
+            tooltip: AppL.of(context).notesWriteOne,
+            icon: Icon(Icons.add, size: 22),
             onPressed: () => _editMemo(),
           ),
           if (_items.isNotEmpty)
@@ -140,33 +141,32 @@ class _NotesPageState extends State<NotesPage> {
                       for (final e in _shown)
                         e.question.id: e.question.answer.toUpperCase(),
                     },
-                    title: '笔记回顾',
+                    title: AppL.of(context).notesReview,
                   ),
                 ),
               ),
-              child: const Text('全部回顾'),
+              child: Text(AppL.of(context).notesReviewAll),
             ),
           const SizedBox(width: 8),
         ],
       ),
       body: _loading
-          ? const LoadingState()
+          ? LoadingState()
           : (_items.isEmpty && _memos.isEmpty)
               ? Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const EmptyState(
+                      EmptyState(
                         icon: Icons.sticky_note_2_outlined,
-                        title: '还没有笔记',
+                        title: AppL.of(context).notesNone,
                         art: EmptyArt.note,
-                        message: '做题时点便签图标记这道题的心得；'
-                            '跟具体题无关的经验，点下面写一条。',
+                        message: AppL.of(context).notesNoneHint,
                       ),
                       const SizedBox(height: 8),
                       FilledButton(
                         onPressed: () => _editMemo(),
-                        child: const Text('写一条'),
+                        child: Text(AppL.of(context).notesWriteOne),
                       ),
                     ],
                   ),
@@ -187,7 +187,7 @@ class _NotesPageState extends State<NotesPage> {
                         child: Row(
                           children: [
                             Icon(Icons.search, size: 17, color: t.muted),
-                            const SizedBox(width: 9),
+                            SizedBox(width: 9),
                             Expanded(
                               child: TextField(
                                 controller: _search,
@@ -198,7 +198,7 @@ class _NotesPageState extends State<NotesPage> {
                                 decoration: InputDecoration(
                                   isDense: true,
                                   border: InputBorder.none,
-                                  hintText: '搜笔记内容或题干',
+                                  hintText: AppL.of(context).notesSearchHint,
                                   hintStyle:
                                       text.bodySmall?.copyWith(fontSize: 13.5),
                                 ),
@@ -221,11 +221,11 @@ class _NotesPageState extends State<NotesPage> {
                       filters: [
                         FilterSpec(
                           key: 'category',
-                          label: '题型',
+                          label: AppL.of(context).wrongFilterType,
                           value: _category,
                           icon: AppIcon.logic,
                           options: [
-                            FilterOption('all', '全部题型', count: _items.length),
+                            FilterOption('all', AppL.of(context).wrongAllTypes, count: _items.length),
                             for (final c in CategoryRegistry.current)
                               if (_items.any(
                                   (e) => e.question.category == c.key))
@@ -249,12 +249,12 @@ class _NotesPageState extends State<NotesPage> {
                       }),
                     ),
                     if (_shown.isEmpty && _shownMemos.isEmpty)
-                      const Expanded(
+                      Expanded(
                         child: EmptyState(
                           icon: Icons.search_off,
-                          title: '没有匹配的笔记',
+                          title: AppL.of(context).notesNoMatch,
                           art: EmptyArt.search,
-                          message: '换个关键词，或把题型筛选清掉。',
+                          message: AppL.of(context).notesNoMatchHint,
                         ),
                       )
                     else
@@ -316,10 +316,10 @@ class _NoteRow extends StatelessWidget {
       onDismissed: (_) => onDelete(),
       background: Container(
         alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: AppTheme.gutter),
+        padding: EdgeInsets.only(right: AppTheme.gutter),
         color: t.dangerSoft,
         child: Text(
-          '删除笔记',
+          AppL.of(context).notesDelete,
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
@@ -422,15 +422,16 @@ class _MemoRow extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onDelete;
 
-  String get _when {
+  /// 带 context：相对日期的说法跟着界面语言走。
+  String _when(BuildContext context) {
     final now = DateTime.now();
     final days = DateTime(now.year, now.month, now.day)
         .difference(DateTime(memo.at.year, memo.at.month, memo.at.day))
         .inDays;
     return switch (days) {
-      0 => '今天',
-      1 => '昨天',
-      < 7 => '$days 天前',
+      0 => AppL.of(context).whenToday,
+      1 => AppL.of(context).whenYesterday,
+      < 7 => AppL.of(context).whenDaysAgo(days),
       _ => '${memo.at.month}/${memo.at.day}',
     };
   }
@@ -446,10 +447,10 @@ class _MemoRow extends StatelessWidget {
       onDismissed: (_) => onDelete(),
       background: Container(
         alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: AppTheme.gutter),
+        padding: EdgeInsets.only(right: AppTheme.gutter),
         color: t.dangerSoft,
         child: Text(
-          '删除',
+          AppL.of(context).commonDelete,
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
@@ -491,7 +492,7 @@ class _MemoRow extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Text(_when,
+                        Text(_when(context),
                             style:
                                 text.bodySmall?.copyWith(color: t.textSoft)),
                       ],
@@ -550,10 +551,10 @@ class _MemoSheetState extends State<_MemoSheet> {
       child: Container(
         decoration: BoxDecoration(
           color: t.gradient.last,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
           border: Border(top: BorderSide(color: t.lineSoft)),
         ),
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+        padding: EdgeInsets.fromLTRB(20, 16, 20, 12),
         child: SafeArea(
           top: false,
           child: Column(
@@ -562,7 +563,7 @@ class _MemoSheetState extends State<_MemoSheet> {
             children: [
               Row(
                 children: [
-                  Expanded(child: Text('随手记', style: text.titleMedium)),
+                  Expanded(child: Text(AppL.of(context).notesQuick, style: text.titleMedium)),
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(
                       widget.memo.copyWith(
@@ -570,30 +571,30 @@ class _MemoSheetState extends State<_MemoSheet> {
                         body: _body.text,
                       ),
                     ),
-                    child: Text('保存',
+                    child: Text(AppL.of(context).commonSave,
                         style: text.labelMedium?.copyWith(color: t.brand)),
                   ),
                 ],
               ),
-              const SizedBox(height: 6),
+              SizedBox(height: 6),
               TextField(
                 controller: _title,
-                decoration: const InputDecoration(
-                  labelText: '标题（可选）',
-                  hintText: '不写就取正文第一行',
+                decoration: InputDecoration(
+                  labelText: AppL.of(context).notesTitleField,
+                  hintText: AppL.of(context).notesTitleHint,
                   border: OutlineInputBorder(),
                   isDense: true,
                 ),
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               TextField(
                 controller: _body,
                 autofocus: true,
                 maxLines: 8,
                 minLines: 5,
-                decoration: const InputDecoration(
-                  labelText: '内容',
-                  hintText: '公式、坑点、这次模考的教训…',
+                decoration: InputDecoration(
+                  labelText: AppL.of(context).notesBody,
+                  hintText: AppL.of(context).notesBodyHint,
                   border: OutlineInputBorder(),
                   alignLabelWithHint: true,
                 ),

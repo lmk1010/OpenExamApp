@@ -3100,4 +3100,49 @@ class AppLZh extends AppL {
 
   @override
   String get reportsCompareNote => '题目不同，比的是各模块的正确率，不是同一批题。';
+
+  @override
+  String get notesReview => '笔记回顾';
+
+  @override
+  String get notesTitle => '我的笔记';
+
+  @override
+  String get notesWriteOne => '写一条';
+
+  @override
+  String get notesReviewAll => '全部回顾';
+
+  @override
+  String get notesNone => '还没有笔记';
+
+  @override
+  String get notesNoneHint => '做题时点便签图标记这道题的心得；跟具体题无关的经验，点下面写一条。';
+
+  @override
+  String get notesSearchHint => '搜笔记内容或题干';
+
+  @override
+  String get notesNoMatch => '没有匹配的笔记';
+
+  @override
+  String get notesNoMatchHint => '换个关键词，或把题型筛选清掉。';
+
+  @override
+  String get notesDelete => '删除笔记';
+
+  @override
+  String get notesQuick => '随手记';
+
+  @override
+  String get notesTitleField => '标题（可选）';
+
+  @override
+  String get notesTitleHint => '不写就取正文第一行';
+
+  @override
+  String get notesBody => '内容';
+
+  @override
+  String get notesBodyHint => '公式、坑点、这次模考的教训…';
 }

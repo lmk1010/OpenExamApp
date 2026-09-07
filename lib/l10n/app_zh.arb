@@ -2451,5 +2451,20 @@
   "reportsCompareWith": "和哪一次比",
   "reportsCompare": "两次对比",
   "reportsLevel": "持平",
-  "reportsCompareNote": "题目不同，比的是各模块的正确率，不是同一批题。"
+  "reportsCompareNote": "题目不同，比的是各模块的正确率，不是同一批题。",
+  "notesReview": "笔记回顾",
+  "notesTitle": "我的笔记",
+  "notesWriteOne": "写一条",
+  "notesReviewAll": "全部回顾",
+  "notesNone": "还没有笔记",
+  "notesNoneHint": "做题时点便签图标记这道题的心得；跟具体题无关的经验，点下面写一条。",
+  "notesSearchHint": "搜笔记内容或题干",
+  "notesNoMatch": "没有匹配的笔记",
+  "notesNoMatchHint": "换个关键词，或把题型筛选清掉。",
+  "notesDelete": "删除笔记",
+  "notesQuick": "随手记",
+  "notesTitleField": "标题（可选）",
+  "notesTitleHint": "不写就取正文第一行",
+  "notesBody": "内容",
+  "notesBodyHint": "公式、坑点、这次模考的教训…"
 }

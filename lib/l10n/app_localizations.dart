@@ -5465,6 +5465,96 @@ abstract class AppL {
   /// In zh, this message translates to:
   /// **'题目不同，比的是各模块的正确率，不是同一批题。'**
   String get reportsCompareNote;
+
+  /// No description provided for @notesReview.
+  ///
+  /// In zh, this message translates to:
+  /// **'笔记回顾'**
+  String get notesReview;
+
+  /// No description provided for @notesTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'我的笔记'**
+  String get notesTitle;
+
+  /// No description provided for @notesWriteOne.
+  ///
+  /// In zh, this message translates to:
+  /// **'写一条'**
+  String get notesWriteOne;
+
+  /// No description provided for @notesReviewAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部回顾'**
+  String get notesReviewAll;
+
+  /// No description provided for @notesNone.
+  ///
+  /// In zh, this message translates to:
+  /// **'还没有笔记'**
+  String get notesNone;
+
+  /// No description provided for @notesNoneHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'做题时点便签图标记这道题的心得；跟具体题无关的经验，点下面写一条。'**
+  String get notesNoneHint;
+
+  /// No description provided for @notesSearchHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜笔记内容或题干'**
+  String get notesSearchHint;
+
+  /// No description provided for @notesNoMatch.
+  ///
+  /// In zh, this message translates to:
+  /// **'没有匹配的笔记'**
+  String get notesNoMatch;
+
+  /// No description provided for @notesNoMatchHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'换个关键词，或把题型筛选清掉。'**
+  String get notesNoMatchHint;
+
+  /// No description provided for @notesDelete.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除笔记'**
+  String get notesDelete;
+
+  /// No description provided for @notesQuick.
+  ///
+  /// In zh, this message translates to:
+  /// **'随手记'**
+  String get notesQuick;
+
+  /// No description provided for @notesTitleField.
+  ///
+  /// In zh, this message translates to:
+  /// **'标题（可选）'**
+  String get notesTitleField;
+
+  /// No description provided for @notesTitleHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'不写就取正文第一行'**
+  String get notesTitleHint;
+
+  /// No description provided for @notesBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'内容'**
+  String get notesBody;
+
+  /// No description provided for @notesBodyHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'公式、坑点、这次模考的教训…'**
+  String get notesBodyHint;
 }
 
 class _AppLDelegate extends LocalizationsDelegate<AppL> {
