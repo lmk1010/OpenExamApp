@@ -23,6 +23,9 @@ CONTENT = {
     'lib/features/plan/data/starter_packs.dart': '中文备考计划模板',
     'lib/features/essay/data/essay_grader.dart': '申论批改提示词',
     'lib/core/constants/categories.dart': '行测模块名（非行测题库走题库自己的分类）',
+    # 诊断里剩下的中文是行测专属处方（「逻辑填空练搭配不背释义」）和喂给模型的
+    # 行测知识 —— 只在 Benchmark 认得的模块上触发，也就是只在行测题库下出现。
+    'lib/features/diagnosis/diagnosis.dart': '行测专属处方 + 模型系统提示',
 }
 
 

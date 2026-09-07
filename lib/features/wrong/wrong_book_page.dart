@@ -252,7 +252,7 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
     if (!mounted) return;
     ScaffoldMessenger.of(context)
       ..clearSnackBars()
-      ..showSnackBar(SnackBar(content: Text('已开始「$label」四天计划')));
+      ..showSnackBar(SnackBar(content: Text(AppL.of(context).wrongPlanStarted(label))));
   }
 
   /// Runs one step of a plan: day 3 is timed, day 4 mixes in fresh questions
@@ -286,7 +286,7 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
           limit: day == 3
               ? Duration(seconds: 55 * questions.length)
               : null,
-          title: '${plan.label} · 第 $day 天',
+          title: AppL.of(context).wrongPlanDay(plan.label, day),
         ),
       ),
     );
@@ -416,7 +416,7 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
 
       // 今日复盘 — one tap into the questions that cost the most marks.
       Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
+        padding: EdgeInsets.symmetric(horizontal: AppTheme.gutter),
         child: Row(
           children: [
             Expanded(
@@ -443,7 +443,7 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
                             Text(
                               repeat > 0
                                   ? AppL.of(context).wrongRepeatFirst(repeat)
-                                  : '挑 ${_wrong.length > 20 ? 20 : _wrong.length} 题重做',
+                                  : AppL.of(context).wrongPickRedo(_wrong.length > 20 ? 20 : _wrong.length),
                               style: text.bodySmall?.copyWith(
                                 color: t.onAccentSoft,
                               ),
@@ -778,7 +778,7 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
                 : (_listMode
                     ? AppL.of(context).wrongCountWithHint(_wrong.length)
                     : AppL.of(context).wrongToClear(_wrong.length)),
-            title: '错题本',
+            title: AppL.of(context).wrongBookTitle,
             actions: [
               if (_wrong.isNotEmpty) ...[
                 if (_listMode)
@@ -797,13 +797,13 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
               ],
             ],
           ),
-          const SizedBox(height: ShoreGap.titleToBody),
+          SizedBox(height: ShoreGap.titleToBody),
           if (_wrong.isEmpty)
-            const EmptyState(
+            EmptyState(
               icon: Icons.verified_outlined,
-              title: '还没有错题',
+              title: AppL.of(context).wrongNone,
               art: EmptyArt.done,
-              message: '去练习页刷一组，答错的题会自动进入这里，答对后自动移出。',
+              message: AppL.of(context).wrongNoneHint,
             )
           else if (!_listMode && !context.isExpanded)
             ..._overview(context, counts, reasonCounts, papers, paperKeys)
@@ -812,11 +812,11 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
               filters: [
                 FilterSpec(
                   key: 'category',
-                  label: '题型',
+                  label: AppL.of(context).wrongFilterType,
                   value: _category,
                   icon: AppIcon.logic,
                   options: [
-                    FilterOption('all', '全部题型', count: _wrong.length),
+                    FilterOption('all', AppL.of(context).wrongAllTypes, count: _wrong.length),
                     for (final c in CategoryRegistry.current)
                       if ((counts[c.key] ?? 0) > 0)
                         FilterOption(c.key, c.label, count: counts[c.key]),
@@ -824,11 +824,11 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
                 ),
                 FilterSpec(
                   key: 'reason',
-                  label: '错因',
+                  label: AppL.of(context).wrongFilterReason,
                   value: _reasonFilter,
                   icon: AppIcon.wrongBook,
                   options: [
-                    FilterOption('all', '全部错因', count: _wrong.length),
+                    FilterOption('all', AppL.of(context).wrongAllReasons, count: _wrong.length),
                     for (final r in kWrongReasons)
                       if ((reasonCounts[r.key] ?? 0) > 0)
                         FilterOption(
@@ -839,18 +839,18 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
                     if ((reasonCounts['_none'] ?? 0) > 0)
                       FilterOption(
                         '_none',
-                        '未标错因',
+                        AppL.of(context).wrongNoReason,
                         count: reasonCounts['_none'],
                       ),
                   ],
                 ),
                 FilterSpec(
                   key: 'paper',
-                  label: '来源卷',
+                  label: AppL.of(context).wrongFilterPaper,
                   value: _paper,
                   icon: AppIcon.papers,
                   options: [
-                    FilterOption('all', '全部试卷', count: _wrong.length),
+                    FilterOption('all', AppL.of(context).wrongAllPapers, count: _wrong.length),
                     for (final key in paperKeys)
                       FilterOption(
                         key,
@@ -861,15 +861,15 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
                 ),
                 FilterSpec(
                   key: 'level',
-                  label: '难度',
+                  label: AppL.of(context).wrongFilterLevel,
                   value: _level,
                   icon: AppIcon.chart,
                   options: [
-                    FilterOption('all', '全部难度', count: _wrong.length),
-                    for (final lv in const [3, 2, 1, 0])
+                    FilterOption('all', AppL.of(context).wrongAllLevels, count: _wrong.length),
+                    for (final lv in [3, 2, 1, 0])
                       FilterOption(
                         '$lv',
-                        const {3: '我标了难', 2: '一般', 1: '简单', 0: '没标过'}[lv]!,
+                        {3: AppL.of(context).wrongLevelHard, 2: AppL.of(context).difficultyMedium, 1: AppL.of(context).difficultyEasy, 0: AppL.of(context).wrongLevelNone}[lv]!,
                         count: _wrong
                             .where((q) => (_difficulty[q.id] ?? 0) == lv)
                             .length,
@@ -878,12 +878,12 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
                 ),
                 FilterSpec(
                   key: 'sort',
-                  label: '排序',
+                  label: AppL.of(context).wrongSort,
                   value: _sortByCount ? 'count' : 'all',
                   icon: AppIcon.chart,
-                  options: const [
-                    FilterOption('all', '最近错的在前'),
-                    FilterOption('count', '错得最多在前'),
+                  options: [
+                    FilterOption('all', AppL.of(context).wrongSortRecent),
+                    FilterOption('count', AppL.of(context).wrongSortMost),
                   ],
                 ),
               ],
@@ -912,14 +912,14 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
             const SizedBox(height: 6),
             if (shown.length != _wrong.length)
               Padding(
-                padding: const EdgeInsets.fromLTRB(
+                padding: EdgeInsets.fromLTRB(
                   AppTheme.gutter,
                   6,
                   AppTheme.gutter,
                   0,
                 ),
                 child: Text(
-                  '筛出 ${shown.length} 题 · 长按任意题可标错因或移出',
+                  AppL.of(context).wrongFilteredHint(shown.length),
                   style: text.bodySmall,
                 ),
               ),
@@ -1045,23 +1045,27 @@ class _ActionSheet extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              '${categoryLabel(question.category)} · 错过 $times 次'
-              '${reason == null ? '' : ' · ${wrongReasonLabel(reason)}'}',
+              // 后面那截错因是可选的，「 · 」只是标点，不进 arb。
+              AppL.of(context).wrongMissedTimes(
+                    categoryLabel(question.category),
+                    times,
+                  ) +
+                  (reason == null ? '' : ' · ${wrongReasonLabel(reason)}'),
               style: text.bodySmall,
             ),
             const SizedBox(height: 10),
-            const RowDivider(indent: 0),
-            row(AppIcon.play, '重做这道题', 'practise'),
-            const RowDivider(indent: 0),
-            row(AppIcon.papers, '只看答案解析', 'browse'),
-            const RowDivider(indent: 0),
-            row(AppIcon.shuffle, '再练 10 道同类型', 'same'),
-            const RowDivider(indent: 0),
-            row(AppIcon.wrongBook, '加入收藏', 'mark'),
+            RowDivider(indent: 0),
+            row(AppIcon.play, AppL.of(context).wrongRedoThis, 'practise'),
+            RowDivider(indent: 0),
+            row(AppIcon.papers, AppL.of(context).wrongAnswerOnly, 'browse'),
+            RowDivider(indent: 0),
+            row(AppIcon.shuffle, AppL.of(context).wrongTenMore, 'same'),
+            RowDivider(indent: 0),
+            row(AppIcon.wrongBook, AppL.of(context).wrongAddToSaved, 'mark'),
             const RowDivider(indent: 0),
             Padding(
-              padding: const EdgeInsets.only(top: 14, bottom: 8),
-              child: Text('标记错因', style: text.bodySmall),
+              padding: EdgeInsets.only(top: 14, bottom: 8),
+              child: Text(AppL.of(context).wrongTagReason, style: text.bodySmall),
             ),
             Wrap(
               spacing: 8,
@@ -1094,8 +1098,8 @@ class _ActionSheet extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 6),
-            const RowDivider(indent: 0),
-            row(AppIcon.trash, '移出错题本', 'remove', danger: true),
+            RowDivider(indent: 0),
+            row(AppIcon.trash, AppL.of(context).wrongRemoveFromBook, 'remove', danger: true),
           ],
         ),
       ),
@@ -1139,9 +1143,9 @@ class _WrongRow extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             StrokeIcon(AppIcon.trash, size: 19, color: t.danger),
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             Text(
-              '移出',
+              AppL.of(context).wrongRemoveShort,
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -1185,7 +1189,7 @@ class _WrongRow extends StatelessWidget {
                         height: 1.45,
                       ),
                     ),
-                    const SizedBox(height: 7),
+                    SizedBox(height: 7),
                     Row(
                       children: [
                         Text(
@@ -1193,7 +1197,7 @@ class _WrongRow extends StatelessWidget {
                           style: text.bodySmall?.copyWith(color: color),
                         ),
                         Text(
-                          '  ·  正确答案 ${question.answer.toUpperCase()}',
+                          AppL.of(context).wrongCorrectAnswer(question.answer.toUpperCase()),
                           style: text.bodySmall,
                         ),
                       ],
@@ -1265,7 +1269,7 @@ class _DistRow extends StatelessWidget {
         child: Row(
           children: [
             StrokeIcon(icon, size: 18, color: color),
-            const SizedBox(width: 12),
+            SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1280,7 +1284,7 @@ class _DistRow extends StatelessWidget {
                           style: text.titleSmall?.copyWith(fontSize: 14.5),
                         ),
                       ),
-                      Text('$count 题', style: text.bodySmall),
+                      Text(AppL.of(context).countQuestions(count), style: text.bodySmall),
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -1381,10 +1385,10 @@ class _PlanCard extends StatelessWidget {
           Row(
             children: [
               StrokeIcon(AppIcon.replay, size: 17, color: t.brand),
-              const SizedBox(width: 9),
+              SizedBox(width: 9),
               Expanded(
                 child: Text(
-                  '${plan.label} 四天计划',
+                  AppL.of(context).wrongPlanTitle(plan.label),
                   style: text.titleSmall?.copyWith(fontSize: 15),
                 ),
               ),
@@ -1413,7 +1417,7 @@ class _PlanCard extends StatelessWidget {
               ],
             ],
           ),
-          const SizedBox(height: 13),
+          SizedBox(height: 13),
           Row(
             children: [
               Expanded(
@@ -1422,24 +1426,24 @@ class _PlanCard extends StatelessWidget {
                   children: [
                     Text(
                       rest
-                          ? '今天这步做完了，明天再来'
+                          ? AppL.of(context).wrongPlanDoneToday
                           : '第 $day 天 · ${ReviewPlan.stepTitles[day - 1]}',
                       style: text.titleSmall?.copyWith(fontSize: 14),
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4),
                     Text(
-                      rest ? '中间隔一天，记忆才吃得住' : ReviewPlan.stepHints[day - 1],
+                      rest ? AppL.of(context).wrongPlanGapHint : ReviewPlan.stepHints[day - 1],
                       style: text.bodySmall,
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 10),
+              SizedBox(width: 10),
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap: onRun,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
+                  padding: EdgeInsets.symmetric(
                     horizontal: 15,
                     vertical: 9,
                   ),
@@ -1448,7 +1452,7 @@ class _PlanCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: Text(
-                    rest ? '再练一次' : '开始',
+                    rest ? AppL.of(context).wrongPlanAgain : AppL.of(context).commonStart,
                     style: TextStyle(
                       fontSize: 13.5,
                       fontWeight: FontWeight.w700,

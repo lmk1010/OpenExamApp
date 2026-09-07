@@ -2293,4 +2293,115 @@ class AppLEn extends AppL {
 
   @override
   String get cmMergeInto => 'Merge into an existing one:';
+
+  @override
+  String wrongMissedTimes(String name, int count) {
+    return '$name · missed $count times';
+  }
+
+  @override
+  String wrongPlanStarted(String name) {
+    return 'Started the four-day drill on \"$name\"';
+  }
+
+  @override
+  String wrongPlanDay(String name, int day) {
+    return '$name · day $day';
+  }
+
+  @override
+  String wrongPickRedo(int count) {
+    return 'Redo $count';
+  }
+
+  @override
+  String get wrongNone => 'No mistakes yet';
+
+  @override
+  String get wrongNoneHint =>
+      'Do a set on the practice page — anything you miss lands here, and leaves once you get it right.';
+
+  @override
+  String get wrongFilterType => 'Type';
+
+  @override
+  String get wrongAllTypes => 'All types';
+
+  @override
+  String get wrongFilterReason => 'Reason';
+
+  @override
+  String get wrongAllReasons => 'Any reason';
+
+  @override
+  String get wrongFilterPaper => 'Paper';
+
+  @override
+  String get wrongAllPapers => 'All papers';
+
+  @override
+  String get wrongFilterLevel => 'Difficulty';
+
+  @override
+  String get wrongAllLevels => 'Any difficulty';
+
+  @override
+  String get wrongLevelHard => 'I marked it hard';
+
+  @override
+  String get wrongLevelNone => 'Not marked';
+
+  @override
+  String get wrongSort => 'Sort';
+
+  @override
+  String get wrongSortRecent => 'Most recent first';
+
+  @override
+  String get wrongSortMost => 'Most missed first';
+
+  @override
+  String wrongFilteredHint(int count) {
+    return '$count after filters · long-press any to tag a reason or remove it';
+  }
+
+  @override
+  String get wrongRedoThis => 'Redo this one';
+
+  @override
+  String get wrongAnswerOnly => 'Just the answer and explanation';
+
+  @override
+  String get wrongTenMore => 'Ten more of the same type';
+
+  @override
+  String get wrongAddToSaved => 'Save it';
+
+  @override
+  String get wrongTagReason => 'Tag a reason';
+
+  @override
+  String get wrongRemoveFromBook => 'Remove from the mistake book';
+
+  @override
+  String get wrongRemoveShort => 'Remove';
+
+  @override
+  String wrongCorrectAnswer(String answer) {
+    return '  ·  Answer: $answer';
+  }
+
+  @override
+  String wrongPlanTitle(String name) {
+    return '$name · four-day drill';
+  }
+
+  @override
+  String get wrongPlanDoneToday => 'Today\'s step is done — come back tomorrow';
+
+  @override
+  String get wrongPlanGapHint => 'Leave a day between steps or it won\'t stick';
+
+  @override
+  String get wrongPlanAgain => 'Run it again';
 }

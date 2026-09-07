@@ -1795,5 +1795,92 @@
   "cmEmptyTitle": "题库还是空的",
   "cmEmptyBody": "导入题目之后，分类会出现在这里。",
   "cmRenameMerge": "改名 / 合并",
-  "cmMergeInto": "并进已有的："
+  "cmMergeInto": "并进已有的：",
+  "wrongMissedTimes": "{name} · 错过 {count} 次",
+  "@wrongMissedTimes": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "wrongPlanStarted": "已开始「{name}」四天计划",
+  "@wrongPlanStarted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "wrongPlanDay": "{name} · 第 {day} 天",
+  "@wrongPlanDay": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "wrongPickRedo": "挑 {count} 题重做",
+  "@wrongPickRedo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "wrongNone": "还没有错题",
+  "wrongNoneHint": "去练习页刷一组，答错的题会自动进入这里，答对后自动移出。",
+  "wrongFilterType": "题型",
+  "wrongAllTypes": "全部题型",
+  "wrongFilterReason": "错因",
+  "wrongAllReasons": "全部错因",
+  "wrongFilterPaper": "来源卷",
+  "wrongAllPapers": "全部试卷",
+  "wrongFilterLevel": "难度",
+  "wrongAllLevels": "全部难度",
+  "wrongLevelHard": "我标了难",
+  "wrongLevelNone": "没标过",
+  "wrongSort": "排序",
+  "wrongSortRecent": "最近错的在前",
+  "wrongSortMost": "错得最多在前",
+  "wrongFilteredHint": "筛出 {count} 题 · 长按任意题可标错因或移出",
+  "@wrongFilteredHint": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "wrongRedoThis": "重做这道题",
+  "wrongAnswerOnly": "只看答案解析",
+  "wrongTenMore": "再练 10 道同类型",
+  "wrongAddToSaved": "加入收藏",
+  "wrongTagReason": "标记错因",
+  "wrongRemoveFromBook": "移出错题本",
+  "wrongRemoveShort": "移出",
+  "wrongCorrectAnswer": "  ·  正确答案 {answer}",
+  "@wrongCorrectAnswer": {
+    "placeholders": {
+      "answer": {
+        "type": "String"
+      }
+    }
+  },
+  "wrongPlanTitle": "{name} 四天计划",
+  "@wrongPlanTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "wrongPlanDoneToday": "今天这步做完了，明天再来",
+  "wrongPlanGapHint": "中间隔一天，记忆才吃得住",
+  "wrongPlanAgain": "再练一次"
 }

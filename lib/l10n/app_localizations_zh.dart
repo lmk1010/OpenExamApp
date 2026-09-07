@@ -2238,4 +2238,114 @@ class AppLZh extends AppL {
 
   @override
   String get cmMergeInto => '并进已有的：';
+
+  @override
+  String wrongMissedTimes(String name, int count) {
+    return '$name · 错过 $count 次';
+  }
+
+  @override
+  String wrongPlanStarted(String name) {
+    return '已开始「$name」四天计划';
+  }
+
+  @override
+  String wrongPlanDay(String name, int day) {
+    return '$name · 第 $day 天';
+  }
+
+  @override
+  String wrongPickRedo(int count) {
+    return '挑 $count 题重做';
+  }
+
+  @override
+  String get wrongNone => '还没有错题';
+
+  @override
+  String get wrongNoneHint => '去练习页刷一组，答错的题会自动进入这里，答对后自动移出。';
+
+  @override
+  String get wrongFilterType => '题型';
+
+  @override
+  String get wrongAllTypes => '全部题型';
+
+  @override
+  String get wrongFilterReason => '错因';
+
+  @override
+  String get wrongAllReasons => '全部错因';
+
+  @override
+  String get wrongFilterPaper => '来源卷';
+
+  @override
+  String get wrongAllPapers => '全部试卷';
+
+  @override
+  String get wrongFilterLevel => '难度';
+
+  @override
+  String get wrongAllLevels => '全部难度';
+
+  @override
+  String get wrongLevelHard => '我标了难';
+
+  @override
+  String get wrongLevelNone => '没标过';
+
+  @override
+  String get wrongSort => '排序';
+
+  @override
+  String get wrongSortRecent => '最近错的在前';
+
+  @override
+  String get wrongSortMost => '错得最多在前';
+
+  @override
+  String wrongFilteredHint(int count) {
+    return '筛出 $count 题 · 长按任意题可标错因或移出';
+  }
+
+  @override
+  String get wrongRedoThis => '重做这道题';
+
+  @override
+  String get wrongAnswerOnly => '只看答案解析';
+
+  @override
+  String get wrongTenMore => '再练 10 道同类型';
+
+  @override
+  String get wrongAddToSaved => '加入收藏';
+
+  @override
+  String get wrongTagReason => '标记错因';
+
+  @override
+  String get wrongRemoveFromBook => '移出错题本';
+
+  @override
+  String get wrongRemoveShort => '移出';
+
+  @override
+  String wrongCorrectAnswer(String answer) {
+    return '  ·  正确答案 $answer';
+  }
+
+  @override
+  String wrongPlanTitle(String name) {
+    return '$name 四天计划';
+  }
+
+  @override
+  String get wrongPlanDoneToday => '今天这步做完了，明天再来';
+
+  @override
+  String get wrongPlanGapHint => '中间隔一天，记忆才吃得住';
+
+  @override
+  String get wrongPlanAgain => '再练一次';
 }

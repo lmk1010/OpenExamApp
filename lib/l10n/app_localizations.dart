@@ -3959,6 +3959,198 @@ abstract class AppL {
   /// In zh, this message translates to:
   /// **'并进已有的：'**
   String get cmMergeInto;
+
+  /// No description provided for @wrongMissedTimes.
+  ///
+  /// In zh, this message translates to:
+  /// **'{name} · 错过 {count} 次'**
+  String wrongMissedTimes(String name, int count);
+
+  /// No description provided for @wrongPlanStarted.
+  ///
+  /// In zh, this message translates to:
+  /// **'已开始「{name}」四天计划'**
+  String wrongPlanStarted(String name);
+
+  /// No description provided for @wrongPlanDay.
+  ///
+  /// In zh, this message translates to:
+  /// **'{name} · 第 {day} 天'**
+  String wrongPlanDay(String name, int day);
+
+  /// No description provided for @wrongPickRedo.
+  ///
+  /// In zh, this message translates to:
+  /// **'挑 {count} 题重做'**
+  String wrongPickRedo(int count);
+
+  /// No description provided for @wrongNone.
+  ///
+  /// In zh, this message translates to:
+  /// **'还没有错题'**
+  String get wrongNone;
+
+  /// No description provided for @wrongNoneHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'去练习页刷一组，答错的题会自动进入这里，答对后自动移出。'**
+  String get wrongNoneHint;
+
+  /// No description provided for @wrongFilterType.
+  ///
+  /// In zh, this message translates to:
+  /// **'题型'**
+  String get wrongFilterType;
+
+  /// No description provided for @wrongAllTypes.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部题型'**
+  String get wrongAllTypes;
+
+  /// No description provided for @wrongFilterReason.
+  ///
+  /// In zh, this message translates to:
+  /// **'错因'**
+  String get wrongFilterReason;
+
+  /// No description provided for @wrongAllReasons.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部错因'**
+  String get wrongAllReasons;
+
+  /// No description provided for @wrongFilterPaper.
+  ///
+  /// In zh, this message translates to:
+  /// **'来源卷'**
+  String get wrongFilterPaper;
+
+  /// No description provided for @wrongAllPapers.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部试卷'**
+  String get wrongAllPapers;
+
+  /// No description provided for @wrongFilterLevel.
+  ///
+  /// In zh, this message translates to:
+  /// **'难度'**
+  String get wrongFilterLevel;
+
+  /// No description provided for @wrongAllLevels.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部难度'**
+  String get wrongAllLevels;
+
+  /// No description provided for @wrongLevelHard.
+  ///
+  /// In zh, this message translates to:
+  /// **'我标了难'**
+  String get wrongLevelHard;
+
+  /// No description provided for @wrongLevelNone.
+  ///
+  /// In zh, this message translates to:
+  /// **'没标过'**
+  String get wrongLevelNone;
+
+  /// No description provided for @wrongSort.
+  ///
+  /// In zh, this message translates to:
+  /// **'排序'**
+  String get wrongSort;
+
+  /// No description provided for @wrongSortRecent.
+  ///
+  /// In zh, this message translates to:
+  /// **'最近错的在前'**
+  String get wrongSortRecent;
+
+  /// No description provided for @wrongSortMost.
+  ///
+  /// In zh, this message translates to:
+  /// **'错得最多在前'**
+  String get wrongSortMost;
+
+  /// No description provided for @wrongFilteredHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'筛出 {count} 题 · 长按任意题可标错因或移出'**
+  String wrongFilteredHint(int count);
+
+  /// No description provided for @wrongRedoThis.
+  ///
+  /// In zh, this message translates to:
+  /// **'重做这道题'**
+  String get wrongRedoThis;
+
+  /// No description provided for @wrongAnswerOnly.
+  ///
+  /// In zh, this message translates to:
+  /// **'只看答案解析'**
+  String get wrongAnswerOnly;
+
+  /// No description provided for @wrongTenMore.
+  ///
+  /// In zh, this message translates to:
+  /// **'再练 10 道同类型'**
+  String get wrongTenMore;
+
+  /// No description provided for @wrongAddToSaved.
+  ///
+  /// In zh, this message translates to:
+  /// **'加入收藏'**
+  String get wrongAddToSaved;
+
+  /// No description provided for @wrongTagReason.
+  ///
+  /// In zh, this message translates to:
+  /// **'标记错因'**
+  String get wrongTagReason;
+
+  /// No description provided for @wrongRemoveFromBook.
+  ///
+  /// In zh, this message translates to:
+  /// **'移出错题本'**
+  String get wrongRemoveFromBook;
+
+  /// No description provided for @wrongRemoveShort.
+  ///
+  /// In zh, this message translates to:
+  /// **'移出'**
+  String get wrongRemoveShort;
+
+  /// No description provided for @wrongCorrectAnswer.
+  ///
+  /// In zh, this message translates to:
+  /// **'  ·  正确答案 {answer}'**
+  String wrongCorrectAnswer(String answer);
+
+  /// No description provided for @wrongPlanTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'{name} 四天计划'**
+  String wrongPlanTitle(String name);
+
+  /// No description provided for @wrongPlanDoneToday.
+  ///
+  /// In zh, this message translates to:
+  /// **'今天这步做完了，明天再来'**
+  String get wrongPlanDoneToday;
+
+  /// No description provided for @wrongPlanGapHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'中间隔一天，记忆才吃得住'**
+  String get wrongPlanGapHint;
+
+  /// No description provided for @wrongPlanAgain.
+  ///
+  /// In zh, this message translates to:
+  /// **'再练一次'**
+  String get wrongPlanAgain;
 }
 
 class _AppLDelegate extends LocalizationsDelegate<AppL> {
