@@ -3532,4 +3532,121 @@ class AppLEn extends AppL {
 
   @override
   String get aiFree => 'Free';
+
+  @override
+  String get essayDeletePrompt => 'Delete this question?';
+
+  @override
+  String essayDeleteBody(String title) {
+    return '\"$title\" and everything you wrote for it go together.';
+  }
+
+  @override
+  String get essayAddPrompt => 'Add a question';
+
+  @override
+  String get essayNoneOfType => 'Nothing of this type yet';
+
+  @override
+  String get essayNone => 'No essay questions yet';
+
+  @override
+  String get essayNoneOfTypeHint => 'Try another type, or add one.';
+
+  @override
+  String get essayNoneHint =>
+      'Essay questions have to be added by you.\nPhotograph one and let AI read it, or paste the source text and the task.';
+
+  @override
+  String get essayAddFirst => 'Add the first one';
+
+  @override
+  String get essayQuit => 'Leave this answer?';
+
+  @override
+  String get essayQuitBody =>
+      'You haven\'t submitted — what you wrote will be lost.';
+
+  @override
+  String get essayKeepWriting => 'Keep writing';
+
+  @override
+  String get essayTooShort =>
+      'Write at least a little more before submitting — there\'s nothing to mark yet';
+
+  @override
+  String get essayNeedAiMark =>
+      'Marking needs AI — add an API key? Your answer is saved either way.';
+
+  @override
+  String get essayMarkFailed => 'Marking failed';
+
+  @override
+  String get essayWriteHint =>
+      'Write here. For summaries, split into points first, then lead each one with its key word.';
+
+  @override
+  String get essayMarking => 'AI is marking, about 20 seconds…';
+
+  @override
+  String get essaySubmitMark => 'Submit for marking';
+
+  @override
+  String get essayAttempts => 'Your answers';
+
+  @override
+  String get essayNotMarked =>
+      'This one wasn\'t marked, but your answer is saved.';
+
+  @override
+  String get essayResult => 'Marking';
+
+  @override
+  String get essayPointsCovered => 'Points covered';
+
+  @override
+  String get essayWordCount => 'Words';
+
+  @override
+  String get essayTimeTaken => 'Time';
+
+  @override
+  String get essayBreakdown => 'Breakdown';
+
+  @override
+  String get essayPointByPoint => 'Point by point';
+
+  @override
+  String essayMissedPoints(int count) {
+    return '$count missed';
+  }
+
+  @override
+  String get essayNextTime => 'Next time';
+
+  @override
+  String get essayYourAnswer => 'Your answer';
+
+  @override
+  String essayEvidence(String text) {
+    return 'Source: $text';
+  }
+
+  @override
+  String essayWords(int n) {
+    return '$n words';
+  }
+
+  @override
+  String essayWordsOfLimit(int n, int limit) {
+    return '$n / $limit words';
+  }
+
+  @override
+  String get essayOverLimit => ' · over';
+
+  @override
+  String essayOutOf(String max) {
+    return 'out of $max';
+  }
 }

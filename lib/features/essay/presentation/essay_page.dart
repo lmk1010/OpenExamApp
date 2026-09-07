@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
 import 'package:openexam_app/core/ui/ui_kit.dart';
@@ -59,16 +60,16 @@ class _EssayPageState extends State<EssayPage> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('删除这道题？'),
-        content: Text('「${prompt.title}」连同它的作答记录会一起删掉。'),
+        title: Text(AppL.of(context).essayDeletePrompt),
+        content: Text(AppL.of(context).essayDeleteBody(prompt.title)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('取消'),
+            child: Text(AppL.of(context).commonCancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('删除'),
+            child: Text(AppL.of(context).commonDelete),
           ),
         ],
       ),
@@ -84,10 +85,10 @@ class _EssayPageState extends State<EssayPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('申论'),
+        title: Text(AppL.of(context).homeEssay),
         actions: [
           IconButton(
-            tooltip: '录入题目',
+            tooltip: AppL.of(context).essayAddPrompt,
             onPressed: _create,
             icon: const Icon(Icons.add_rounded),
           ),
@@ -99,10 +100,10 @@ class _EssayPageState extends State<EssayPage> {
             height: 46,
             child: ListView(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
+              padding: EdgeInsets.symmetric(horizontal: AppTheme.gutter),
               children: [
                 _TypeChip(
-                  label: '全部',
+                  label: AppL.of(context).bankAllShort,
                   selected: _filter == null,
                   onTap: () {
                     setState(() => _filter = null);
@@ -151,7 +152,7 @@ class _EssayPageState extends State<EssayPage> {
               backgroundColor: t.accent,
               foregroundColor: t.onAccent,
               icon: const Icon(Icons.add_rounded, size: 20),
-              label: const Text('录入题目'),
+              label: Text(AppL.of(context).essayAddPrompt),
             ),
     );
   }
@@ -172,10 +173,10 @@ class _EmptyEssay extends StatelessWidget {
           child: EmptyState(
             icon: Icons.description_outlined,
             art: EmptyArt.essay,
-            title: filtered ? '这个题型还没有题' : '还没有申论题',
+            title: filtered ? AppL.of(context).essayNoneOfType : AppL.of(context).essayNone,
             message: filtered
-                ? '换个题型看看，或者录一道新的。'
-                : '内置题库全是行测客观题，申论得自己录。\n拍张照让 AI 认，或者直接粘贴材料和题干。',
+                ? AppL.of(context).essayNoneOfTypeHint
+                : AppL.of(context).essayNoneHint,
           ),
         ),
         Padding(
@@ -189,7 +190,7 @@ class _EmptyEssay extends StatelessWidget {
             width: double.infinity,
             child: FilledButton(
               onPressed: onCreate,
-              child: const Text('录入第一道'),
+              child: Text(AppL.of(context).essayAddFirst),
             ),
           ),
         ),
@@ -217,7 +218,7 @@ class _PromptCard extends StatelessWidget {
     final meta = <String>[
       prompt.type.label,
       if (prompt.province != null && prompt.province!.isNotEmpty) prompt.province!,
-      if (prompt.year != null) '${prompt.year} 年',
+      if (prompt.year != null) AppL.of(context).bankYear('${prompt.year}'),
       if (prompt.wordLimit != null) '${prompt.wordLimit} 字内',
     ];
 

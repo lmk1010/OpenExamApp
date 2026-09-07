@@ -6077,6 +6077,204 @@ abstract class AppL {
   /// In zh, this message translates to:
   /// **'免费'**
   String get aiFree;
+
+  /// No description provided for @essayDeletePrompt.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除这道题？'**
+  String get essayDeletePrompt;
+
+  /// No description provided for @essayDeleteBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'「{title}」连同它的作答记录会一起删掉。'**
+  String essayDeleteBody(String title);
+
+  /// No description provided for @essayAddPrompt.
+  ///
+  /// In zh, this message translates to:
+  /// **'录入题目'**
+  String get essayAddPrompt;
+
+  /// No description provided for @essayNoneOfType.
+  ///
+  /// In zh, this message translates to:
+  /// **'这个题型还没有题'**
+  String get essayNoneOfType;
+
+  /// No description provided for @essayNone.
+  ///
+  /// In zh, this message translates to:
+  /// **'还没有申论题'**
+  String get essayNone;
+
+  /// No description provided for @essayNoneOfTypeHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'换个题型看看，或者录一道新的。'**
+  String get essayNoneOfTypeHint;
+
+  /// No description provided for @essayNoneHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'内置题库全是行测客观题，申论得自己录。\\n拍张照让 AI 认，或者直接粘贴材料和题干。'**
+  String get essayNoneHint;
+
+  /// No description provided for @essayAddFirst.
+  ///
+  /// In zh, this message translates to:
+  /// **'录入第一道'**
+  String get essayAddFirst;
+
+  /// No description provided for @essayQuit.
+  ///
+  /// In zh, this message translates to:
+  /// **'退出作答？'**
+  String get essayQuit;
+
+  /// No description provided for @essayQuitBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'还没交卷，写的内容会丢掉。'**
+  String get essayQuitBody;
+
+  /// No description provided for @essayKeepWriting.
+  ///
+  /// In zh, this message translates to:
+  /// **'继续写'**
+  String get essayKeepWriting;
+
+  /// No description provided for @essayTooShort.
+  ///
+  /// In zh, this message translates to:
+  /// **'至少写够 20 字再交，不然批不出东西'**
+  String get essayTooShort;
+
+  /// No description provided for @essayNeedAiMark.
+  ///
+  /// In zh, this message translates to:
+  /// **'批改要用到 AI，去填一下 API Key？答案会先存下来，不会丢。'**
+  String get essayNeedAiMark;
+
+  /// No description provided for @essayMarkFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'批改失败'**
+  String get essayMarkFailed;
+
+  /// No description provided for @essayWriteHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'在这里作答。归纳概括先分条，再把每条的核心词提到句首。'**
+  String get essayWriteHint;
+
+  /// No description provided for @essayMarking.
+  ///
+  /// In zh, this message translates to:
+  /// **'AI 批改中，约 20 秒…'**
+  String get essayMarking;
+
+  /// No description provided for @essaySubmitMark.
+  ///
+  /// In zh, this message translates to:
+  /// **'交卷批改'**
+  String get essaySubmitMark;
+
+  /// No description provided for @essayAttempts.
+  ///
+  /// In zh, this message translates to:
+  /// **'作答记录'**
+  String get essayAttempts;
+
+  /// No description provided for @essayNotMarked.
+  ///
+  /// In zh, this message translates to:
+  /// **'这次没批改成功，答案已经存下来了。'**
+  String get essayNotMarked;
+
+  /// No description provided for @essayResult.
+  ///
+  /// In zh, this message translates to:
+  /// **'批改结果'**
+  String get essayResult;
+
+  /// No description provided for @essayPointsCovered.
+  ///
+  /// In zh, this message translates to:
+  /// **'要点覆盖'**
+  String get essayPointsCovered;
+
+  /// No description provided for @essayWordCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'字数'**
+  String get essayWordCount;
+
+  /// No description provided for @essayTimeTaken.
+  ///
+  /// In zh, this message translates to:
+  /// **'用时'**
+  String get essayTimeTaken;
+
+  /// No description provided for @essayBreakdown.
+  ///
+  /// In zh, this message translates to:
+  /// **'分项得分'**
+  String get essayBreakdown;
+
+  /// No description provided for @essayPointByPoint.
+  ///
+  /// In zh, this message translates to:
+  /// **'采分点逐条对照'**
+  String get essayPointByPoint;
+
+  /// No description provided for @essayMissedPoints.
+  ///
+  /// In zh, this message translates to:
+  /// **'漏 {count} 点'**
+  String essayMissedPoints(int count);
+
+  /// No description provided for @essayNextTime.
+  ///
+  /// In zh, this message translates to:
+  /// **'下次注意'**
+  String get essayNextTime;
+
+  /// No description provided for @essayYourAnswer.
+  ///
+  /// In zh, this message translates to:
+  /// **'你的答案'**
+  String get essayYourAnswer;
+
+  /// No description provided for @essayEvidence.
+  ///
+  /// In zh, this message translates to:
+  /// **'出处：{text}'**
+  String essayEvidence(String text);
+
+  /// No description provided for @essayWords.
+  ///
+  /// In zh, this message translates to:
+  /// **'{n} 字'**
+  String essayWords(int n);
+
+  /// No description provided for @essayWordsOfLimit.
+  ///
+  /// In zh, this message translates to:
+  /// **'{n} / {limit} 字'**
+  String essayWordsOfLimit(int n, int limit);
+
+  /// No description provided for @essayOverLimit.
+  ///
+  /// In zh, this message translates to:
+  /// **' · 超了'**
+  String get essayOverLimit;
+
+  /// No description provided for @essayOutOf.
+  ///
+  /// In zh, this message translates to:
+  /// **'满分 {max}'**
+  String essayOutOf(String max);
 }
 
 class _AppLDelegate extends LocalizationsDelegate<AppL> {

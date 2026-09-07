@@ -3432,4 +3432,115 @@ class AppLZh extends AppL {
 
   @override
   String get aiFree => '免费';
+
+  @override
+  String get essayDeletePrompt => '删除这道题？';
+
+  @override
+  String essayDeleteBody(String title) {
+    return '「$title」连同它的作答记录会一起删掉。';
+  }
+
+  @override
+  String get essayAddPrompt => '录入题目';
+
+  @override
+  String get essayNoneOfType => '这个题型还没有题';
+
+  @override
+  String get essayNone => '还没有申论题';
+
+  @override
+  String get essayNoneOfTypeHint => '换个题型看看，或者录一道新的。';
+
+  @override
+  String get essayNoneHint => '内置题库全是行测客观题，申论得自己录。\\n拍张照让 AI 认，或者直接粘贴材料和题干。';
+
+  @override
+  String get essayAddFirst => '录入第一道';
+
+  @override
+  String get essayQuit => '退出作答？';
+
+  @override
+  String get essayQuitBody => '还没交卷，写的内容会丢掉。';
+
+  @override
+  String get essayKeepWriting => '继续写';
+
+  @override
+  String get essayTooShort => '至少写够 20 字再交，不然批不出东西';
+
+  @override
+  String get essayNeedAiMark => '批改要用到 AI，去填一下 API Key？答案会先存下来，不会丢。';
+
+  @override
+  String get essayMarkFailed => '批改失败';
+
+  @override
+  String get essayWriteHint => '在这里作答。归纳概括先分条，再把每条的核心词提到句首。';
+
+  @override
+  String get essayMarking => 'AI 批改中，约 20 秒…';
+
+  @override
+  String get essaySubmitMark => '交卷批改';
+
+  @override
+  String get essayAttempts => '作答记录';
+
+  @override
+  String get essayNotMarked => '这次没批改成功，答案已经存下来了。';
+
+  @override
+  String get essayResult => '批改结果';
+
+  @override
+  String get essayPointsCovered => '要点覆盖';
+
+  @override
+  String get essayWordCount => '字数';
+
+  @override
+  String get essayTimeTaken => '用时';
+
+  @override
+  String get essayBreakdown => '分项得分';
+
+  @override
+  String get essayPointByPoint => '采分点逐条对照';
+
+  @override
+  String essayMissedPoints(int count) {
+    return '漏 $count 点';
+  }
+
+  @override
+  String get essayNextTime => '下次注意';
+
+  @override
+  String get essayYourAnswer => '你的答案';
+
+  @override
+  String essayEvidence(String text) {
+    return '出处：$text';
+  }
+
+  @override
+  String essayWords(int n) {
+    return '$n 字';
+  }
+
+  @override
+  String essayWordsOfLimit(int n, int limit) {
+    return '$n / $limit 字';
+  }
+
+  @override
+  String get essayOverLimit => ' · 超了';
+
+  @override
+  String essayOutOf(String max) {
+    return '满分 $max';
+  }
 }

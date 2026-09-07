@@ -2650,5 +2650,83 @@
   "aiPaste": "粘贴",
   "aiHide": "隐藏",
   "aiShow": "显示",
-  "aiFree": "免费"
+  "aiFree": "免费",
+  "essayDeletePrompt": "删除这道题？",
+  "essayDeleteBody": "「{title}」连同它的作答记录会一起删掉。",
+  "@essayDeleteBody": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "essayAddPrompt": "录入题目",
+  "essayNoneOfType": "这个题型还没有题",
+  "essayNone": "还没有申论题",
+  "essayNoneOfTypeHint": "换个题型看看，或者录一道新的。",
+  "essayNoneHint": "内置题库全是行测客观题，申论得自己录。\\n拍张照让 AI 认，或者直接粘贴材料和题干。",
+  "essayAddFirst": "录入第一道",
+  "essayQuit": "退出作答？",
+  "essayQuitBody": "还没交卷，写的内容会丢掉。",
+  "essayKeepWriting": "继续写",
+  "essayTooShort": "至少写够 20 字再交，不然批不出东西",
+  "essayNeedAiMark": "批改要用到 AI，去填一下 API Key？答案会先存下来，不会丢。",
+  "essayMarkFailed": "批改失败",
+  "essayWriteHint": "在这里作答。归纳概括先分条，再把每条的核心词提到句首。",
+  "essayMarking": "AI 批改中，约 20 秒…",
+  "essaySubmitMark": "交卷批改",
+  "essayAttempts": "作答记录",
+  "essayNotMarked": "这次没批改成功，答案已经存下来了。",
+  "essayResult": "批改结果",
+  "essayPointsCovered": "要点覆盖",
+  "essayWordCount": "字数",
+  "essayTimeTaken": "用时",
+  "essayBreakdown": "分项得分",
+  "essayPointByPoint": "采分点逐条对照",
+  "essayMissedPoints": "漏 {count} 点",
+  "@essayMissedPoints": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "essayNextTime": "下次注意",
+  "essayYourAnswer": "你的答案",
+  "essayEvidence": "出处：{text}",
+  "@essayEvidence": {
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "essayWords": "{n} 字",
+  "@essayWords": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "essayWordsOfLimit": "{n} / {limit} 字",
+  "@essayWordsOfLimit": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "limit": {
+        "type": "int"
+      }
+    }
+  },
+  "essayOverLimit": " · 超了",
+  "essayOutOf": "满分 {max}",
+  "@essayOutOf": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  }
 }

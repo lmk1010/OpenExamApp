@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
 import 'package:openexam_app/core/ui/shore.dart';
@@ -32,13 +33,13 @@ class EssayResultPage extends StatelessWidget {
 
     if (review == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('作答记录')),
+        appBar: AppBar(title: Text(AppL.of(context).essayAttempts)),
         body: Padding(
-          padding: const EdgeInsets.all(AppTheme.gutter),
+          padding: EdgeInsets.all(AppTheme.gutter),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('这次没批改成功，答案已经存下来了。', style: text.bodyMedium),
+              Text(AppL.of(context).essayNotMarked, style: text.bodyMedium),
               const SizedBox(height: 16),
               Expanded(
                 child: SingleChildScrollView(
@@ -55,7 +56,7 @@ class EssayResultPage extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('批改结果')),
+      appBar: AppBar(title: Text(AppL.of(context).essayResult)),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(
           AppTheme.gutter,
@@ -83,19 +84,21 @@ class EssayResultPage extends StatelessWidget {
                         (review.score ?? 0) % 1 == 0 ? 0 : 1,
                       ) ??
                       '—',
-                  caption: '满分 ${review.maxScore?.toStringAsFixed(0) ?? '—'}',
+                  caption: AppL.of(context).essayOutOf(
+                    review.maxScore?.toStringAsFixed(0) ?? '—',
+                  ),
                   size: 104,
                 ),
-                const SizedBox(width: 20),
+                SizedBox(width: 20),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _Stat(label: '要点覆盖', value: '${review.hitRate}%'),
-                      const SizedBox(height: 12),
-                      _Stat(label: '字数', value: '${attempt.wordCount}'),
-                      const SizedBox(height: 12),
-                      _Stat(label: '用时', value: _clock),
+                      _Stat(label: AppL.of(context).essayPointsCovered, value: '${review.hitRate}%'),
+                      SizedBox(height: 12),
+                      _Stat(label: AppL.of(context).essayWordCount, value: '${attempt.wordCount}'),
+                      SizedBox(height: 12),
+                      _Stat(label: AppL.of(context).essayTimeTaken, value: _clock),
                     ],
                   ),
                 ),
@@ -117,8 +120,8 @@ class EssayResultPage extends StatelessWidget {
           ],
 
           if (review.dimensions.isNotEmpty) ...[
-            const SizedBox(height: 26),
-            _SectionTitle('分项得分'),
+            SizedBox(height: 26),
+            _SectionTitle(AppL.of(context).essayBreakdown),
             const SizedBox(height: 12),
             for (final d in review.dimensions) ...[
               _DimensionRow(dimension: d),
@@ -127,13 +130,13 @@ class EssayResultPage extends StatelessWidget {
           ],
 
           if (review.points.isNotEmpty) ...[
-            const SizedBox(height: 14),
+            SizedBox(height: 14),
             Row(
               children: [
-                _SectionTitle('采分点逐条对照'),
-                const Spacer(),
+                _SectionTitle(AppL.of(context).essayPointByPoint),
+                Spacer(),
                 if (review.missed.isNotEmpty)
-                  Text('漏 ${review.missed.length} 点',
+                  Text(AppL.of(context).essayMissedPoints(review.missed.length),
                       style: text.bodySmall?.copyWith(
                         color: t.danger,
                         fontWeight: FontWeight.w600,
@@ -148,8 +151,8 @@ class EssayResultPage extends StatelessWidget {
           ],
 
           if (review.improvements.isNotEmpty) ...[
-            const SizedBox(height: 20),
-            _SectionTitle('下次注意'),
+            SizedBox(height: 20),
+            _SectionTitle(AppL.of(context).essayNextTime),
             const SizedBox(height: 12),
             for (var i = 0; i < review.improvements.length; i++)
               Padding(
@@ -182,8 +185,8 @@ class EssayResultPage extends StatelessWidget {
               ),
           ],
 
-          const SizedBox(height: 24),
-          _SectionTitle('你的答案'),
+          SizedBox(height: 24),
+          _SectionTitle(AppL.of(context).essayYourAnswer),
           const SizedBox(height: 12),
           Container(
             width: double.infinity,
@@ -336,8 +339,8 @@ class _PointRow extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                     )),
                 if (point.evidence != null && point.evidence!.isNotEmpty) ...[
-                  const SizedBox(height: 5),
-                  Text('出处：${point.evidence}',
+                  SizedBox(height: 5),
+                  Text(AppL.of(context).essayEvidence(point.evidence ?? ''),
                       style: text.bodySmall?.copyWith(height: 1.65)),
                 ],
                 // 漏点的原因才是这页最该看的东西，单独框出来

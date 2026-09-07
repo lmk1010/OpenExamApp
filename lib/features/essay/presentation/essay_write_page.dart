@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/ai/ai_settings.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
@@ -66,15 +67,15 @@ class _EssayWritePageState extends State<EssayWritePage> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('退出作答？'),
-        content: const Text('还没交卷，写的内容会丢掉。'),
+        title: Text(AppL.of(context).essayQuit),
+        content: Text(AppL.of(context).essayQuitBody),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('继续写')),
+              child: Text(AppL.of(context).essayKeepWriting)),
           TextButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('退出')),
+              child: Text(AppL.of(context).commonQuit)),
         ],
       ),
     );
@@ -83,7 +84,7 @@ class _EssayWritePageState extends State<EssayWritePage> {
 
   Future<void> _submit() async {
     if (_words < 20) {
-      _toast('至少写够 20 字再交，不然批不出东西');
+      _toast(AppL.of(context).essayTooShort);
       return;
     }
 
@@ -93,15 +94,15 @@ class _EssayWritePageState extends State<EssayWritePage> {
       final go = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('先配置 AI'),
-          content: const Text('批改要用到 AI，去填一下 API Key？答案会先存下来，不会丢。'),
+          title: Text(AppL.of(context).essayNeedAi),
+          content: Text(AppL.of(context).essayNeedAiMark),
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('以后再说')),
+                child: Text(AppL.of(context).commonLater)),
             TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('去设置')),
+                child: Text(AppL.of(context).scanGoSettings)),
           ],
         ),
       );
@@ -124,9 +125,11 @@ class _EssayWritePageState extends State<EssayWritePage> {
 
     if (!result.isOk) {
       setState(() => _grading = false);
+      // 兜底文案要在 await 之前取 —— 存答案之后 context 就跨 await 了。
+      final fallback = AppL.of(context).essayMarkFailed;
       // 批改失败也要把答案存住
       await _persist(null);
-      _toast(result.error ?? '批改失败');
+      _toast(result.error ?? fallback);
       return;
     }
 
@@ -237,14 +240,14 @@ class _EssayWritePageState extends State<EssayWritePage> {
                     width: double.infinity,
                     color: t.surface,
                     child: ListView(
-                      padding: const EdgeInsets.fromLTRB(
+                      padding: EdgeInsets.fromLTRB(
                         AppTheme.gutter,
                         12,
                         AppTheme.gutter,
                         14,
                       ),
                       children: [
-                        Text('给定材料',
+                        Text(AppL.of(context).essaySource,
                             style: text.bodySmall?.copyWith(
                               color: t.muted,
                               letterSpacing: 0.4,
@@ -295,7 +298,7 @@ class _EssayWritePageState extends State<EssayWritePage> {
 
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(
+                    padding: EdgeInsets.fromLTRB(
                       AppTheme.gutter,
                       0,
                       AppTheme.gutter,
@@ -309,7 +312,7 @@ class _EssayWritePageState extends State<EssayWritePage> {
                       keyboardType: TextInputType.multiline,
                       style: text.bodyMedium?.copyWith(height: 2.0),
                       decoration: InputDecoration(
-                        hintText: '在这里作答。归纳概括先分条，再把每条的核心词提到句首。',
+                        hintText: AppL.of(context).essayWriteHint,
                         border: InputBorder.none,
                         contentPadding: const EdgeInsets.only(top: 10),
                       ),
@@ -322,7 +325,7 @@ class _EssayWritePageState extends State<EssayWritePage> {
         ),
         bottomNavigationBar: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(
+            padding: EdgeInsets.fromLTRB(
               AppTheme.gutter,
               6,
               AppTheme.gutter,
@@ -332,18 +335,24 @@ class _EssayWritePageState extends State<EssayWritePage> {
               children: [
                 Text(
                   widget.prompt.wordLimit == null
-                      ? '$_words 字'
-                      : '$_words / ${widget.prompt.wordLimit} 字${_overLimit ? ' · 超了' : ''}',
+                      ? AppL.of(context).essayWords(_words)
+                      : AppL.of(context).essayWordsOfLimit(
+                            _words,
+                            widget.prompt.wordLimit!,
+                          ) +
+                          (_overLimit
+                              ? AppL.of(context).essayOverLimit
+                              : ''),
                   style: text.bodySmall?.copyWith(
                     color: _overLimit ? t.danger : t.muted,
                     fontWeight: _overLimit ? FontWeight.w600 : FontWeight.w500,
                     fontFeatures: AppTheme.numeric,
                   ),
                 ),
-                const Spacer(),
+                Spacer(),
                 FilledButton(
                   onPressed: _grading ? null : _submit,
-                  child: Text(_grading ? 'AI 批改中，约 20 秒…' : '交卷批改'),
+                  child: Text(_grading ? AppL.of(context).essayMarking : AppL.of(context).essaySubmitMark),
                 ),
               ],
             ),

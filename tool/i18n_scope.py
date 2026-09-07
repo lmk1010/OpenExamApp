@@ -43,6 +43,9 @@ CONTENT = {
     # 搜索建议词（主旨概括/等差数列/行政处罚）是给这个题库用的例子，
     # 该跟题库语言走，不跟界面语言走。
     'lib/features/search/search_page.dart': '搜索建议词',
+    # 申论的五种题型（归纳概括/提出对策/综合分析/贯彻执行/大作文）——
+    # 跟行测模块名一样，是这门考试自己的分类。
+    'lib/features/essay/domain/essay_models.dart': '申论题型名',
 }
 
 
