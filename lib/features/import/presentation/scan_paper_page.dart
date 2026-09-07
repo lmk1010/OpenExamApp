@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/ai/ai_client.dart';
 import 'package:openexam_app/core/ai/ai_settings.dart';
 import 'package:openexam_app/core/constants/categories.dart';
@@ -53,16 +54,16 @@ class _ScanPaperPageState extends State<ScanPaperPage> {
       final go = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('先配一个 AI'),
-          content: const Text('识别试卷要调模型。填一个 key 就行，题目和图片只发给你自己配的那家。'),
+          title: Text(AppL.of(context).scanNeedAi),
+          content: Text(AppL.of(context).scanNeedAiBody),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('取消'),
+              child: Text(AppL.of(context).commonCancel),
             ),
             TextButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('去设置'),
+              child: Text(AppL.of(context).scanGoSettings),
             ),
           ],
         ),
@@ -105,7 +106,7 @@ class _ScanPaperPageState extends State<ScanPaperPage> {
       if (!mounted) return;
       if (pages.isEmpty) {
         setState(() => _stage = _Stage.pick);
-        _toast('这个文件里没有可识别的页面');
+        _toast(AppL.of(context).scanNoPages);
         return;
       }
       setState(() {
@@ -116,7 +117,7 @@ class _ScanPaperPageState extends State<ScanPaperPage> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _stage = _Stage.pick);
-      _toast('打不开这个文件：$e');
+      _toast(AppL.of(context).scanCantOpen('$e'));
     }
   }
 
@@ -198,9 +199,9 @@ class _ScanPaperPageState extends State<ScanPaperPage> {
         ),
         titleSpacing: 0,
         title: Text(switch (_stage) {
-          _Stage.pick => '拍照 / PDF',
-          _Stage.scanning => '识别中',
-          _Stage.review => '过一遍',
+          _Stage.pick => AppL.of(context).importWayScanTitle,
+          _Stage.scanning => AppL.of(context).scanReading,
+          _Stage.review => AppL.of(context).scanReview,
         }),
       ),
       body: switch (_stage) {
@@ -236,7 +237,7 @@ class _PickBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     return ListView(
-      padding: const EdgeInsets.fromLTRB(
+      padding: EdgeInsets.fromLTRB(
         AppTheme.gutter,
         8,
         AppTheme.gutter,
@@ -244,15 +245,15 @@ class _PickBody extends StatelessWidget {
       ),
       children: [
         _Big(
-          label: '选一个 PDF',
-          caption: '整本试卷，逐页识别',
+          label: AppL.of(context).scanPickPdf,
+          caption: AppL.of(context).scanPickPdfHint,
           primary: true,
           onTap: onPdf,
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: 12),
         _Big(
-          label: '选图片',
-          caption: '拍的照片或截图，可以多选',
+          label: AppL.of(context).scanPickImages,
+          caption: AppL.of(context).scanPickImagesHint,
           onTap: onImages,
         ),
         const SizedBox(height: 26),
@@ -265,10 +266,9 @@ class _PickBody extends StatelessWidget {
             errorBuilder: (_, __, ___) => const SizedBox.shrink(),
           ),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: 12),
         Text(
-          '识别用的是你自己配的那家模型，一页一次调用。\n'
-          '题目和图片不经过我们的服务器。',
+          AppL.of(context).scanPrivacyNote,
           textAlign: TextAlign.center,
           style: text.bodySmall,
         ),
@@ -384,11 +384,11 @@ class _ScanBody extends StatelessWidget {
                 fontFeatures: AppTheme.numeric,
               ),
             ),
-            const SizedBox(width: 8),
-            Text('题', style: text.titleSmall?.copyWith(color: t.muted)),
-            const Spacer(),
+            SizedBox(width: 8),
+            Text(AppL.of(context).dxColQuestions, style: text.titleSmall?.copyWith(color: t.muted)),
+            Spacer(),
             Text(
-              '$done / ${pages.length} 页',
+              AppL.of(context).scanPageProgress(done, pages.length),
               style: text.bodySmall?.copyWith(fontFeatures: AppTheme.numeric),
             ),
           ],
@@ -418,7 +418,7 @@ class _PageRow extends StatelessWidget {
     final failed = page.state == PageState.failed;
 
     return Container(
-      padding: const EdgeInsets.all(10),
+      padding: EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: failed ? t.dangerSoft : t.surface,
         borderRadius: BorderRadius.circular(16),
@@ -436,18 +436,18 @@ class _PageRow extends StatelessWidget {
               filterQuality: FilterQuality.low,
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '第 ${page.index} 页',
+                  AppL.of(context).scanPageNo(page.index),
                   style: text.titleSmall?.copyWith(fontSize: 14),
                 ),
                 // 失败了要说为什么。只给一个"重试"，用户只能盲目再点一次。
                 if (failed && (page.error ?? '').isNotEmpty) ...[
-                  const SizedBox(height: 3),
+                  SizedBox(height: 3),
                   Text(
                     page.error!,
                     maxLines: 3,
@@ -463,7 +463,7 @@ class _PageRow extends StatelessWidget {
             ),
           ),
           switch (page.state) {
-            PageState.waiting => Text('等着', style: text.bodySmall),
+            PageState.waiting => Text(AppL.of(context).scanWaiting, style: text.bodySmall),
             PageState.running => SizedBox(
                 width: 16,
                 height: 16,
@@ -473,7 +473,7 @@ class _PageRow extends StatelessWidget {
                 ),
               ),
             PageState.done => Text(
-                page.questions.isEmpty ? '没有完整题目' : '${page.questions.length} 题',
+                page.questions.isEmpty ? AppL.of(context).scanNoWholeQuestion : AppL.of(context).countQuestions(page.questions.length),
                 style: text.bodySmall?.copyWith(
                   color: page.questions.isEmpty ? t.muted : t.success,
                   fontFeatures: AppTheme.numeric,
@@ -483,7 +483,7 @@ class _PageRow extends StatelessWidget {
                 behavior: HitTestBehavior.opaque,
                 onTap: onRetry,
                 child: Text(
-                  '重试',
+                  AppL.of(context).commonRetry,
                   style: text.bodySmall?.copyWith(
                     color: t.danger,
                     fontWeight: FontWeight.w700,
@@ -542,7 +542,7 @@ class _ReviewBody extends StatelessWidget {
       children: [
         Expanded(
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(
+            padding: EdgeInsets.fromLTRB(
               AppTheme.gutter,
               8,
               AppTheme.gutter,
@@ -551,37 +551,37 @@ class _ReviewBody extends StatelessWidget {
             children: [
               if (missing > 0 || failed > 0)
                 Container(
-                  margin: const EdgeInsets.only(bottom: 14),
-                  padding: const EdgeInsets.all(14),
+                  margin: EdgeInsets.only(bottom: 14),
+                  padding: EdgeInsets.all(14),
                   decoration: BoxDecoration(
                     color: t.accentSoft,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Text(
                     [
-                      if (missing > 0) '$missing 题没认出答案，已排在最前',
-                      if (failed > 0) '$failed 页识别失败',
+                      if (missing > 0) AppL.of(context).scanMissingAnswers(missing),
+                      if (failed > 0) AppL.of(context).scanFailedPages(failed),
                     ].join('；'),
                     style: text.bodySmall?.copyWith(color: t.onAccentSoft),
                   ),
                 ),
               // 题型逐题判过了。这一行是"判错了就整批改"的兜底，
               // 不是必填项 —— 默认那颗选中的就是"按识别结果"。
-              Text('题型', style: text.titleSmall),
-              const SizedBox(height: 4),
+              Text(AppL.of(context).scanType, style: text.titleSmall),
+              SizedBox(height: 4),
               Text(
                 unknown > 0
-                    ? '识别出 ${byCategory.length} 类，$unknown 题没认出'
-                    : '已逐题识别，不对可以整批改',
+                    ? AppL.of(context).scanTypeSummary(byCategory.length, unknown)
+                    : AppL.of(context).scanTypeHint,
                 style: text.bodySmall,
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: 10),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
                 children: [
                   _Chip(
-                    label: '按识别结果',
+                    label: AppL.of(context).scanAsDetected,
                     on: overrideCategory == null,
                     onTap: () => onOverride(null),
                   ),
@@ -609,7 +609,7 @@ class _ReviewBody extends StatelessWidget {
         SafeArea(
           top: false,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(
+            padding: EdgeInsets.fromLTRB(
               AppTheme.gutter,
               4,
               AppTheme.gutter,
@@ -620,15 +620,15 @@ class _ReviewBody extends StatelessWidget {
                 Expanded(
                   child: OutlinedButton(
                     onPressed: onBackToScan,
-                    child: const Text('看页面'),
+                    child: Text(AppL.of(context).scanViewPage),
                   ),
                 ),
-                const SizedBox(width: 10),
+                SizedBox(width: 10),
                 Expanded(
                   flex: 2,
                   child: FilledButton(
                     onPressed: onImport,
-                    child: Text(selected == 0 ? '没有选中的题' : '导入 $selected 题'),
+                    child: Text(selected == 0 ? AppL.of(context).scanNothingSelected : AppL.of(context).scanImportSelected(selected)),
                   ),
                 ),
               ],
@@ -698,13 +698,13 @@ class _QuestionCard extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: 10),
               Padding(
-                padding: const EdgeInsets.only(left: 31),
+                padding: EdgeInsets.only(left: 31),
                 child: Row(
                   children: [
                     Text(
-                      noAnswer ? '没认出答案' : '答案 ${question.answer}',
+                      noAnswer ? AppL.of(context).scanNoAnswer : AppL.of(context).scanAnswerIs(question.answer),
                       style: text.bodySmall?.copyWith(
                         color: noAnswer ? t.danger : t.success,
                         fontWeight: FontWeight.w600,
@@ -715,7 +715,7 @@ class _QuestionCard extends StatelessWidget {
                     Container(
                       width: 3,
                       height: 11,
-                      margin: const EdgeInsets.only(right: 5),
+                      margin: EdgeInsets.only(right: 5),
                       decoration: BoxDecoration(
                         color: category.isEmpty
                             ? t.muted
@@ -724,21 +724,21 @@ class _QuestionCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      category.isEmpty ? '未判定' : categoryLabel(category),
+                      category.isEmpty ? AppL.of(context).scanUnclassified : categoryLabel(category),
                       style: text.bodySmall,
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: 12),
                     Text(
-                      '${question.options.length} 个选项',
+                      AppL.of(context).scanOptionCount(question.options.length),
                       style: text.bodySmall,
                     ),
                     if (question.hasMaterial) ...[
-                      const SizedBox(width: 12),
-                      Text('带材料', style: text.bodySmall),
+                      SizedBox(width: 12),
+                      Text(AppL.of(context).scanHasMaterial, style: text.bodySmall),
                     ],
                     if (question.hasImage) ...[
-                      const SizedBox(width: 12),
-                      Text('带图', style: text.bodySmall),
+                      SizedBox(width: 12),
+                      Text(AppL.of(context).scanHasImage, style: text.bodySmall),
                     ],
                   ],
                 ),

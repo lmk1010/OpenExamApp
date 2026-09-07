@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/ai/ai_settings.dart';
 import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
@@ -42,9 +43,11 @@ class _DocImportPageState extends State<DocImportPage> {
   }
 
   Future<void> _pick() async {
+    // 这两句提示都在 await 之后才用，先取出来。
+    final l = AppL.of(context);
     final settings = await AiSettingsStore.load();
     if (!settings.isConfigured) {
-      _toast('先去「我的 → AI 设置」配一个 key，解析要用它');
+      _toast(l.docNeedAiKey);
       return;
     }
 
@@ -61,7 +64,7 @@ class _DocImportPageState extends State<DocImportPage> {
       bytes = await File(file.path!).readAsBytes();
     }
     if (bytes == null) {
-      _toast('读不到这个文件，换一个试试');
+      _toast(l.importUnreadable);
       return;
     }
 
@@ -69,7 +72,7 @@ class _DocImportPageState extends State<DocImportPage> {
       _busy = true;
       _fileName = file.name;
       _questions = const [];
-      _note = '正在打开文件…';
+      _note = AppL.of(context).docOpening;
       _ratio = 0;
     });
 
@@ -77,7 +80,7 @@ class _DocImportPageState extends State<DocImportPage> {
     if (doc.isEmpty) {
       setState(() {
         _busy = false;
-        _note = '这个文件里没读到文字。扫描件请走「拍照 / PDF」那条路。';
+        _note = AppL.of(context).docNoText;
       });
       return;
     }
@@ -131,7 +134,7 @@ class _DocImportPageState extends State<DocImportPage> {
             ),
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(
+                padding: EdgeInsets.fromLTRB(
                     AppTheme.gutter, 8, AppTheme.gutter, 10),
                 child: Row(
                   children: [
@@ -139,39 +142,38 @@ class _DocImportPageState extends State<DocImportPage> {
                       icon: Icons.arrow_back,
                       onTap: () => Navigator.of(context).maybePop(),
                     ),
-                    const SizedBox(width: 4),
-                    Text('文档导入', style: text.titleMedium),
+                    SizedBox(width: 4),
+                    Text(AppL.of(context).docImportTitle, style: text.titleMedium),
                   ],
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
+                padding: EdgeInsets.symmetric(horizontal: AppTheme.gutter),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Word、Excel、CSV、纯文本都行。AI 读一遍，认出题干、选项、'
-                      '答案和解析 —— 什么考试都可以，不限于行测。',
+                      AppL.of(context).docImportBody,
                       style: text.bodySmall?.copyWith(color: t.textSoft),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     TextField(
                       controller: _subject,
                       enabled: !_busy,
-                      decoration: const InputDecoration(
-                        labelText: '这是什么考试的（可选）',
-                        hintText: '例如 教师资格证 · 科目二',
-                        helperText: '填了能帮 AI 分类分得准一些',
+                      decoration: InputDecoration(
+                        labelText: AppL.of(context).docWhichExam,
+                        hintText: AppL.of(context).docWhichExamHint,
+                        helperText: AppL.of(context).docWhichExamNote,
                         border: OutlineInputBorder(),
                         isDense: true,
                       ),
                     ),
-                    const SizedBox(height: 14),
+                    SizedBox(height: 14),
                     SizedBox(
                       width: double.infinity,
                       child: FilledButton(
                         onPressed: _busy ? null : _pick,
-                        child: Text(_questions.isEmpty ? '选择文件' : '换一个文件'),
+                        child: Text(_questions.isEmpty ? AppL.of(context).docPickFile : AppL.of(context).docPickAnother),
                       ),
                     ),
                   ],
@@ -220,32 +222,34 @@ class _DocImportPageState extends State<DocImportPage> {
               ],
 
               if (_questions.isNotEmpty) ...[
-                const SizedBox(height: 22),
+                SizedBox(height: 22),
                 SectionHeader(
-                  title: '认出来的题',
-                  caption: '${_questions.length} 道'
-                      '${_noAnswer == 0 ? '' : ' · $_noAnswer 道没答案'}',
+                  title: AppL.of(context).docFound,
+                  // 后半截是可选后缀，拼在 Dart 里。
+                  caption: AppL.of(context).docFoundCount(_questions.length) +
+                      (_noAnswer == 0
+                          ? ''
+                          : AppL.of(context).docNoAnswerCount(_noAnswer)),
                 ),
                 if (_noAnswer > 0)
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(
+                    padding: EdgeInsets.fromLTRB(
                         AppTheme.gutter, 2, AppTheme.gutter, 6),
                     child: Text(
-                      '没答案的题做不了，多半是原文档把答案单独列在别处。'
-                      '存进去之后可以自己补，或者换一份带答案的资料。',
+                      AppL.of(context).docNoAnswerHint,
                       style: text.bodySmall?.copyWith(color: t.textSoft),
                     ),
                   ),
                 for (var i = 0; i < _questions.length && i < 30; i++) ...[
-                  if (i > 0) const RowDivider(),
+                  if (i > 0) RowDivider(),
                   _Preview(question: _questions[i], index: i + 1),
                 ],
                 if (_questions.length > 30)
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(
+                    padding: EdgeInsets.fromLTRB(
                         AppTheme.gutter, 12, AppTheme.gutter, 0),
                     child: Text(
-                      '还有 ${_questions.length - 30} 道，存进去就能看到',
+                      AppL.of(context).docMoreHidden(_questions.length - 30),
                       style: text.bodySmall?.copyWith(color: t.textSoft),
                     ),
                   ),
@@ -262,7 +266,7 @@ class _DocImportPageState extends State<DocImportPage> {
                 width: double.infinity,
                 child: FilledButton(
                   onPressed: _busy ? null : _save,
-                  child: Text('存入题库 ${_questions.length} 道'),
+                  child: Text(AppL.of(context).docSaveCount(_questions.length)),
                 ),
               ),
             ),
@@ -283,7 +287,7 @@ class _Preview extends StatelessWidget {
     final noAnswer = question.answer.isEmpty;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(
+      padding: EdgeInsets.symmetric(
           horizontal: AppTheme.gutter, vertical: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -294,24 +298,24 @@ class _Preview extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: text.bodyLarge?.copyWith(fontSize: 14.5, height: 1.45),
           ),
-          const SizedBox(height: 6),
+          SizedBox(height: 6),
           Wrap(
             spacing: 10,
             runSpacing: 4,
             children: [
               Text(
-                noAnswer ? '没有答案' : '答案 ${question.answer}',
+                noAnswer ? AppL.of(context).docNoAnswer : AppL.of(context).scanAnswerIs(question.answer),
                 style: text.bodySmall?.copyWith(
                   color: noAnswer ? t.danger : t.success,
                 ),
               ),
-              Text('${question.options.length} 个选项',
+              Text(AppL.of(context).scanOptionCount(question.options.length),
                   style: text.bodySmall?.copyWith(color: t.textSoft)),
               if (question.category.isNotEmpty)
                 Text(question.category,
                     style: text.bodySmall?.copyWith(color: t.brand)),
               if (question.analysis.isNotEmpty)
-                Text('带解析',
+                Text(AppL.of(context).docHasAnalysis,
                     style: text.bodySmall?.copyWith(color: t.textSoft)),
             ],
           ),

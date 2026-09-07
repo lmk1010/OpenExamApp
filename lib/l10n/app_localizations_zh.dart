@@ -2590,4 +2590,182 @@ class AppLZh extends AppL {
 
   @override
   String get vocabFromMistakes => '做错收的';
+
+  @override
+  String get scanNeedAi => '先配一个 AI';
+
+  @override
+  String get scanNeedAiBody => '识别试卷要调模型。填一个 key 就行，题目和图片只发给你自己配的那家。';
+
+  @override
+  String get scanGoSettings => '去设置';
+
+  @override
+  String get scanNoPages => '这个文件里没有可识别的页面';
+
+  @override
+  String scanCantOpen(String error) {
+    return '打不开这个文件：$error';
+  }
+
+  @override
+  String get scanReading => '识别中';
+
+  @override
+  String get scanReview => '过一遍';
+
+  @override
+  String get scanPickPdf => '选一个 PDF';
+
+  @override
+  String get scanPickPdfHint => '整本试卷，逐页识别';
+
+  @override
+  String get scanPickImages => '选图片';
+
+  @override
+  String get scanPickImagesHint => '拍的照片或截图，可以多选';
+
+  @override
+  String get scanPrivacyNote => '识别用的是你自己配的那家模型，一页一次调用。\\n题目和图片不经过我们的服务器。';
+
+  @override
+  String scanPageProgress(int done, int total) {
+    return '$done / $total 页';
+  }
+
+  @override
+  String scanPageNo(int n) {
+    return '第 $n 页';
+  }
+
+  @override
+  String get scanWaiting => '等着';
+
+  @override
+  String get scanNoWholeQuestion => '没有完整题目';
+
+  @override
+  String get commonRetry => '重试';
+
+  @override
+  String scanMissingAnswers(int count) {
+    return '$count 题没认出答案，已排在最前';
+  }
+
+  @override
+  String scanFailedPages(int count) {
+    return '$count 页识别失败';
+  }
+
+  @override
+  String get scanType => '题型';
+
+  @override
+  String scanTypeSummary(int types, int unknown) {
+    return '识别出 $types 类，$unknown 题没认出';
+  }
+
+  @override
+  String get scanTypeHint => '已逐题识别，不对可以整批改';
+
+  @override
+  String get scanAsDetected => '按识别结果';
+
+  @override
+  String get scanViewPage => '看页面';
+
+  @override
+  String get scanNothingSelected => '没有选中的题';
+
+  @override
+  String scanImportSelected(int count) {
+    return '导入 $count 题';
+  }
+
+  @override
+  String get scanNoAnswer => '没认出答案';
+
+  @override
+  String scanAnswerIs(String answer) {
+    return '答案 $answer';
+  }
+
+  @override
+  String get scanUnclassified => '未判定';
+
+  @override
+  String scanOptionCount(int count) {
+    return '$count 个选项';
+  }
+
+  @override
+  String get scanHasMaterial => '带材料';
+
+  @override
+  String get scanHasImage => '带图';
+
+  @override
+  String docFoundCount(int count) {
+    return '$count 道';
+  }
+
+  @override
+  String docNoAnswerCount(int count) {
+    return ' · $count 道没答案';
+  }
+
+  @override
+  String get docNeedAiKey => '先去「我的 → AI 设置」配一个 key，解析要用它';
+
+  @override
+  String get docOpening => '正在打开文件…';
+
+  @override
+  String get docNoText => '这个文件里没读到文字。扫描件请走「拍照 / PDF」那条路。';
+
+  @override
+  String get docImportTitle => '文档导入';
+
+  @override
+  String get docImportBody =>
+      'Word、Excel、CSV、纯文本都行。AI 读一遍，认出题干、选项、答案和解析 —— 什么考试都可以，不限于行测。';
+
+  @override
+  String get docWhichExam => '这是什么考试的（可选）';
+
+  @override
+  String get docWhichExamHint => '例如 教师资格证 · 科目二';
+
+  @override
+  String get docWhichExamNote => '填了能帮 AI 分类分得准一些';
+
+  @override
+  String get docPickFile => '选择文件';
+
+  @override
+  String get docPickAnother => '换一个文件';
+
+  @override
+  String get docFound => '认出来的题';
+
+  @override
+  String get docNoAnswerHint =>
+      '没答案的题做不了，多半是原文档把答案单独列在别处。存进去之后可以自己补，或者换一份带答案的资料。';
+
+  @override
+  String docMoreHidden(int count) {
+    return '还有 $count 道，存进去就能看到';
+  }
+
+  @override
+  String docSaveCount(int count) {
+    return '存入题库 $count 道';
+  }
+
+  @override
+  String get docNoAnswer => '没有答案';
+
+  @override
+  String get docHasAnalysis => '带解析';
 }

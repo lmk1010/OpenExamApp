@@ -2656,4 +2656,188 @@ class AppLEn extends AppL {
 
   @override
   String get vocabFromMistakes => 'From mistakes';
+
+  @override
+  String get scanNeedAi => 'Set up AI first';
+
+  @override
+  String get scanNeedAiBody =>
+      'Reading a paper calls a model. Add a key and that\'s it — the questions and images only go to the provider you chose.';
+
+  @override
+  String get scanGoSettings => 'Open settings';
+
+  @override
+  String get scanNoPages => 'No readable pages in that file';
+
+  @override
+  String scanCantOpen(String error) {
+    return 'Can\'t open that file: $error';
+  }
+
+  @override
+  String get scanReading => 'Reading';
+
+  @override
+  String get scanReview => 'Review';
+
+  @override
+  String get scanPickPdf => 'Pick a PDF';
+
+  @override
+  String get scanPickPdfHint => 'A whole paper, read page by page';
+
+  @override
+  String get scanPickImages => 'Pick images';
+
+  @override
+  String get scanPickImagesHint => 'Photos or screenshots — select several';
+
+  @override
+  String get scanPrivacyNote =>
+      'Reading uses the model you configured, one call per page. The questions and images never touch our servers.';
+
+  @override
+  String scanPageProgress(int done, int total) {
+    return '$done of $total pages';
+  }
+
+  @override
+  String scanPageNo(int n) {
+    return 'Page $n';
+  }
+
+  @override
+  String get scanWaiting => 'Queued';
+
+  @override
+  String get scanNoWholeQuestion => 'No complete question';
+
+  @override
+  String get commonRetry => 'Retry';
+
+  @override
+  String scanMissingAnswers(int count) {
+    return '$count have no answer detected — moved to the top';
+  }
+
+  @override
+  String scanFailedPages(int count) {
+    return '$count pages failed';
+  }
+
+  @override
+  String get scanType => 'Type';
+
+  @override
+  String scanTypeSummary(int types, int unknown) {
+    return '$types types found, $unknown unclassified';
+  }
+
+  @override
+  String get scanTypeHint =>
+      'Classified one by one — fix them in bulk if wrong';
+
+  @override
+  String get scanAsDetected => 'As detected';
+
+  @override
+  String get scanViewPage => 'View the page';
+
+  @override
+  String get scanNothingSelected => 'Nothing selected';
+
+  @override
+  String scanImportSelected(int count) {
+    return 'Import $count';
+  }
+
+  @override
+  String get scanNoAnswer => 'No answer detected';
+
+  @override
+  String scanAnswerIs(String answer) {
+    return 'Answer $answer';
+  }
+
+  @override
+  String get scanUnclassified => 'Unclassified';
+
+  @override
+  String scanOptionCount(int count) {
+    return '$count options';
+  }
+
+  @override
+  String get scanHasMaterial => 'has a passage';
+
+  @override
+  String get scanHasImage => 'has a figure';
+
+  @override
+  String docFoundCount(int count) {
+    return '$count';
+  }
+
+  @override
+  String docNoAnswerCount(int count) {
+    return ' · $count with no answer';
+  }
+
+  @override
+  String get docNeedAiKey =>
+      'Set up a key under You → AI settings first — parsing needs it';
+
+  @override
+  String get docOpening => 'Opening…';
+
+  @override
+  String get docNoText =>
+      'No text in that file. For scans, use the Photo / PDF route instead.';
+
+  @override
+  String get docImportTitle => 'Import a document';
+
+  @override
+  String get docImportBody =>
+      'Word, Excel, CSV or plain text. AI reads it once and picks out the question, options, answer and explanation — for any exam, not just one.';
+
+  @override
+  String get docWhichExam => 'Which exam is this (optional)';
+
+  @override
+  String get docWhichExamHint => 'e.g. a subject or paper name';
+
+  @override
+  String get docWhichExamNote =>
+      'Filling this in helps AI classify more accurately';
+
+  @override
+  String get docPickFile => 'Choose a file';
+
+  @override
+  String get docPickAnother => 'Choose another';
+
+  @override
+  String get docFound => 'What it found';
+
+  @override
+  String get docNoAnswerHint =>
+      'Questions without an answer can\'t be practised — usually the source document lists answers somewhere else. Save them and fill the answers in yourself, or use a copy that has them.';
+
+  @override
+  String docMoreHidden(int count) {
+    return '$count more — save them and you\'ll see the rest';
+  }
+
+  @override
+  String docSaveCount(int count) {
+    return 'Save $count to the bank';
+  }
+
+  @override
+  String get docNoAnswer => 'No answer';
+
+  @override
+  String get docHasAnalysis => 'has an explanation';
 }

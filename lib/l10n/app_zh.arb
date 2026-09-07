@@ -2054,5 +2054,152 @@
   },
   "vocabEmpty": "词表还是空的",
   "vocabEmptyHint": "逻辑填空做错的题，那对词会自动收进来；也可以在「高频」里手动加。",
-  "vocabFromMistakes": "做错收的"
+  "vocabFromMistakes": "做错收的",
+  "scanNeedAi": "先配一个 AI",
+  "scanNeedAiBody": "识别试卷要调模型。填一个 key 就行，题目和图片只发给你自己配的那家。",
+  "scanGoSettings": "去设置",
+  "scanNoPages": "这个文件里没有可识别的页面",
+  "scanCantOpen": "打不开这个文件：{error}",
+  "@scanCantOpen": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "scanReading": "识别中",
+  "scanReview": "过一遍",
+  "scanPickPdf": "选一个 PDF",
+  "scanPickPdfHint": "整本试卷，逐页识别",
+  "scanPickImages": "选图片",
+  "scanPickImagesHint": "拍的照片或截图，可以多选",
+  "scanPrivacyNote": "识别用的是你自己配的那家模型，一页一次调用。\\n题目和图片不经过我们的服务器。",
+  "scanPageProgress": "{done} / {total} 页",
+  "@scanPageProgress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "scanPageNo": "第 {n} 页",
+  "@scanPageNo": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "scanWaiting": "等着",
+  "scanNoWholeQuestion": "没有完整题目",
+  "commonRetry": "重试",
+  "scanMissingAnswers": "{count} 题没认出答案，已排在最前",
+  "@scanMissingAnswers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "scanFailedPages": "{count} 页识别失败",
+  "@scanFailedPages": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "scanType": "题型",
+  "scanTypeSummary": "识别出 {types} 类，{unknown} 题没认出",
+  "@scanTypeSummary": {
+    "placeholders": {
+      "types": {
+        "type": "int"
+      },
+      "unknown": {
+        "type": "int"
+      }
+    }
+  },
+  "scanTypeHint": "已逐题识别，不对可以整批改",
+  "scanAsDetected": "按识别结果",
+  "scanViewPage": "看页面",
+  "scanNothingSelected": "没有选中的题",
+  "scanImportSelected": "导入 {count} 题",
+  "@scanImportSelected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "scanNoAnswer": "没认出答案",
+  "scanAnswerIs": "答案 {answer}",
+  "@scanAnswerIs": {
+    "placeholders": {
+      "answer": {
+        "type": "String"
+      }
+    }
+  },
+  "scanUnclassified": "未判定",
+  "scanOptionCount": "{count} 个选项",
+  "@scanOptionCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "scanHasMaterial": "带材料",
+  "scanHasImage": "带图",
+  "docFoundCount": "{count} 道",
+  "@docFoundCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "docNoAnswerCount": " · {count} 道没答案",
+  "@docNoAnswerCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "docNeedAiKey": "先去「我的 → AI 设置」配一个 key，解析要用它",
+  "docOpening": "正在打开文件…",
+  "docNoText": "这个文件里没读到文字。扫描件请走「拍照 / PDF」那条路。",
+  "docImportTitle": "文档导入",
+  "docImportBody": "Word、Excel、CSV、纯文本都行。AI 读一遍，认出题干、选项、答案和解析 —— 什么考试都可以，不限于行测。",
+  "docWhichExam": "这是什么考试的（可选）",
+  "docWhichExamHint": "例如 教师资格证 · 科目二",
+  "docWhichExamNote": "填了能帮 AI 分类分得准一些",
+  "docPickFile": "选择文件",
+  "docPickAnother": "换一个文件",
+  "docFound": "认出来的题",
+  "docNoAnswerHint": "没答案的题做不了，多半是原文档把答案单独列在别处。存进去之后可以自己补，或者换一份带答案的资料。",
+  "docMoreHidden": "还有 {count} 道，存进去就能看到",
+  "@docMoreHidden": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "docSaveCount": "存入题库 {count} 道",
+  "@docSaveCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "docNoAnswer": "没有答案",
+  "docHasAnalysis": "带解析"
 }

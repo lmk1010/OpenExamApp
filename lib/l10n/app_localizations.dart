@@ -4583,6 +4583,306 @@ abstract class AppL {
   /// In zh, this message translates to:
   /// **'做错收的'**
   String get vocabFromMistakes;
+
+  /// No description provided for @scanNeedAi.
+  ///
+  /// In zh, this message translates to:
+  /// **'先配一个 AI'**
+  String get scanNeedAi;
+
+  /// No description provided for @scanNeedAiBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'识别试卷要调模型。填一个 key 就行，题目和图片只发给你自己配的那家。'**
+  String get scanNeedAiBody;
+
+  /// No description provided for @scanGoSettings.
+  ///
+  /// In zh, this message translates to:
+  /// **'去设置'**
+  String get scanGoSettings;
+
+  /// No description provided for @scanNoPages.
+  ///
+  /// In zh, this message translates to:
+  /// **'这个文件里没有可识别的页面'**
+  String get scanNoPages;
+
+  /// No description provided for @scanCantOpen.
+  ///
+  /// In zh, this message translates to:
+  /// **'打不开这个文件：{error}'**
+  String scanCantOpen(String error);
+
+  /// No description provided for @scanReading.
+  ///
+  /// In zh, this message translates to:
+  /// **'识别中'**
+  String get scanReading;
+
+  /// No description provided for @scanReview.
+  ///
+  /// In zh, this message translates to:
+  /// **'过一遍'**
+  String get scanReview;
+
+  /// No description provided for @scanPickPdf.
+  ///
+  /// In zh, this message translates to:
+  /// **'选一个 PDF'**
+  String get scanPickPdf;
+
+  /// No description provided for @scanPickPdfHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'整本试卷，逐页识别'**
+  String get scanPickPdfHint;
+
+  /// No description provided for @scanPickImages.
+  ///
+  /// In zh, this message translates to:
+  /// **'选图片'**
+  String get scanPickImages;
+
+  /// No description provided for @scanPickImagesHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'拍的照片或截图，可以多选'**
+  String get scanPickImagesHint;
+
+  /// No description provided for @scanPrivacyNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'识别用的是你自己配的那家模型，一页一次调用。\\n题目和图片不经过我们的服务器。'**
+  String get scanPrivacyNote;
+
+  /// No description provided for @scanPageProgress.
+  ///
+  /// In zh, this message translates to:
+  /// **'{done} / {total} 页'**
+  String scanPageProgress(int done, int total);
+
+  /// No description provided for @scanPageNo.
+  ///
+  /// In zh, this message translates to:
+  /// **'第 {n} 页'**
+  String scanPageNo(int n);
+
+  /// No description provided for @scanWaiting.
+  ///
+  /// In zh, this message translates to:
+  /// **'等着'**
+  String get scanWaiting;
+
+  /// No description provided for @scanNoWholeQuestion.
+  ///
+  /// In zh, this message translates to:
+  /// **'没有完整题目'**
+  String get scanNoWholeQuestion;
+
+  /// No description provided for @commonRetry.
+  ///
+  /// In zh, this message translates to:
+  /// **'重试'**
+  String get commonRetry;
+
+  /// No description provided for @scanMissingAnswers.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 题没认出答案，已排在最前'**
+  String scanMissingAnswers(int count);
+
+  /// No description provided for @scanFailedPages.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 页识别失败'**
+  String scanFailedPages(int count);
+
+  /// No description provided for @scanType.
+  ///
+  /// In zh, this message translates to:
+  /// **'题型'**
+  String get scanType;
+
+  /// No description provided for @scanTypeSummary.
+  ///
+  /// In zh, this message translates to:
+  /// **'识别出 {types} 类，{unknown} 题没认出'**
+  String scanTypeSummary(int types, int unknown);
+
+  /// No description provided for @scanTypeHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'已逐题识别，不对可以整批改'**
+  String get scanTypeHint;
+
+  /// No description provided for @scanAsDetected.
+  ///
+  /// In zh, this message translates to:
+  /// **'按识别结果'**
+  String get scanAsDetected;
+
+  /// No description provided for @scanViewPage.
+  ///
+  /// In zh, this message translates to:
+  /// **'看页面'**
+  String get scanViewPage;
+
+  /// No description provided for @scanNothingSelected.
+  ///
+  /// In zh, this message translates to:
+  /// **'没有选中的题'**
+  String get scanNothingSelected;
+
+  /// No description provided for @scanImportSelected.
+  ///
+  /// In zh, this message translates to:
+  /// **'导入 {count} 题'**
+  String scanImportSelected(int count);
+
+  /// No description provided for @scanNoAnswer.
+  ///
+  /// In zh, this message translates to:
+  /// **'没认出答案'**
+  String get scanNoAnswer;
+
+  /// No description provided for @scanAnswerIs.
+  ///
+  /// In zh, this message translates to:
+  /// **'答案 {answer}'**
+  String scanAnswerIs(String answer);
+
+  /// No description provided for @scanUnclassified.
+  ///
+  /// In zh, this message translates to:
+  /// **'未判定'**
+  String get scanUnclassified;
+
+  /// No description provided for @scanOptionCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 个选项'**
+  String scanOptionCount(int count);
+
+  /// No description provided for @scanHasMaterial.
+  ///
+  /// In zh, this message translates to:
+  /// **'带材料'**
+  String get scanHasMaterial;
+
+  /// No description provided for @scanHasImage.
+  ///
+  /// In zh, this message translates to:
+  /// **'带图'**
+  String get scanHasImage;
+
+  /// No description provided for @docFoundCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 道'**
+  String docFoundCount(int count);
+
+  /// No description provided for @docNoAnswerCount.
+  ///
+  /// In zh, this message translates to:
+  /// **' · {count} 道没答案'**
+  String docNoAnswerCount(int count);
+
+  /// No description provided for @docNeedAiKey.
+  ///
+  /// In zh, this message translates to:
+  /// **'先去「我的 → AI 设置」配一个 key，解析要用它'**
+  String get docNeedAiKey;
+
+  /// No description provided for @docOpening.
+  ///
+  /// In zh, this message translates to:
+  /// **'正在打开文件…'**
+  String get docOpening;
+
+  /// No description provided for @docNoText.
+  ///
+  /// In zh, this message translates to:
+  /// **'这个文件里没读到文字。扫描件请走「拍照 / PDF」那条路。'**
+  String get docNoText;
+
+  /// No description provided for @docImportTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'文档导入'**
+  String get docImportTitle;
+
+  /// No description provided for @docImportBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'Word、Excel、CSV、纯文本都行。AI 读一遍，认出题干、选项、答案和解析 —— 什么考试都可以，不限于行测。'**
+  String get docImportBody;
+
+  /// No description provided for @docWhichExam.
+  ///
+  /// In zh, this message translates to:
+  /// **'这是什么考试的（可选）'**
+  String get docWhichExam;
+
+  /// No description provided for @docWhichExamHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'例如 教师资格证 · 科目二'**
+  String get docWhichExamHint;
+
+  /// No description provided for @docWhichExamNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'填了能帮 AI 分类分得准一些'**
+  String get docWhichExamNote;
+
+  /// No description provided for @docPickFile.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择文件'**
+  String get docPickFile;
+
+  /// No description provided for @docPickAnother.
+  ///
+  /// In zh, this message translates to:
+  /// **'换一个文件'**
+  String get docPickAnother;
+
+  /// No description provided for @docFound.
+  ///
+  /// In zh, this message translates to:
+  /// **'认出来的题'**
+  String get docFound;
+
+  /// No description provided for @docNoAnswerHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'没答案的题做不了，多半是原文档把答案单独列在别处。存进去之后可以自己补，或者换一份带答案的资料。'**
+  String get docNoAnswerHint;
+
+  /// No description provided for @docMoreHidden.
+  ///
+  /// In zh, this message translates to:
+  /// **'还有 {count} 道，存进去就能看到'**
+  String docMoreHidden(int count);
+
+  /// No description provided for @docSaveCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'存入题库 {count} 道'**
+  String docSaveCount(int count);
+
+  /// No description provided for @docNoAnswer.
+  ///
+  /// In zh, this message translates to:
+  /// **'没有答案'**
+  String get docNoAnswer;
+
+  /// No description provided for @docHasAnalysis.
+  ///
+  /// In zh, this message translates to:
+  /// **'带解析'**
+  String get docHasAnalysis;
 }
 
 class _AppLDelegate extends LocalizationsDelegate<AppL> {
