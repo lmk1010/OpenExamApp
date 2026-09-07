@@ -199,7 +199,12 @@ class QuestionImporter {
           if (o is Map) {
             final key = '${o['key'] ?? o['label'] ?? String.fromCharCode(65 + j)}';
             final text = '${o['text'] ?? o['content'] ?? o['value'] ?? ''}';
-            opts.add({'key': key, 'text': text});
+            // html 必须原样带过去。图形推理的选项本身就是图：text 是空的，
+            // 内容全在 html 里的 oeimg://。这里把 html 抹掉的话，
+            // QuestionOption.isUsable 判它没用 → 选项被丢 → 不足两个 →
+            // 整道题被丢。自己导出的包再导回来也会少题。
+            final html = '${o['html'] ?? ''}';
+            opts.add({'key': key, 'text': text, if (html.isNotEmpty) 'html': html});
           } else {
             opts.add({'key': String.fromCharCode(65 + j), 'text': '$o'});
           }

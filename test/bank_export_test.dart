@@ -161,4 +161,29 @@ void main() {
       expect(BankExporter.fileName('///', 3), startsWith('bank-'));
     });
   });
+
+  group('图形推理：选项本身是图', () {
+    test('导出再导回来，图选项不能丢 —— 丢了整道题都进不去', () {
+      // 这类题 text 是空的，内容全在 html 的 oeimg:// 里。导入器以前
+      // 规整选项时只留 key/text 把 html 抹了，于是选项被判成"没用"、
+      // 被丢到不足两个，整道题跟着被丢。1974 道国考题里有 20 道是这样。
+      final src = [
+        q('fig1', options: const [
+          QuestionOption(key: 'A', text: '', html: '<img src="oeimg://a1">'),
+          QuestionOption(key: 'B', text: '', html: '<img src="oeimg://b1">'),
+          QuestionOption(key: 'C', text: '', html: '<img src="oeimg://c1">'),
+          QuestionOption(key: 'D', text: '', html: '<img src="oeimg://d1">'),
+        ]),
+      ];
+      final back = QuestionImporter.parseBytes(
+        utf8.encode(BankExporter.buildJson(src)),
+        fileName: 'questions.json',
+      );
+
+      expect(back, hasLength(1), reason: '整道题被丢了');
+      expect(back.single.options, hasLength(4));
+      expect(back.single.options.every((o) => o.hasImage), isTrue);
+      expect(back.single.options.first.html, contains('oeimg://a1'));
+    });
+  });
 }

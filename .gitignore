@@ -58,3 +58,6 @@ design/openexam-ui.html
 bank/*.db.gz
 bank/*.db
 assets/seed/*.db.gz
+
+# 打出来的题库包，几十兆，传 R2 不进仓库
+/dist/
