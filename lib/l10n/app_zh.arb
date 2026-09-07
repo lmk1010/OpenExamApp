@@ -2582,5 +2582,73 @@
   "toolSearch": "题库搜索",
   "toolSearchHint": "一万六千道题，按关键词找",
   "toolsTitle": "工具",
-  "searchNoResults": "没找到相关题目"
+  "searchNoResults": "没找到相关题目",
+  "importedCount": "成功导入 {count} 题",
+  "@importedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importedImages": "、{count} 张图",
+  "@importedImages": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importedOverwritten": "（其中 {count} 题为覆盖更新）",
+  "@importedOverwritten": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importedNothing": "这次没有导入题目",
+  "importFormatTitle": "题目文件长什么样",
+  "importParsed": "解析结果",
+  "importQuestions": "题目",
+  "importImages": "图片",
+  "importOverwrites": "覆盖已有",
+  "importConfirm": "确认导入",
+  "aiSaved": "已保存",
+  "aiCantOpenBrowser": "打不开浏览器，网址已复制：{url}",
+  "@aiCantOpenBrowser": {
+    "placeholders": {
+      "url": {
+        "type": "String"
+      }
+    }
+  },
+  "aiPickProvider": "选一家",
+  "aiEnterKey": "填 Key",
+  "aiGetKeyAt": "去 {where} 领一个",
+  "@aiGetKeyAt": {
+    "placeholders": {
+      "where": {
+        "type": "String"
+      }
+    }
+  },
+  "aiWhichModel": "用哪个模型",
+  "aiModelHint": "模型名，问服务商要",
+  "aiBaseUrl": "接口地址",
+  "aiBaseUrlSet": "接口地址已配好：{url}",
+  "@aiBaseUrlSet": {
+    "placeholders": {
+      "url": {
+        "type": "String"
+      }
+    }
+  },
+  "aiTesting": "测试中…",
+  "aiTest": "测试连接",
+  "aiKeyPrivacy": "Key 只存在这台手机上。请求直接发给你选的那家服务商，不经过我们任何服务器。",
+  "aiPaste": "粘贴",
+  "aiHide": "隐藏",
+  "aiShow": "显示",
+  "aiFree": "免费"
 }

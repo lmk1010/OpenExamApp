@@ -3342,4 +3342,94 @@ class AppLZh extends AppL {
 
   @override
   String get searchNoResults => '没找到相关题目';
+
+  @override
+  String importedCount(int count) {
+    return '成功导入 $count 题';
+  }
+
+  @override
+  String importedImages(int count) {
+    return '、$count 张图';
+  }
+
+  @override
+  String importedOverwritten(int count) {
+    return '（其中 $count 题为覆盖更新）';
+  }
+
+  @override
+  String get importedNothing => '这次没有导入题目';
+
+  @override
+  String get importFormatTitle => '题目文件长什么样';
+
+  @override
+  String get importParsed => '解析结果';
+
+  @override
+  String get importQuestions => '题目';
+
+  @override
+  String get importImages => '图片';
+
+  @override
+  String get importOverwrites => '覆盖已有';
+
+  @override
+  String get importConfirm => '确认导入';
+
+  @override
+  String get aiSaved => '已保存';
+
+  @override
+  String aiCantOpenBrowser(String url) {
+    return '打不开浏览器，网址已复制：$url';
+  }
+
+  @override
+  String get aiPickProvider => '选一家';
+
+  @override
+  String get aiEnterKey => '填 Key';
+
+  @override
+  String aiGetKeyAt(String where) {
+    return '去 $where 领一个';
+  }
+
+  @override
+  String get aiWhichModel => '用哪个模型';
+
+  @override
+  String get aiModelHint => '模型名，问服务商要';
+
+  @override
+  String get aiBaseUrl => '接口地址';
+
+  @override
+  String aiBaseUrlSet(String url) {
+    return '接口地址已配好：$url';
+  }
+
+  @override
+  String get aiTesting => '测试中…';
+
+  @override
+  String get aiTest => '测试连接';
+
+  @override
+  String get aiKeyPrivacy => 'Key 只存在这台手机上。请求直接发给你选的那家服务商，不经过我们任何服务器。';
+
+  @override
+  String get aiPaste => '粘贴';
+
+  @override
+  String get aiHide => '隐藏';
+
+  @override
+  String get aiShow => '显示';
+
+  @override
+  String get aiFree => '免费';
 }

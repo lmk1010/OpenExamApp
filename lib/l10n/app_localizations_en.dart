@@ -3441,4 +3441,95 @@ class AppLEn extends AppL {
 
   @override
   String get searchNoResults => 'Nothing found';
+
+  @override
+  String importedCount(int count) {
+    return 'Imported $count questions';
+  }
+
+  @override
+  String importedImages(int count) {
+    return ' and $count images';
+  }
+
+  @override
+  String importedOverwritten(int count) {
+    return ' ($count of them overwritten)';
+  }
+
+  @override
+  String get importedNothing => 'Nothing was imported this time';
+
+  @override
+  String get importFormatTitle => 'What a question file looks like';
+
+  @override
+  String get importParsed => 'What was parsed';
+
+  @override
+  String get importQuestions => 'Questions';
+
+  @override
+  String get importImages => 'Images';
+
+  @override
+  String get importOverwrites => 'Overwrites';
+
+  @override
+  String get importConfirm => 'Import them';
+
+  @override
+  String get aiSaved => 'Saved';
+
+  @override
+  String aiCantOpenBrowser(String url) {
+    return 'Can\'t open a browser — URL copied: $url';
+  }
+
+  @override
+  String get aiPickProvider => 'Pick a provider';
+
+  @override
+  String get aiEnterKey => 'Enter a key';
+
+  @override
+  String aiGetKeyAt(String where) {
+    return 'Get one at $where';
+  }
+
+  @override
+  String get aiWhichModel => 'Which model';
+
+  @override
+  String get aiModelHint => 'The model name — ask your provider';
+
+  @override
+  String get aiBaseUrl => 'Endpoint';
+
+  @override
+  String aiBaseUrlSet(String url) {
+    return 'Endpoint already set: $url';
+  }
+
+  @override
+  String get aiTesting => 'Testing…';
+
+  @override
+  String get aiTest => 'Test the connection';
+
+  @override
+  String get aiKeyPrivacy =>
+      'The key stays on this phone. Requests go straight to the provider you picked and never touch our servers.';
+
+  @override
+  String get aiPaste => 'Paste';
+
+  @override
+  String get aiHide => 'Hide';
+
+  @override
+  String get aiShow => 'Show';
+
+  @override
+  String get aiFree => 'Free';
 }

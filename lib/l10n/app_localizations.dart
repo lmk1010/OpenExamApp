@@ -5921,6 +5921,162 @@ abstract class AppL {
   /// In zh, this message translates to:
   /// **'没找到相关题目'**
   String get searchNoResults;
+
+  /// No description provided for @importedCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'成功导入 {count} 题'**
+  String importedCount(int count);
+
+  /// No description provided for @importedImages.
+  ///
+  /// In zh, this message translates to:
+  /// **'、{count} 张图'**
+  String importedImages(int count);
+
+  /// No description provided for @importedOverwritten.
+  ///
+  /// In zh, this message translates to:
+  /// **'（其中 {count} 题为覆盖更新）'**
+  String importedOverwritten(int count);
+
+  /// No description provided for @importedNothing.
+  ///
+  /// In zh, this message translates to:
+  /// **'这次没有导入题目'**
+  String get importedNothing;
+
+  /// No description provided for @importFormatTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'题目文件长什么样'**
+  String get importFormatTitle;
+
+  /// No description provided for @importParsed.
+  ///
+  /// In zh, this message translates to:
+  /// **'解析结果'**
+  String get importParsed;
+
+  /// No description provided for @importQuestions.
+  ///
+  /// In zh, this message translates to:
+  /// **'题目'**
+  String get importQuestions;
+
+  /// No description provided for @importImages.
+  ///
+  /// In zh, this message translates to:
+  /// **'图片'**
+  String get importImages;
+
+  /// No description provided for @importOverwrites.
+  ///
+  /// In zh, this message translates to:
+  /// **'覆盖已有'**
+  String get importOverwrites;
+
+  /// No description provided for @importConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认导入'**
+  String get importConfirm;
+
+  /// No description provided for @aiSaved.
+  ///
+  /// In zh, this message translates to:
+  /// **'已保存'**
+  String get aiSaved;
+
+  /// No description provided for @aiCantOpenBrowser.
+  ///
+  /// In zh, this message translates to:
+  /// **'打不开浏览器，网址已复制：{url}'**
+  String aiCantOpenBrowser(String url);
+
+  /// No description provided for @aiPickProvider.
+  ///
+  /// In zh, this message translates to:
+  /// **'选一家'**
+  String get aiPickProvider;
+
+  /// No description provided for @aiEnterKey.
+  ///
+  /// In zh, this message translates to:
+  /// **'填 Key'**
+  String get aiEnterKey;
+
+  /// No description provided for @aiGetKeyAt.
+  ///
+  /// In zh, this message translates to:
+  /// **'去 {where} 领一个'**
+  String aiGetKeyAt(String where);
+
+  /// No description provided for @aiWhichModel.
+  ///
+  /// In zh, this message translates to:
+  /// **'用哪个模型'**
+  String get aiWhichModel;
+
+  /// No description provided for @aiModelHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'模型名，问服务商要'**
+  String get aiModelHint;
+
+  /// No description provided for @aiBaseUrl.
+  ///
+  /// In zh, this message translates to:
+  /// **'接口地址'**
+  String get aiBaseUrl;
+
+  /// No description provided for @aiBaseUrlSet.
+  ///
+  /// In zh, this message translates to:
+  /// **'接口地址已配好：{url}'**
+  String aiBaseUrlSet(String url);
+
+  /// No description provided for @aiTesting.
+  ///
+  /// In zh, this message translates to:
+  /// **'测试中…'**
+  String get aiTesting;
+
+  /// No description provided for @aiTest.
+  ///
+  /// In zh, this message translates to:
+  /// **'测试连接'**
+  String get aiTest;
+
+  /// No description provided for @aiKeyPrivacy.
+  ///
+  /// In zh, this message translates to:
+  /// **'Key 只存在这台手机上。请求直接发给你选的那家服务商，不经过我们任何服务器。'**
+  String get aiKeyPrivacy;
+
+  /// No description provided for @aiPaste.
+  ///
+  /// In zh, this message translates to:
+  /// **'粘贴'**
+  String get aiPaste;
+
+  /// No description provided for @aiHide.
+  ///
+  /// In zh, this message translates to:
+  /// **'隐藏'**
+  String get aiHide;
+
+  /// No description provided for @aiShow.
+  ///
+  /// In zh, this message translates to:
+  /// **'显示'**
+  String get aiShow;
+
+  /// No description provided for @aiFree.
+  ///
+  /// In zh, this message translates to:
+  /// **'免费'**
+  String get aiFree;
 }
 
 class _AppLDelegate extends LocalizationsDelegate<AppL> {

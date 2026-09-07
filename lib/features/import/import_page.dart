@@ -101,10 +101,12 @@ class _ImportPageState extends State<ImportPage> {
       setState(() {
         _busy = false;
         _failed = false;
-        _result =
-            '成功导入 $count 题'
-            '${bundle.images.isEmpty ? '' : '、${bundle.images.length} 张图'}'
-            '${existing > 0 ? '（其中 $existing 题为覆盖更新）' : ''}';
+        // 两截后缀都是可选的，在 Dart 里拼。
+        _result = l.importedCount(count) +
+            (bundle.images.isEmpty
+                ? ''
+                : l.importedImages(bundle.images.length)) +
+            (existing > 0 ? l.importedOverwritten(existing) : '');
       });
     } catch (e) {
       _fail(l.importFailed('$e'));
@@ -113,13 +115,16 @@ class _ImportPageState extends State<ImportPage> {
 
   /// 拍照 / PDF：交给扫描页，回来的是已经确认过的题。
   Future<void> _scan() async {
+    final l = AppL.of(context);
     final done = await Navigator.of(context).push<int>(
       MaterialPageRoute(builder: (_) => const ScanPaperPage()),
     );
     if (!mounted || done == null) return;
     setState(() {
       _failed = false;
-      _result = done == 0 ? '这次没有导入题目' : '成功导入 $done 题';
+      _result = done == 0
+          ? l.importedNothing
+          : l.importedCount(done);
     });
   }
 
@@ -198,13 +203,13 @@ class _ImportPageState extends State<ImportPage> {
 
         const SizedBox(height: 26),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
+          padding: EdgeInsets.symmetric(horizontal: AppTheme.gutter),
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () => setState(() => _showFormat = !_showFormat),
             child: Row(
               children: [
-                Text('题目文件长什么样', style: text.bodySmall),
+                Text(AppL.of(context).importFormatTitle, style: text.bodySmall),
                 Icon(
                   _showFormat
                       ? Icons.keyboard_arrow_up_rounded
@@ -250,7 +255,7 @@ class _ImportPageState extends State<ImportPage> {
           onPressed: () => Navigator.of(context).maybePop(),
         ),
         titleSpacing: 0,
-        title: const Text('导入题目'),
+        title: Text(AppL.of(context).profileImport),
       ),
       body: body,
     );
@@ -364,25 +369,25 @@ class _PreviewSheet extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: t.gradient.last,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         border: Border(top: BorderSide(color: t.lineSoft)),
       ),
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 16),
+      padding: EdgeInsets.fromLTRB(20, 18, 20, 16),
       child: SafeArea(
         top: false,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('解析结果', style: text.titleMedium),
-            const SizedBox(height: 6),
+            Text(AppL.of(context).importParsed, style: text.titleMedium),
+            SizedBox(height: 6),
             Text(fileName, style: text.bodySmall),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Row(
               children: [
-                _Stat(value: '${bundle.questions.length}', label: '题目'),
-                _Stat(value: '${bundle.images.length}', label: '图片'),
-                _Stat(value: '$duplicates', label: '覆盖已有'),
+                _Stat(value: '${bundle.questions.length}', label: AppL.of(context).importQuestions),
+                _Stat(value: '${bundle.images.length}', label: AppL.of(context).importImages),
+                _Stat(value: '$duplicates', label: AppL.of(context).importOverwrites),
               ],
             ),
             const SizedBox(height: 18),
@@ -401,14 +406,14 @@ class _PreviewSheet extends StatelessWidget {
                               size: 16,
                               color: t.category(entry.key),
                             ),
-                            const SizedBox(width: 10),
+                            SizedBox(width: 10),
                             Expanded(
                               child: Text(
                                 categoryLabel(entry.key),
                                 style: text.bodyMedium?.copyWith(fontSize: 14),
                               ),
                             ),
-                            Text('${entry.value} 题', style: text.bodySmall),
+                            Text(AppL.of(context).countQuestions(entry.value), style: text.bodySmall),
                           ],
                         ),
                       ),
@@ -451,14 +456,14 @@ class _PreviewSheet extends StatelessWidget {
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () => Navigator.of(context).pop(false),
-                    child: const Text('取消'),
+                    child: Text(AppL.of(context).commonCancel),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: FilledButton(
                     onPressed: () => Navigator.of(context).pop(true),
-                    child: const Text('确认导入'),
+                    child: Text(AppL.of(context).importConfirm),
                   ),
                 ),
               ],

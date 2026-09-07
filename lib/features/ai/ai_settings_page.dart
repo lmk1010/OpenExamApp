@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/ai/ai_client.dart';
 import 'package:openexam_app/core/ai/ai_settings.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
@@ -67,7 +68,7 @@ class _AiSettingsPageState extends State<AiSettingsPage> {
     await AiSettingsStore.save(_current);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('已保存')),
+      SnackBar(content: Text(AppL.of(context).aiSaved)),
     );
   }
 
@@ -108,7 +109,7 @@ class _AiSettingsPageState extends State<AiSettingsPage> {
       await Clipboard.setData(ClipboardData(text: url));
       if (!mounted) return;
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('打不开浏览器，网址已复制：$url')));
+          .showSnackBar(SnackBar(content: Text(AppL.of(context).aiCantOpenBrowser(url))));
     }
   }
 
@@ -131,9 +132,9 @@ class _AiSettingsPageState extends State<AiSettingsPage> {
         : _modelCtrl.text.trim();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('AI 设置')),
+      appBar: AppBar(title: Text(AppL.of(context).profileAiSettings)),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(
+        padding: EdgeInsets.fromLTRB(
           AppTheme.gutter,
           8,
           AppTheme.gutter,
@@ -141,7 +142,7 @@ class _AiSettingsPageState extends State<AiSettingsPage> {
         ),
         children: [
           // 第一步：挑一家
-          _Step(n: 1, title: '选一家'),
+          _Step(n: 1, title: AppL.of(context).aiPickProvider),
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,
@@ -156,10 +157,10 @@ class _AiSettingsPageState extends State<AiSettingsPage> {
             ],
           ),
 
-          const SizedBox(height: 26),
+          SizedBox(height: 26),
 
           // 第二步：填 Key。这是用户唯一必须自己动手的地方。
-          _Step(n: 2, title: '填 Key'),
+          _Step(n: 2, title: AppL.of(context).aiEnterKey),
           const SizedBox(height: 12),
           _KeyField(
             controller: _keyCtrl,
@@ -185,10 +186,10 @@ class _AiSettingsPageState extends State<AiSettingsPage> {
                 child: Row(
                   children: [
                     Icon(Icons.open_in_new_rounded, size: 17, color: t.brand),
-                    const SizedBox(width: 9),
+                    SizedBox(width: 9),
                     Expanded(
                       child: Text(
-                        '去 ${provider.hint} 领一个',
+                        AppL.of(context).aiGetKeyAt(provider.hint ?? ''),
                         style: text.bodySmall?.copyWith(
                           color: t.brand,
                           fontWeight: FontWeight.w600,
@@ -201,11 +202,11 @@ class _AiSettingsPageState extends State<AiSettingsPage> {
             ),
           ],
 
-          const SizedBox(height: 26),
+          SizedBox(height: 26),
 
           // 第三步：模型给下拉，别让人去背模型名
-          _Step(n: 3, title: '用哪个模型'),
-          const SizedBox(height: 12),
+          _Step(n: 3, title: AppL.of(context).aiWhichModel),
+          SizedBox(height: 12),
           if (provider.models.isNotEmpty)
             _ModelPicker(
               models: provider.models,
@@ -215,15 +216,15 @@ class _AiSettingsPageState extends State<AiSettingsPage> {
           else
             _Field(
               controller: _modelCtrl,
-              hint: '模型名，问服务商要',
+              hint: AppL.of(context).aiModelHint,
               onChanged: (_) => setState(() {}),
             ),
 
           // 地址只有自定义服务商要填。官方那几家已经配好了，
           // 摆一个「留空用默认」的输入框只会让人以为自己漏填了东西。
           if (provider.needsBaseUrl) ...[
-            const SizedBox(height: 26),
-            _Step(n: 4, title: '接口地址'),
+            SizedBox(height: 26),
+            _Step(n: 4, title: AppL.of(context).aiBaseUrl),
             const SizedBox(height: 12),
             _Field(
               controller: _baseCtrl,
@@ -231,14 +232,14 @@ class _AiSettingsPageState extends State<AiSettingsPage> {
               onChanged: (_) => setState(() {}),
             ),
           ] else ...[
-            const SizedBox(height: 14),
+            SizedBox(height: 14),
             Row(
               children: [
                 Icon(Icons.check_circle_rounded, size: 15, color: t.success),
-                const SizedBox(width: 7),
+                SizedBox(width: 7),
                 Expanded(
                   child: Text(
-                    '接口地址已配好：${provider.baseUrl}',
+                    AppL.of(context).aiBaseUrlSet(provider.baseUrl),
                     style: text.bodySmall,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -248,20 +249,20 @@ class _AiSettingsPageState extends State<AiSettingsPage> {
             ),
           ],
 
-          const SizedBox(height: 28),
+          SizedBox(height: 28),
           Row(
             children: [
               Expanded(
                 child: OutlinedButton(
                   onPressed: _testing ? null : _test,
-                  child: Text(_testing ? '测试中…' : '测试连接'),
+                  child: Text(_testing ? AppL.of(context).aiTesting : AppL.of(context).aiTest),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: FilledButton(
                   onPressed: _keyCtrl.text.trim().isEmpty ? null : _save,
-                  child: const Text('保存'),
+                  child: Text(AppL.of(context).commonSave),
                 ),
               ),
             ],
@@ -301,10 +302,9 @@ class _AiSettingsPageState extends State<AiSettingsPage> {
             ),
           ],
 
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
           _Note(
-            text: 'Key 只存在这台手机上。请求直接发给你选的那家服务商，'
-                '不经过我们任何服务器。',
+            text: AppL.of(context).aiKeyPrivacy,
           ),
         ],
       ),
@@ -373,7 +373,7 @@ class _KeyField extends StatelessWidget {
     final t = context.tokens;
     final filled = controller.text.trim().isNotEmpty;
     return Container(
-      padding: const EdgeInsets.only(left: 16, right: 6),
+      padding: EdgeInsets.only(left: 16, right: 6),
       decoration: BoxDecoration(
         color: t.surface,
         borderRadius: BorderRadius.circular(16),
@@ -395,19 +395,19 @@ class _KeyField extends StatelessWidget {
               decoration: InputDecoration(
                 border: InputBorder.none,
                 isDense: true,
-                contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                contentPadding: EdgeInsets.symmetric(vertical: 16),
                 hintText: 'sk-…',
                 hintStyle: TextStyle(color: t.muted, fontSize: 15),
               ),
             ),
           ),
           IconButton(
-            tooltip: '粘贴',
+            tooltip: AppL.of(context).aiPaste,
             onPressed: onPaste,
             icon: Icon(Icons.content_paste_rounded, size: 19, color: t.textSoft),
           ),
           IconButton(
-            tooltip: reveal ? '隐藏' : '显示',
+            tooltip: reveal ? AppL.of(context).aiHide : AppL.of(context).aiShow,
             onPressed: onReveal,
             icon: Icon(
               reveal
@@ -472,7 +472,7 @@ class _ModelPicker extends StatelessWidget {
                               if (models[i].free) ...[
                                 const SizedBox(width: 8),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(
+                                  padding: EdgeInsets.symmetric(
                                     horizontal: 7,
                                     vertical: 2,
                                   ),
@@ -481,7 +481,7 @@ class _ModelPicker extends StatelessWidget {
                                     borderRadius: BorderRadius.circular(99),
                                   ),
                                   child: Text(
-                                    '免费',
+                                    AppL.of(context).aiFree,
                                     style: TextStyle(
                                       fontSize: 10.5,
                                       fontWeight: FontWeight.w700,
