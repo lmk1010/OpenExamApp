@@ -1,0 +1,75 @@
+{
+  "@@locale": "zh",
+  "appName": "OpenExam",
+  "@appName": {
+    "description": "App 名字，不翻译"
+  },
+  "onboardTitle": "上岸\n是划出来的",
+  "@onboardTitle": {
+    "description": "引导第一屏标题。中文是双关（划船/刷题），英文不必强译"
+  },
+  "onboardBodyWithBank": "{count} 道题在这台手机里\n不用登录，没网也能划",
+  "@onboardBodyWithBank": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardBodyNoBank": "题库和 App 是分开的\n导入一份就能开始，不用登录、没网也能划",
+  "onboardBodyLoading": "不用登录，没网也能划",
+  "onboardWrongTitle": "错的题\n自己会记着",
+  "onboardWrongBody": "答错的进错题本，再答对就出去\n想写两句笔记、标一下错在哪，都行",
+  "onboardSkip": "跳过",
+  "onboardStart": "出发",
+  "noBankTitle": "还没有题库",
+  "noBankBody": "这个版本不预装题目 —— 题库和 App 是分开的，装哪套题库就是练哪门考试。导入一份就能开始：做题、按卷模考、错题复盘、弱点诊断都不用联网。",
+  "noBankImport": "导入题库",
+  "noBankHint": "也可以把题库文件放进「文件」App 的 OpenExam 文件夹，或者用「扫描试卷」把纸质卷子拍成题目。",
+  "bankTitle": "题库",
+  "bankExportTitle": "导出题库",
+  "bankExportBody": "导出成 zip，含题目和图片。别人用「导入题库」就能装上 —— 跟导入是同一个格式。",
+  "bankExportWholeBank": "整个题库",
+  "bankExportWholeBankHint": "{count} 题 · 文件会很大",
+  "@bankExportWholeBankHint": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "bankExportCount": "{count} 题",
+  "@bankExportCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "bankExportEmpty": "这个范围里没有题",
+  "bankExportCancelled": "已取消",
+  "bankExportDone": "已导出 {count} 题：{name}",
+  "@bankExportDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "bankExportFailed": "导出失败：{error}",
+  "@bankExportFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsLanguage": "界面语言",
+  "settingsLanguageSystem": "跟随系统",
+  "settingsLanguageSystemHint": "按手机的语言自动切换",
+  "onboardNext": "下一个",
+  "onboardFinish": "开始划"
+}

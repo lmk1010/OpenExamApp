@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:openexam_app/core/i18n/locale_controller.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
 import 'package:openexam_app/core/theme/theme_controller.dart';
@@ -25,6 +28,7 @@ class _OpenExamAppState extends State<OpenExamApp> {
   void initState() {
     super.initState();
     ThemeController.instance.load();
+    LocaleController.instance.load();
     _readOnboarded();
   }
 
@@ -37,11 +41,24 @@ class _OpenExamAppState extends State<OpenExamApp> {
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: ThemeController.instance,
+      animation: Listenable.merge(
+        [ThemeController.instance, LocaleController.instance],
+      ),
       builder: (context, _) {
         return MaterialApp(
           title: 'OpenExam',
           debugShowCheckedModeBanner: false,
+          // locale 传 null 就是「跟手机走」：Flutter 拿系统语言去
+          // supportedLocales 里匹配，匹配不上落到第一个。用户在设置里
+          // 指定过语言时才覆盖它。
+          locale: LocaleController.instance.locale,
+          supportedLocales: LocaleController.supported,
+          localizationsDelegates: const [
+            AppL.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
           theme: AppTheme.fromTokens(
             ThemeController.instance.tokensFor(Brightness.light),
             Brightness.light,

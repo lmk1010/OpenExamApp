@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
+import 'package:openexam_app/data/models/question.dart';
+import 'package:openexam_app/features/bank/bank_export.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
 import 'package:openexam_app/features/practice/shore_home.dart';
@@ -25,6 +29,7 @@ class BankPage extends StatefulWidget {
 }
 
 class _BankPageState extends State<BankPage> with TabReload {
+  bool _exporting = false;
   @override
   AppTab get tab => AppTab.bank;
 
@@ -64,6 +69,69 @@ class _BankPageState extends State<BankPage> with TabReload {
   void dispose() {
     _search.dispose();
     super.dispose();
+  }
+
+  /// 导出题库成一个 zip，格式跟导入吃的完全一样 —— 导出的文件一定能导回来。
+  ///
+  /// 范围让用户选：整库通常几万道题、几百兆，多数人想发的只是某一卷。
+  Future<void> _exportBank() async {
+    final l = AppL.of(context);
+    final scope = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _ExportScopeSheet(papers: _papers),
+    );
+    if (scope == null || !mounted) return;
+
+    setState(() => _exporting = true);
+    try {
+      final List<Question> questions;
+      final String label;
+      String? paperId;
+      String? paperTitle;
+      int? year;
+      if (scope == '_all') {
+        questions = await AppDatabase.instance.fetchAllQuestions();
+        label = '题库';
+      } else {
+        questions = await AppDatabase.instance.fetchByPaper(scope);
+        final paper = _papers.where((p) => p.id == scope).firstOrNull;
+        label = paper?.title ?? '试卷';
+        paperId = scope;
+        paperTitle = paper?.title;
+        year = paper?.year;
+      }
+      if (questions.isEmpty) {
+        _toast(l.bankExportEmpty);
+        return;
+      }
+      final bytes = await BankExporter.buildArchive(
+        questions,
+        paperId: paperId,
+        paperTitle: paperTitle,
+        year: year,
+      );
+      final name = BankExporter.fileName(label, questions.length);
+      final path = await FilePicker.platform.saveFile(
+        fileName: name,
+        bytes: bytes,
+      );
+      if (!mounted) return;
+      _toast(path == null
+          ? l.bankExportCancelled
+          : l.bankExportDone(questions.length, name));
+    } catch (e) {
+      _toast(l.bankExportFailed('$e'));
+    } finally {
+      if (mounted) setState(() => _exporting = false);
+    }
+  }
+
+  void _toast(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..clearSnackBars()
+      ..showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _reload() async {
@@ -235,6 +303,16 @@ class _BankPageState extends State<BankPage> with TabReload {
                         : '${matched.length} / ${_papers.length} 套',
                     title: '题库',
                     actions: [
+                      // 导出：题库以前只进不出 —— 扫描试卷、文档导入辛苦攒出来
+                      // 的一套题换台手机就没了，更别说发给别人。
+                      ShoreRoundButton(
+                        icon: StrokeIcon(
+                          AppIcon.download,
+                          size: 19,
+                          color: t.textSoft,
+                        ),
+                        onTap: _exporting ? null : _exportBank,
+                      ),
                       // 「继续上次」原来平铺在搜索框下面，一进题库先看见一段
                       // 最近记录，真正想找卷子的人得往下翻过去。收进这里。
                       ShoreRoundButton(
@@ -792,6 +870,109 @@ class _PaperRow extends StatelessWidget {
                 Icon(Icons.chevron_right, size: 17, color: t.muted),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 导出范围。整库通常几万道题几百兆，多数人想发的只是某一卷。
+class _ExportScopeSheet extends StatelessWidget {
+  const _ExportScopeSheet({required this.papers});
+
+  final List<_Paper> papers;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppL.of(context);
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+    final total = papers.fold<int>(0, (s, p) => s + p.count);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: t.gradient.last,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        border: Border(top: BorderSide(color: t.lineSoft)),
+      ),
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 12),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(l.bankExportTitle, style: text.titleMedium),
+            const SizedBox(height: 6),
+            Text(
+              l.bankExportBody,
+              style: text.bodySmall,
+            ),
+            const SizedBox(height: 10),
+            Flexible(
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  _ScopeRow(
+                    title: l.bankExportWholeBank,
+                    subtitle: l.bankExportWholeBankHint(total),
+                    onTap: () => Navigator.of(context).pop('_all'),
+                  ),
+                  for (final p in papers)
+                    _ScopeRow(
+                      title: p.title,
+                      subtitle: l.bankExportCount(p.count),
+                      onTap: () => Navigator.of(context).pop(p.id),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ScopeRow extends StatelessWidget {
+  const _ScopeRow({
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 13),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: text.titleSmall,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 3),
+                  Text(subtitle, style: text.bodySmall),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right, size: 20, color: t.muted),
+          ],
         ),
       ),
     );

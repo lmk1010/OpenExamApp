@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/constants/app_constants.dart';
 import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
@@ -1985,6 +1986,7 @@ class _NoBankCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppL.of(context);
     final t = context.tokens;
     final text = Theme.of(context).textTheme;
     return Container(
@@ -1995,11 +1997,10 @@ class _NoBankCard extends StatelessWidget {
         children: [
           StrokeIcon(AppIcon.papers, size: 26, color: t.brand),
           const SizedBox(height: 14),
-          Text('还没有题库', style: text.titleMedium?.copyWith(fontSize: 18)),
+          Text(l.noBankTitle, style: text.titleMedium?.copyWith(fontSize: 18)),
           const SizedBox(height: 8),
           Text(
-            '这个版本不预装题目 —— 题库和 App 是分开的，装哪套题库就是练哪门考试。'
-            '导入一份就能开始：做题、按卷模考、错题复盘、弱点诊断都不用联网。',
+            l.noBankBody,
             style: text.bodyMedium?.copyWith(height: 1.75),
           ),
           const SizedBox(height: 16),
@@ -2018,7 +2019,7 @@ class _NoBankCard extends StatelessWidget {
                   StrokeIcon(AppIcon.download, size: 16, color: t.onAccent),
                   const SizedBox(width: 8),
                   Text(
-                    '导入题库',
+                    l.noBankImport,
                     style: TextStyle(
                       fontSize: 14.5,
                       fontWeight: FontWeight.w700,
@@ -2031,8 +2032,7 @@ class _NoBankCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            '也可以把题库文件放进「文件」App 的 OpenExam 文件夹，或者用「扫描试卷」'
-            '把纸质卷子拍成题目。',
+            l.noBankHint,
             style: text.bodySmall?.copyWith(height: 1.6),
           ),
         ],

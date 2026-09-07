@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/data/db/app_database.dart';
 import 'package:openexam_app/core/constants/app_constants.dart';
 import 'package:openexam_app/core/constants/categories.dart';
@@ -94,6 +95,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppL.of(context);
     final t = context.tokens;
     final dark = Theme.of(context).brightness == Brightness.dark;
 
@@ -112,7 +114,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   child: Padding(
                     padding: const EdgeInsets.all(8),
                     child: Text(
-                      '跳过',
+                      l.onboardSkip,
                       style: TextStyle(fontSize: 13.5, color: t.muted),
                     ),
                   ),
@@ -129,17 +131,17 @@ class _OnboardingPageState extends State<OnboardingPage> {
                       ShoreArt.start,
                       Theme.of(context).brightness,
                     ),
-                    title: '上岸\n是划出来的',
+                    title: l.onboardTitle,
                     body: switch (_bankCount) {
-                      null => '不用登录，没网也能划',
-                      0 => '题库和 App 是分开的\n导入一份就能开始，不用登录、没网也能划',
-                      final n => '$n 道题在这台手机里\n不用登录，没网也能划',
+                      null => l.onboardBodyLoading,
+                      0 => l.onboardBodyNoBank,
+                      final n => l.onboardBodyWithBank(n),
                     },
                   ),
                   _Slide(
                     art: dark ? ShoreArt.nightCalm : ShoreArt.chart,
-                    title: '错的题\n自己会记着',
-                    body: '答错的进错题本，再答对就出去\n想写两句笔记、标一下错在哪，都行',
+                    title: l.onboardWrongTitle,
+                    body: l.onboardWrongBody,
                   ),
                   _Setup(
                     goal: _goal,
@@ -176,7 +178,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
                 child: FilledButton(
                   onPressed: _next,
                   child: Text(
-                    _page == 0 ? '出发' : (_page == 2 ? '开始划' : '下一个'),
+                    _page == 0
+                        ? l.onboardStart
+                        : (_page == 2 ? l.onboardFinish : l.onboardNext),
                   ),
                 ),
               ),

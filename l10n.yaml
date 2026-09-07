@@ -1,0 +1,9 @@
+# 界面文案的来源。改 arb 之后 `flutter gen-l10n`（或者下次 flutter run）重新生成。
+arb-dir: lib/l10n
+template-arb-file: app_zh.arb
+output-localization-file: app_localizations.dart
+output-class: AppL
+# 模板是中文：这个 app 的文案是先用中文写出来的，英文是翻译。
+# 反过来做会逼着每加一句文案先想个英文说法，中文反而成了二等公民。
+untranslated-messages-file: lib/l10n/untranslated.json
+nullable-getter: false

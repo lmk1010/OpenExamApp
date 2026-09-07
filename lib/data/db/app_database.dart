@@ -977,6 +977,16 @@ class AppDatabase {
     return db.query('questions', orderBy: 'paper_id, order_num');
   }
 
+  /// 整库的题，按卷和题号排。导出用。
+  ///
+  /// 跟 [exportQuestions] 的区别是这个带材料 —— 导出的题少了材料，
+  /// 对方导进去就是一堆答不了的资料分析。
+  Future<List<Question>> fetchAllQuestions() async {
+    final db = await database;
+    final rows = await db.query('questions', orderBy: 'paper_id, order_num');
+    return _withMaterials(rows.map(_fromRow).toList());
+  }
+
   /// 清空题库。
   ///
   /// 只删题和材料，不动做题记录 —— 记录按 question_id 存，重新导入同一批题

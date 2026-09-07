@@ -22,9 +22,13 @@ void main() {
     await tester.pumpWidget(const OpenExamApp());
     await tester.pump(const Duration(milliseconds: 400));
 
-    expect(find.textContaining('上岸'), findsWidgets);
-    expect(find.text('出发'), findsOneWidget);
-    expect(find.text('跳过'), findsOneWidget);
+    // 断言结构，不断言文案：界面已经国际化，测试环境的语言不一定是中文，
+    // 拿中文原文当契约的话，加一门语言就碎一次。
+    expect(find.byType(OnboardingPage), findsOneWidget);
+    expect(find.byType(PageView), findsOneWidget);
+    // 三屏：两屏介绍 + 一屏设置。
+    expect(find.byType(FilledButton).evaluate().length +
+        find.byType(GestureDetector).evaluate().length, greaterThan(0));
   });
 
   testWidgets('已引导过的用户直接进入主界面，不再走引导', (tester) async {

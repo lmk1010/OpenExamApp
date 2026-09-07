@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:openexam_app/core/i18n/locale_controller.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/constants/app_constants.dart';
 import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
@@ -445,6 +447,7 @@ class _ProfilePageState extends State<ProfilePage> with TabReload {
           title: '应用',
           child: Column(children: [
             _ThemeRow(),
+            const _LanguageRow(),
         _SettingRow(
           icon: AppIcon.spark,
           title: 'AI 设置',
@@ -1422,6 +1425,81 @@ class _PracticePrefsPageState extends State<PracticePrefsPage> {
                     ),
                   ],
                 ),
+        ),
+      ),
+    );
+  }
+}
+
+
+/// 界面语言。默认跟手机走 —— 但必须能手动改：有一批用户人在国外、手机是
+/// 英文，备的却是中文考试，按系统语言强行切成英文对他们是纯粹的倒退。
+class _LanguageRow extends StatelessWidget {
+  const _LanguageRow();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppL.of(context);
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+    final controller = LocaleController.instance;
+
+    final options = <({Locale? locale, String label})>[
+      (locale: null, label: l.settingsLanguageSystem),
+      (locale: const Locale('zh'), label: '中文'),
+      (locale: const Locale('en'), label: 'English'),
+    ];
+
+    return AnimatedBuilder(
+      animation: controller,
+      builder: (context, _) => Padding(
+        padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+        child: Row(
+          children: [
+            StrokeIcon(AppIcon.globe, size: 20, color: t.textSoft, weight: 1.8),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(l.settingsLanguage, style: text.bodyLarge),
+            ),
+            Container(
+              padding: const EdgeInsets.all(3),
+              decoration: BoxDecoration(
+                color: t.surfaceAlt,
+                borderRadius: BorderRadius.circular(99),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (final o in options)
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => controller.set(o.locale),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 150),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 11,
+                          vertical: 7,
+                        ),
+                        decoration: BoxDecoration(
+                          color: controller.locale == o.locale ? t.accent : null,
+                          borderRadius: BorderRadius.circular(99),
+                        ),
+                        child: Text(
+                          o.label,
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w600,
+                            color: controller.locale == o.locale
+                                ? t.onAccent
+                                : t.textSoft,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
