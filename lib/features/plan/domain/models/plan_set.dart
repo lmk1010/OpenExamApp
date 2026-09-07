@@ -1,4 +1,5 @@
 import 'package:openexam_app/features/plan/domain/models/study_task.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 
 /// 用户自己的一份计划清单。
 ///
@@ -15,7 +16,12 @@ class PlanSet {
   });
 
   final String id;
+
+  /// 用户起的名字。可能是空的 —— 自动建的那份没名字，显示时用
+  /// [displayName] 按当前语言兜底，别直接把它渲染出去。
   final String name;
+
+  String displayName(AppL l) => name.isEmpty ? l.planSetDefaultName : name;
 
   /// 无序不分天 —— 哪天出现由每条自己的 [StudyTask.repeat] 决定。
   final List<StudyTask> tasks;
@@ -50,7 +56,7 @@ class PlanSet {
 
   factory PlanSet.fromJson(Map<String, Object?> json) => PlanSet(
         id: json['id'] as String? ?? 'set_${DateTime.now().millisecondsSinceEpoch}',
-        name: json['name'] as String? ?? '我的计划',
+        name: json['name'] as String? ?? '',
         tasks: (json['tasks'] as List<dynamic>? ?? const [])
             .whereType<Map>()
             .map((e) => StudyTask.fromJson(Map<String, Object?>.from(e)))

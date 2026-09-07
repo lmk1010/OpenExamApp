@@ -87,7 +87,8 @@ class StudyPlanStore {
   Future<PlanSet> createSet(String name, {List<StudyTask> tasks = const []}) async {
     final set = PlanSet(
       id: 'set_${DateTime.now().millisecondsSinceEpoch}',
-      name: name.trim().isEmpty ? '我的计划' : name.trim(),
+      // 空名字就留空 —— 显示时按当前语言兜底（PlanSet.displayName）。
+      name: name.trim(),
       tasks: tasks,
     );
     await saveSets([...loadSets(), set]);
@@ -190,7 +191,7 @@ class StudyPlanStore {
     final overrides = loadOverrides(day)..remove(task.id);
     await saveOverrides(day, overrides);
 
-    final target = set ?? await createSet('我的计划');
+    final target = set ?? await createSet('');
     final startedOn = task.startedOn ??
         target.tasks.where((t) => t.id == task.id).map((t) => t.startedOn).firstOrNull ??
         day;
@@ -390,7 +391,7 @@ class StudyPlanStore {
 
     // 全新用户：给最没争议的三条打底，不给那套 6:00 起床的作息表
     if (legacyTemplate == null) {
-      final set = StarterPacks.minimal.toPlanSet(id: 'mine', name: '我的计划');
+      final set = StarterPacks.minimal.toPlanSet(id: 'mine', name: '');
       await saveSets([set]);
       await setActiveSet(set.id);
       return;
@@ -441,7 +442,7 @@ class StudyPlanStore {
       await _prefs.remove(key);
     }
 
-    final set = PlanSet(id: 'mine', name: '我的计划', tasks: tasks.values.toList());
+    final set = PlanSet(id: 'mine', name: '', tasks: tasks.values.toList());
     await saveSets([set]);
     await setActiveSet(set.id);
     await _prefs.remove(Prefs.studyPlanTemplate);

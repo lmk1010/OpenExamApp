@@ -4309,4 +4309,58 @@ class AppLEn extends AppL {
 
   @override
   String get modelNote_stronger => 'Stronger';
+
+  @override
+  String wrongExportYear(int year) {
+    return '$year';
+  }
+
+  @override
+  String wrongExportAnswer(String answer) {
+    return '**Answer: $answer**';
+  }
+
+  @override
+  String wrongExportReason(String reason) {
+    return '**Why wrong: $reason**';
+  }
+
+  @override
+  String wrongExportTimes(int times) {
+    return '**Missed $times times**';
+  }
+
+  @override
+  String get wrongExportFilePrefix => 'openexam-wrong-';
+
+  @override
+  String wrongPlanDayStep(int day, String title) {
+    return 'Day $day · $title';
+  }
+
+  @override
+  String markedUncategorized(int count) {
+    return 'Untagged $count';
+  }
+
+  @override
+  String get planSetDefaultName => 'My plan';
+
+  @override
+  String get importSampleTitle => 'Civil Service 2026';
+
+  @override
+  String get importSampleContent => 'Question stem';
+
+  @override
+  String get importSampleMaterial => 'Shared passage, omit if none';
+
+  @override
+  String get importSampleOptA => 'First';
+
+  @override
+  String get importSampleOptB => 'Second';
+
+  @override
+  String get importSampleAnalysis => 'Explanation';
 }

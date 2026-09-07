@@ -3220,5 +3220,64 @@
   "modelNote_longText": "长材料",
   "modelNote_vision": "能看图",
   "modelNote_freeTier": "免费额度内可用",
-  "modelNote_stronger": "更强"
+  "modelNote_stronger": "更强",
+  "wrongExportYear": "{year} 年",
+  "@wrongExportYear": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
+  "wrongExportAnswer": "**正确答案：{answer}**",
+  "@wrongExportAnswer": {
+    "placeholders": {
+      "answer": {
+        "type": "String"
+      }
+    }
+  },
+  "wrongExportReason": "**错因：{reason}**",
+  "@wrongExportReason": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "wrongExportTimes": "**错过 {times} 次**",
+  "@wrongExportTimes": {
+    "placeholders": {
+      "times": {
+        "type": "int"
+      }
+    }
+  },
+  "wrongExportFilePrefix": "openexam-错题-",
+  "wrongPlanDayStep": "第 {day} 天 · {title}",
+  "@wrongPlanDayStep": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "markedUncategorized": "未分类 {count}",
+  "@markedUncategorized": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "planSetDefaultName": "我的计划",
+  "importSampleTitle": "2026 国考行测",
+  "importSampleContent": "题干",
+  "importSampleMaterial": "共用材料，没有可省",
+  "importSampleOptA": "甲",
+  "importSampleOptB": "乙",
+  "importSampleAnalysis": "解析"
 }

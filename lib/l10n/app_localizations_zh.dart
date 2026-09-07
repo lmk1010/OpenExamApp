@@ -4181,4 +4181,58 @@ class AppLZh extends AppL {
 
   @override
   String get modelNote_stronger => '更强';
+
+  @override
+  String wrongExportYear(int year) {
+    return '$year 年';
+  }
+
+  @override
+  String wrongExportAnswer(String answer) {
+    return '**正确答案：$answer**';
+  }
+
+  @override
+  String wrongExportReason(String reason) {
+    return '**错因：$reason**';
+  }
+
+  @override
+  String wrongExportTimes(int times) {
+    return '**错过 $times 次**';
+  }
+
+  @override
+  String get wrongExportFilePrefix => 'openexam-错题-';
+
+  @override
+  String wrongPlanDayStep(int day, String title) {
+    return '第 $day 天 · $title';
+  }
+
+  @override
+  String markedUncategorized(int count) {
+    return '未分类 $count';
+  }
+
+  @override
+  String get planSetDefaultName => '我的计划';
+
+  @override
+  String get importSampleTitle => '2026 国考行测';
+
+  @override
+  String get importSampleContent => '题干';
+
+  @override
+  String get importSampleMaterial => '共用材料，没有可省';
+
+  @override
+  String get importSampleOptA => '甲';
+
+  @override
+  String get importSampleOptB => '乙';
+
+  @override
+  String get importSampleAnalysis => '解析';
 }

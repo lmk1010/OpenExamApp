@@ -140,7 +140,7 @@ class _MarkedPageState extends State<MarkedPage> {
                               Padding(
                                 padding: const EdgeInsets.only(left: 8),
                                 child: _TagChip(
-                                  label: '未分类 ${_countTag('')}',
+                                  label: AppL.of(context).markedUncategorized(_countTag('')),
                                   selected: _filter == '_none',
                                   onTap: () => setState(() => _filter = '_none'),
                                 ),

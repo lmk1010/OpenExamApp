@@ -7391,6 +7391,90 @@ abstract class AppL {
   /// In zh, this message translates to:
   /// **'更强'**
   String get modelNote_stronger;
+
+  /// No description provided for @wrongExportYear.
+  ///
+  /// In zh, this message translates to:
+  /// **'{year} 年'**
+  String wrongExportYear(int year);
+
+  /// No description provided for @wrongExportAnswer.
+  ///
+  /// In zh, this message translates to:
+  /// **'**正确答案：{answer}**'**
+  String wrongExportAnswer(String answer);
+
+  /// No description provided for @wrongExportReason.
+  ///
+  /// In zh, this message translates to:
+  /// **'**错因：{reason}**'**
+  String wrongExportReason(String reason);
+
+  /// No description provided for @wrongExportTimes.
+  ///
+  /// In zh, this message translates to:
+  /// **'**错过 {times} 次**'**
+  String wrongExportTimes(int times);
+
+  /// No description provided for @wrongExportFilePrefix.
+  ///
+  /// In zh, this message translates to:
+  /// **'openexam-错题-'**
+  String get wrongExportFilePrefix;
+
+  /// No description provided for @wrongPlanDayStep.
+  ///
+  /// In zh, this message translates to:
+  /// **'第 {day} 天 · {title}'**
+  String wrongPlanDayStep(int day, String title);
+
+  /// No description provided for @markedUncategorized.
+  ///
+  /// In zh, this message translates to:
+  /// **'未分类 {count}'**
+  String markedUncategorized(int count);
+
+  /// No description provided for @planSetDefaultName.
+  ///
+  /// In zh, this message translates to:
+  /// **'我的计划'**
+  String get planSetDefaultName;
+
+  /// No description provided for @importSampleTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'2026 国考行测'**
+  String get importSampleTitle;
+
+  /// No description provided for @importSampleContent.
+  ///
+  /// In zh, this message translates to:
+  /// **'题干'**
+  String get importSampleContent;
+
+  /// No description provided for @importSampleMaterial.
+  ///
+  /// In zh, this message translates to:
+  /// **'共用材料，没有可省'**
+  String get importSampleMaterial;
+
+  /// No description provided for @importSampleOptA.
+  ///
+  /// In zh, this message translates to:
+  /// **'甲'**
+  String get importSampleOptA;
+
+  /// No description provided for @importSampleOptB.
+  ///
+  /// In zh, this message translates to:
+  /// **'乙'**
+  String get importSampleOptB;
+
+  /// No description provided for @importSampleAnalysis.
+  ///
+  /// In zh, this message translates to:
+  /// **'解析'**
+  String get importSampleAnalysis;
 }
 
 class _AppLDelegate extends LocalizationsDelegate<AppL> {

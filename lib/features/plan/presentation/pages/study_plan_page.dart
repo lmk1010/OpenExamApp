@@ -248,7 +248,7 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
           tasks: pack?.expand(DateTime.now()) ?? const [],
         );
       case RenamePlanSet(:final set):
-        final name = await showRenameTaskDialog(context, initial: set.name);
+        final name = await showRenameTaskDialog(context, initial: set.displayName(AppL.of(context)));
         if (name == null || name.isEmpty) return;
         await store.renameSet(set.id, name);
       case DeletePlanSet(:final set):
@@ -630,7 +630,7 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
   String _setLabel() {
     if (_setId == StudyPlanStore.offId) return AppL.of(context).planOff;
     for (final s in _sets) {
-      if (s.id == _setId) return s.name;
+      if (s.id == _setId) return s.displayName(AppL.of(context));
     }
     return AppL.of(context).planPick;
   }
@@ -896,7 +896,7 @@ class _SetRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    set.name,
+                    set.displayName(AppL.of(context)),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: text.titleSmall

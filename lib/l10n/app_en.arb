@@ -1213,5 +1213,19 @@
   "modelNote_longText": "Long text",
   "modelNote_vision": "Reads images",
   "modelNote_freeTier": "Works on the free tier",
-  "modelNote_stronger": "Stronger"
+  "modelNote_stronger": "Stronger",
+  "wrongExportYear": "{year}",
+  "wrongExportAnswer": "**Answer: {answer}**",
+  "wrongExportReason": "**Why wrong: {reason}**",
+  "wrongExportTimes": "**Missed {times} times**",
+  "wrongExportFilePrefix": "openexam-wrong-",
+  "wrongPlanDayStep": "Day {day} · {title}",
+  "markedUncategorized": "Untagged {count}",
+  "planSetDefaultName": "My plan",
+  "importSampleTitle": "Civil Service 2026",
+  "importSampleContent": "Question stem",
+  "importSampleMaterial": "Shared passage, omit if none",
+  "importSampleOptA": "First",
+  "importSampleOptB": "Second",
+  "importSampleAnalysis": "Explanation"
 }

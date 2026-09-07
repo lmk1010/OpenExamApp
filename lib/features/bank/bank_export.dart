@@ -106,6 +106,7 @@ class BankExporter {
         .replaceAll(RegExp(r'-+'), '-')
         .replaceAll(RegExp(r'^-|-$'), '');
     final stem = safe.isEmpty ? 'bank' : safe;
-    return '$stem-$count题-$stamp.zip';
+    // 单位用中性的 q：这个文件是发给别人的，名字不该跟着导出者的界面语言变。
+    return '$stem-${count}q-$stamp.zip';
   }
 }

@@ -46,6 +46,24 @@ CONTENT = {
     # 申论的五种题型（归纳概括/提出对策/综合分析/贯彻执行/大作文）——
     # 跟行测模块名一样，是这门考试自己的分类。
     'lib/features/essay/domain/essay_models.dart': '申论题型名',
+    # 喂给模型的中文文档解析提示词与 JSON schema 描述。这条路径本身
+    # 只认中文题库文档（「题目/选项/解析」这些表头），提示词跟着它走。
+    'lib/data/importers/doc_parser.dart': '中文文档解析提示词',
+    # 给模型的归类指令（「把下面每道题归到上面某一个分类里」）。
+    'lib/features/bank/category_manage_page.dart': '归类提示词',
+    # 连通性自测的提示词，还要对着回复判断，翻了这个测试就永远不通过。
+    'lib/core/ai/ai_client.dart': '连通性自测提示词',
+    # 服务商品牌名（豆包 / 通义千问 / 智谱 GLM）—— 品牌名不翻。
+    'lib/core/ai/ai_settings.dart': '服务商品牌名',
+    # 语言自己的名字：中文那一项在英文界面下也该写「中文」。
+    'lib/core/i18n/locale_controller.dart': '语言自称',
+    # 「国考」这类拿去 contains 匹配中文卷名的 key，跟 bank_page 同一类；
+    # 还有语言选择里的「中文」。
+    'lib/features/profile/profile_page.dart': '匹配中文卷名的 key 与语言自称',
+    'lib/features/tips/tips_page.dart': '匹配中文卷名的地区 key',
+    'lib/features/essay/presentation/essay_edit_page.dart': '匹配中文卷名的 key',
+    # 行测/申论模块名，跟 categories.dart 同一类。
+    'lib/features/plan/domain/models/study_task.dart': '行测模块名',
 }
 
 

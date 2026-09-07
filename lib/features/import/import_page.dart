@@ -233,7 +233,7 @@ class _ImportPageState extends State<ImportPage> {
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Text(
-                _formatSample,
+                _formatSample(AppL.of(context)),
                 style: TextStyle(
                   fontFamily: 'monospace',
                   fontSize: 11.5,
@@ -261,15 +261,17 @@ class _ImportPageState extends State<ImportPage> {
     );
   }
 
-  static const _formatSample =
-      '{"paper": {"title": "2026 国考行测", "year": 2026},\n'
+  /// 导入格式示例。键名是格式的一部分不能动，只有示例值跟着界面语言走。
+  /// 整段没放进 arb —— 里面的花括号会被 ICU 当成占位符。
+  static String _formatSample(AppL l) =>
+      '{"paper": {"title": "${l.importSampleTitle}", "year": 2026},\n'
       ' "questions": [{\n'
-      '   "content": "题干",\n'
-      '   "material": "共用材料，没有可省",\n'
-      '   "options": [{"key":"A","text":"甲"},\n'
-      '               {"key":"B","text":"乙"}],\n'
+      '   "content": "${l.importSampleContent}",\n'
+      '   "material": "${l.importSampleMaterial}",\n'
+      '   "options": [{"key":"A","text":"${l.importSampleOptA}"},\n'
+      '               {"key":"B","text":"${l.importSampleOptB}"}],\n'
       '   "answer": "A",\n'
-      '   "analysis": "解析",\n'
+      '   "analysis": "${l.importSampleAnalysis}",\n'
       '   "category": "ziliao"\n'
       ' }]}';
 }

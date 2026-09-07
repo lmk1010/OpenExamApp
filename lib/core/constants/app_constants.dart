@@ -1,6 +1,5 @@
 class AppConstants {
   static const appName = 'OpenExam App';
-  static const appDescription = 'Android + iOS 跨平台备考应用骨架';
 }
 
 /// Shared preference keys.

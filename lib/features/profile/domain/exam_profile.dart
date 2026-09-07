@@ -90,7 +90,8 @@ class ExamProfile {
 
   factory ExamProfile.fromJson(Map<String, Object?> json) => ExamProfile(
         id: '${json['id'] ?? 'default'}',
-        name: '${json['name'] ?? '我的备考'}',
+        // 名字留空，显示时按当前语言兜底（见 exam_profile_page 的 _displayName）。
+        name: '${json['name'] ?? ''}',
         features: {
           for (final raw in (json['features'] as List<dynamic>? ?? const []))
             for (final f in ExamFeature.values)

@@ -354,7 +354,9 @@ class _Setup extends StatelessWidget {
                   child: Text(
                     examDate == null
                         ? AppL.of(context).onboardOptional
-                        : '${examDate!.year} 年 ${examDate!.month} 月 ${examDate!.day} 日'
+                        // 日期格式交给 MaterialLocalizations —— 中文是「2026年3月8日」，
+                        // 英文是「March 8, 2026」，自己拼出不来第二种。
+                        : '${MaterialLocalizations.of(context).formatFullDate(examDate!)}'
                             '${days == null ? '' : AppL.of(context).onboardDaysLeft(days)}',
                     style: text.titleSmall?.copyWith(
                       fontSize: 15,

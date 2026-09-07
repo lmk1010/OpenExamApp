@@ -146,7 +146,7 @@ void main() {
 
   group('文件名', () {
     test('带题数，收到的人不打开也知道是什么', () {
-      expect(BankExporter.fileName('行测真题', 120), contains('120题'));
+      expect(BankExporter.fileName('行测真题', 120), contains('120q'));
       expect(BankExporter.fileName('行测真题', 120), endsWith('.zip'));
     });
 

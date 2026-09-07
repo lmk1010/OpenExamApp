@@ -166,7 +166,7 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
       final q = questions[i];
       buffer
         ..writeln('## ${i + 1}. ${categoryLabel(q.category)}'
-            '${q.year > 0 ? ' · ${q.year} 年' : ''}')
+            '${q.year > 0 ? ' · ${l.wrongExportYear(q.year)}' : ''}')
         ..writeln()
         ..writeln(q.content);
       if (q.hasImage) buffer.writeln(l.wrongExportHasImage);
@@ -176,11 +176,13 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
       }
       buffer
         ..writeln()
-        ..writeln('**正确答案：${q.answer.toUpperCase()}**');
+        ..writeln(l.wrongExportAnswer(q.answer.toUpperCase()));
       final reason = _reasons[q.id];
-      if (reason != null) buffer.writeln('**错因：${wrongReasonLabel(reason)}**');
+      if (reason != null) {
+        buffer.writeln(l.wrongExportReason(wrongReasonLabel(reason)));
+      }
       final times = _counts[q.id] ?? 1;
-      if (times > 1) buffer.writeln('**错过 $times 次**');
+      if (times > 1) buffer.writeln(l.wrongExportTimes(times));
       if (q.analysis.isNotEmpty) {
         buffer
           ..writeln()
@@ -199,7 +201,7 @@ class _WrongBookPageState extends State<WrongBookPage> with TabReload {
     }
 
     final now = DateTime.now();
-    final name = 'openexam-错题-'
+    final name = '${l.wrongExportFilePrefix}'
         '${now.month.toString().padLeft(2, '0')}'
         '${now.day.toString().padLeft(2, '0')}.md';
     try {
@@ -1427,7 +1429,10 @@ class _PlanCard extends StatelessWidget {
                     Text(
                       rest
                           ? AppL.of(context).wrongPlanDoneToday
-                          : '第 $day 天 · ${ReviewPlan.stepTitles(AppL.of(context))[day - 1]}',
+                          : AppL.of(context).wrongPlanDayStep(
+                              day,
+                              ReviewPlan.stepTitles(AppL.of(context))[day - 1],
+                            ),
                       style: text.titleSmall?.copyWith(fontSize: 14),
                     ),
                     SizedBox(height: 4),
