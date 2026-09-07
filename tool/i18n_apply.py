@@ -88,6 +88,22 @@ def main() -> int:
     zh, en = load(ZH_ARB), load(EN_ARB)
     changed = 0
 
+    # 先把所有 key 冲突查一遍，再动任何文件。
+    #
+    # 以前是边改源码边攒 arb，arb 最后一次性写盘 —— 中途任何一条报错，
+    # 源码已经改了一半、arb 一个字没写，留下一堆 undefined_getter。
+    seen = dict(zh)
+    for entry in spec:
+        for item in entry['items']:
+            key = item['key']
+            text = item.get('zh_text', unquote(item['zh']))
+            if key in seen and seen[key] != text:
+                raise SystemExit(
+                    f'{key} 已存在且内容不同，换个 key\n'
+                    f'  已有: {seen[key]}\n  这次: {text}'
+                )
+            seen[key] = text
+
     for entry in spec:
         path = entry['file']
         ctx = entry.get('ctx')

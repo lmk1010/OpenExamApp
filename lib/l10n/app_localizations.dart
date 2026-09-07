@@ -6491,6 +6491,174 @@ abstract class AppL {
   /// In zh, this message translates to:
   /// **'服务返回 {status}：{detail}'**
   String aiServerError(int status, String detail);
+
+  /// No description provided for @tipsTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'解题技巧'**
+  String get tipsTitle;
+
+  /// No description provided for @tipsUnitQuestions.
+  ///
+  /// In zh, this message translates to:
+  /// **'道题'**
+  String get tipsUnitQuestions;
+
+  /// No description provided for @tipsPaperNumbers.
+  ///
+  /// In zh, this message translates to:
+  /// **'卷面题号'**
+  String get tipsPaperNumbers;
+
+  /// No description provided for @tipsUnitMinutes.
+  ///
+  /// In zh, this message translates to:
+  /// **'分钟'**
+  String get tipsUnitMinutes;
+
+  /// No description provided for @tipsWhereOnPaper.
+  ///
+  /// In zh, this message translates to:
+  /// **'卷面位置'**
+  String get tipsWhereOnPaper;
+
+  /// No description provided for @tipsYear2026.
+  ///
+  /// In zh, this message translates to:
+  /// **'2026 年'**
+  String get tipsYear2026;
+
+  /// No description provided for @tipsQuestionRange.
+  ///
+  /// In zh, this message translates to:
+  /// **'第 {from}–{to} 题'**
+  String tipsQuestionRange(int from, int to);
+
+  /// No description provided for @tipsTotalAndMinutes.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 题 · {minutes} 分钟'**
+  String tipsTotalAndMinutes(int count, int minutes);
+
+  /// No description provided for @tipsBreakdownPace.
+  ///
+  /// In zh, this message translates to:
+  /// **'内部结构 · 单题配速'**
+  String get tipsBreakdownPace;
+
+  /// No description provided for @tipsBreakdown.
+  ///
+  /// In zh, this message translates to:
+  /// **'内部结构'**
+  String get tipsBreakdown;
+
+  /// No description provided for @tipsHotspots.
+  ///
+  /// In zh, this message translates to:
+  /// **'高频考点'**
+  String get tipsHotspots;
+
+  /// No description provided for @tipsHotspotsHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'按出现频次排序'**
+  String get tipsHotspotsHint;
+
+  /// No description provided for @tipsHotspotsNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'关键词粗分，一题可能算进多个考点 —— 看相对权重就行，别当精确占比。'**
+  String get tipsHotspotsNote;
+
+  /// No description provided for @tipsInExam.
+  ///
+  /// In zh, this message translates to:
+  /// **'考场怎么做'**
+  String get tipsInExam;
+
+  /// No description provided for @tipsMethods.
+  ///
+  /// In zh, this message translates to:
+  /// **'方法'**
+  String get tipsMethods;
+
+  /// No description provided for @tipsMethodCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 条'**
+  String tipsMethodCount(int count);
+
+  /// No description provided for @examNewProfile.
+  ///
+  /// In zh, this message translates to:
+  /// **'新建备考目标'**
+  String get examNewProfile;
+
+  /// No description provided for @examNewProfileHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'例如 执业医师 · 临床'**
+  String get examNewProfileHint;
+
+  /// No description provided for @examRename.
+  ///
+  /// In zh, this message translates to:
+  /// **'改名'**
+  String get examRename;
+
+  /// No description provided for @examDeleteProfile.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除备考目标'**
+  String get examDeleteProfile;
+
+  /// No description provided for @examDeleteProfileBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'删掉「{name}」。题库、错题、记录都不受影响。'**
+  String examDeleteProfileBody(String name);
+
+  /// No description provided for @examWhichModules.
+  ///
+  /// In zh, this message translates to:
+  /// **'显示哪些模块'**
+  String get examWhichModules;
+
+  /// No description provided for @examWhichExam.
+  ///
+  /// In zh, this message translates to:
+  /// **'在备考哪一门'**
+  String get examWhichExam;
+
+  /// No description provided for @examModulesNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'这几个模块是给考公做的。备别的考试用不上，关掉就不会再出现。'**
+  String get examModulesNote;
+
+  /// No description provided for @examGenericOnly.
+  ///
+  /// In zh, this message translates to:
+  /// **'只有通用模块'**
+  String get examGenericOnly;
+
+  /// No description provided for @examExtrasOn.
+  ///
+  /// In zh, this message translates to:
+  /// **'开了 {count} 个专属模块'**
+  String examExtrasOn(int count);
+
+  /// No description provided for @examSharedBank.
+  ///
+  /// In zh, this message translates to:
+  /// **'题库是共用的。换一份只是换一副眼镜 —— 题、错题本、练习记录都还在，不会因为切换丢东西。'**
+  String get examSharedBank;
+
+  /// No description provided for @examTwoProfiles.
+  ///
+  /// In zh, this message translates to:
+  /// **'同时备两门考试的话，右上角 ＋ 建第二份，各留各的模块。'**
+  String get examTwoProfiles;
 }
 
 class _AppLDelegate extends LocalizationsDelegate<AppL> {

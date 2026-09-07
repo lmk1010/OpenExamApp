@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
 import 'package:openexam_app/core/ui/ambient.dart';
@@ -28,14 +29,14 @@ class _ExamProfilePageState extends State<ExamProfilePage> {
   }
 
   Future<void> _create() async {
-    final name = await _askName(title: '新建备考目标', hint: '例如 执业医师 · 临床');
+    final name = await _askName(title: AppL.of(context).examNewProfile, hint: AppL.of(context).examNewProfileHint);
     if (name == null) return;
     await ExamProfileStore.create(name);
     if (mounted) setState(() {});
   }
 
   Future<void> _rename(ExamProfile p) async {
-    final name = await _askName(title: '改名', initial: p.name);
+    final name = await _askName(title: AppL.of(context).examRename, initial: p.name);
     if (name == null || name.isEmpty) return;
     await ExamProfileStore.save(p.copyWith(name: name));
     if (mounted) setState(() {});
@@ -45,16 +46,16 @@ class _ExamProfilePageState extends State<ExamProfilePage> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('删除备考目标'),
-        content: Text('删掉「${p.name}」。题库、错题、记录都不受影响。'),
+        title: Text(AppL.of(context).examDeleteProfile),
+        content: Text(AppL.of(context).examDeleteProfileBody(p.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('取消'),
+            child: Text(AppL.of(context).commonCancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('删除'),
+            child: Text(AppL.of(context).commonDelete),
           ),
         ],
       ),
@@ -87,11 +88,11 @@ class _ExamProfilePageState extends State<ExamProfilePage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('取消'),
+            child: Text(AppL.of(context).commonCancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(ctrl.text.trim()),
-            child: const Text('确定'),
+            child: Text(AppL.of(context).commonConfirm),
           ),
         ],
       ),
@@ -123,7 +124,7 @@ class _ExamProfilePageState extends State<ExamProfilePage> {
             ),
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(
+                padding: EdgeInsets.fromLTRB(
                     AppTheme.gutter, 8, AppTheme.gutter, 4),
                 child: Row(
                   children: [
@@ -131,11 +132,11 @@ class _ExamProfilePageState extends State<ExamProfilePage> {
                       icon: Icons.arrow_back,
                       onTap: () => Navigator.of(context).maybePop(),
                     ),
-                    const SizedBox(width: 4),
+                    SizedBox(width: 4),
                     Expanded(
-                        child: Text('显示哪些模块', style: text.titleMedium)),
+                        child: Text(AppL.of(context).examWhichModules, style: text.titleMedium)),
                     IconButton(
-                      tooltip: '新建',
+                      tooltip: AppL.of(context).commonNew,
                       icon: const Icon(Icons.add, size: 22),
                       color: t.brand,
                       onPressed: _create,
@@ -146,7 +147,7 @@ class _ExamProfilePageState extends State<ExamProfilePage> {
 
               // 只有一份的时候不必列成"可切换的列表"，那会让人以为少了点什么
               if (all.length > 1) ...[
-                const SectionHeader(title: '在备考哪一门'),
+                SectionHeader(title: AppL.of(context).examWhichExam),
                 for (final p in all)
                   _ProfileRow(
                     profile: p,
@@ -159,17 +160,17 @@ class _ExamProfilePageState extends State<ExamProfilePage> {
               ],
 
               Padding(
-                padding: const EdgeInsets.fromLTRB(
+                padding: EdgeInsets.fromLTRB(
                     AppTheme.gutter, 0, AppTheme.gutter, 12),
                 child: Text(
-                  '这几个模块是给考公做的。备别的考试用不上，关掉就不会再出现。',
+                  AppL.of(context).examModulesNote,
                   style: text.bodySmall?.copyWith(color: t.textSoft),
                 ),
               ),
               for (final f in ExamFeature.values)
                 SwitchListTile(
                   contentPadding:
-                      const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
+                      EdgeInsets.symmetric(horizontal: AppTheme.gutter),
                   title: Text(f.label, style: text.titleSmall),
                   subtitle: Text(f.hint, style: text.bodySmall),
                   value: current.has(f),
@@ -177,13 +178,12 @@ class _ExamProfilePageState extends State<ExamProfilePage> {
                 ),
 
               Padding(
-                padding: const EdgeInsets.fromLTRB(
+                padding: EdgeInsets.fromLTRB(
                     AppTheme.gutter, 22, AppTheme.gutter, 0),
                 child: Text(
                   all.length > 1
-                      ? '题库是共用的。换一份只是换一副眼镜 —— 题、错题本、'
-                          '练习记录都还在，不会因为切换丢东西。'
-                      : '同时备两门考试的话，右上角 ＋ 建第二份，各留各的模块。',
+                      ? AppL.of(context).examSharedBank
+                      : AppL.of(context).examTwoProfiles,
                   style: text.bodySmall?.copyWith(color: t.textSoft),
                 ),
               ),
@@ -236,7 +236,7 @@ class _ProfileRow extends StatelessWidget {
                 color: selected ? t.onAccent : t.onAccentSoft,
               ),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: 12),
             Expanded(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -249,9 +249,9 @@ class _ProfileRow extends StatelessWidget {
                     style: text.titleSmall
                         ?.copyWith(color: selected ? t.brand : t.text),
                   ),
-                  const SizedBox(height: 2),
+                  SizedBox(height: 2),
                   Text(
-                    on == 0 ? '只有通用模块' : '开了 $on 个专属模块',
+                    on == 0 ? AppL.of(context).examGenericOnly : AppL.of(context).examExtrasOn(on),
                     style: text.bodySmall?.copyWith(color: t.textSoft),
                   ),
                 ],

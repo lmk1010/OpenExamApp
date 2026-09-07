@@ -3791,4 +3791,102 @@ class AppLEn extends AppL {
   String aiServerError(int status, String detail) {
     return 'Server returned $status: $detail';
   }
+
+  @override
+  String get tipsTitle => 'Method';
+
+  @override
+  String get tipsUnitQuestions => 'questions';
+
+  @override
+  String get tipsPaperNumbers => 'on the paper';
+
+  @override
+  String get tipsUnitMinutes => 'minutes';
+
+  @override
+  String get tipsWhereOnPaper => 'Where it sits';
+
+  @override
+  String get tipsYear2026 => '2026';
+
+  @override
+  String tipsQuestionRange(int from, int to) {
+    return 'Questions $from–$to';
+  }
+
+  @override
+  String tipsTotalAndMinutes(int count, int minutes) {
+    return '$count questions · $minutes min';
+  }
+
+  @override
+  String get tipsBreakdownPace => 'Breakdown · pace per question';
+
+  @override
+  String get tipsBreakdown => 'Breakdown';
+
+  @override
+  String get tipsHotspots => 'Common topics';
+
+  @override
+  String get tipsHotspotsHint => 'Ordered by how often they appear';
+
+  @override
+  String get tipsHotspotsNote =>
+      'Rough keyword matching — one question can count towards several topics. Read the relative weight, not an exact share.';
+
+  @override
+  String get tipsInExam => 'What to do in the exam';
+
+  @override
+  String get tipsMethods => 'Methods';
+
+  @override
+  String tipsMethodCount(int count) {
+    return '$count';
+  }
+
+  @override
+  String get examNewProfile => 'New study profile';
+
+  @override
+  String get examNewProfileHint => 'e.g. a certification or subject';
+
+  @override
+  String get examRename => 'Rename';
+
+  @override
+  String get examDeleteProfile => 'Delete study profile';
+
+  @override
+  String examDeleteProfileBody(String name) {
+    return 'Deletes \"$name\". The bank, your mistakes and your history are untouched.';
+  }
+
+  @override
+  String get examWhichModules => 'Which modules to show';
+
+  @override
+  String get examWhichExam => 'Which exam are you studying for';
+
+  @override
+  String get examModulesNote =>
+      'These modules were built for one specific exam. Studying for something else, turn them off and they stop appearing.';
+
+  @override
+  String get examGenericOnly => 'Common modules only';
+
+  @override
+  String examExtrasOn(int count) {
+    return '$count extra modules on';
+  }
+
+  @override
+  String get examSharedBank =>
+      'The bank is shared. Switching profiles just changes the glasses — questions, mistakes and history all stay put.';
+
+  @override
+  String get examTwoProfiles =>
+      'Studying for two exams at once? Tap ＋ and keep a separate set of modules for each.';
 }

@@ -2864,5 +2864,74 @@
         "type": "String"
       }
     }
-  }
+  },
+  "tipsTitle": "解题技巧",
+  "tipsUnitQuestions": "道题",
+  "tipsPaperNumbers": "卷面题号",
+  "tipsUnitMinutes": "分钟",
+  "tipsWhereOnPaper": "卷面位置",
+  "tipsYear2026": "2026 年",
+  "tipsQuestionRange": "第 {from}–{to} 题",
+  "@tipsQuestionRange": {
+    "placeholders": {
+      "from": {
+        "type": "int"
+      },
+      "to": {
+        "type": "int"
+      }
+    }
+  },
+  "tipsTotalAndMinutes": "{count} 题 · {minutes} 分钟",
+  "@tipsTotalAndMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "tipsBreakdownPace": "内部结构 · 单题配速",
+  "tipsBreakdown": "内部结构",
+  "tipsHotspots": "高频考点",
+  "tipsHotspotsHint": "按出现频次排序",
+  "tipsHotspotsNote": "关键词粗分，一题可能算进多个考点 —— 看相对权重就行，别当精确占比。",
+  "tipsInExam": "考场怎么做",
+  "tipsMethods": "方法",
+  "tipsMethodCount": "{count} 条",
+  "@tipsMethodCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "examNewProfile": "新建备考目标",
+  "examNewProfileHint": "例如 执业医师 · 临床",
+  "examRename": "改名",
+  "examDeleteProfile": "删除备考目标",
+  "examDeleteProfileBody": "删掉「{name}」。题库、错题、记录都不受影响。",
+  "@examDeleteProfileBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "examWhichModules": "显示哪些模块",
+  "examWhichExam": "在备考哪一门",
+  "examModulesNote": "这几个模块是给考公做的。备别的考试用不上，关掉就不会再出现。",
+  "examGenericOnly": "只有通用模块",
+  "examExtrasOn": "开了 {count} 个专属模块",
+  "@examExtrasOn": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "examSharedBank": "题库是共用的。换一份只是换一副眼镜 —— 题、错题本、练习记录都还在，不会因为切换丢东西。",
+  "examTwoProfiles": "同时备两门考试的话，右上角 ＋ 建第二份，各留各的模块。"
 }

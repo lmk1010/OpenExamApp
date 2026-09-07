@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
@@ -36,7 +37,7 @@ class _TipsPageState extends State<TipsPage> {
           onPressed: () => Navigator.of(context).maybePop(),
         ),
         titleSpacing: 0,
-        title: const Text('解题技巧'),
+        title: Text(AppL.of(context).tipsTitle),
       ),
       body: Column(
         children: [
@@ -260,9 +261,9 @@ class _StatStrip extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tokens;
     final items = <List<String>>[
-      ['${group.anhui.count}', '道题'],
-      [group.anhui.range, '卷面题号'],
-      ['${group.minutes}', '分钟'],
+      ['${group.anhui.count}', AppL.of(context).tipsUnitQuestions],
+      [group.anhui.range, AppL.of(context).tipsPaperNumbers],
+      ['${group.minutes}', AppL.of(context).tipsUnitMinutes],
       [group.paceValue, group.paceCaption],
     ];
     return Container(
@@ -316,7 +317,7 @@ class _PaperMaps extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const _Label('卷面位置', trailing: '2026 年'),
+        _Label(AppL.of(context).tipsWhereOnPaper, trailing: AppL.of(context).tipsYear2026),
         for (final layout in kPaperLayouts)
           Builder(builder: (context) {
             final hit =
@@ -337,9 +338,9 @@ class _PaperMaps extends StatelessWidget {
                       ),
                     ),
                     if (hit != null) ...[
-                      const SizedBox(width: 7),
+                      SizedBox(width: 7),
                       Text(
-                        '第 ${hit.from}–${hit.to} 题',
+                        AppL.of(context).tipsQuestionRange(hit.from, hit.to),
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
@@ -348,9 +349,9 @@ class _PaperMaps extends StatelessWidget {
                         ),
                       ),
                     ],
-                    const Spacer(),
+                    Spacer(),
                     Text(
-                      '${layout.total} 题 · ${layout.minutes} 分钟',
+                      AppL.of(context).tipsTotalAndMinutes(layout.total, layout.minutes),
                       style: TextStyle(
                         fontSize: 11.5,
                         color: t.muted,
@@ -508,7 +509,7 @@ class _BreakdownTable extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _Label(timed ? '内部结构 · 单题配速' : '内部结构'),
+        _Label(timed ? AppL.of(context).tipsBreakdownPace : AppL.of(context).tipsBreakdown),
         Container(
           margin: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
           padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
@@ -519,10 +520,10 @@ class _BreakdownTable extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: 8, left: 2),
                 child: Row(
                   children: [
-                    const Spacer(),
+                    Spacer(),
                     head('安徽', 34),
                     head('国考', 34),
-                    if (timed) head('秒/题', 42),
+                    if (timed) head(AppL.of(context).dxColSeconds, 42),
                   ],
                 ),
               ),
@@ -627,7 +628,7 @@ class _Hotspots extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const _Label('高频考点', trailing: '按出现频次排序'),
+        _Label(AppL.of(context).tipsHotspots, trailing: AppL.of(context).tipsHotspotsHint),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
           child: Wrap(
@@ -656,9 +657,9 @@ class _Hotspots extends StatelessWidget {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 9, AppTheme.gutter, 0),
+          padding: EdgeInsets.fromLTRB(AppTheme.gutter, 9, AppTheme.gutter, 0),
           child: Text(
-            '关键词粗分，一题可能算进多个考点 —— 看相对权重就行，别当精确占比。',
+            AppL.of(context).tipsHotspotsNote,
             style: TextStyle(fontSize: 11.5, height: 1.5, color: t.muted),
           ),
         ),
@@ -680,7 +681,7 @@ class _Plays extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const _Label('考场怎么做'),
+        _Label(AppL.of(context).tipsInExam),
         Container(
           margin: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
           decoration: GlassDecor.panel(t, radius: 16, raised: false),
@@ -764,7 +765,7 @@ class _Methods extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _Label('方法', trailing: '${group.tips.length} 条'),
+        _Label(AppL.of(context).tipsMethods, trailing: AppL.of(context).tipsMethodCount(group.tips.length)),
         for (var i = 0; i < group.tips.length; i++)
           Container(
             padding: EdgeInsets.fromLTRB(

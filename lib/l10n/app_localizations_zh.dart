@@ -3679,4 +3679,98 @@ class AppLZh extends AppL {
   String aiServerError(int status, String detail) {
     return '服务返回 $status：$detail';
   }
+
+  @override
+  String get tipsTitle => '解题技巧';
+
+  @override
+  String get tipsUnitQuestions => '道题';
+
+  @override
+  String get tipsPaperNumbers => '卷面题号';
+
+  @override
+  String get tipsUnitMinutes => '分钟';
+
+  @override
+  String get tipsWhereOnPaper => '卷面位置';
+
+  @override
+  String get tipsYear2026 => '2026 年';
+
+  @override
+  String tipsQuestionRange(int from, int to) {
+    return '第 $from–$to 题';
+  }
+
+  @override
+  String tipsTotalAndMinutes(int count, int minutes) {
+    return '$count 题 · $minutes 分钟';
+  }
+
+  @override
+  String get tipsBreakdownPace => '内部结构 · 单题配速';
+
+  @override
+  String get tipsBreakdown => '内部结构';
+
+  @override
+  String get tipsHotspots => '高频考点';
+
+  @override
+  String get tipsHotspotsHint => '按出现频次排序';
+
+  @override
+  String get tipsHotspotsNote => '关键词粗分，一题可能算进多个考点 —— 看相对权重就行，别当精确占比。';
+
+  @override
+  String get tipsInExam => '考场怎么做';
+
+  @override
+  String get tipsMethods => '方法';
+
+  @override
+  String tipsMethodCount(int count) {
+    return '$count 条';
+  }
+
+  @override
+  String get examNewProfile => '新建备考目标';
+
+  @override
+  String get examNewProfileHint => '例如 执业医师 · 临床';
+
+  @override
+  String get examRename => '改名';
+
+  @override
+  String get examDeleteProfile => '删除备考目标';
+
+  @override
+  String examDeleteProfileBody(String name) {
+    return '删掉「$name」。题库、错题、记录都不受影响。';
+  }
+
+  @override
+  String get examWhichModules => '显示哪些模块';
+
+  @override
+  String get examWhichExam => '在备考哪一门';
+
+  @override
+  String get examModulesNote => '这几个模块是给考公做的。备别的考试用不上，关掉就不会再出现。';
+
+  @override
+  String get examGenericOnly => '只有通用模块';
+
+  @override
+  String examExtrasOn(int count) {
+    return '开了 $count 个专属模块';
+  }
+
+  @override
+  String get examSharedBank => '题库是共用的。换一份只是换一副眼镜 —— 题、错题本、练习记录都还在，不会因为切换丢东西。';
+
+  @override
+  String get examTwoProfiles => '同时备两门考试的话，右上角 ＋ 建第二份，各留各的模块。';
 }
