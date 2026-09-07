@@ -341,11 +341,17 @@ class _Findings extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tokens;
     if (diagnosis.findings.isEmpty) {
+      // 「没查出短板」和「压根没查」是两回事。基准是按行测五模块定的，
+      // 换一门考试分类就对不上，这时候说"都在基准附近"是句假话。
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
         child: Text(
-          '各模块的速度和正确率都在基准附近，没有单独拎出来说的短板。'
-          '继续按现在的练法走。',
+          diagnosis.benchmarked
+              ? '各模块的速度和正确率都在基准附近，没有单独拎出来说的短板。'
+                  '继续按现在的练法走。'
+              : '这个题库的分类对不上行测五模块，没有可比的基准 —— '
+                  '上面的总题数和正确率仍然是你的真实数据，但"每题该几秒、'
+                  '正确率该到多少"这类结论给不了。',
           style: TextStyle(fontSize: 14, height: 1.7, color: t.textSoft),
         ),
       );

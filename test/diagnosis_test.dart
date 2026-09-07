@@ -200,6 +200,23 @@ void main() {
       expect(has(d, '正确率离目标还差一截'), isTrue);
       expect(has(d, '做太快'), isFalse);
     });
+
+    test('题库分类对不上基准时，不许说"没查出短板"', () {
+      // 医师、教师编、任意导入的题库都会走到这里。
+      final d = diagnose({'内科学': (n: 40, correct: 20, seconds: 60)});
+      expect(d.attempts, 40);       // 总数还是真的
+      expect(d.modules, isEmpty);   // 但一个模块也比不了
+      expect(d.benchmarked, isFalse);
+      expect(d.findings, isEmpty);
+    });
+
+    test('行测题库上 benchmarked 为真', () {
+      final d = diagnose(
+        {'ziliao': (n: 20, correct: 18, seconds: 70)},
+        elapsed: const Duration(minutes: 25),
+      );
+      expect(d.benchmarked, isTrue);
+    });
   });
 
   group('年份范围', () {

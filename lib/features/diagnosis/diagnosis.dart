@@ -132,6 +132,7 @@ class Diagnosis {
     required this.attempts,
     required this.correct,
     this.note = '',
+    this.benchmarked = true,
   });
 
   /// 诊断的是哪一段记录。
@@ -147,6 +148,13 @@ class Diagnosis {
 
   /// 样本不足之类的提醒。
   final String note;
+
+  /// 这个题库的分类能不能对上基准。
+  ///
+  /// 基准是按行测五模块定的。换一门考试（医师、教师编、导进来的任意题库），
+  /// 分类对不上，[modules] 就是空的 —— 而空的 findings 会让页面显示
+  /// 「各模块都在基准附近，没有短板」。那是句假话：一条都没查。
+  final bool benchmarked;
 
   double get accuracy => attempts == 0 ? 0 : correct / attempts;
 
@@ -182,6 +190,7 @@ class Diagnosis {
       findings: findings,
       attempts: d.attempts,
       correct: d.correct,
+      benchmarked: modules.isNotEmpty,
       note: d.attempts < 30
           ? '只有 ${d.attempts} 条作答记录，结论还不稳。做够 100 题再看一次。'
           : '',
@@ -242,6 +251,7 @@ class Diagnosis {
       findings: findings,
       attempts: total,
       correct: correct,
+      benchmarked: modules.isNotEmpty,
     );
   }
 
