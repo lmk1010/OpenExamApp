@@ -1,3 +1,4 @@
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// 一个可选的模型。给用户一个下拉，而不是让他去背模型名。
@@ -7,8 +8,27 @@ class AiModel {
   final String id;
   final String label;
 
-  /// 一句话说明它适合干什么，直接显示在下拉里。
+  /// 一句话说明它适合干什么。
+  ///
+  /// 存的是**稳定 key** 不是文案：这整张服务商表是 const，取不到 context，
+  /// 而说明要跟着界面语言走。显示时用 [noteText] 翻。
   final String note;
+
+  String noteText(AppL l) => switch (note) {
+        'cheapFast' => l.modelNote_cheapFast,
+        'strong' => l.modelNote_strong,
+        'cheapVision' => l.modelNote_cheapVision,
+        'strongerPricier' => l.modelNote_strongerPricier,
+        'bestWriting' => l.modelNote_bestWriting,
+        'fast' => l.modelNote_fast,
+        'general' => l.modelNote_general,
+        'shortText' => l.modelNote_shortText,
+        'longText' => l.modelNote_longText,
+        'vision' => l.modelNote_vision,
+        'freeTier' => l.modelNote_freeTier,
+        'stronger' => l.modelNote_stronger,
+        _ => '',
+      };
 
   /// 免费额度内可用，标出来。
   final bool free;
@@ -50,6 +70,13 @@ class AiProvider {
   /// 去哪儿领 key 的短说明。
   final String? hint;
 
+  /// 显示名。自定义那一家没有品牌名，按当前语言兜底。
+  String labelText(AppL l) => label.isEmpty ? l.providerCustom : label;
+
+  /// 领 Key 的地方 / 说明。自定义那一家同理。
+  String hintText(AppL l) =>
+      (hint == null || hint!.isEmpty) ? l.providerCustomHint : hint!;
+
   /// 自定义服务商才需要用户自己填地址。
   bool get needsBaseUrl => id == 'custom';
 }
@@ -68,8 +95,8 @@ class AiProviders {
       keyUrl: 'https://platform.deepseek.com/api_keys',
       hint: 'platform.deepseek.com',
       models: [
-        AiModel('deepseek-v4-flash', 'V4 Flash', note: '快且便宜，日常够用'),
-        AiModel('deepseek-v4-pro', 'V4 Pro', note: '难题和长文批改更稳'),
+        AiModel('deepseek-v4-flash', 'V4 Flash', note: 'cheapFast'),
+        AiModel('deepseek-v4-pro', 'V4 Pro', note: 'strong'),
       ],
     ),
     AiProvider(
@@ -80,8 +107,8 @@ class AiProviders {
       keyUrl: 'https://platform.openai.com/api-keys',
       hint: 'platform.openai.com',
       models: [
-        AiModel('gpt-4o-mini', 'GPT-4o mini', note: '便宜，能看图'),
-        AiModel('gpt-4o', 'GPT-4o', note: '更强，贵一些'),
+        AiModel('gpt-4o-mini', 'GPT-4o mini', note: 'cheapVision'),
+        AiModel('gpt-4o', 'GPT-4o', note: 'strongerPricier'),
       ],
     ),
     AiProvider(
@@ -93,8 +120,8 @@ class AiProviders {
       keyUrl: 'https://console.anthropic.com/settings/keys',
       hint: 'console.anthropic.com',
       models: [
-        AiModel('claude-sonnet-4-5', 'Sonnet 4.5', note: '写作和批改最稳'),
-        AiModel('claude-haiku-4-5-20251001', 'Haiku 4.5', note: '快'),
+        AiModel('claude-sonnet-4-5', 'Sonnet 4.5', note: 'bestWriting'),
+        AiModel('claude-haiku-4-5-20251001', 'Haiku 4.5', note: 'fast'),
       ],
     ),
     AiProvider(
@@ -105,7 +132,7 @@ class AiProviders {
       keyUrl: 'https://console.volcengine.com/ark',
       hint: 'console.volcengine.com',
       models: [
-        AiModel('doubao-seed-1-6-250615', 'Seed 1.6', note: '通用'),
+        AiModel('doubao-seed-1-6-250615', 'Seed 1.6', note: 'general'),
       ],
     ),
     AiProvider(
@@ -116,8 +143,8 @@ class AiProviders {
       keyUrl: 'https://platform.moonshot.cn/console/api-keys',
       hint: 'platform.moonshot.cn',
       models: [
-        AiModel('moonshot-v1-8k', 'v1 8K', note: '短文本'),
-        AiModel('moonshot-v1-32k', 'v1 32K', note: '长材料'),
+        AiModel('moonshot-v1-8k', 'v1 8K', note: 'shortText'),
+        AiModel('moonshot-v1-32k', 'v1 32K', note: 'longText'),
       ],
     ),
     AiProvider(
@@ -128,8 +155,8 @@ class AiProviders {
       keyUrl: 'https://bailian.console.aliyun.com/?apiKey=1',
       hint: 'bailian.console.aliyun.com',
       models: [
-        AiModel('qwen-plus', 'Qwen Plus', note: '通用'),
-        AiModel('qwen-vl-plus', 'Qwen VL Plus', note: '能看图'),
+        AiModel('qwen-plus', 'Qwen Plus', note: 'general'),
+        AiModel('qwen-vl-plus', 'Qwen VL Plus', note: 'vision'),
       ],
     ),
     AiProvider(
@@ -140,16 +167,18 @@ class AiProviders {
       keyUrl: 'https://bigmodel.cn/usercenter/apikeys',
       hint: 'bigmodel.cn',
       models: [
-        AiModel('glm-4-flash', 'GLM-4 Flash', note: '免费额度内可用', free: true),
-        AiModel('glm-4-plus', 'GLM-4 Plus', note: '更强'),
+        AiModel('glm-4-flash', 'GLM-4 Flash', note: 'freeTier', free: true),
+        AiModel('glm-4-plus', 'GLM-4 Plus', note: 'stronger'),
       ],
     ),
+    // 只有这一家的名字和提示是文案（其余都是品牌名），所以留空，
+    // 由 labelText / hintText 按当前语言兜底。
     AiProvider(
       id: 'custom',
-      label: '自定义',
+      label: '',
       baseUrl: '',
       defaultModel: '',
-      hint: '任何 OpenAI 兼容接口，地址要带上 /v1',
+      hint: '',
     ),
   ];
 

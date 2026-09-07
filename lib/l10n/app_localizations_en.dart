@@ -4197,4 +4197,116 @@ class AppLEn extends AppL {
 
   @override
   String get filterSearch => 'Search';
+
+  @override
+  String get docNoContent => 'Nothing readable in that file';
+
+  @override
+  String get docLookingAtTable => 'Working out how the table is laid out…';
+
+  @override
+  String get docUnknownColumns =>
+      'Couldn\'t identify the columns — try another file';
+
+  @override
+  String docFoundQuestions(int count) {
+    return 'Found $count questions';
+  }
+
+  @override
+  String get docNoneInTable => 'No questions in that table';
+
+  @override
+  String docChunk(int n, int total) {
+    return 'Section $n of $total';
+  }
+
+  @override
+  String get docNoWholeQuestions => 'No complete questions found';
+
+  @override
+  String get modelCheapFast => 'Cheap and quick, fine day to day';
+
+  @override
+  String get modelStrong => 'Steadier on hard questions and long marking';
+
+  @override
+  String get modelCheapVision => 'Cheap, reads images';
+
+  @override
+  String get modelStrongerPricier => 'Stronger, costs more';
+
+  @override
+  String get modelBestWriting => 'Steadiest for writing and marking';
+
+  @override
+  String get modelFast => 'Fast';
+
+  @override
+  String get modelGeneral => 'General';
+
+  @override
+  String get modelShortText => 'Short text';
+
+  @override
+  String get modelLongText => 'Long text';
+
+  @override
+  String get modelVision => 'Reads images';
+
+  @override
+  String get modelFreeTier => 'Works on the free tier';
+
+  @override
+  String get modelStronger => 'Stronger';
+
+  @override
+  String get providerCustom => 'Custom';
+
+  @override
+  String get providerCustomHint =>
+      'Any OpenAI-compatible endpoint; include /v1 in the URL';
+
+  @override
+  String get dxAiNotConfiguredShort =>
+      'No AI configured. The conclusions above stand on their own; AI just adds a layer.';
+
+  @override
+  String get aiEmptyReply => 'The model returned nothing — try again';
+
+  @override
+  String get modelNote_cheapFast => 'Cheap and quick, fine day to day';
+
+  @override
+  String get modelNote_strong => 'Steadier on hard questions and long marking';
+
+  @override
+  String get modelNote_cheapVision => 'Cheap, reads images';
+
+  @override
+  String get modelNote_strongerPricier => 'Stronger, costs more';
+
+  @override
+  String get modelNote_bestWriting => 'Steadiest for writing and marking';
+
+  @override
+  String get modelNote_fast => 'Fast';
+
+  @override
+  String get modelNote_general => 'General';
+
+  @override
+  String get modelNote_shortText => 'Short text';
+
+  @override
+  String get modelNote_longText => 'Long text';
+
+  @override
+  String get modelNote_vision => 'Reads images';
+
+  @override
+  String get modelNote_freeTier => 'Works on the free tier';
+
+  @override
+  String get modelNote_stronger => 'Stronger';
 }

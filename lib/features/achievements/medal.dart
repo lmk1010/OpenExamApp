@@ -33,7 +33,7 @@ class BadgeMedal extends StatelessWidget {
     final unlocked = badge.unlocked;
 
     Widget art = Image.asset(
-      ShoreArt.badgeForGroup(badge.group),
+      ShoreArt.badgeForGroup(badge.groupKey),
       width: size * 0.78,
       height: size * 0.78,
       filterQuality: FilterQuality.medium,

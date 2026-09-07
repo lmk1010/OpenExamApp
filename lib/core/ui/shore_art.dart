@@ -86,15 +86,19 @@ class ShoreArt {
   static const emptyPaper = '$_dir/empty_paper.png';
 
   /// 成就分组 → 徽章素材。每组各画各的，不是同一个图形换颜色。
+  ///
+  /// key 是稳定标识，不是显示名 —— 分组名已经跟着界面语言走了，
+  /// 拿它查表在英文界面下一个都对不上，徽章图会全退成默认那张。
   static const _groups = <String, String>{
-    '题量': badgeKilo,
-    '坚持': badgeWeek,
-    '精度': badgePerfect,
-    '考场': badgeFirst,
-    '攻坚': badgeShore,
+    'volume': badgeKilo,
+    'consistency': badgeWeek,
+    'accuracy': badgePerfect,
+    'exams': badgeFirst,
+    'grind': badgeShore,
   };
 
-  static String badgeForGroup(String group) => _groups[group] ?? badgeDawn;
+  static String badgeForGroup(String groupKey) =>
+      _groups[groupKey] ?? badgeDawn;
 
   static const badges = <String>[
     badgeFirst, badgeWeek, badgeKilo, badgePerfect, badgeDawn, badgeShore,

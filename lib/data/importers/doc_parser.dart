@@ -48,7 +48,7 @@ class DocParser {
     String? subjectHint,
   }) async* {
     if (doc.isEmpty) {
-      yield const ParseProgress(done: 0, total: 0, note: '这个文件里没读到内容');
+      yield ParseProgress(done: 0, total: 0, note: l.docNoContent);
       return;
     }
     if (doc.isTable) {
@@ -64,11 +64,11 @@ class DocParser {
     ExtractedDoc doc, {
     String? subjectHint,
   }) async* {
-    yield const ParseProgress(done: 0, total: 1, note: '在看这张表怎么排的…');
+    yield ParseProgress(done: 0, total: 1, note: l.docLookingAtTable);
 
     final mapping = await _columnMapping(doc, subjectHint: subjectHint);
     if (mapping == null) {
-      yield const ParseProgress(done: 0, total: 1, note: '没认出这张表的列，换个文件试试');
+      yield ParseProgress(done: 0, total: 1, note: l.docUnknownColumns);
       return;
     }
 
@@ -83,7 +83,7 @@ class DocParser {
         yield ParseProgress(
           done: i + 1,
           total: body.length,
-          note: '已认出 ${out.length} 道题',
+          note: l.docFoundQuestions(out.length),
           questions: List.unmodifiable(out),
         );
       }
@@ -93,7 +93,7 @@ class DocParser {
     yield ParseProgress(
       done: body.length,
       total: body.length,
-      note: tidy.isEmpty ? '这张表里没找到题' : '认出 ${tidy.length} 道题',
+      note: tidy.isEmpty ? l.docNoneInTable : l.docFoundQuestions(tidy.length),
       questions: List.unmodifiable(tidy),
     );
   }
@@ -126,7 +126,7 @@ class DocParser {
       yield ParseProgress(
         done: i,
         total: chunks.length,
-        note: '第 ${i + 1}/${chunks.length} 段',
+        note: l.docChunk(i + 1, chunks.length),
         questions: List.unmodifiable(out),
       );
 
@@ -161,7 +161,7 @@ class DocParser {
     yield ParseProgress(
       done: chunks.length,
       total: chunks.length,
-      note: filled.isEmpty ? '没找到成形的题' : '认出 ${filled.length} 道题',
+      note: filled.isEmpty ? l.docNoWholeQuestions : l.docFoundQuestions(filled.length),
       questions: List.unmodifiable(filled),
     );
   }

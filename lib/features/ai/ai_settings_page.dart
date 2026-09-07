@@ -152,7 +152,7 @@ class _AiSettingsPageState extends State<AiSettingsPage> {
             children: [
               for (final p in AiProviders.all)
                 _Chip(
-                  label: p.label,
+                  label: p.labelText(AppL.of(context)),
                   selected: p.id == provider.id,
                   onTap: () => _pickProvider(p),
                 ),
@@ -191,7 +191,7 @@ class _AiSettingsPageState extends State<AiSettingsPage> {
                     SizedBox(width: 9),
                     Expanded(
                       child: Text(
-                        AppL.of(context).aiGetKeyAt(provider.hint ?? ''),
+                        AppL.of(context).aiGetKeyAt(provider.hintText(AppL.of(context))),
                         style: text.bodySmall?.copyWith(
                           color: t.brand,
                           fontWeight: FontWeight.w600,
@@ -496,7 +496,10 @@ class _ModelPicker extends StatelessWidget {
                           ),
                           if (models[i].note.isNotEmpty) ...[
                             const SizedBox(height: 3),
-                            Text(models[i].note, style: text.bodySmall),
+                            Text(
+                              models[i].noteText(AppL.of(context)),
+                              style: text.bodySmall,
+                            ),
                           ],
                         ],
                       ),

@@ -97,7 +97,7 @@ class AiExplainService {
         _running.remove(id);
         final body = buffer.toString().trim();
         if (body.isEmpty) {
-          notifier.value = const AiExplainState(error: '模型没给出内容，再试一次');
+          notifier.value = AiExplainState(error: l.aiEmptyReply);
           return;
         }
         await AppDatabase.instance.saveAiExplanation(

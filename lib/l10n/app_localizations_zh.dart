@@ -4072,4 +4072,113 @@ class AppLZh extends AppL {
 
   @override
   String get filterSearch => '搜一下';
+
+  @override
+  String get docNoContent => '这个文件里没读到内容';
+
+  @override
+  String get docLookingAtTable => '在看这张表怎么排的…';
+
+  @override
+  String get docUnknownColumns => '没认出这张表的列，换个文件试试';
+
+  @override
+  String docFoundQuestions(int count) {
+    return '已认出 $count 道题';
+  }
+
+  @override
+  String get docNoneInTable => '这张表里没找到题';
+
+  @override
+  String docChunk(int n, int total) {
+    return '第 $n/$total 段';
+  }
+
+  @override
+  String get docNoWholeQuestions => '没找到成形的题';
+
+  @override
+  String get modelCheapFast => '快且便宜，日常够用';
+
+  @override
+  String get modelStrong => '难题和长文批改更稳';
+
+  @override
+  String get modelCheapVision => '便宜，能看图';
+
+  @override
+  String get modelStrongerPricier => '更强，贵一些';
+
+  @override
+  String get modelBestWriting => '写作和批改最稳';
+
+  @override
+  String get modelFast => '快';
+
+  @override
+  String get modelGeneral => '通用';
+
+  @override
+  String get modelShortText => '短文本';
+
+  @override
+  String get modelLongText => '长材料';
+
+  @override
+  String get modelVision => '能看图';
+
+  @override
+  String get modelFreeTier => '免费额度内可用';
+
+  @override
+  String get modelStronger => '更强';
+
+  @override
+  String get providerCustom => '自定义';
+
+  @override
+  String get providerCustomHint => '任何 OpenAI 兼容接口，地址要带上 /v1';
+
+  @override
+  String get dxAiNotConfiguredShort => '还没配 AI。上面的结论不用配也能看，AI 只是多一层解读。';
+
+  @override
+  String get aiEmptyReply => '模型没给出内容，再试一次';
+
+  @override
+  String get modelNote_cheapFast => '快且便宜，日常够用';
+
+  @override
+  String get modelNote_strong => '难题和长文批改更稳';
+
+  @override
+  String get modelNote_cheapVision => '便宜，能看图';
+
+  @override
+  String get modelNote_strongerPricier => '更强，贵一些';
+
+  @override
+  String get modelNote_bestWriting => '写作和批改最稳';
+
+  @override
+  String get modelNote_fast => '快';
+
+  @override
+  String get modelNote_general => '通用';
+
+  @override
+  String get modelNote_shortText => '短文本';
+
+  @override
+  String get modelNote_longText => '长材料';
+
+  @override
+  String get modelNote_vision => '能看图';
+
+  @override
+  String get modelNote_freeTier => '免费额度内可用';
+
+  @override
+  String get modelNote_stronger => '更强';
 }

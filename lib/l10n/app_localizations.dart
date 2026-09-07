@@ -7181,6 +7181,216 @@ abstract class AppL {
   /// In zh, this message translates to:
   /// **'搜一下'**
   String get filterSearch;
+
+  /// No description provided for @docNoContent.
+  ///
+  /// In zh, this message translates to:
+  /// **'这个文件里没读到内容'**
+  String get docNoContent;
+
+  /// No description provided for @docLookingAtTable.
+  ///
+  /// In zh, this message translates to:
+  /// **'在看这张表怎么排的…'**
+  String get docLookingAtTable;
+
+  /// No description provided for @docUnknownColumns.
+  ///
+  /// In zh, this message translates to:
+  /// **'没认出这张表的列，换个文件试试'**
+  String get docUnknownColumns;
+
+  /// No description provided for @docFoundQuestions.
+  ///
+  /// In zh, this message translates to:
+  /// **'已认出 {count} 道题'**
+  String docFoundQuestions(int count);
+
+  /// No description provided for @docNoneInTable.
+  ///
+  /// In zh, this message translates to:
+  /// **'这张表里没找到题'**
+  String get docNoneInTable;
+
+  /// No description provided for @docChunk.
+  ///
+  /// In zh, this message translates to:
+  /// **'第 {n}/{total} 段'**
+  String docChunk(int n, int total);
+
+  /// No description provided for @docNoWholeQuestions.
+  ///
+  /// In zh, this message translates to:
+  /// **'没找到成形的题'**
+  String get docNoWholeQuestions;
+
+  /// No description provided for @modelCheapFast.
+  ///
+  /// In zh, this message translates to:
+  /// **'快且便宜，日常够用'**
+  String get modelCheapFast;
+
+  /// No description provided for @modelStrong.
+  ///
+  /// In zh, this message translates to:
+  /// **'难题和长文批改更稳'**
+  String get modelStrong;
+
+  /// No description provided for @modelCheapVision.
+  ///
+  /// In zh, this message translates to:
+  /// **'便宜，能看图'**
+  String get modelCheapVision;
+
+  /// No description provided for @modelStrongerPricier.
+  ///
+  /// In zh, this message translates to:
+  /// **'更强，贵一些'**
+  String get modelStrongerPricier;
+
+  /// No description provided for @modelBestWriting.
+  ///
+  /// In zh, this message translates to:
+  /// **'写作和批改最稳'**
+  String get modelBestWriting;
+
+  /// No description provided for @modelFast.
+  ///
+  /// In zh, this message translates to:
+  /// **'快'**
+  String get modelFast;
+
+  /// No description provided for @modelGeneral.
+  ///
+  /// In zh, this message translates to:
+  /// **'通用'**
+  String get modelGeneral;
+
+  /// No description provided for @modelShortText.
+  ///
+  /// In zh, this message translates to:
+  /// **'短文本'**
+  String get modelShortText;
+
+  /// No description provided for @modelLongText.
+  ///
+  /// In zh, this message translates to:
+  /// **'长材料'**
+  String get modelLongText;
+
+  /// No description provided for @modelVision.
+  ///
+  /// In zh, this message translates to:
+  /// **'能看图'**
+  String get modelVision;
+
+  /// No description provided for @modelFreeTier.
+  ///
+  /// In zh, this message translates to:
+  /// **'免费额度内可用'**
+  String get modelFreeTier;
+
+  /// No description provided for @modelStronger.
+  ///
+  /// In zh, this message translates to:
+  /// **'更强'**
+  String get modelStronger;
+
+  /// No description provided for @providerCustom.
+  ///
+  /// In zh, this message translates to:
+  /// **'自定义'**
+  String get providerCustom;
+
+  /// No description provided for @providerCustomHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'任何 OpenAI 兼容接口，地址要带上 /v1'**
+  String get providerCustomHint;
+
+  /// No description provided for @dxAiNotConfiguredShort.
+  ///
+  /// In zh, this message translates to:
+  /// **'还没配 AI。上面的结论不用配也能看，AI 只是多一层解读。'**
+  String get dxAiNotConfiguredShort;
+
+  /// No description provided for @aiEmptyReply.
+  ///
+  /// In zh, this message translates to:
+  /// **'模型没给出内容，再试一次'**
+  String get aiEmptyReply;
+
+  /// No description provided for @modelNote_cheapFast.
+  ///
+  /// In zh, this message translates to:
+  /// **'快且便宜，日常够用'**
+  String get modelNote_cheapFast;
+
+  /// No description provided for @modelNote_strong.
+  ///
+  /// In zh, this message translates to:
+  /// **'难题和长文批改更稳'**
+  String get modelNote_strong;
+
+  /// No description provided for @modelNote_cheapVision.
+  ///
+  /// In zh, this message translates to:
+  /// **'便宜，能看图'**
+  String get modelNote_cheapVision;
+
+  /// No description provided for @modelNote_strongerPricier.
+  ///
+  /// In zh, this message translates to:
+  /// **'更强，贵一些'**
+  String get modelNote_strongerPricier;
+
+  /// No description provided for @modelNote_bestWriting.
+  ///
+  /// In zh, this message translates to:
+  /// **'写作和批改最稳'**
+  String get modelNote_bestWriting;
+
+  /// No description provided for @modelNote_fast.
+  ///
+  /// In zh, this message translates to:
+  /// **'快'**
+  String get modelNote_fast;
+
+  /// No description provided for @modelNote_general.
+  ///
+  /// In zh, this message translates to:
+  /// **'通用'**
+  String get modelNote_general;
+
+  /// No description provided for @modelNote_shortText.
+  ///
+  /// In zh, this message translates to:
+  /// **'短文本'**
+  String get modelNote_shortText;
+
+  /// No description provided for @modelNote_longText.
+  ///
+  /// In zh, this message translates to:
+  /// **'长材料'**
+  String get modelNote_longText;
+
+  /// No description provided for @modelNote_vision.
+  ///
+  /// In zh, this message translates to:
+  /// **'能看图'**
+  String get modelNote_vision;
+
+  /// No description provided for @modelNote_freeTier.
+  ///
+  /// In zh, this message translates to:
+  /// **'免费额度内可用'**
+  String get modelNote_freeTier;
+
+  /// No description provided for @modelNote_stronger.
+  ///
+  /// In zh, this message translates to:
+  /// **'更强'**
+  String get modelNote_stronger;
 }
 
 class _AppLDelegate extends LocalizationsDelegate<AppL> {

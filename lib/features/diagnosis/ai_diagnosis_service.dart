@@ -57,8 +57,8 @@ class AiDiagnosisService {
 
     final settings = await AiSettingsStore.load();
     if (!settings.isConfigured) {
-      notifier.value = const AiDiagnosisState(
-        error: '还没配 AI。上面的结论不用配也能看，AI 只是多一层解读。',
+      notifier.value = AiDiagnosisState(
+        error: l.dxAiNotConfiguredShort,
       );
       return;
     }
@@ -97,7 +97,7 @@ class AiDiagnosisService {
         final body = buffer.toString().trim();
         if (body.isEmpty) {
           notifier.value =
-              const AiDiagnosisState(error: '模型没给出内容，再试一次');
+              AiDiagnosisState(error: l.aiEmptyReply);
           return;
         }
         await AppDatabase.instance.saveAiDiagnosis(

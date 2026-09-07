@@ -144,7 +144,7 @@ class AiClient {
       return AiResult.fail(l.aiNotConfigured);
     }
     if (!settings.provider.supportsVision) {
-      return AiResult.fail('${settings.provider.label} 不支持图片识别，换个支持视觉的模型');
+      return AiResult.fail(l.aiNoVision(settings.provider.labelText(l)));
     }
     return _post(_bodyFor(
       system: system,

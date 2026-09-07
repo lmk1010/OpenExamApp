@@ -3168,5 +3168,57 @@
   "imageMissing": "图片缺失",
   "imagePinchHint": "双指缩放 · 点击关闭",
   "filterClear": "清除",
-  "filterSearch": "搜一下"
+  "filterSearch": "搜一下",
+  "docNoContent": "这个文件里没读到内容",
+  "docLookingAtTable": "在看这张表怎么排的…",
+  "docUnknownColumns": "没认出这张表的列，换个文件试试",
+  "docFoundQuestions": "已认出 {count} 道题",
+  "@docFoundQuestions": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "docNoneInTable": "这张表里没找到题",
+  "docChunk": "第 {n}/{total} 段",
+  "@docChunk": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "docNoWholeQuestions": "没找到成形的题",
+  "modelCheapFast": "快且便宜，日常够用",
+  "modelStrong": "难题和长文批改更稳",
+  "modelCheapVision": "便宜，能看图",
+  "modelStrongerPricier": "更强，贵一些",
+  "modelBestWriting": "写作和批改最稳",
+  "modelFast": "快",
+  "modelGeneral": "通用",
+  "modelShortText": "短文本",
+  "modelLongText": "长材料",
+  "modelVision": "能看图",
+  "modelFreeTier": "免费额度内可用",
+  "modelStronger": "更强",
+  "providerCustom": "自定义",
+  "providerCustomHint": "任何 OpenAI 兼容接口，地址要带上 /v1",
+  "dxAiNotConfiguredShort": "还没配 AI。上面的结论不用配也能看，AI 只是多一层解读。",
+  "aiEmptyReply": "模型没给出内容，再试一次",
+  "modelNote_cheapFast": "快且便宜，日常够用",
+  "modelNote_strong": "难题和长文批改更稳",
+  "modelNote_cheapVision": "便宜，能看图",
+  "modelNote_strongerPricier": "更强，贵一些",
+  "modelNote_bestWriting": "写作和批改最稳",
+  "modelNote_fast": "快",
+  "modelNote_general": "通用",
+  "modelNote_shortText": "短文本",
+  "modelNote_longText": "长材料",
+  "modelNote_vision": "能看图",
+  "modelNote_freeTier": "免费额度内可用",
+  "modelNote_stronger": "更强"
 }
