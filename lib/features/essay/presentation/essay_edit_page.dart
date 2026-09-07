@@ -88,6 +88,8 @@ class _EssayEditPageState extends State<EssayEditPage> {
   }
 
   Future<void> _recognize() async {
+    // AI 客户端要一份报错文案，而这里在 await 之后 —— 先取出来。
+    final l = AppL.of(context);
     final settings = await AiSettingsStore.load();
     if (!settings.isConfigured) {
       if (!mounted) return;
@@ -124,7 +126,7 @@ class _EssayEditPageState extends State<EssayEditPage> {
               path.toLowerCase().endsWith('.jpeg')
           ? 'image/jpeg'
           : 'image/png';
-      final result = await EssayGrader(settings)
+      final result = await EssayGrader(settings, l)
           .recognize(imageBase64: base64Encode(bytes), mimeType: mime);
       if (!mounted) return;
 

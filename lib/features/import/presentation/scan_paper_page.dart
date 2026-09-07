@@ -48,6 +48,8 @@ class _ScanPaperPageState extends State<ScanPaperPage> {
       _questions.where((q) => _kept[q.id] ?? true).toList();
 
   Future<void> _pick({required bool pdf}) async {
+    // AI 客户端要一份报错文案，而这里在 await 之后 —— 先取出来。
+    final l = AppL.of(context);
     final settings = await AiSettingsStore.load();
     if (!mounted) return;
     if (!settings.isConfigured) {
@@ -91,7 +93,7 @@ class _ScanPaperPageState extends State<ScanPaperPage> {
     });
 
     try {
-      final scanner = PaperScanner(AiClient(settings));
+      final scanner = PaperScanner(AiClient(settings, l));
       List<ScanPage> pages;
       if (pdf) {
         final bytes = await _bytesOf(picked.files.first);

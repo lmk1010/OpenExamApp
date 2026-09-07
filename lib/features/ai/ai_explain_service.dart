@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/ai/ai_client.dart';
 import 'package:openexam_app/core/ai/ai_settings.dart';
 import 'package:openexam_app/data/db/app_database.dart';
@@ -61,6 +62,7 @@ class AiExplainService {
     String? userAnswer,
     required String system,
     required String prompt,
+    required AppL l,
   }) async {
     final id = question.id;
     if (_running.containsKey(id)) return;
@@ -72,7 +74,7 @@ class AiExplainService {
     AiClient.feature = 'explain';
     final buffer = StringBuffer();
 
-    final sub = AiClient(settings)
+    final sub = AiClient(settings, l)
         // 1200 只够讲解正文，不够推理模型先"想"一轮 —— 想的部分同样从
         // max_tokens 里扣，扣光了就吐不出正文。跟弱点诊断那边同一个坑。
         .completeStream(system: system, prompt: prompt, maxTokens: 8000)
@@ -117,6 +119,7 @@ class AiExplainService {
     String? userAnswer,
     required String system,
     required String prompt,
+    required AppL l,
   }) async {
     final id = question.id;
     await _running.remove(id)?.cancel();
@@ -127,6 +130,7 @@ class AiExplainService {
       userAnswer: userAnswer,
       system: system,
       prompt: prompt,
+      l: l,
     );
   }
 }

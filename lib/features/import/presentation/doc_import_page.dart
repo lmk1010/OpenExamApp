@@ -86,7 +86,7 @@ class _DocImportPageState extends State<DocImportPage> {
     }
 
     final hint = _subject.text.trim();
-    await for (final p in DocParser(settings).parse(
+    await for (final p in DocParser(settings, l).parse(
       doc,
       subjectHint: hint.isEmpty ? null : hint,
     )) {

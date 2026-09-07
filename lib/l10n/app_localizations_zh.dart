@@ -3570,4 +3570,113 @@ class AppLZh extends AppL {
   String shoreStreak(int days) {
     return '灯塔亮了 $days 天';
   }
+
+  @override
+  String backupExportedTo(String name) {
+    return '已导出到 $name';
+  }
+
+  @override
+  String get backupRestore => '恢复备份';
+
+  @override
+  String get backupRestoreBody =>
+      '恢复会用备份中的答题记录与成绩报告覆盖当前数据，收藏、笔记、错因会合并，学习计划和考试日期按备份里的写回。题库本身不受影响。';
+
+  @override
+  String get backupPickFile => '选择文件恢复';
+
+  @override
+  String get backupUnreadable => '读不到这个文件';
+
+  @override
+  String get backupNotOurs => '这不是 OpenExam 的备份文件';
+
+  @override
+  String backupRestored(int count) {
+    return '已恢复 $count 条记录';
+  }
+
+  @override
+  String backupRestoreFailed(String error) {
+    return '恢复失败：$error';
+  }
+
+  @override
+  String get backupIntro => '这个 App 没有账号，数据只在本机。换手机或清除数据前，导出一份备份就能完整带走。';
+
+  @override
+  String get backupAnswers => '答题记录';
+
+  @override
+  String get backupReports => '成绩报告';
+
+  @override
+  String get backupExport => '导出备份';
+
+  @override
+  String get backupExportHint => '生成一个 JSON 文件，含答题记录、成绩报告、收藏、笔记与错因';
+
+  @override
+  String get backupFromFile => '从备份恢复';
+
+  @override
+  String get backupFromFileHint => '答题记录与成绩报告会被覆盖，收藏、笔记、错因合并保留';
+
+  @override
+  String get backupSizeNote => '备份文件不含题库（题目已随 App 内置），所以体积很小，可以直接发到微信或存进网盘。';
+
+  @override
+  String get aiNotConfigured => '还没配置 AI，去「我的 → AI 设置」里填一下';
+
+  @override
+  String aiNoVision(String provider) {
+    return '$provider 不支持图片识别，换个支持视觉的模型';
+  }
+
+  @override
+  String get aiUnparsable => '模型没有返回可解析的结果，再试一次';
+
+  @override
+  String get aiNoKey => '还没填 API Key';
+
+  @override
+  String get aiNoBaseUrl => '还没填接口地址';
+
+  @override
+  String aiConnOk(String model) {
+    return '连接正常 · $model';
+  }
+
+  @override
+  String get aiTimeout => '请求超时了，检查一下网络或换个接口地址';
+
+  @override
+  String aiRequestFailed(String error) {
+    return '请求失败：$error';
+  }
+
+  @override
+  String get aiNoContent =>
+      '模型没吐出正文。多半是这个模型要先\"想\"一轮，配额被想的部分吃完了 —— 换成非推理模型，或者稍后再试。';
+
+  @override
+  String aiBadKey(int status, String detail) {
+    return 'API Key 不对或没权限（$status）：$detail';
+  }
+
+  @override
+  String aiNotFound(String detail) {
+    return '接口地址或模型名不对（404）：$detail';
+  }
+
+  @override
+  String aiRateLimited(String detail) {
+    return '请求太频繁或余额不足（429）：$detail';
+  }
+
+  @override
+  String aiServerError(int status, String detail) {
+    return '服务返回 $status：$detail';
+  }
 }

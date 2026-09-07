@@ -1,4 +1,5 @@
 
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/ai/ai_client.dart';
 import 'package:openexam_app/core/ai/ai_settings.dart';
 import 'package:openexam_app/data/importers/document_text.dart';
@@ -35,9 +36,12 @@ class ParseProgress {
 /// 不绑定任何考试。category 是模型按文档内容自己起的名字，考公、教资、
 /// 法考都一样处理 —— 这个 app 不该只认行测那五个模块。
 class DocParser {
-  const DocParser(this.settings);
+  const DocParser(this.settings, this.l);
 
   final AiSettings settings;
+
+  /// 报错和进度文案由调用方传进来 —— 这一层没有 BuildContext。
+  final AppL l;
 
   Stream<ParseProgress> parse(
     ExtractedDoc doc, {
@@ -100,7 +104,7 @@ class DocParser {
     String? subjectHint,
   }) async {
     AiClient.feature = 'import';
-    final result = await AiClient(settings).completeJson(
+    final result = await AiClient(settings, l).completeJson(
       system: _tableSystem,
       prompt: '这是一张题库表的前几行'
           '${subjectHint == null ? '' : '（科目：$subjectHint）'}：\n\n'
@@ -131,7 +135,7 @@ class DocParser {
       // 一个科目会裂成三张卡片 —— 这是分块解析最容易翻车的地方。
       final known = out.map((q) => q.category).where((c) => c.isNotEmpty).toSet();
       AiClient.feature = 'import';
-      final result = await AiClient(settings).completeJson(
+      final result = await AiClient(settings, l).completeJson(
         system: _textSystem,
         prompt: '${subjectHint == null ? '' : '科目：$subjectHint\n\n'}'
             '${known.isEmpty ? '' : '这份资料前面已经用过这些分类：'

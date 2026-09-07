@@ -6317,6 +6317,180 @@ abstract class AppL {
   /// In zh, this message translates to:
   /// **'灯塔亮了 {days} 天'**
   String shoreStreak(int days);
+
+  /// No description provided for @backupExportedTo.
+  ///
+  /// In zh, this message translates to:
+  /// **'已导出到 {name}'**
+  String backupExportedTo(String name);
+
+  /// No description provided for @backupRestore.
+  ///
+  /// In zh, this message translates to:
+  /// **'恢复备份'**
+  String get backupRestore;
+
+  /// No description provided for @backupRestoreBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'恢复会用备份中的答题记录与成绩报告覆盖当前数据，收藏、笔记、错因会合并，学习计划和考试日期按备份里的写回。题库本身不受影响。'**
+  String get backupRestoreBody;
+
+  /// No description provided for @backupPickFile.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择文件恢复'**
+  String get backupPickFile;
+
+  /// No description provided for @backupUnreadable.
+  ///
+  /// In zh, this message translates to:
+  /// **'读不到这个文件'**
+  String get backupUnreadable;
+
+  /// No description provided for @backupNotOurs.
+  ///
+  /// In zh, this message translates to:
+  /// **'这不是 OpenExam 的备份文件'**
+  String get backupNotOurs;
+
+  /// No description provided for @backupRestored.
+  ///
+  /// In zh, this message translates to:
+  /// **'已恢复 {count} 条记录'**
+  String backupRestored(int count);
+
+  /// No description provided for @backupRestoreFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'恢复失败：{error}'**
+  String backupRestoreFailed(String error);
+
+  /// No description provided for @backupIntro.
+  ///
+  /// In zh, this message translates to:
+  /// **'这个 App 没有账号，数据只在本机。换手机或清除数据前，导出一份备份就能完整带走。'**
+  String get backupIntro;
+
+  /// No description provided for @backupAnswers.
+  ///
+  /// In zh, this message translates to:
+  /// **'答题记录'**
+  String get backupAnswers;
+
+  /// No description provided for @backupReports.
+  ///
+  /// In zh, this message translates to:
+  /// **'成绩报告'**
+  String get backupReports;
+
+  /// No description provided for @backupExport.
+  ///
+  /// In zh, this message translates to:
+  /// **'导出备份'**
+  String get backupExport;
+
+  /// No description provided for @backupExportHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'生成一个 JSON 文件，含答题记录、成绩报告、收藏、笔记与错因'**
+  String get backupExportHint;
+
+  /// No description provided for @backupFromFile.
+  ///
+  /// In zh, this message translates to:
+  /// **'从备份恢复'**
+  String get backupFromFile;
+
+  /// No description provided for @backupFromFileHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'答题记录与成绩报告会被覆盖，收藏、笔记、错因合并保留'**
+  String get backupFromFileHint;
+
+  /// No description provided for @backupSizeNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'备份文件不含题库（题目已随 App 内置），所以体积很小，可以直接发到微信或存进网盘。'**
+  String get backupSizeNote;
+
+  /// No description provided for @aiNotConfigured.
+  ///
+  /// In zh, this message translates to:
+  /// **'还没配置 AI，去「我的 → AI 设置」里填一下'**
+  String get aiNotConfigured;
+
+  /// No description provided for @aiNoVision.
+  ///
+  /// In zh, this message translates to:
+  /// **'{provider} 不支持图片识别，换个支持视觉的模型'**
+  String aiNoVision(String provider);
+
+  /// No description provided for @aiUnparsable.
+  ///
+  /// In zh, this message translates to:
+  /// **'模型没有返回可解析的结果，再试一次'**
+  String get aiUnparsable;
+
+  /// No description provided for @aiNoKey.
+  ///
+  /// In zh, this message translates to:
+  /// **'还没填 API Key'**
+  String get aiNoKey;
+
+  /// No description provided for @aiNoBaseUrl.
+  ///
+  /// In zh, this message translates to:
+  /// **'还没填接口地址'**
+  String get aiNoBaseUrl;
+
+  /// No description provided for @aiConnOk.
+  ///
+  /// In zh, this message translates to:
+  /// **'连接正常 · {model}'**
+  String aiConnOk(String model);
+
+  /// No description provided for @aiTimeout.
+  ///
+  /// In zh, this message translates to:
+  /// **'请求超时了，检查一下网络或换个接口地址'**
+  String get aiTimeout;
+
+  /// No description provided for @aiRequestFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'请求失败：{error}'**
+  String aiRequestFailed(String error);
+
+  /// No description provided for @aiNoContent.
+  ///
+  /// In zh, this message translates to:
+  /// **'模型没吐出正文。多半是这个模型要先\"想\"一轮，配额被想的部分吃完了 —— 换成非推理模型，或者稍后再试。'**
+  String get aiNoContent;
+
+  /// No description provided for @aiBadKey.
+  ///
+  /// In zh, this message translates to:
+  /// **'API Key 不对或没权限（{status}）：{detail}'**
+  String aiBadKey(int status, String detail);
+
+  /// No description provided for @aiNotFound.
+  ///
+  /// In zh, this message translates to:
+  /// **'接口地址或模型名不对（404）：{detail}'**
+  String aiNotFound(String detail);
+
+  /// No description provided for @aiRateLimited.
+  ///
+  /// In zh, this message translates to:
+  /// **'请求太频繁或余额不足（429）：{detail}'**
+  String aiRateLimited(String detail);
+
+  /// No description provided for @aiServerError.
+  ///
+  /// In zh, this message translates to:
+  /// **'服务返回 {status}：{detail}'**
+  String aiServerError(int status, String detail);
 }
 
 class _AppLDelegate extends LocalizationsDelegate<AppL> {

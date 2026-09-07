@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/ai/ai_client.dart';
 import 'package:openexam_app/core/ai/ai_settings.dart';
 import 'package:openexam_app/data/db/app_database.dart';
@@ -50,7 +51,7 @@ class AiDiagnosisService {
     notifier.value = AiDiagnosisState(text: saved.body, stamp: saved.stamp);
   }
 
-  Future<void> start(String key, Diagnosis diagnosis) async {
+  Future<void> start(String key, Diagnosis diagnosis, AppL l) async {
     if (_running.containsKey(key)) return;
     final notifier = stateOf(key);
 
@@ -66,7 +67,7 @@ class AiDiagnosisService {
     AiClient.feature = 'diagnosis';
     final buffer = StringBuffer();
 
-    final sub = AiClient(settings)
+    final sub = AiClient(settings, l)
         .completeStream(
           system: kDiagnosisSystem,
           prompt: diagnosis.toPrompt(),
@@ -112,10 +113,10 @@ class AiDiagnosisService {
     _running[key] = sub;
   }
 
-  Future<void> regenerate(String key, Diagnosis diagnosis) async {
+  Future<void> regenerate(String key, Diagnosis diagnosis, AppL l) async {
     await _running.remove(key)?.cancel();
     await AppDatabase.instance.deleteAiDiagnosis(key);
     stateOf(key).value = const AiDiagnosisState();
-    await start(key, diagnosis);
+    await start(key, diagnosis, l);
   }
 }

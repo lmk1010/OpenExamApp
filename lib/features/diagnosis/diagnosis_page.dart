@@ -473,7 +473,7 @@ class _AiSection extends StatelessWidget {
               AppL.of(context).dxAiSection,
               trailing: state.text.isNotEmpty && !state.streaming ? AppL.of(context).dxRegenerate : null,
               onTapTrailing: state.text.isNotEmpty && !state.streaming
-                  ? () => service.regenerate(cacheKey, diagnosis)
+                  ? () => service.regenerate(cacheKey, diagnosis, AppL.of(context))
                   : null,
             ),
             Container(
@@ -524,7 +524,7 @@ class _AiSection extends StatelessWidget {
                       _AskButton(
                         label: configured ? AppL.of(context).dxAskAi : AppL.of(context).dxConfigureAi,
                         onTap: configured
-                            ? () => service.start(cacheKey, diagnosis)
+                            ? () => service.start(cacheKey, diagnosis, AppL.of(context))
                             : onConfigure,
                       ),
                     ],

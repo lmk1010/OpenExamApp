@@ -60,6 +60,7 @@ class _AiExplainPanelState extends State<AiExplainPanel> {
       userAnswer: widget.userAnswer,
       system: _system,
       prompt: _promptFor(widget.question, widget.userAnswer),
+      l: AppL.of(context),
     );
     if (again) {
       AiExplainService.instance.regenerate(
@@ -67,6 +68,7 @@ class _AiExplainPanelState extends State<AiExplainPanel> {
         userAnswer: args.userAnswer,
         system: args.system,
         prompt: args.prompt,
+        l: args.l,
       );
     } else {
       AiExplainService.instance.start(
@@ -74,6 +76,7 @@ class _AiExplainPanelState extends State<AiExplainPanel> {
         userAnswer: args.userAnswer,
         system: args.system,
         prompt: args.prompt,
+        l: args.l,
       );
     }
   }

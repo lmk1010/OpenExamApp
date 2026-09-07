@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
 import 'package:openexam_app/core/ui/glass.dart';
@@ -62,6 +63,8 @@ class _BackupPageState extends State<BackupPage> {
   }
 
   Future<void> _export() async {
+    // 这一串提示都在 await 之后才用，先把本地化对象取出来。
+    final l = AppL.of(context);
     setState(() => _busy = true);
     try {
       final data = await AppDatabase.instance.exportUserData();
@@ -83,27 +86,28 @@ class _BackupPageState extends State<BackupPage> {
         bytes: utf8.encode(json),
       );
       if (path != null) {
-        _say('已导出到 $name');
+        _say(l.backupExportedTo(name));
         return;
       }
       final dir = await getApplicationDocumentsDirectory();
       final file = File('${dir.path}/$name');
       await file.writeAsString(json);
-      _say('已保存到 App 文档目录：$name');
+      _say(l.wrongExportSavedDocs(name));
     } catch (e) {
-      _say('导出失败：$e', failed: true);
+      _say(l.wrongExportFailed('$e'), failed: true);
     }
   }
 
   Future<void> _import() async {
+    // 这一串提示都在 await 之后才用，先把本地化对象取出来。
+    final l = AppL.of(context);
     final ok = await showModalBottomSheet<bool>(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (_) => const _ConfirmSheet(
-        title: '恢复备份',
-        message: '恢复会用备份中的答题记录与成绩报告覆盖当前数据，收藏、笔记、错因会合并，'
-            '学习计划和考试日期按备份里的写回。题库本身不受影响。',
-        confirm: '选择文件恢复',
+      builder: (_) => _ConfirmSheet(
+        title: l.backupRestore,
+        message: l.backupRestoreBody,
+        confirm: l.backupPickFile,
       ),
     );
     if (ok != true) return;
@@ -123,21 +127,21 @@ class _BackupPageState extends State<BackupPage> {
       final bytes = file.bytes ??
           (file.path == null ? null : await File(file.path!).readAsBytes());
       if (bytes == null) {
-        _say('读不到这个文件', failed: true);
+        _say(l.backupUnreadable, failed: true);
         return;
       }
       final data = jsonDecode(utf8.decode(bytes));
       if (data is! Map<String, dynamic> || data['logs'] == null) {
-        _say('这不是 OpenExam 的备份文件', failed: true);
+        _say(l.backupNotOurs, failed: true);
         return;
       }
       final restored = await AppDatabase.instance.importUserData(data);
       // 老备份没有 settings 这一节，import 会当 0 条处理，不清空现有计划。
       await PrefsBackup.import(data['settings']);
       await _counts();
-      _say('已恢复 $restored 条记录');
+      _say(l.backupRestored(restored));
     } catch (e) {
-      _say('恢复失败：$e', failed: true);
+      _say(l.backupRestoreFailed('$e'), failed: true);
     }
   }
 
@@ -149,35 +153,34 @@ class _BackupPageState extends State<BackupPage> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, size: 21),
+          icon: Icon(Icons.arrow_back, size: 21),
           onPressed: () => Navigator.of(context).maybePop(),
         ),
         titleSpacing: 0,
-        title: const Text('备份与恢复'),
+        title: Text(AppL.of(context).profileBackup),
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(AppTheme.gutter, 8, AppTheme.gutter, 28),
+        padding: EdgeInsets.fromLTRB(AppTheme.gutter, 8, AppTheme.gutter, 28),
         children: [
           Text(
-            '这个 App 没有账号，数据只在本机。换手机或清除数据前，'
-            '导出一份备份就能完整带走。',
+            AppL.of(context).backupIntro,
             style: text.bodyMedium,
           ),
-          const SizedBox(height: 22),
+          SizedBox(height: 22),
           Container(
-            padding: const EdgeInsets.symmetric(vertical: 16),
+            padding: EdgeInsets.symmetric(vertical: 16),
             decoration: GlassDecor.panel(t, radius: 20),
             child: Row(
               children: [
-                _Figure(value: '$_logs', label: '答题记录'),
-                _Figure(value: '$_reports', label: '成绩报告'),
-                _Figure(value: '$_marks', label: '收藏'),
-                _Figure(value: '$_notes', label: '笔记'),
+                _Figure(value: '$_logs', label: AppL.of(context).backupAnswers),
+                _Figure(value: '$_reports', label: AppL.of(context).backupReports),
+                _Figure(value: '$_marks', label: AppL.of(context).profileMarks),
+                _Figure(value: '$_notes', label: AppL.of(context).profileNotes),
               ],
             ),
           ),
           if (_message != null) ...[
-            const SizedBox(height: 18),
+            SizedBox(height: 18),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -186,7 +189,7 @@ class _BackupPageState extends State<BackupPage> {
                   size: 18,
                   color: _failed ? t.danger : t.success,
                 ),
-                const SizedBox(width: 10),
+                SizedBox(width: 10),
                 Expanded(
                   child: Text(
                     _message!,
@@ -198,24 +201,23 @@ class _BackupPageState extends State<BackupPage> {
               ],
             ),
           ],
-          const SizedBox(height: 26),
+          SizedBox(height: 26),
           _ActionRow(
             icon: AppIcon.download,
-            title: '导出备份',
-            desc: '生成一个 JSON 文件，含答题记录、成绩报告、收藏、笔记与错因',
+            title: AppL.of(context).backupExport,
+            desc: AppL.of(context).backupExportHint,
             onTap: _busy ? null : _export,
           ),
-          const RowDivider(indent: 0),
+          RowDivider(indent: 0),
           _ActionRow(
             icon: AppIcon.replay,
-            title: '从备份恢复',
-            desc: '答题记录与成绩报告会被覆盖，收藏、笔记、错因合并保留',
+            title: AppL.of(context).backupFromFile,
+            desc: AppL.of(context).backupFromFileHint,
             onTap: _busy ? null : _import,
           ),
-          const SizedBox(height: 22),
+          SizedBox(height: 22),
           Text(
-            '备份文件不含题库（题目已随 App 内置），所以体积很小，'
-            '可以直接发到微信或存进网盘。',
+            AppL.of(context).backupSizeNote,
             style: text.bodySmall,
           ),
         ],
@@ -336,7 +338,7 @@ class _ConfirmSheet extends StatelessWidget {
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () => Navigator.of(context).pop(false),
-                    child: const Text('取消'),
+                    child: Text(AppL.of(context).commonCancel),
                   ),
                 ),
                 const SizedBox(width: 12),

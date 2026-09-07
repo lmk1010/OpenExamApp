@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:openexam_app/core/ai/ai_settings.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 
 /// AI 调用的结果。失败时 [error] 是一句能直接给用户看的中文。
 class AiResult<T> {
@@ -75,9 +76,13 @@ class AiException implements Exception {
 /// 这是 app 里唯一一处联网的地方 —— 除了用户自己配的那个服务商，
 /// 不会有任何数据发到别处。
 class AiClient {
-  const AiClient(this.settings);
+  const AiClient(this.settings, this.l);
 
   final AiSettings settings;
+
+  /// 报错文案。这一层没有 BuildContext，由调用方传进来 —— 配 Key 失败时
+  /// 用户看到的就是这些句子，在英文界面上冒出中文是最难受的那种 bug。
+  final AppL l;
 
   static const _timeout = Duration(seconds: 120);
 
@@ -122,7 +127,7 @@ class AiClient {
     int maxTokens = 4096,
   }) async {
     if (!settings.isConfigured) {
-      return const AiResult.fail('还没配置 AI，去「我的 → AI 设置」里填一下');
+      return AiResult.fail(l.aiNotConfigured);
     }
     return _post(_bodyFor(system: system, prompt: prompt, maxTokens: maxTokens));
   }
@@ -136,7 +141,7 @@ class AiClient {
     int maxTokens = 8192,
   }) async {
     if (!settings.isConfigured) {
-      return const AiResult.fail('还没配置 AI，去「我的 → AI 设置」里填一下');
+      return AiResult.fail(l.aiNotConfigured);
     }
     if (!settings.provider.supportsVision) {
       return AiResult.fail('${settings.provider.label} 不支持图片识别，换个支持视觉的模型');
@@ -170,15 +175,15 @@ class AiClient {
     if (!result.isOk) return AiResult.fail(result.error);
     final parsed = extractJson(result.value ?? '');
     if (parsed == null) {
-      return const AiResult.fail('模型没有返回可解析的结果，再试一次');
+      return AiResult.fail(l.aiUnparsable);
     }
     return AiResult.ok(parsed);
   }
 
   /// 连通性自检：花最少的 token 确认 key、地址、模型三样都对。
   Future<AiResult<String>> testConnection() async {
-    if (settings.apiKey.trim().isEmpty) return const AiResult.fail('还没填 API Key');
-    if (settings.effectiveBaseUrl.isEmpty) return const AiResult.fail('还没填接口地址');
+    if (settings.apiKey.trim().isEmpty) return AiResult.fail(l.aiNoKey);
+    if (settings.effectiveBaseUrl.isEmpty) return AiResult.fail(l.aiNoBaseUrl);
     // 预算给足。DeepSeek V4、o 系列这类会先花 token 想，
     // max_tokens 给小了，想完就没配额吐正文，回来是一句空字符串 ——
     // 那不是"模型坏了"，是我们没给够。
@@ -188,7 +193,7 @@ class AiClient {
       maxTokens: 512,
     );
     if (!result.isOk) return result;
-    return AiResult.ok('连接正常 · ${settings.effectiveModel}');
+    return AiResult.ok(l.aiConnOk(settings.effectiveModel));
   }
 
   Map<String, dynamic> _bodyFor({
@@ -253,7 +258,7 @@ class AiClient {
     int maxTokens = 4096,
   }) async* {
     if (!settings.isConfigured) {
-      throw const AiException('还没配置 AI，去「我的 → AI 设置」里填一下');
+      throw AiException(l.aiNotConfigured);
     }
     final body = {
       ..._bodyFor(system: system, prompt: prompt, maxTokens: maxTokens),
@@ -309,10 +314,7 @@ class AiClient {
     _report(usage);
 
     if (!any) {
-      throw const AiException(
-        '模型没吐出正文。多半是这个模型要先"想"一轮，配额被想的部分吃完了 —— '
-        '换成非推理模型，或者稍后再试。',
-      );
+      throw AiException(l.aiNoContent);
     }
   }
 
@@ -359,16 +361,13 @@ class AiClient {
       _report(AiUsage.from(decoded));
       final text = _textFrom(decoded);
       if (text == null || text.trim().isEmpty) {
-        return const AiResult.fail(
-        '模型没吐出正文。多半是这个模型要先"想"一轮，配额被想的部分吃完了 —— '
-        '换成非推理模型，或者稍后再试。',
-      );
+        return AiResult.fail(l.aiNoContent);
       }
       return AiResult.ok(text);
     } on TimeoutException {
-      return const AiResult.fail('请求超时了，检查一下网络或换个接口地址');
+      return AiResult.fail(l.aiTimeout);
     } catch (error) {
-      return AiResult.fail('请求失败：$error');
+      return AiResult.fail(l.aiRequestFailed('$error'));
     }
   }
 

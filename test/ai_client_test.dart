@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:openexam_app/l10n/app_localizations_zh.dart';
 import 'package:openexam_app/core/ai/ai_client.dart';
 import 'package:openexam_app/core/ai/ai_settings.dart';
 
@@ -65,7 +66,7 @@ void main() {
 
   group('AiClient 未配置时不发请求', () {
     test('complete 直接返回提示', () async {
-      const client = AiClient(AiSettings.empty);
+      final client = AiClient(AiSettings.empty, AppLZh());
       final r = await client.complete(system: 's', prompt: 'p');
       expect(r.isOk, isFalse);
       expect(r.error, contains('还没配置'));

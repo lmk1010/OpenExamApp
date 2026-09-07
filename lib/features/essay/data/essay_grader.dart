@@ -1,3 +1,4 @@
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/ai/ai_client.dart';
 import 'package:openexam_app/core/ai/ai_settings.dart';
 import 'package:openexam_app/features/essay/domain/essay_models.dart';
@@ -7,9 +8,12 @@ import 'package:openexam_app/features/essay/domain/essay_models.dart';
 /// 批改的价值不在那个分数，而在「哪几个采分点没写到、为什么会漏」——
 /// prompt 也是照这个目标写的：阅卷口吻，逐点对照，不做鼓励式点评。
 class EssayGrader {
-  const EssayGrader(this.settings);
+  const EssayGrader(this.settings, this.l);
 
   final AiSettings settings;
+
+  /// 报错文案由调用方传进来 —— 这一层没有 BuildContext。
+  final AppL l;
 
   static const _graderSystem = '''
 你是一位阅卷经验丰富的公考申论阅卷老师。你的任务是按评分标准客观批改考生答案，不是鼓励，也不是教学。
@@ -27,7 +31,7 @@ class EssayGrader {
     required String answer,
   }) async {
     AiClient.feature = 'essay';
-    final result = await AiClient(settings).completeJson(
+    final result = await AiClient(settings, l).completeJson(
       system: _graderSystem,
       prompt: _buildPrompt(prompt, answer),
       maxTokens: 4096,
@@ -101,7 +105,7 @@ $answer
 材料要一字不漏地抄下来，这是批改的依据。''';
 
     AiClient.feature = 'ocr';
-    final result = await AiClient(settings).completeWithImage(
+    final result = await AiClient(settings, l).completeWithImage(
       system: _ocrSystem,
       prompt: prompt,
       imageBase64: imageBase64,

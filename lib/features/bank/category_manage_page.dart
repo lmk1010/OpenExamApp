@@ -188,7 +188,7 @@ class _CategoryManagePageState extends State<CategoryManagePage> {
       }
 
       AiClient.feature = 'classify';
-      final result = await AiClient(settings).completeJson(
+      final result = await AiClient(settings, l).completeJson(
         system: _classifySystem,
         prompt: buf.toString(),
       );

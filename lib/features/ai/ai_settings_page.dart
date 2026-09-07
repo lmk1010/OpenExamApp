@@ -73,13 +73,15 @@ class _AiSettingsPageState extends State<AiSettingsPage> {
   }
 
   Future<void> _test() async {
+    // AI 客户端要一份报错文案，而这里在 await 之后 —— 先取出来。
+    final l = AppL.of(context);
     setState(() {
       _testing = true;
       _testMessage = null;
     });
     // 先存再测，免得测通了却忘了保存
     await AiSettingsStore.save(_current);
-    final result = await AiClient(_current).testConnection();
+    final result = await AiClient(_current, l).testConnection();
     if (!mounted) return;
     setState(() {
       _testing = false;

@@ -83,6 +83,8 @@ class _EssayWritePageState extends State<EssayWritePage> {
   }
 
   Future<void> _submit() async {
+    // AI 客户端要一份报错文案，而这里在 await 之后 —— 先取出来。
+    final l = AppL.of(context);
     if (_words < 20) {
       _toast(AppL.of(context).essayTooShort);
       return;
@@ -119,7 +121,7 @@ class _EssayWritePageState extends State<EssayWritePage> {
     setState(() => _grading = true);
     _timer?.cancel();
 
-    final result = await EssayGrader(settings)
+    final result = await EssayGrader(settings, l)
         .grade(prompt: widget.prompt, answer: _answer.text);
     if (!mounted) return;
 

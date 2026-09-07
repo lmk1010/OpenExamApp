@@ -3676,4 +3676,119 @@ class AppLEn extends AppL {
   String shoreStreak(int days) {
     return 'Lighthouse lit for $days days';
   }
+
+  @override
+  String backupExportedTo(String name) {
+    return 'Exported to $name';
+  }
+
+  @override
+  String get backupRestore => 'Restore a backup';
+
+  @override
+  String get backupRestoreBody =>
+      'Restoring overwrites your answers and score reports with the ones in the backup; bookmarks, notes and mistake tags are merged, and the study plan and exam date are written back from the backup. The question bank itself is untouched.';
+
+  @override
+  String get backupPickFile => 'Choose a file';
+
+  @override
+  String get backupUnreadable => 'Can\'t read that file';
+
+  @override
+  String get backupNotOurs => 'That isn\'t an OpenExam backup';
+
+  @override
+  String backupRestored(int count) {
+    return 'Restored $count records';
+  }
+
+  @override
+  String backupRestoreFailed(String error) {
+    return 'Restore failed: $error';
+  }
+
+  @override
+  String get backupIntro =>
+      'There are no accounts here — your data lives on this device. Export a backup before switching phones or clearing data and it all comes with you.';
+
+  @override
+  String get backupAnswers => 'Answers';
+
+  @override
+  String get backupReports => 'Score reports';
+
+  @override
+  String get backupExport => 'Export a backup';
+
+  @override
+  String get backupExportHint =>
+      'Writes a JSON file with your answers, score reports, bookmarks, notes and mistake tags';
+
+  @override
+  String get backupFromFile => 'Restore from a backup';
+
+  @override
+  String get backupFromFileHint =>
+      'Answers and score reports are overwritten; bookmarks, notes and mistake tags are merged';
+
+  @override
+  String get backupSizeNote =>
+      'The backup holds no questions, only your own data, so it stays small enough to send or drop in cloud storage.';
+
+  @override
+  String get aiNotConfigured =>
+      'AI isn\'t set up yet — add it under You → AI settings';
+
+  @override
+  String aiNoVision(String provider) {
+    return '$provider can\'t read images — switch to a vision model';
+  }
+
+  @override
+  String get aiUnparsable => 'The model returned nothing usable — try again';
+
+  @override
+  String get aiNoKey => 'No API key yet';
+
+  @override
+  String get aiNoBaseUrl => 'No endpoint yet';
+
+  @override
+  String aiConnOk(String model) {
+    return 'Connected · $model';
+  }
+
+  @override
+  String get aiTimeout =>
+      'The request timed out — check your connection or try another endpoint';
+
+  @override
+  String aiRequestFailed(String error) {
+    return 'Request failed: $error';
+  }
+
+  @override
+  String get aiNoContent =>
+      'The model produced no text. Usually this is a reasoning model spending its whole budget on thinking — switch to a non-reasoning model, or try again later.';
+
+  @override
+  String aiBadKey(int status, String detail) {
+    return 'Wrong API key or no permission ($status): $detail';
+  }
+
+  @override
+  String aiNotFound(String detail) {
+    return 'Wrong endpoint or model name (404): $detail';
+  }
+
+  @override
+  String aiRateLimited(String detail) {
+    return 'Too many requests or out of credit (429): $detail';
+  }
+
+  @override
+  String aiServerError(int status, String detail) {
+    return 'Server returned $status: $detail';
+  }
 }
