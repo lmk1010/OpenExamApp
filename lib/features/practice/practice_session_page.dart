@@ -413,7 +413,7 @@ class _PracticeSessionPageState extends State<PracticeSessionPage> {
 
   /// Checks for newly earned badges once the session is over.
   Future<void> _celebrate() async {
-    final fresh = await Achievements.claimNew();
+    final fresh = await Achievements.claimNew(AppL.of(context));
     if (!mounted || fresh.isEmpty) return;
     await Future<void>.delayed(const Duration(milliseconds: 600));
     if (!mounted) return;

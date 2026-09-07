@@ -1499,5 +1499,90 @@
       }
     }
   },
-  "bankImport": "导入"
+  "bankImport": "导入",
+  "badgeFirstBloodName": "开张",
+  "badgeFirstBloodDesc": "完成第一道题",
+  "badgeAnswers100Name": "百题",
+  "badgeAnswers100Desc": "累计答题 100 道",
+  "badgeAnswers500Name": "五百题",
+  "badgeAnswers500Desc": "累计答题 500 道",
+  "badgeAnswers2000Name": "两千题",
+  "badgeAnswers2000Desc": "累计答题 2000 道",
+  "badgeStreak3Name": "三天",
+  "badgeStreak3Desc": "连续练习 3 天",
+  "badgeStreak7Name": "一周不断",
+  "badgeStreak7Desc": "连续练习 7 天",
+  "badgeStreak30Name": "一月不断",
+  "badgeStreak30Desc": "连续练习 30 天",
+  "badgeActive20Name": "常客",
+  "badgeActive20Desc": "累计练习 20 天",
+  "badgeRate70Name": "及格线",
+  "badgeRate70Desc": "总正确率达到 70%（至少 50 题）",
+  "badgeRate85Name": "稳",
+  "badgeRate85Desc": "总正确率达到 85%（至少 200 题）",
+  "badgeStrong3Name": "三科过硬",
+  "badgeStrong3Desc": "三个模块正确率达到 80%（每个至少 20 题）",
+  "badgeExam1Name": "首战",
+  "badgeExam1Desc": "完成第一次限时模考",
+  "badgeExam10Name": "身经十战",
+  "badgeExam10Desc": "完成 10 次限时模考",
+  "badgeExam80Name": "高分卷",
+  "badgeExam80Desc": "任意一次模考正确率达到 80%",
+  "badgeCleanWrongName": "清空错题",
+  "badgeCleanWrongDesc": "把错题本清到 0（至少错过 20 题）",
+  "badgeDay100Name": "单日百题",
+  "badgeDay100Desc": "一天内做满 100 题",
+  "badgeNotes20Name": "会总结",
+  "badgeNotes20Desc": "写下 20 条题目笔记",
+  "badgeMarks30Name": "会收集",
+  "badgeMarks30Desc": "收藏 30 道题",
+  "badgeGroupVolume": "题量",
+  "badgeGroupConsistency": "坚持",
+  "badgeGroupAccuracy": "精度",
+  "badgeGroupExams": "考场",
+  "badgeGroupGrind": "攻坚",
+  "tierBronze": "铜",
+  "tierSilver": "银",
+  "tierGold": "金",
+  "tierPlatinum": "铂金",
+  "badgesTitle": "成就",
+  "badgesUnlocked": "已解锁 {done} / {total}",
+  "@badgesUnlocked": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "badgesNote": "全部按本机数据计算，清除练习记录会重新开始",
+  "badgesEarned": "已达成",
+  "badgesToGo": " · 还差 {count}",
+  "@badgesToGo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "badgesUnlockedTitle": "解锁成就",
+  "badgesAlsoUnlocked": "同时还解锁了 {count} 个",
+  "@badgesAlsoUnlocked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "badgesTake": "收下",
+  "badgesEarnedOn": "{date}获得",
+  "@badgesEarnedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
 import 'package:openexam_app/core/ui/ambient.dart';
@@ -30,7 +31,11 @@ class _AchievementsPageState extends State<AchievementsPage> {
   }
 
   Future<void> _load() async {
-    final badges = await Achievements.evaluate();
+    // 让出一帧：_load 是 initState 里发起的，第一个 await 之前
+    // AppL.of(context) 会抛 "called before initState() completed"。
+    await Future<void>.delayed(Duration.zero);
+    if (!mounted) return;
+    final badges = await Achievements.evaluate(AppL.of(context));
     if (!mounted) return;
     setState(() {
       _badges = badges;
@@ -54,10 +59,10 @@ class _AchievementsPageState extends State<AchievementsPage> {
           onPressed: () => Navigator.of(context).maybePop(),
         ),
         titleSpacing: 0,
-        title: const Text('成就'),
+        title: Text(AppL.of(context).badgesTitle),
       ),
       body: _loading
-          ? const LoadingState()
+          ? LoadingState()
           : ListView(
               padding: EdgeInsets.fromLTRB(
                 AppTheme.gutter,
@@ -71,11 +76,11 @@ class _AchievementsPageState extends State<AchievementsPage> {
               ),
               children: [
                 Text(
-                  '已解锁 $unlocked / ${_badges.length}',
+                  AppL.of(context).badgesUnlocked(unlocked, _badges.length),
                   style: text.displaySmall?.copyWith(fontSize: 22),
                 ),
-                const SizedBox(height: 8),
-                Text('全部按本机数据计算，清除练习记录会重新开始', style: text.bodySmall),
+                SizedBox(height: 8),
+                Text(AppL.of(context).badgesNote, style: text.bodySmall),
                 const SizedBox(height: 22),
                 for (final entry in groups.entries) ...[
                   Text(entry.key, style: text.titleSmall),
@@ -142,7 +147,7 @@ class _BadgeTile extends StatelessWidget {
             const SizedBox(height: 3),
             Text(
               badge.unlocked
-                  ? badge.tier.label
+                  ? badge.tier.label(AppL.of(context))
                   : '${badge.value}/${badge.target}',
               style: text.bodySmall?.copyWith(
                 fontSize: 11,
@@ -351,14 +356,15 @@ class _BadgeDetail extends StatelessWidget {
                 ),
               ),
             ),
-            const Spacer(flex: 3),
+            Spacer(flex: 3),
             if (badge.unlocked)
               Text(
                 badge.unlockedAt == null
-                    ? '已达成'
-                    : '${badge.unlockedAt!.year} 年 '
-                        '${badge.unlockedAt!.month} 月 '
-                        '${badge.unlockedAt!.day} 日获得',
+                    ? AppL.of(context).badgesEarned
+                    : AppL.of(context).badgesEarnedOn(
+                        MaterialLocalizations.of(context)
+                            .formatShortDate(badge.unlockedAt!),
+                      ),
                 style: text.bodySmall,
               )
             else ...[
@@ -381,10 +387,10 @@ class _BadgeDetail extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 11),
+              SizedBox(height: 11),
               Text(
                 '${badge.value} / ${badge.target}'
-                '${badge.target - badge.value > 0 ? ' · 还差 ${badge.target - badge.value}' : ''}',
+                '${badge.target - badge.value > 0 ? AppL.of(context).badgesToGo(badge.target - badge.value) : ''}',
                 style: text.bodySmall,
               ),
             ],
@@ -447,8 +453,8 @@ class BadgeUnlockedDialog extends StatelessWidget {
                   MedalStage(badge: badge, size: 96, burst: true),
                 ],
               ),
-              const SizedBox(height: 18),
-              Text('解锁成就', style: text.bodySmall),
+              SizedBox(height: 18),
+              Text(AppL.of(context).badgesUnlockedTitle, style: text.bodySmall),
               const SizedBox(height: 6),
               Text(badge.name, style: text.displaySmall?.copyWith(fontSize: 24)),
               const SizedBox(height: 10),
@@ -458,15 +464,15 @@ class BadgeUnlockedDialog extends StatelessWidget {
                 style: text.bodyMedium?.copyWith(fontSize: 14),
               ),
               if (badges.length > 1) ...[
-                const SizedBox(height: 12),
-                Text('同时还解锁了 ${badges.length - 1} 个', style: text.bodySmall),
+                SizedBox(height: 12),
+                Text(AppL.of(context).badgesAlsoUnlocked(badges.length - 1), style: text.bodySmall),
               ],
               const SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
                 child: FilledButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('收下'),
+                  child: Text(AppL.of(context).badgesTake),
                 ),
               ),
             ],

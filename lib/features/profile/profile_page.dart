@@ -95,8 +95,14 @@ class _ProfilePageState extends State<ProfilePage> with TabReload {
   }
 
   Future<void> _reload() async {
-    // 这些查询彼此不依赖，并发发出去，别排队等
+    // 这些查询彼此不依赖，并发发出去，别排队等。
     final db = AppDatabase.instance;
+    // 徽章名要按当前语言算，可 _reload 是 initState 里发起的：第一个 await
+    // 之前这段代码还在 initState 里跑，那时候 AppL.of(context) 会抛
+    // "called before initState() completed"。先让出一帧再取。
+    await Future<void>.delayed(Duration.zero);
+    if (!mounted) return;
+    final l = AppL.of(context);
     await VocabRepository.instance.ensureSeeded();
     final results = await Future.wait([
       db.countAll(),
@@ -106,7 +112,7 @@ class _ProfilePageState extends State<ProfilePage> with TabReload {
       db.listReports(limit: 200),
       db.countNotes(),
       db.countFeedback(),
-      Achievements.evaluate(),
+      Achievements.evaluate(l),
       db.categoryStats(),
       db.dailyActivity(),
       VocabRepository.instance.stats(),

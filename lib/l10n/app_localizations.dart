@@ -3029,6 +3029,330 @@ abstract class AppL {
   /// In zh, this message translates to:
   /// **'导入'**
   String get bankImport;
+
+  /// No description provided for @badgeFirstBloodName.
+  ///
+  /// In zh, this message translates to:
+  /// **'开张'**
+  String get badgeFirstBloodName;
+
+  /// No description provided for @badgeFirstBloodDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'完成第一道题'**
+  String get badgeFirstBloodDesc;
+
+  /// No description provided for @badgeAnswers100Name.
+  ///
+  /// In zh, this message translates to:
+  /// **'百题'**
+  String get badgeAnswers100Name;
+
+  /// No description provided for @badgeAnswers100Desc.
+  ///
+  /// In zh, this message translates to:
+  /// **'累计答题 100 道'**
+  String get badgeAnswers100Desc;
+
+  /// No description provided for @badgeAnswers500Name.
+  ///
+  /// In zh, this message translates to:
+  /// **'五百题'**
+  String get badgeAnswers500Name;
+
+  /// No description provided for @badgeAnswers500Desc.
+  ///
+  /// In zh, this message translates to:
+  /// **'累计答题 500 道'**
+  String get badgeAnswers500Desc;
+
+  /// No description provided for @badgeAnswers2000Name.
+  ///
+  /// In zh, this message translates to:
+  /// **'两千题'**
+  String get badgeAnswers2000Name;
+
+  /// No description provided for @badgeAnswers2000Desc.
+  ///
+  /// In zh, this message translates to:
+  /// **'累计答题 2000 道'**
+  String get badgeAnswers2000Desc;
+
+  /// No description provided for @badgeStreak3Name.
+  ///
+  /// In zh, this message translates to:
+  /// **'三天'**
+  String get badgeStreak3Name;
+
+  /// No description provided for @badgeStreak3Desc.
+  ///
+  /// In zh, this message translates to:
+  /// **'连续练习 3 天'**
+  String get badgeStreak3Desc;
+
+  /// No description provided for @badgeStreak7Name.
+  ///
+  /// In zh, this message translates to:
+  /// **'一周不断'**
+  String get badgeStreak7Name;
+
+  /// No description provided for @badgeStreak7Desc.
+  ///
+  /// In zh, this message translates to:
+  /// **'连续练习 7 天'**
+  String get badgeStreak7Desc;
+
+  /// No description provided for @badgeStreak30Name.
+  ///
+  /// In zh, this message translates to:
+  /// **'一月不断'**
+  String get badgeStreak30Name;
+
+  /// No description provided for @badgeStreak30Desc.
+  ///
+  /// In zh, this message translates to:
+  /// **'连续练习 30 天'**
+  String get badgeStreak30Desc;
+
+  /// No description provided for @badgeActive20Name.
+  ///
+  /// In zh, this message translates to:
+  /// **'常客'**
+  String get badgeActive20Name;
+
+  /// No description provided for @badgeActive20Desc.
+  ///
+  /// In zh, this message translates to:
+  /// **'累计练习 20 天'**
+  String get badgeActive20Desc;
+
+  /// No description provided for @badgeRate70Name.
+  ///
+  /// In zh, this message translates to:
+  /// **'及格线'**
+  String get badgeRate70Name;
+
+  /// No description provided for @badgeRate70Desc.
+  ///
+  /// In zh, this message translates to:
+  /// **'总正确率达到 70%（至少 50 题）'**
+  String get badgeRate70Desc;
+
+  /// No description provided for @badgeRate85Name.
+  ///
+  /// In zh, this message translates to:
+  /// **'稳'**
+  String get badgeRate85Name;
+
+  /// No description provided for @badgeRate85Desc.
+  ///
+  /// In zh, this message translates to:
+  /// **'总正确率达到 85%（至少 200 题）'**
+  String get badgeRate85Desc;
+
+  /// No description provided for @badgeStrong3Name.
+  ///
+  /// In zh, this message translates to:
+  /// **'三科过硬'**
+  String get badgeStrong3Name;
+
+  /// No description provided for @badgeStrong3Desc.
+  ///
+  /// In zh, this message translates to:
+  /// **'三个模块正确率达到 80%（每个至少 20 题）'**
+  String get badgeStrong3Desc;
+
+  /// No description provided for @badgeExam1Name.
+  ///
+  /// In zh, this message translates to:
+  /// **'首战'**
+  String get badgeExam1Name;
+
+  /// No description provided for @badgeExam1Desc.
+  ///
+  /// In zh, this message translates to:
+  /// **'完成第一次限时模考'**
+  String get badgeExam1Desc;
+
+  /// No description provided for @badgeExam10Name.
+  ///
+  /// In zh, this message translates to:
+  /// **'身经十战'**
+  String get badgeExam10Name;
+
+  /// No description provided for @badgeExam10Desc.
+  ///
+  /// In zh, this message translates to:
+  /// **'完成 10 次限时模考'**
+  String get badgeExam10Desc;
+
+  /// No description provided for @badgeExam80Name.
+  ///
+  /// In zh, this message translates to:
+  /// **'高分卷'**
+  String get badgeExam80Name;
+
+  /// No description provided for @badgeExam80Desc.
+  ///
+  /// In zh, this message translates to:
+  /// **'任意一次模考正确率达到 80%'**
+  String get badgeExam80Desc;
+
+  /// No description provided for @badgeCleanWrongName.
+  ///
+  /// In zh, this message translates to:
+  /// **'清空错题'**
+  String get badgeCleanWrongName;
+
+  /// No description provided for @badgeCleanWrongDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'把错题本清到 0（至少错过 20 题）'**
+  String get badgeCleanWrongDesc;
+
+  /// No description provided for @badgeDay100Name.
+  ///
+  /// In zh, this message translates to:
+  /// **'单日百题'**
+  String get badgeDay100Name;
+
+  /// No description provided for @badgeDay100Desc.
+  ///
+  /// In zh, this message translates to:
+  /// **'一天内做满 100 题'**
+  String get badgeDay100Desc;
+
+  /// No description provided for @badgeNotes20Name.
+  ///
+  /// In zh, this message translates to:
+  /// **'会总结'**
+  String get badgeNotes20Name;
+
+  /// No description provided for @badgeNotes20Desc.
+  ///
+  /// In zh, this message translates to:
+  /// **'写下 20 条题目笔记'**
+  String get badgeNotes20Desc;
+
+  /// No description provided for @badgeMarks30Name.
+  ///
+  /// In zh, this message translates to:
+  /// **'会收集'**
+  String get badgeMarks30Name;
+
+  /// No description provided for @badgeMarks30Desc.
+  ///
+  /// In zh, this message translates to:
+  /// **'收藏 30 道题'**
+  String get badgeMarks30Desc;
+
+  /// No description provided for @badgeGroupVolume.
+  ///
+  /// In zh, this message translates to:
+  /// **'题量'**
+  String get badgeGroupVolume;
+
+  /// No description provided for @badgeGroupConsistency.
+  ///
+  /// In zh, this message translates to:
+  /// **'坚持'**
+  String get badgeGroupConsistency;
+
+  /// No description provided for @badgeGroupAccuracy.
+  ///
+  /// In zh, this message translates to:
+  /// **'精度'**
+  String get badgeGroupAccuracy;
+
+  /// No description provided for @badgeGroupExams.
+  ///
+  /// In zh, this message translates to:
+  /// **'考场'**
+  String get badgeGroupExams;
+
+  /// No description provided for @badgeGroupGrind.
+  ///
+  /// In zh, this message translates to:
+  /// **'攻坚'**
+  String get badgeGroupGrind;
+
+  /// No description provided for @tierBronze.
+  ///
+  /// In zh, this message translates to:
+  /// **'铜'**
+  String get tierBronze;
+
+  /// No description provided for @tierSilver.
+  ///
+  /// In zh, this message translates to:
+  /// **'银'**
+  String get tierSilver;
+
+  /// No description provided for @tierGold.
+  ///
+  /// In zh, this message translates to:
+  /// **'金'**
+  String get tierGold;
+
+  /// No description provided for @tierPlatinum.
+  ///
+  /// In zh, this message translates to:
+  /// **'铂金'**
+  String get tierPlatinum;
+
+  /// No description provided for @badgesTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'成就'**
+  String get badgesTitle;
+
+  /// No description provided for @badgesUnlocked.
+  ///
+  /// In zh, this message translates to:
+  /// **'已解锁 {done} / {total}'**
+  String badgesUnlocked(int done, int total);
+
+  /// No description provided for @badgesNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部按本机数据计算，清除练习记录会重新开始'**
+  String get badgesNote;
+
+  /// No description provided for @badgesEarned.
+  ///
+  /// In zh, this message translates to:
+  /// **'已达成'**
+  String get badgesEarned;
+
+  /// No description provided for @badgesToGo.
+  ///
+  /// In zh, this message translates to:
+  /// **' · 还差 {count}'**
+  String badgesToGo(int count);
+
+  /// No description provided for @badgesUnlockedTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'解锁成就'**
+  String get badgesUnlockedTitle;
+
+  /// No description provided for @badgesAlsoUnlocked.
+  ///
+  /// In zh, this message translates to:
+  /// **'同时还解锁了 {count} 个'**
+  String badgesAlsoUnlocked(int count);
+
+  /// No description provided for @badgesTake.
+  ///
+  /// In zh, this message translates to:
+  /// **'收下'**
+  String get badgesTake;
+
+  /// No description provided for @badgesEarnedOn.
+  ///
+  /// In zh, this message translates to:
+  /// **'{date}获得'**
+  String badgesEarnedOn(String date);
 }
 
 class _AppLDelegate extends LocalizationsDelegate<AppL> {

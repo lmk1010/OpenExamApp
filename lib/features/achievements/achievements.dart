@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:openexam_app/core/ui/stroke_icons.dart';
 import 'package:openexam_app/data/db/app_database.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 
 enum BadgeTier { bronze, silver, gold, platinum }
 
 extension BadgeTierX on BadgeTier {
-  String get label => switch (this) {
-        BadgeTier.bronze => '铜',
-        BadgeTier.silver => '银',
-        BadgeTier.gold => '金',
-        BadgeTier.platinum => '铂金',
+  String label(AppL l) => switch (this) {
+        BadgeTier.bronze => l.tierBronze,
+        BadgeTier.silver => l.tierSilver,
+        BadgeTier.gold => l.tierGold,
+        BadgeTier.platinum => l.tierPlatinum,
       };
 
   Color get color => switch (this) {
@@ -67,7 +68,8 @@ class AchievementBadge {
 class Achievements {
   const Achievements._();
 
-  static Future<List<AchievementBadge>> evaluate() async {
+  /// [l] 由调用方传进来 —— 这是纯数据层，没有 BuildContext。
+  static Future<List<AchievementBadge>> evaluate(AppL l) async {
     final db = AppDatabase.instance;
     final answers = await db.countAnswers();
     final stats = await db.categoryStats();
@@ -98,9 +100,9 @@ class Achievements {
     final list = <AchievementBadge>[
       AchievementBadge(
         id: 'first_blood',
-        name: '开张',
-        desc: '完成第一道题',
-        group: '题量',
+        name: l.badgeFirstBloodName,
+        desc: l.badgeFirstBloodDesc,
+        group: l.badgeGroupVolume,
         tier: BadgeTier.bronze,
         icon: AppIcon.practice,
         value: answers,
@@ -108,9 +110,9 @@ class Achievements {
       ),
       AchievementBadge(
         id: 'answers_100',
-        name: '百题',
-        desc: '累计答题 100 道',
-        group: '题量',
+        name: l.badgeAnswers100Name,
+        desc: l.badgeAnswers100Desc,
+        group: l.badgeGroupVolume,
         tier: BadgeTier.bronze,
         icon: AppIcon.practice,
         value: answers,
@@ -118,9 +120,9 @@ class Achievements {
       ),
       AchievementBadge(
         id: 'answers_500',
-        name: '五百题',
-        desc: '累计答题 500 道',
-        group: '题量',
+        name: l.badgeAnswers500Name,
+        desc: l.badgeAnswers500Desc,
+        group: l.badgeGroupVolume,
         tier: BadgeTier.silver,
         icon: AppIcon.practice,
         value: answers,
@@ -128,9 +130,9 @@ class Achievements {
       ),
       AchievementBadge(
         id: 'answers_2000',
-        name: '两千题',
-        desc: '累计答题 2000 道',
-        group: '题量',
+        name: l.badgeAnswers2000Name,
+        desc: l.badgeAnswers2000Desc,
+        group: l.badgeGroupVolume,
         tier: BadgeTier.gold,
         icon: AppIcon.practice,
         value: answers,
@@ -138,9 +140,9 @@ class Achievements {
       ),
       AchievementBadge(
         id: 'streak_3',
-        name: '三天',
-        desc: '连续练习 3 天',
-        group: '坚持',
+        name: l.badgeStreak3Name,
+        desc: l.badgeStreak3Desc,
+        group: l.badgeGroupConsistency,
         tier: BadgeTier.bronze,
         icon: AppIcon.timer,
         value: streak,
@@ -148,9 +150,9 @@ class Achievements {
       ),
       AchievementBadge(
         id: 'streak_7',
-        name: '一周不断',
-        desc: '连续练习 7 天',
-        group: '坚持',
+        name: l.badgeStreak7Name,
+        desc: l.badgeStreak7Desc,
+        group: l.badgeGroupConsistency,
         tier: BadgeTier.silver,
         icon: AppIcon.timer,
         value: streak,
@@ -158,9 +160,9 @@ class Achievements {
       ),
       AchievementBadge(
         id: 'streak_30',
-        name: '一月不断',
-        desc: '连续练习 30 天',
-        group: '坚持',
+        name: l.badgeStreak30Name,
+        desc: l.badgeStreak30Desc,
+        group: l.badgeGroupConsistency,
         tier: BadgeTier.platinum,
         icon: AppIcon.timer,
         value: streak,
@@ -168,9 +170,9 @@ class Achievements {
       ),
       AchievementBadge(
         id: 'active_20',
-        name: '常客',
-        desc: '累计练习 20 天',
-        group: '坚持',
+        name: l.badgeActive20Name,
+        desc: l.badgeActive20Desc,
+        group: l.badgeGroupConsistency,
         tier: BadgeTier.silver,
         icon: AppIcon.chart,
         value: activeDays,
@@ -178,9 +180,9 @@ class Achievements {
       ),
       AchievementBadge(
         id: 'rate_70',
-        name: '及格线',
-        desc: '总正确率达到 70%（至少 50 题）',
-        group: '精度',
+        name: l.badgeRate70Name,
+        desc: l.badgeRate70Desc,
+        group: l.badgeGroupAccuracy,
         tier: BadgeTier.silver,
         icon: AppIcon.chart,
         value: done >= 50 ? rate : 0,
@@ -188,9 +190,9 @@ class Achievements {
       ),
       AchievementBadge(
         id: 'rate_85',
-        name: '稳',
-        desc: '总正确率达到 85%（至少 200 题）',
-        group: '精度',
+        name: l.badgeRate85Name,
+        desc: l.badgeRate85Desc,
+        group: l.badgeGroupAccuracy,
         tier: BadgeTier.gold,
         icon: AppIcon.chart,
         value: done >= 200 ? rate : 0,
@@ -198,9 +200,9 @@ class Achievements {
       ),
       AchievementBadge(
         id: 'strong_3',
-        name: '三科过硬',
-        desc: '三个模块正确率达到 80%（每个至少 20 题）',
-        group: '精度',
+        name: l.badgeStrong3Name,
+        desc: l.badgeStrong3Desc,
+        group: l.badgeGroupAccuracy,
         tier: BadgeTier.gold,
         icon: AppIcon.logic,
         value: strongModules,
@@ -208,9 +210,9 @@ class Achievements {
       ),
       AchievementBadge(
         id: 'exam_1',
-        name: '首战',
-        desc: '完成第一次限时模考',
-        group: '考场',
+        name: l.badgeExam1Name,
+        desc: l.badgeExam1Desc,
+        group: l.badgeGroupExams,
         tier: BadgeTier.bronze,
         icon: AppIcon.papers,
         value: exams,
@@ -218,9 +220,9 @@ class Achievements {
       ),
       AchievementBadge(
         id: 'exam_10',
-        name: '身经十战',
-        desc: '完成 10 次限时模考',
-        group: '考场',
+        name: l.badgeExam10Name,
+        desc: l.badgeExam10Desc,
+        group: l.badgeGroupExams,
         tier: BadgeTier.gold,
         icon: AppIcon.papers,
         value: exams,
@@ -228,9 +230,9 @@ class Achievements {
       ),
       AchievementBadge(
         id: 'exam_80',
-        name: '高分卷',
-        desc: '任意一次模考正确率达到 80%',
-        group: '考场',
+        name: l.badgeExam80Name,
+        desc: l.badgeExam80Desc,
+        group: l.badgeGroupExams,
         tier: BadgeTier.platinum,
         icon: AppIcon.papers,
         value: bestExam,
@@ -238,9 +240,9 @@ class Achievements {
       ),
       AchievementBadge(
         id: 'clean_wrong',
-        name: '清空错题',
-        desc: '把错题本清到 0（至少错过 20 题）',
-        group: '攻坚',
+        name: l.badgeCleanWrongName,
+        desc: l.badgeCleanWrongDesc,
+        group: l.badgeGroupGrind,
         tier: BadgeTier.gold,
         icon: AppIcon.wrongBook,
         value: answers >= 100 && wrong == 0 ? 1 : 0,
@@ -248,9 +250,9 @@ class Achievements {
       ),
       AchievementBadge(
         id: 'day_100',
-        name: '单日百题',
-        desc: '一天内做满 100 题',
-        group: '攻坚',
+        name: l.badgeDay100Name,
+        desc: l.badgeDay100Desc,
+        group: l.badgeGroupGrind,
         tier: BadgeTier.silver,
         icon: AppIcon.shuffle,
         value: maxDay,
@@ -258,9 +260,9 @@ class Achievements {
       ),
       AchievementBadge(
         id: 'notes_20',
-        name: '会总结',
-        desc: '写下 20 条题目笔记',
-        group: '攻坚',
+        name: l.badgeNotes20Name,
+        desc: l.badgeNotes20Desc,
+        group: l.badgeGroupGrind,
         tier: BadgeTier.silver,
         icon: AppIcon.speech,
         value: notes,
@@ -268,9 +270,9 @@ class Achievements {
       ),
       AchievementBadge(
         id: 'marks_30',
-        name: '会收集',
-        desc: '收藏 30 道题',
-        group: '攻坚',
+        name: l.badgeMarks30Name,
+        desc: l.badgeMarks30Desc,
+        group: l.badgeGroupGrind,
         tier: BadgeTier.bronze,
         icon: AppIcon.wrongBook,
         value: marks,
@@ -283,8 +285,8 @@ class Achievements {
 
   /// Records anything newly cleared and returns those badges, so the caller can
   /// celebrate exactly once.
-  static Future<List<AchievementBadge>> claimNew() async {
-    final all = await evaluate();
+  static Future<List<AchievementBadge>> claimNew(AppL l) async {
+    final all = await evaluate(l);
     final fresh = all.where((b) => b.unlocked && b.unlockedAt == null).toList();
     for (final badge in fresh) {
       await AppDatabase.instance.unlockBadge(badge.id);

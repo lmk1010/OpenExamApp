@@ -1736,4 +1736,174 @@ class AppLZh extends AppL {
 
   @override
   String get bankImport => '导入';
+
+  @override
+  String get badgeFirstBloodName => '开张';
+
+  @override
+  String get badgeFirstBloodDesc => '完成第一道题';
+
+  @override
+  String get badgeAnswers100Name => '百题';
+
+  @override
+  String get badgeAnswers100Desc => '累计答题 100 道';
+
+  @override
+  String get badgeAnswers500Name => '五百题';
+
+  @override
+  String get badgeAnswers500Desc => '累计答题 500 道';
+
+  @override
+  String get badgeAnswers2000Name => '两千题';
+
+  @override
+  String get badgeAnswers2000Desc => '累计答题 2000 道';
+
+  @override
+  String get badgeStreak3Name => '三天';
+
+  @override
+  String get badgeStreak3Desc => '连续练习 3 天';
+
+  @override
+  String get badgeStreak7Name => '一周不断';
+
+  @override
+  String get badgeStreak7Desc => '连续练习 7 天';
+
+  @override
+  String get badgeStreak30Name => '一月不断';
+
+  @override
+  String get badgeStreak30Desc => '连续练习 30 天';
+
+  @override
+  String get badgeActive20Name => '常客';
+
+  @override
+  String get badgeActive20Desc => '累计练习 20 天';
+
+  @override
+  String get badgeRate70Name => '及格线';
+
+  @override
+  String get badgeRate70Desc => '总正确率达到 70%（至少 50 题）';
+
+  @override
+  String get badgeRate85Name => '稳';
+
+  @override
+  String get badgeRate85Desc => '总正确率达到 85%（至少 200 题）';
+
+  @override
+  String get badgeStrong3Name => '三科过硬';
+
+  @override
+  String get badgeStrong3Desc => '三个模块正确率达到 80%（每个至少 20 题）';
+
+  @override
+  String get badgeExam1Name => '首战';
+
+  @override
+  String get badgeExam1Desc => '完成第一次限时模考';
+
+  @override
+  String get badgeExam10Name => '身经十战';
+
+  @override
+  String get badgeExam10Desc => '完成 10 次限时模考';
+
+  @override
+  String get badgeExam80Name => '高分卷';
+
+  @override
+  String get badgeExam80Desc => '任意一次模考正确率达到 80%';
+
+  @override
+  String get badgeCleanWrongName => '清空错题';
+
+  @override
+  String get badgeCleanWrongDesc => '把错题本清到 0（至少错过 20 题）';
+
+  @override
+  String get badgeDay100Name => '单日百题';
+
+  @override
+  String get badgeDay100Desc => '一天内做满 100 题';
+
+  @override
+  String get badgeNotes20Name => '会总结';
+
+  @override
+  String get badgeNotes20Desc => '写下 20 条题目笔记';
+
+  @override
+  String get badgeMarks30Name => '会收集';
+
+  @override
+  String get badgeMarks30Desc => '收藏 30 道题';
+
+  @override
+  String get badgeGroupVolume => '题量';
+
+  @override
+  String get badgeGroupConsistency => '坚持';
+
+  @override
+  String get badgeGroupAccuracy => '精度';
+
+  @override
+  String get badgeGroupExams => '考场';
+
+  @override
+  String get badgeGroupGrind => '攻坚';
+
+  @override
+  String get tierBronze => '铜';
+
+  @override
+  String get tierSilver => '银';
+
+  @override
+  String get tierGold => '金';
+
+  @override
+  String get tierPlatinum => '铂金';
+
+  @override
+  String get badgesTitle => '成就';
+
+  @override
+  String badgesUnlocked(int done, int total) {
+    return '已解锁 $done / $total';
+  }
+
+  @override
+  String get badgesNote => '全部按本机数据计算，清除练习记录会重新开始';
+
+  @override
+  String get badgesEarned => '已达成';
+
+  @override
+  String badgesToGo(int count) {
+    return ' · 还差 $count';
+  }
+
+  @override
+  String get badgesUnlockedTitle => '解锁成就';
+
+  @override
+  String badgesAlsoUnlocked(int count) {
+    return '同时还解锁了 $count 个';
+  }
+
+  @override
+  String get badgesTake => '收下';
+
+  @override
+  String badgesEarnedOn(String date) {
+    return '$date获得';
+  }
 }

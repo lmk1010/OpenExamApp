@@ -1782,4 +1782,175 @@ class AppLEn extends AppL {
 
   @override
   String get bankImport => 'Import';
+
+  @override
+  String get badgeFirstBloodName => 'First blood';
+
+  @override
+  String get badgeFirstBloodDesc => 'Answer your first question';
+
+  @override
+  String get badgeAnswers100Name => 'Hundred';
+
+  @override
+  String get badgeAnswers100Desc => '100 questions answered';
+
+  @override
+  String get badgeAnswers500Name => 'Five hundred';
+
+  @override
+  String get badgeAnswers500Desc => '500 questions answered';
+
+  @override
+  String get badgeAnswers2000Name => 'Two thousand';
+
+  @override
+  String get badgeAnswers2000Desc => '2,000 questions answered';
+
+  @override
+  String get badgeStreak3Name => 'Three days';
+
+  @override
+  String get badgeStreak3Desc => 'Practise 3 days running';
+
+  @override
+  String get badgeStreak7Name => 'A full week';
+
+  @override
+  String get badgeStreak7Desc => 'Practise 7 days running';
+
+  @override
+  String get badgeStreak30Name => 'A full month';
+
+  @override
+  String get badgeStreak30Desc => 'Practise 30 days running';
+
+  @override
+  String get badgeActive20Name => 'Regular';
+
+  @override
+  String get badgeActive20Desc => 'Practise on 20 separate days';
+
+  @override
+  String get badgeRate70Name => 'Passing';
+
+  @override
+  String get badgeRate70Desc => 'Reach 70% overall (50+ questions)';
+
+  @override
+  String get badgeRate85Name => 'Solid';
+
+  @override
+  String get badgeRate85Desc => 'Reach 85% overall (200+ questions)';
+
+  @override
+  String get badgeStrong3Name => 'Three strong';
+
+  @override
+  String get badgeStrong3Desc => 'Hit 80% in three modules (20+ each)';
+
+  @override
+  String get badgeExam1Name => 'First sitting';
+
+  @override
+  String get badgeExam1Desc => 'Finish your first timed mock';
+
+  @override
+  String get badgeExam10Name => 'Ten sittings';
+
+  @override
+  String get badgeExam10Desc => 'Finish 10 timed mocks';
+
+  @override
+  String get badgeExam80Name => 'Strong paper';
+
+  @override
+  String get badgeExam80Desc => 'Score 80% on any mock';
+
+  @override
+  String get badgeCleanWrongName => 'Cleared out';
+
+  @override
+  String get badgeCleanWrongDesc => 'Empty the mistake book (20+ missed)';
+
+  @override
+  String get badgeDay100Name => 'Century day';
+
+  @override
+  String get badgeDay100Desc => '100 questions in a single day';
+
+  @override
+  String get badgeNotes20Name => 'Note taker';
+
+  @override
+  String get badgeNotes20Desc => 'Write 20 question notes';
+
+  @override
+  String get badgeMarks30Name => 'Collector';
+
+  @override
+  String get badgeMarks30Desc => 'Save 30 questions';
+
+  @override
+  String get badgeGroupVolume => 'Volume';
+
+  @override
+  String get badgeGroupConsistency => 'Consistency';
+
+  @override
+  String get badgeGroupAccuracy => 'Accuracy';
+
+  @override
+  String get badgeGroupExams => 'Exams';
+
+  @override
+  String get badgeGroupGrind => 'Grind';
+
+  @override
+  String get tierBronze => 'Bronze';
+
+  @override
+  String get tierSilver => 'Silver';
+
+  @override
+  String get tierGold => 'Gold';
+
+  @override
+  String get tierPlatinum => 'Platinum';
+
+  @override
+  String get badgesTitle => 'Badges';
+
+  @override
+  String badgesUnlocked(int done, int total) {
+    return '$done of $total unlocked';
+  }
+
+  @override
+  String get badgesNote =>
+      'All computed from data on this device; clearing your history starts them over';
+
+  @override
+  String get badgesEarned => 'Earned';
+
+  @override
+  String badgesToGo(int count) {
+    return ' · $count to go';
+  }
+
+  @override
+  String get badgesUnlockedTitle => 'Badge unlocked';
+
+  @override
+  String badgesAlsoUnlocked(int count) {
+    return 'And $count more at the same time';
+  }
+
+  @override
+  String get badgesTake => 'Take it';
+
+  @override
+  String badgesEarnedOn(String date) {
+    return 'Earned $date';
+  }
 }
