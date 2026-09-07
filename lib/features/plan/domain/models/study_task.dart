@@ -1,3 +1,5 @@
+import 'package:openexam_app/l10n/app_localizations.dart';
+
 /// One checklist item in a day plan. Most actions jump into practice; [note]
 /// is for 申论 / 复盘 items the app can't auto-run yet.
 enum StudyAction {
@@ -26,12 +28,12 @@ enum StudyAction {
 enum RepeatRule { once, daily, weekdays, weekly, everyOtherDay }
 
 extension RepeatRuleX on RepeatRule {
-  String get label => switch (this) {
-        RepeatRule.once => '只这一次',
-        RepeatRule.daily => '每天',
-        RepeatRule.weekdays => '工作日',
-        RepeatRule.weekly => '每周这天',
-        RepeatRule.everyOtherDay => '隔一天',
+  String label(AppL l) => switch (this) {
+        RepeatRule.once => l.repeatOnce,
+        RepeatRule.daily => l.repeatDaily,
+        RepeatRule.weekdays => l.repeatWeekdays,
+        RepeatRule.weekly => l.repeatWeekly,
+        RepeatRule.everyOtherDay => l.repeatEveryOther,
       };
 
   /// [day] 这天要不要出现。[from] 是任务创建的那天。

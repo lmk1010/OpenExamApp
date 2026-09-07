@@ -1953,4 +1953,243 @@ class AppLEn extends AppL {
   String badgesEarnedOn(String date) {
     return 'Earned $date';
   }
+
+  @override
+  String planCatPractice(String name) {
+    return '$name practice';
+  }
+
+  @override
+  String get planDeleteSet => 'Delete plan';
+
+  @override
+  String planDeleteSetBody(String name, int count) {
+    return '\"$name\" and its $count items go; anything you\'ve already ticked stays.';
+  }
+
+  @override
+  String get planDeleteTask => 'Delete item';
+
+  @override
+  String planRepeatNote(String title, String rule) {
+    return '\"$title\" repeats: $rule.';
+  }
+
+  @override
+  String get planSkipToday => 'Skip just today';
+
+  @override
+  String get planDeleteForever => 'Delete for good';
+
+  @override
+  String get planTitle => 'Study plan';
+
+  @override
+  String planStreak(int days) {
+    return '$days-day plan streak · a day counts when the list is ticked off';
+  }
+
+  @override
+  String get planIntro =>
+      'Pick a template, then work the list each day — add your own items too';
+
+  @override
+  String planMonth(int n) {
+    return 'Month $n';
+  }
+
+  @override
+  String get planSwipeHint => 'Swipe for more days';
+
+  @override
+  String get planBackToToday => 'Back to today';
+
+  @override
+  String get planNothingToday => 'Nothing planned for this day';
+
+  @override
+  String get planAddHint => 'Add one, or start from a template';
+
+  @override
+  String get planAdd => 'Add';
+
+  @override
+  String get planToday => 'Today\'s list';
+
+  @override
+  String get planManage => 'Manage';
+
+  @override
+  String get planAddTitle => 'Add an item';
+
+  @override
+  String get planMine => 'My plans';
+
+  @override
+  String get planOff => 'Off';
+
+  @override
+  String get planPick => 'Pick a plan';
+
+  @override
+  String get planTodayMark => 'Now';
+
+  @override
+  String get commonNew => 'New';
+
+  @override
+  String get planClosed => 'Plan is off';
+
+  @override
+  String get planClose => 'Turn the plan off';
+
+  @override
+  String get planClosedHint =>
+      'Plan is off — tap any of these to start using one again';
+
+  @override
+  String get planNone => 'No plans yet — tap ＋ to make one';
+
+  @override
+  String planItemCount(int count) {
+    return '$count items';
+  }
+
+  @override
+  String get planNewTitle => 'New plan';
+
+  @override
+  String get planCreate => 'Create';
+
+  @override
+  String get planName => 'Name';
+
+  @override
+  String get planNameHint => 'e.g. Final sprint';
+
+  @override
+  String get planStartFrom => 'Start from';
+
+  @override
+  String get planBlank => 'Blank';
+
+  @override
+  String get planBlankHint => 'Add items yourself';
+
+  @override
+  String get planTemplateHint =>
+      'Templates just copy items in — every one can be edited or removed';
+
+  @override
+  String get taskCatPractice => 'Practice by type';
+
+  @override
+  String get taskManual => 'Reminder / by hand';
+
+  @override
+  String get taskVocab => 'Review words';
+
+  @override
+  String get taskCheckin => 'Check in';
+
+  @override
+  String get taskOpenWrong => 'Open the mistake book';
+
+  @override
+  String get taskCatPracticeHint => 'Draws questions of one type';
+
+  @override
+  String get taskMockHint => '50 questions · set your own minutes';
+
+  @override
+  String get taskWrongHint => 'Draws from your mistakes';
+
+  @override
+  String get taskWeakHint => 'Weighted towards your weak modules';
+
+  @override
+  String get taskManualHint => 'Just tick it off — nothing opens';
+
+  @override
+  String get taskVocabHint => 'Words due today';
+
+  @override
+  String get taskCheckinHint => 'Tick it when done — goes nowhere';
+
+  @override
+  String get taskOpenWrongHint => 'Jumps to the mistake book';
+
+  @override
+  String get taskUntitled => 'Untitled item';
+
+  @override
+  String get taskEdit => 'Edit item';
+
+  @override
+  String get taskWhat => 'What to do';
+
+  @override
+  String get taskWhatHint => 'e.g. Review 20 idioms';
+
+  @override
+  String get taskHowOften => 'How often';
+
+  @override
+  String get taskOnceOnly => 'Only on this day';
+
+  @override
+  String get taskEditForever => 'Edits apply to every future occurrence';
+
+  @override
+  String get taskAlsoPractise => 'Practise alongside it';
+
+  @override
+  String get taskAlsoPractiseHint => 'Ticking is enough — this is optional';
+
+  @override
+  String get taskType => 'Type';
+
+  @override
+  String get taskCount => 'How many';
+
+  @override
+  String get taskNote => 'Note (optional)';
+
+  @override
+  String get taskMinutes => 'Time limit (minutes, optional)';
+
+  @override
+  String get taskSoftLimit => 'Estimate from question count';
+
+  @override
+  String get taskSoftLimitHint =>
+      'With no minutes set, the length is estimated from the count';
+
+  @override
+  String get taskDelete => 'Delete this item';
+
+  @override
+  String get taskTapHint =>
+      'Only Start opens practice; tapping the row just edits the item.';
+
+  @override
+  String get taskEditTitle => 'Edit item';
+
+  @override
+  String get commonRename => 'Rename';
+
+  @override
+  String get repeatOnce => 'Just once';
+
+  @override
+  String get repeatDaily => 'Every day';
+
+  @override
+  String get repeatWeekdays => 'Weekdays';
+
+  @override
+  String get repeatWeekly => 'This day each week';
+
+  @override
+  String get repeatEveryOther => 'Every other day';
 }

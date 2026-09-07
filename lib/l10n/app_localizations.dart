@@ -3353,6 +3353,450 @@ abstract class AppL {
   /// In zh, this message translates to:
   /// **'{date}获得'**
   String badgesEarnedOn(String date);
+
+  /// No description provided for @planCatPractice.
+  ///
+  /// In zh, this message translates to:
+  /// **'{name}练习'**
+  String planCatPractice(String name);
+
+  /// No description provided for @planDeleteSet.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除计划'**
+  String get planDeleteSet;
+
+  /// No description provided for @planDeleteSetBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'「{name}」和里面的 {count} 条任务都会删掉，已打的勾不受影响。'**
+  String planDeleteSetBody(String name, int count);
+
+  /// No description provided for @planDeleteTask.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除安排'**
+  String get planDeleteTask;
+
+  /// No description provided for @planRepeatNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'「{title}」是{rule}的任务。'**
+  String planRepeatNote(String title, String rule);
+
+  /// No description provided for @planSkipToday.
+  ///
+  /// In zh, this message translates to:
+  /// **'今天先跳过'**
+  String get planSkipToday;
+
+  /// No description provided for @planDeleteForever.
+  ///
+  /// In zh, this message translates to:
+  /// **'以后都删'**
+  String get planDeleteForever;
+
+  /// No description provided for @planTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'复习计划'**
+  String get planTitle;
+
+  /// No description provided for @planStreak.
+  ///
+  /// In zh, this message translates to:
+  /// **'计划连签 {days} 天 · 勾完当天清单算一天'**
+  String planStreak(int days);
+
+  /// No description provided for @planIntro.
+  ///
+  /// In zh, this message translates to:
+  /// **'选好模板后，每天按清单练；可再加自己的任务'**
+  String get planIntro;
+
+  /// No description provided for @planMonth.
+  ///
+  /// In zh, this message translates to:
+  /// **'{n}月'**
+  String planMonth(int n);
+
+  /// No description provided for @planSwipeHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'左右滑动看更多天'**
+  String get planSwipeHint;
+
+  /// No description provided for @planBackToToday.
+  ///
+  /// In zh, this message translates to:
+  /// **'回到今天'**
+  String get planBackToToday;
+
+  /// No description provided for @planNothingToday.
+  ///
+  /// In zh, this message translates to:
+  /// **'这天还没有安排'**
+  String get planNothingToday;
+
+  /// No description provided for @planAddHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'加一条，或从范例开一份'**
+  String get planAddHint;
+
+  /// No description provided for @planAdd.
+  ///
+  /// In zh, this message translates to:
+  /// **'加安排'**
+  String get planAdd;
+
+  /// No description provided for @planToday.
+  ///
+  /// In zh, this message translates to:
+  /// **'今日安排'**
+  String get planToday;
+
+  /// No description provided for @planManage.
+  ///
+  /// In zh, this message translates to:
+  /// **'管理'**
+  String get planManage;
+
+  /// No description provided for @planAddTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'添加安排'**
+  String get planAddTitle;
+
+  /// No description provided for @planMine.
+  ///
+  /// In zh, this message translates to:
+  /// **'我的计划'**
+  String get planMine;
+
+  /// No description provided for @planOff.
+  ///
+  /// In zh, this message translates to:
+  /// **'未启用'**
+  String get planOff;
+
+  /// No description provided for @planPick.
+  ///
+  /// In zh, this message translates to:
+  /// **'选计划'**
+  String get planPick;
+
+  /// No description provided for @planTodayMark.
+  ///
+  /// In zh, this message translates to:
+  /// **'今'**
+  String get planTodayMark;
+
+  /// No description provided for @commonNew.
+  ///
+  /// In zh, this message translates to:
+  /// **'新建'**
+  String get commonNew;
+
+  /// No description provided for @planClosed.
+  ///
+  /// In zh, this message translates to:
+  /// **'计划已关闭'**
+  String get planClosed;
+
+  /// No description provided for @planClose.
+  ///
+  /// In zh, this message translates to:
+  /// **'关闭计划'**
+  String get planClose;
+
+  /// No description provided for @planClosedHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'计划已关闭，点下面任意一份重新用起来'**
+  String get planClosedHint;
+
+  /// No description provided for @planNone.
+  ///
+  /// In zh, this message translates to:
+  /// **'还没有计划，点右上角 ＋ 建一份'**
+  String get planNone;
+
+  /// No description provided for @planItemCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 条'**
+  String planItemCount(int count);
+
+  /// No description provided for @planNewTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'新建计划'**
+  String get planNewTitle;
+
+  /// No description provided for @planCreate.
+  ///
+  /// In zh, this message translates to:
+  /// **'建好'**
+  String get planCreate;
+
+  /// No description provided for @planName.
+  ///
+  /// In zh, this message translates to:
+  /// **'名字'**
+  String get planName;
+
+  /// No description provided for @planNameHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'例如 考前冲刺'**
+  String get planNameHint;
+
+  /// No description provided for @planStartFrom.
+  ///
+  /// In zh, this message translates to:
+  /// **'从哪儿开始'**
+  String get planStartFrom;
+
+  /// No description provided for @planBlank.
+  ///
+  /// In zh, this message translates to:
+  /// **'空白'**
+  String get planBlank;
+
+  /// No description provided for @planBlankHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'自己一条条加'**
+  String get planBlankHint;
+
+  /// No description provided for @planTemplateHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'范例只是抄一份过来，每条都能改能删'**
+  String get planTemplateHint;
+
+  /// No description provided for @taskCatPractice.
+  ///
+  /// In zh, this message translates to:
+  /// **'题型练习'**
+  String get taskCatPractice;
+
+  /// No description provided for @taskManual.
+  ///
+  /// In zh, this message translates to:
+  /// **'备忘 / 手写'**
+  String get taskManual;
+
+  /// No description provided for @taskVocab.
+  ///
+  /// In zh, this message translates to:
+  /// **'背词语'**
+  String get taskVocab;
+
+  /// No description provided for @taskCheckin.
+  ///
+  /// In zh, this message translates to:
+  /// **'打卡'**
+  String get taskCheckin;
+
+  /// No description provided for @taskOpenWrong.
+  ///
+  /// In zh, this message translates to:
+  /// **'打开错题本'**
+  String get taskOpenWrong;
+
+  /// No description provided for @taskCatPracticeHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'按题型抽题练习'**
+  String get taskCatPracticeHint;
+
+  /// No description provided for @taskMockHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'50 题 · 可设定分钟'**
+  String get taskMockHint;
+
+  /// No description provided for @taskWrongHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'从错题里抽练'**
+  String get taskWrongHint;
+
+  /// No description provided for @taskWeakHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'按薄弱模块抽题'**
+  String get taskWeakHint;
+
+  /// No description provided for @taskManualHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'勾选完成即可，不自动开练'**
+  String get taskManualHint;
+
+  /// No description provided for @taskVocabHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'今天到期的成语和易错词'**
+  String get taskVocabHint;
+
+  /// No description provided for @taskCheckinHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'做完打个勾，不跳任何页面'**
+  String get taskCheckinHint;
+
+  /// No description provided for @taskOpenWrongHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'跳到错题本整理'**
+  String get taskOpenWrongHint;
+
+  /// No description provided for @taskUntitled.
+  ///
+  /// In zh, this message translates to:
+  /// **'未命名任务'**
+  String get taskUntitled;
+
+  /// No description provided for @taskEdit.
+  ///
+  /// In zh, this message translates to:
+  /// **'任务安排'**
+  String get taskEdit;
+
+  /// No description provided for @taskWhat.
+  ///
+  /// In zh, this message translates to:
+  /// **'做什么'**
+  String get taskWhat;
+
+  /// No description provided for @taskWhatHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'例如 背 20 个成语'**
+  String get taskWhatHint;
+
+  /// No description provided for @taskHowOften.
+  ///
+  /// In zh, this message translates to:
+  /// **'多久做一次'**
+  String get taskHowOften;
+
+  /// No description provided for @taskOnceOnly.
+  ///
+  /// In zh, this message translates to:
+  /// **'只出现在这一天'**
+  String get taskOnceOnly;
+
+  /// No description provided for @taskEditForever.
+  ///
+  /// In zh, this message translates to:
+  /// **'改这条任务，往后每次都跟着变'**
+  String get taskEditForever;
+
+  /// No description provided for @taskAlsoPractise.
+  ///
+  /// In zh, this message translates to:
+  /// **'顺便练题'**
+  String get taskAlsoPractise;
+
+  /// No description provided for @taskAlsoPractiseHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'勾完就算，不用设也行'**
+  String get taskAlsoPractiseHint;
+
+  /// No description provided for @taskType.
+  ///
+  /// In zh, this message translates to:
+  /// **'题型'**
+  String get taskType;
+
+  /// No description provided for @taskCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'题量'**
+  String get taskCount;
+
+  /// No description provided for @taskNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'备注（可选）'**
+  String get taskNote;
+
+  /// No description provided for @taskMinutes.
+  ///
+  /// In zh, this message translates to:
+  /// **'限时（分钟，可选）'**
+  String get taskMinutes;
+
+  /// No description provided for @taskSoftLimit.
+  ///
+  /// In zh, this message translates to:
+  /// **'按题量软限时'**
+  String get taskSoftLimit;
+
+  /// No description provided for @taskSoftLimitHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'未填分钟时，按题量估算时长'**
+  String get taskSoftLimitHint;
+
+  /// No description provided for @taskDelete.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除此安排'**
+  String get taskDelete;
+
+  /// No description provided for @taskTapHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'点「开始」才会进入练习；点这一行只改安排，避免误触。'**
+  String get taskTapHint;
+
+  /// No description provided for @taskEditTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'编辑安排'**
+  String get taskEditTitle;
+
+  /// No description provided for @commonRename.
+  ///
+  /// In zh, this message translates to:
+  /// **'重命名'**
+  String get commonRename;
+
+  /// No description provided for @repeatOnce.
+  ///
+  /// In zh, this message translates to:
+  /// **'只这一次'**
+  String get repeatOnce;
+
+  /// No description provided for @repeatDaily.
+  ///
+  /// In zh, this message translates to:
+  /// **'每天'**
+  String get repeatDaily;
+
+  /// No description provided for @repeatWeekdays.
+  ///
+  /// In zh, this message translates to:
+  /// **'工作日'**
+  String get repeatWeekdays;
+
+  /// No description provided for @repeatWeekly.
+  ///
+  /// In zh, this message translates to:
+  /// **'每周这天'**
+  String get repeatWeekly;
+
+  /// No description provided for @repeatEveryOther.
+  ///
+  /// In zh, this message translates to:
+  /// **'隔一天'**
+  String get repeatEveryOther;
 }
 
 class _AppLDelegate extends LocalizationsDelegate<AppL> {

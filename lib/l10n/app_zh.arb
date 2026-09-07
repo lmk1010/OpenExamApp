@@ -1584,5 +1584,127 @@
         "type": "String"
       }
     }
-  }
+  },
+  "planCatPractice": "{name}练习",
+  "@planCatPractice": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "planDeleteSet": "删除计划",
+  "planDeleteSetBody": "「{name}」和里面的 {count} 条任务都会删掉，已打的勾不受影响。",
+  "@planDeleteSetBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "planDeleteTask": "删除安排",
+  "planRepeatNote": "「{title}」是{rule}的任务。",
+  "@planRepeatNote": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "rule": {
+        "type": "String"
+      }
+    }
+  },
+  "planSkipToday": "今天先跳过",
+  "planDeleteForever": "以后都删",
+  "planTitle": "复习计划",
+  "planStreak": "计划连签 {days} 天 · 勾完当天清单算一天",
+  "@planStreak": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "planIntro": "选好模板后，每天按清单练；可再加自己的任务",
+  "planMonth": "{n}月",
+  "@planMonth": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "planSwipeHint": "左右滑动看更多天",
+  "planBackToToday": "回到今天",
+  "planNothingToday": "这天还没有安排",
+  "planAddHint": "加一条，或从范例开一份",
+  "planAdd": "加安排",
+  "planToday": "今日安排",
+  "planManage": "管理",
+  "planAddTitle": "添加安排",
+  "planMine": "我的计划",
+  "planOff": "未启用",
+  "planPick": "选计划",
+  "planTodayMark": "今",
+  "commonNew": "新建",
+  "planClosed": "计划已关闭",
+  "planClose": "关闭计划",
+  "planClosedHint": "计划已关闭，点下面任意一份重新用起来",
+  "planNone": "还没有计划，点右上角 ＋ 建一份",
+  "planItemCount": "{count} 条",
+  "@planItemCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "planNewTitle": "新建计划",
+  "planCreate": "建好",
+  "planName": "名字",
+  "planNameHint": "例如 考前冲刺",
+  "planStartFrom": "从哪儿开始",
+  "planBlank": "空白",
+  "planBlankHint": "自己一条条加",
+  "planTemplateHint": "范例只是抄一份过来，每条都能改能删",
+  "taskCatPractice": "题型练习",
+  "taskManual": "备忘 / 手写",
+  "taskVocab": "背词语",
+  "taskCheckin": "打卡",
+  "taskOpenWrong": "打开错题本",
+  "taskCatPracticeHint": "按题型抽题练习",
+  "taskMockHint": "50 题 · 可设定分钟",
+  "taskWrongHint": "从错题里抽练",
+  "taskWeakHint": "按薄弱模块抽题",
+  "taskManualHint": "勾选完成即可，不自动开练",
+  "taskVocabHint": "今天到期的成语和易错词",
+  "taskCheckinHint": "做完打个勾，不跳任何页面",
+  "taskOpenWrongHint": "跳到错题本整理",
+  "taskUntitled": "未命名任务",
+  "taskEdit": "任务安排",
+  "taskWhat": "做什么",
+  "taskWhatHint": "例如 背 20 个成语",
+  "taskHowOften": "多久做一次",
+  "taskOnceOnly": "只出现在这一天",
+  "taskEditForever": "改这条任务，往后每次都跟着变",
+  "taskAlsoPractise": "顺便练题",
+  "taskAlsoPractiseHint": "勾完就算，不用设也行",
+  "taskType": "题型",
+  "taskCount": "题量",
+  "taskNote": "备注（可选）",
+  "taskMinutes": "限时（分钟，可选）",
+  "taskSoftLimit": "按题量软限时",
+  "taskSoftLimitHint": "未填分钟时，按题量估算时长",
+  "taskDelete": "删除此安排",
+  "taskTapHint": "点「开始」才会进入练习；点这一行只改安排，避免误触。",
+  "taskEditTitle": "编辑安排",
+  "commonRename": "重命名",
+  "repeatOnce": "只这一次",
+  "repeatDaily": "每天",
+  "repeatWeekdays": "工作日",
+  "repeatWeekly": "每周这天",
+  "repeatEveryOther": "隔一天"
 }

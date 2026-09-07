@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
@@ -127,6 +128,9 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
   }
 
   Future<void> _runLocally(StudyTask task) async {
+    // 各分支都在 await 之后拼标题，先把本地化对象取出来 ——
+    // 跨 await 摸 context 会被 lint 拦。
+    final l = AppL.of(context);
     if (task.action == StudyAction.note) {
       await _toggle(task, !_done.contains(task.id));
       return;
@@ -160,7 +164,7 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
         );
         title = task.category == null
             ? task.title
-            : '${categoryLabel(task.category)}练习';
+            : l.planCatPractice(categoryLabel(task.category));
         if (task.minutes != null) {
           limit = Duration(minutes: task.minutes!);
         } else if (task.timed) {
@@ -169,20 +173,20 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
         break;
       case StudyAction.daily:
         questions = await db.fetchDailySet(day: DateTime.now(), limit: 20);
-        title = '每日一练';
+        title = l.homeDaily;
         break;
       case StudyAction.mock:
         questions = await db.fetchPractice(limit: 50, shuffle: true);
         limit = const Duration(minutes: 45);
-        title = '限时模考';
+        title = l.homeMock;
         break;
       case StudyAction.wrong:
         questions = await db.fetchWrong(limit: task.count ?? 20);
-        title = '错题重练';
+        title = l.homeRedoWrong;
         break;
       case StudyAction.adaptive:
         questions = await db.fetchAdaptive(limit: task.count ?? 20);
-        title = '弱项强化';
+        title = l.homeWeakDrill;
         break;
       case StudyAction.note:
       case StudyAction.openWrongBook:
@@ -192,7 +196,7 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
     if (!mounted) return;
     if (questions.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('这里还没有题')),
+        SnackBar(content: Text(l.homeNoQuestionsHere)),
       );
       return;
     }
@@ -249,9 +253,9 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
         await store.renameSet(set.id, name);
       case DeletePlanSet(:final set):
         final ok = await _confirm(
-          title: '删除计划',
-          body: '「${set.name}」和里面的 ${set.tasks.length} 条任务都会删掉，已打的勾不受影响。',
-          action: '删除',
+          title: AppL.of(context).planDeleteSet,
+          body: AppL.of(context).planDeleteSetBody(set.name, set.tasks.length),
+          action: AppL.of(context).commonDelete,
         );
         if (ok != true) return;
         await store.deleteSet(set.id);
@@ -272,7 +276,7 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('取消'),
+            child: Text(AppL.of(context).commonCancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
@@ -318,9 +322,9 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
     // 一次性任务只活在这一天，删就是删，没什么可问的
     if (task.repeat == RepeatRule.once) {
       final ok = await _confirm(
-        title: '删除安排',
-        body: '确定删除「${task.title}」？',
-        action: '删除',
+        title: AppL.of(context).planDeleteTask,
+        body: AppL.of(context).homeDeleteTaskConfirm(task.title),
+        action: AppL.of(context).commonDelete,
       );
       if (ok != true) return;
       await _store!.deleteTask(_selected, task);
@@ -332,20 +336,20 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
     final scope = await showDialog<PlanEditScope>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('删除安排'),
-        content: Text('「${task.title}」是${task.repeat.label}的任务。'),
+        title: Text(AppL.of(context).planDeleteTask),
+        content: Text(AppL.of(context).planRepeatNote(task.title, task.repeat.label(AppL.of(context)))),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('取消'),
+            child: Text(AppL.of(context).commonCancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(PlanEditScope.today),
-            child: const Text('今天先跳过'),
+            child: Text(AppL.of(context).planSkipToday),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(PlanEditScope.forever),
-            child: const Text('以后都删'),
+            child: Text(AppL.of(context).planDeleteForever),
           ),
         ],
       ),
@@ -398,10 +402,10 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
                                 icon: Icons.arrow_back,
                                 onTap: () => Navigator.of(context).maybePop(),
                               ),
-                              const SizedBox(width: 4),
+                              SizedBox(width: 4),
                             ],
-                            Text('复习计划', style: text.titleMedium),
-                            const Spacer(),
+                            Text(AppL.of(context).planTitle, style: text.titleMedium),
+                            Spacer(),
                             TextButton(
                               onPressed: _pickPlanSet,
                               child: Text(
@@ -415,7 +419,7 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(
+                        padding: EdgeInsets.fromLTRB(
                           AppTheme.gutter,
                           8,
                           AppTheme.gutter,
@@ -423,33 +427,33 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
                         ),
                         child: Text(
                           _streak > 0
-                              ? '计划连签 $_streak 天 · 勾完当天清单算一天'
-                              : '选好模板后，每天按清单练；可再加自己的任务',
+                              ? AppL.of(context).planStreak(_streak)
+                              : AppL.of(context).planIntro,
                           style: text.bodySmall,
                         ),
                       ),
                       const SizedBox(height: 14),
                       Padding(
-                        padding: const EdgeInsets.symmetric(
+                        padding: EdgeInsets.symmetric(
                           horizontal: AppTheme.gutter,
                         ),
                         child: Row(
                           children: [
                             Text(
-                              '${_selected.month}月',
+                              AppL.of(context).planMonth(_selected.month),
                               style: text.titleSmall,
                             ),
-                            const SizedBox(width: 8),
+                            SizedBox(width: 8),
                             Text(
-                              '左右滑动看更多天',
+                              AppL.of(context).planSwipeHint,
                               style: text.bodySmall,
                             ),
-                            const Spacer(),
+                            Spacer(),
                             if (!_sameDay(_selected, DateTime.now()))
                               TextButton(
                                 onPressed: () => _selectDay(DateTime.now()),
                                 child: Text(
-                                  '回到今天',
+                                  AppL.of(context).planBackToToday,
                                   style: text.labelMedium?.copyWith(
                                     color: t.brand,
                                   ),
@@ -510,7 +514,7 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
                       const SizedBox(height: 22),
                       if (_plan == null || _plan!.tasks.isEmpty)
                         Padding(
-                          padding: const EdgeInsets.symmetric(
+                          padding: EdgeInsets.symmetric(
                             horizontal: ShoreGap.page,
                           ),
                           child: GestureDetector(
@@ -519,7 +523,7 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
                             // 新建一份空的之后就卡死在这，一条也加不进去
                             onTap: _addTask,
                             child: Container(
-                              padding: const EdgeInsets.all(18),
+                              padding: EdgeInsets.all(18),
                               decoration: BoxDecoration(
                                 color: t.accentSoft,
                                 borderRadius: BorderRadius.circular(22),
@@ -532,13 +536,13 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          '这天还没有安排',
+                                          AppL.of(context).planNothingToday,
                                           style: text.titleSmall
                                               ?.copyWith(fontSize: 15.5),
                                         ),
-                                        const SizedBox(height: 4),
+                                        SizedBox(height: 4),
                                         Text(
-                                          '加一条，或从范例开一份',
+                                          AppL.of(context).planAddHint,
                                           style: text.bodySmall?.copyWith(
                                             fontSize: 12.5,
                                             color: t.onAccentSoft,
@@ -547,9 +551,9 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
                                       ],
                                     ),
                                   ),
-                                  const SizedBox(width: 12),
+                                  SizedBox(width: 12),
                                   Container(
-                                    padding: const EdgeInsets.symmetric(
+                                    padding: EdgeInsets.symmetric(
                                       horizontal: 20,
                                       vertical: 11,
                                     ),
@@ -558,7 +562,7 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
                                       borderRadius: BorderRadius.circular(99),
                                     ),
                                     child: Text(
-                                      '加安排',
+                                      AppL.of(context).planAdd,
                                       style: TextStyle(
                                         fontSize: 14,
                                         fontWeight: FontWeight.w700,
@@ -576,9 +580,9 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
                         // 之前这里是一排横滑的彩色任务卡，跟首页各说各的，
                         // 同一份计划在两个页面长得完全不像同一件事。
                         ShoreSection(
-                          title: '今日安排',
+                          title: AppL.of(context).planToday,
                           caption: '${_done.intersection(_plan!.tasks.map((e) => e.id).toSet()).length} / ${_plan!.tasks.length}',
-                          action: '管理',
+                          action: AppL.of(context).planManage,
                           onAction: _pickPlanSet,
                           child: RouteList(
                             tasks: _plan!.tasks,
@@ -602,14 +606,14 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
                             Expanded(
                               child: OutlinedButton(
                                 onPressed: _addTask,
-                                child: const Text('添加安排'),
+                                child: Text(AppL.of(context).planAddTitle),
                               ),
                             ),
                             const SizedBox(width: 10),
                             Expanded(
                               child: OutlinedButton(
                                 onPressed: _pickPlanSet,
-                                child: const Text('我的计划'),
+                                child: Text(AppL.of(context).planMine),
                               ),
                             ),
                           ],
@@ -624,11 +628,11 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
   }
 
   String _setLabel() {
-    if (_setId == StudyPlanStore.offId) return '未启用';
+    if (_setId == StudyPlanStore.offId) return AppL.of(context).planOff;
     for (final s in _sets) {
       if (s.id == _setId) return s.name;
     }
-    return '选计划';
+    return AppL.of(context).planPick;
   }
 
   static bool _sameDay(DateTime a, DateTime b) =>
@@ -664,7 +668,7 @@ class _DayChip extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        padding: EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
           // 选中走 accent，跟别处"按下去会发生什么"同一个色；
           // 做完那天留一层淡绿，一眼能扫出这周哪几天划完了。
@@ -683,7 +687,7 @@ class _DayChip extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              isToday ? '今' : labels[day.weekday - 1],
+              isToday ? AppL.of(context).planTodayMark : labels[day.weekday - 1],
               style: text.bodySmall?.copyWith(
                 color: selected ? t.onAccent : t.muted,
                 fontSize: 11,
@@ -770,7 +774,7 @@ class _PlanSetSheet extends StatelessWidget {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         border: Border(top: BorderSide(color: t.lineSoft)),
       ),
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+      padding: EdgeInsets.fromLTRB(16, 14, 16, 8),
       child: SafeArea(
         top: false,
         child: Column(
@@ -779,17 +783,17 @@ class _PlanSetSheet extends StatelessWidget {
           children: [
             Row(
               children: [
-                const SizedBox(width: 4),
-                Expanded(child: Text('我的计划', style: text.titleMedium)),
+                SizedBox(width: 4),
+                Expanded(child: Text(AppL.of(context).planMine, style: text.titleMedium)),
                 IconButton(
-                  tooltip: '新建',
-                  icon: const Icon(Icons.add, size: 22),
+                  tooltip: AppL.of(context).commonNew,
+                  icon: Icon(Icons.add, size: 22),
                   color: t.brand,
                   onPressed: () =>
-                      Navigator.of(context).pop(const StartNewSet()),
+                      Navigator.of(context).pop(StartNewSet()),
                 ),
                 IconButton(
-                  tooltip: off ? '计划已关闭' : '关闭计划',
+                  tooltip: off ? AppL.of(context).planClosed : AppL.of(context).planClose,
                   icon: Icon(
                     off ? Icons.visibility_off : Icons.visibility_off_outlined,
                     size: 21,
@@ -802,9 +806,9 @@ class _PlanSetSheet extends StatelessWidget {
             ),
             if (off)
               Padding(
-                padding: const EdgeInsets.fromLTRB(6, 2, 6, 8),
+                padding: EdgeInsets.fromLTRB(6, 2, 6, 8),
                 child: Text(
-                  '计划已关闭，点下面任意一份重新用起来',
+                  AppL.of(context).planClosedHint,
                   style: text.bodySmall?.copyWith(color: t.textSoft),
                 ),
               ),
@@ -825,9 +829,9 @@ class _PlanSetSheet extends StatelessWidget {
                       ),
                     if (sets.isEmpty)
                       Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 26),
+                        padding: EdgeInsets.symmetric(vertical: 26),
                         child: Text(
-                          '还没有计划，点右上角 ＋ 建一份',
+                          AppL.of(context).planNone,
                           style: text.bodySmall?.copyWith(color: t.textSoft),
                         ),
                       ),
@@ -896,9 +900,9 @@ class _SetRow extends StatelessWidget {
                     style: text.titleSmall
                         ?.copyWith(color: selected ? t.brand : t.text),
                   ),
-                  const SizedBox(height: 2),
+                  SizedBox(height: 2),
                   Text(
-                    '${set.tasks.length} 条',
+                    AppL.of(context).planItemCount(set.tasks.length),
                     style: text.bodySmall?.copyWith(color: t.textSoft),
                   ),
                 ],
@@ -955,7 +959,7 @@ class _NewPlanSheetState extends State<_NewPlanSheet> {
 
   void _submit() {
     final name = _name.text.trim().isEmpty
-        ? (_pack?.name ?? '我的计划')
+        ? (_pack?.name ?? AppL.of(context).planMine)
         : _name.text.trim();
     Navigator.of(context).pop((name, _pack));
   }
@@ -973,10 +977,10 @@ class _NewPlanSheetState extends State<_NewPlanSheet> {
         ),
         decoration: BoxDecoration(
           color: t.gradient.last,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
           border: Border(top: BorderSide(color: t.lineSoft)),
         ),
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 10),
+        padding: EdgeInsets.fromLTRB(20, 16, 20, 10),
         child: SafeArea(
           top: false,
           child: Column(
@@ -985,30 +989,30 @@ class _NewPlanSheetState extends State<_NewPlanSheet> {
             children: [
               Row(
                 children: [
-                  Expanded(child: Text('新建计划', style: text.titleMedium)),
+                  Expanded(child: Text(AppL.of(context).planNewTitle, style: text.titleMedium)),
                   TextButton(
                     onPressed: _submit,
                     child: Text(
-                      '建好',
+                      AppL.of(context).planCreate,
                       style: text.labelMedium?.copyWith(color: t.brand),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               TextField(
                 controller: _name,
                 autofocus: true,
-                decoration: const InputDecoration(
-                  labelText: '名字',
-                  hintText: '例如 考前冲刺',
+                decoration: InputDecoration(
+                  labelText: AppL.of(context).planName,
+                  hintText: AppL.of(context).planNameHint,
                   border: OutlineInputBorder(),
                   isDense: true,
                 ),
               ),
-              const SizedBox(height: 18),
-              Text('从哪儿开始', style: text.titleSmall),
-              const SizedBox(height: 8),
+              SizedBox(height: 18),
+              Text(AppL.of(context).planStartFrom, style: text.titleSmall),
+              SizedBox(height: 8),
               Flexible(
                 child: SingleChildScrollView(
                   child: Column(
@@ -1016,8 +1020,8 @@ class _NewPlanSheetState extends State<_NewPlanSheet> {
                     children: [
                       _StartOption(
                         icon: Icons.edit_outlined,
-                        title: '空白',
-                        subtitle: '自己一条条加',
+                        title: AppL.of(context).planBlank,
+                        subtitle: AppL.of(context).planBlankHint,
                         selected: _pack == null,
                         onTap: () => setState(() => _pack = null),
                       ),
@@ -1033,9 +1037,9 @@ class _NewPlanSheetState extends State<_NewPlanSheet> {
                   ),
                 ),
               ),
-              const SizedBox(height: 4),
+              SizedBox(height: 4),
               Text(
-                '范例只是抄一份过来，每条都能改能删',
+                AppL.of(context).planTemplateHint,
                 style: text.bodySmall?.copyWith(color: t.textSoft),
               ),
             ],

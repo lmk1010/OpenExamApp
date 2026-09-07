@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
 import 'package:openexam_app/features/plan/domain/models/study_task.dart';
@@ -14,49 +15,49 @@ class StudyTaskEditResult {
   final bool delete;
 }
 
-String studyActionLabel(StudyAction action) {
+String studyActionLabel(BuildContext context, StudyAction action) {
   switch (action) {
     case StudyAction.practice:
-      return '题型练习';
+      return AppL.of(context).taskCatPractice;
     case StudyAction.daily:
-      return '每日一练';
+      return AppL.of(context).homeDaily;
     case StudyAction.mock:
-      return '限时模考';
+      return AppL.of(context).homeMock;
     case StudyAction.wrong:
-      return '错题重练';
+      return AppL.of(context).homeRedoWrong;
     case StudyAction.adaptive:
-      return '弱项强化';
+      return AppL.of(context).homeWeakDrill;
     case StudyAction.note:
-      return '备忘 / 手写';
+      return AppL.of(context).taskManual;
     case StudyAction.vocab:
-      return '背词语';
+      return AppL.of(context).taskVocab;
     case StudyAction.check:
-      return '打卡';
+      return AppL.of(context).taskCheckin;
     case StudyAction.openWrongBook:
-      return '打开错题本';
+      return AppL.of(context).taskOpenWrong;
   }
 }
 
-String studyActionHint(StudyAction action) {
+String studyActionHint(BuildContext context, StudyAction action) {
   switch (action) {
     case StudyAction.practice:
-      return '按题型抽题练习';
+      return AppL.of(context).taskCatPracticeHint;
     case StudyAction.daily:
-      return '今天的固定卷';
+      return AppL.of(context).homeDailyHint;
     case StudyAction.mock:
-      return '50 题 · 可设定分钟';
+      return AppL.of(context).taskMockHint;
     case StudyAction.wrong:
-      return '从错题里抽练';
+      return AppL.of(context).taskWrongHint;
     case StudyAction.adaptive:
-      return '按薄弱模块抽题';
+      return AppL.of(context).taskWeakHint;
     case StudyAction.note:
-      return '勾选完成即可，不自动开练';
+      return AppL.of(context).taskManualHint;
     case StudyAction.vocab:
-      return '今天到期的成语和易错词';
+      return AppL.of(context).taskVocabHint;
     case StudyAction.check:
-      return '做完打个勾，不跳任何页面';
+      return AppL.of(context).taskCheckinHint;
     case StudyAction.openWrongBook:
-      return '跳到错题本整理';
+      return AppL.of(context).taskOpenWrongHint;
   }
 }
 
@@ -139,7 +140,7 @@ class _StudyTaskEditorSheetState extends State<_StudyTaskEditorSheet> {
     final minutes = int.tryParse(_minutes.text.trim());
     return StudyTask(
       id: id,
-      title: _title.text.trim().isEmpty ? '未命名任务' : _title.text.trim(),
+      title: _title.text.trim().isEmpty ? AppL.of(context).taskUntitled : _title.text.trim(),
       subtitle: _subtitle.text.trim().isEmpty ? null : _subtitle.text.trim(),
       action: _action,
       category: _needsCategory ? _category : null,
@@ -166,7 +167,7 @@ class _StudyTaskEditorSheetState extends State<_StudyTaskEditorSheet> {
         ),
         decoration: BoxDecoration(
           color: t.gradient.last,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
           border: Border(top: BorderSide(color: t.lineSoft)),
         ),
         child: SafeArea(
@@ -174,12 +175,12 @@ class _StudyTaskEditorSheetState extends State<_StudyTaskEditorSheet> {
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 12, 8),
+                padding: EdgeInsets.fromLTRB(20, 16, 12, 8),
                 child: Row(
                   children: [
                     Expanded(
                       child: Text(
-                        widget.create ? '添加安排' : '任务安排',
+                        widget.create ? AppL.of(context).planAddTitle : AppL.of(context).taskEdit,
                         style: text.titleMedium,
                       ),
                     ),
@@ -190,7 +191,7 @@ class _StudyTaskEditorSheetState extends State<_StudyTaskEditorSheet> {
                         Navigator.of(context).pop(StudyTaskEditResult.save(task));
                       },
                       child: Text(
-                        '保存',
+                        AppL.of(context).commonSave,
                         style: text.labelMedium?.copyWith(color: t.brand),
                       ),
                     ),
@@ -199,38 +200,38 @@ class _StudyTaskEditorSheetState extends State<_StudyTaskEditorSheet> {
               ),
               Expanded(
                 child: ListView(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                  padding: EdgeInsets.fromLTRB(20, 0, 20, 16),
                   children: [
                     TextField(
                       controller: _title,
                       autofocus: widget.create,
-                      decoration: const InputDecoration(
-                        labelText: '做什么',
-                        hintText: '例如 背 20 个成语',
+                      decoration: InputDecoration(
+                        labelText: AppL.of(context).taskWhat,
+                        hintText: AppL.of(context).taskWhatHint,
                         border: OutlineInputBorder(),
                         isDense: true,
                       ),
                     ),
-                    const SizedBox(height: 18),
-                    Text('多久做一次', style: text.titleSmall),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 18),
+                    Text(AppL.of(context).taskHowOften, style: text.titleSmall),
+                    SizedBox(height: 8),
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
                       children: [
                         for (final rule in RepeatRule.values)
                           _RepeatChip(
-                            label: rule.label,
+                            label: rule.label(AppL.of(context)),
                             on: _repeat == rule,
                             onTap: () => setState(() => _repeat = rule),
                           ),
                       ],
                     ),
-                    const SizedBox(height: 6),
+                    SizedBox(height: 6),
                     Text(
                       _repeat == RepeatRule.once
-                          ? '只出现在这一天'
-                          : '改这条任务，往后每次都跟着变',
+                          ? AppL.of(context).taskOnceOnly
+                          : AppL.of(context).taskEditForever,
                       style: text.bodySmall?.copyWith(color: t.textSoft),
                     ),
 
@@ -251,12 +252,12 @@ class _StudyTaskEditorSheetState extends State<_StudyTaskEditorSheet> {
                               size: 20,
                               color: t.textSoft,
                             ),
-                            const SizedBox(width: 4),
-                            Text('顺便练题', style: text.titleSmall),
-                            const SizedBox(width: 8),
+                            SizedBox(width: 4),
+                            Text(AppL.of(context).taskAlsoPractise, style: text.titleSmall),
+                            SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                _advanced ? '' : '勾完就算，不用设也行',
+                                _advanced ? '' : AppL.of(context).taskAlsoPractiseHint,
                                 style: text.bodySmall?.copyWith(color: t.textSoft),
                               ),
                             ),
@@ -269,13 +270,13 @@ class _StudyTaskEditorSheetState extends State<_StudyTaskEditorSheet> {
                       for (final action in StudyAction.values)
                         _ActionTile(
                           selected: _action == action,
-                          title: studyActionLabel(action),
-                          subtitle: studyActionHint(action),
+                          title: studyActionLabel(context, action),
+                          subtitle: studyActionHint(context, action),
                           onTap: () => setState(() => _action = action),
                         ),
                       if (_needsCategory) ...[
-                        const SizedBox(height: 12),
-                        Text('题型', style: text.titleSmall),
+                        SizedBox(height: 12),
+                        Text(AppL.of(context).taskType, style: text.titleSmall),
                         const SizedBox(height: 8),
                         Wrap(
                           spacing: 8,
@@ -296,18 +297,18 @@ class _StudyTaskEditorSheetState extends State<_StudyTaskEditorSheet> {
                         TextField(
                           controller: _count,
                           keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(
-                            labelText: '题量',
+                          decoration: InputDecoration(
+                            labelText: AppL.of(context).taskCount,
                             border: OutlineInputBorder(),
                             isDense: true,
                           ),
                         ),
                       ],
-                      const SizedBox(height: 12),
+                      SizedBox(height: 12),
                       TextField(
                         controller: _subtitle,
-                        decoration: const InputDecoration(
-                          labelText: '备注（可选）',
+                        decoration: InputDecoration(
+                          labelText: AppL.of(context).taskNote,
                           border: OutlineInputBorder(),
                           isDense: true,
                         ),
@@ -317,21 +318,21 @@ class _StudyTaskEditorSheetState extends State<_StudyTaskEditorSheet> {
                         _action != StudyAction.note &&
                         _action != StudyAction.check &&
                         _action != StudyAction.openWrongBook) ...[
-                      const SizedBox(height: 12),
+                      SizedBox(height: 12),
                       TextField(
                         controller: _minutes,
                         keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(
-                          labelText: '限时（分钟，可选）',
+                        decoration: InputDecoration(
+                          labelText: AppL.of(context).taskMinutes,
                           border: OutlineInputBorder(),
                           isDense: true,
                         ),
                       ),
                       SwitchListTile(
                         contentPadding: EdgeInsets.zero,
-                        title: Text('按题量软限时', style: text.titleSmall),
+                        title: Text(AppL.of(context).taskSoftLimit, style: text.titleSmall),
                         subtitle: Text(
-                          '未填分钟时，按题量估算时长',
+                          AppL.of(context).taskSoftLimitHint,
                           style: text.bodySmall,
                         ),
                         value: _timed,
@@ -342,16 +343,16 @@ class _StudyTaskEditorSheetState extends State<_StudyTaskEditorSheet> {
                       const SizedBox(height: 8),
                       TextButton(
                         onPressed: () => Navigator.of(context)
-                            .pop(const StudyTaskEditResult.delete()),
+                            .pop(StudyTaskEditResult.delete()),
                         child: Text(
-                          '删除此安排',
+                          AppL.of(context).taskDelete,
                           style: text.labelMedium?.copyWith(color: t.danger),
                         ),
                       ),
                     ],
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     Text(
-                      '点「开始」才会进入练习；点这一行只改安排，避免误触。',
+                      AppL.of(context).taskTapHint,
                       style: text.bodySmall,
                     ),
                   ],
@@ -441,14 +442,14 @@ Future<void> showStudyTaskActions(
               Text(task.title, style: text.titleMedium),
               const SizedBox(height: 4),
               Text(
-                studyActionLabel(task.action),
+                studyActionLabel(context, task.action),
                 style: text.bodySmall,
               ),
               const SizedBox(height: 8),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.edit_outlined, size: 20),
-                title: Text('编辑安排', style: text.titleSmall),
+                leading: Icon(Icons.edit_outlined, size: 20),
+                title: Text(AppL.of(context).taskEditTitle, style: text.titleSmall),
                 onTap: () {
                   Navigator.of(ctx).pop();
                   onEdit();
@@ -456,8 +457,8 @@ Future<void> showStudyTaskActions(
               ),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.drive_file_rename_outline, size: 20),
-                title: Text('重命名', style: text.titleSmall),
+                leading: Icon(Icons.drive_file_rename_outline, size: 20),
+                title: Text(AppL.of(context).commonRename, style: text.titleSmall),
                 onTap: () {
                   Navigator.of(ctx).pop();
                   onRename();
@@ -467,7 +468,7 @@ Future<void> showStudyTaskActions(
                 contentPadding: EdgeInsets.zero,
                 leading: Icon(Icons.delete_outline, size: 20, color: t.danger),
                 title: Text(
-                  '删除',
+                  AppL.of(context).commonDelete,
                   style: text.titleSmall?.copyWith(color: t.danger),
                 ),
                 onTap: () {
@@ -486,7 +487,8 @@ Future<void> showStudyTaskActions(
 Future<String?> showRenameTaskDialog(
   BuildContext context, {
   required String initial,
-  String title = '重命名',
+  /// 默认值不能是方法调用，null 表示"用当前语言的『重命名』"。
+  String? title,
   String? hint,
 }) {
   final ctrl = TextEditingController(text: initial);
@@ -494,7 +496,7 @@ Future<String?> showRenameTaskDialog(
     context: context,
     builder: (ctx) {
       return AlertDialog(
-        title: Text(title),
+        title: Text(title ?? AppL.of(ctx).commonRename),
         content: TextField(
           controller: ctrl,
           autofocus: true,
@@ -508,11 +510,11 @@ Future<String?> showRenameTaskDialog(
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('取消'),
+            child: Text(AppL.of(context).commonCancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(ctrl.text.trim()),
-            child: const Text('确定'),
+            child: Text(AppL.of(context).commonConfirm),
           ),
         ],
       );

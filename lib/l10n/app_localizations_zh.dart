@@ -1906,4 +1906,238 @@ class AppLZh extends AppL {
   String badgesEarnedOn(String date) {
     return '$date获得';
   }
+
+  @override
+  String planCatPractice(String name) {
+    return '$name练习';
+  }
+
+  @override
+  String get planDeleteSet => '删除计划';
+
+  @override
+  String planDeleteSetBody(String name, int count) {
+    return '「$name」和里面的 $count 条任务都会删掉，已打的勾不受影响。';
+  }
+
+  @override
+  String get planDeleteTask => '删除安排';
+
+  @override
+  String planRepeatNote(String title, String rule) {
+    return '「$title」是$rule的任务。';
+  }
+
+  @override
+  String get planSkipToday => '今天先跳过';
+
+  @override
+  String get planDeleteForever => '以后都删';
+
+  @override
+  String get planTitle => '复习计划';
+
+  @override
+  String planStreak(int days) {
+    return '计划连签 $days 天 · 勾完当天清单算一天';
+  }
+
+  @override
+  String get planIntro => '选好模板后，每天按清单练；可再加自己的任务';
+
+  @override
+  String planMonth(int n) {
+    return '$n月';
+  }
+
+  @override
+  String get planSwipeHint => '左右滑动看更多天';
+
+  @override
+  String get planBackToToday => '回到今天';
+
+  @override
+  String get planNothingToday => '这天还没有安排';
+
+  @override
+  String get planAddHint => '加一条，或从范例开一份';
+
+  @override
+  String get planAdd => '加安排';
+
+  @override
+  String get planToday => '今日安排';
+
+  @override
+  String get planManage => '管理';
+
+  @override
+  String get planAddTitle => '添加安排';
+
+  @override
+  String get planMine => '我的计划';
+
+  @override
+  String get planOff => '未启用';
+
+  @override
+  String get planPick => '选计划';
+
+  @override
+  String get planTodayMark => '今';
+
+  @override
+  String get commonNew => '新建';
+
+  @override
+  String get planClosed => '计划已关闭';
+
+  @override
+  String get planClose => '关闭计划';
+
+  @override
+  String get planClosedHint => '计划已关闭，点下面任意一份重新用起来';
+
+  @override
+  String get planNone => '还没有计划，点右上角 ＋ 建一份';
+
+  @override
+  String planItemCount(int count) {
+    return '$count 条';
+  }
+
+  @override
+  String get planNewTitle => '新建计划';
+
+  @override
+  String get planCreate => '建好';
+
+  @override
+  String get planName => '名字';
+
+  @override
+  String get planNameHint => '例如 考前冲刺';
+
+  @override
+  String get planStartFrom => '从哪儿开始';
+
+  @override
+  String get planBlank => '空白';
+
+  @override
+  String get planBlankHint => '自己一条条加';
+
+  @override
+  String get planTemplateHint => '范例只是抄一份过来，每条都能改能删';
+
+  @override
+  String get taskCatPractice => '题型练习';
+
+  @override
+  String get taskManual => '备忘 / 手写';
+
+  @override
+  String get taskVocab => '背词语';
+
+  @override
+  String get taskCheckin => '打卡';
+
+  @override
+  String get taskOpenWrong => '打开错题本';
+
+  @override
+  String get taskCatPracticeHint => '按题型抽题练习';
+
+  @override
+  String get taskMockHint => '50 题 · 可设定分钟';
+
+  @override
+  String get taskWrongHint => '从错题里抽练';
+
+  @override
+  String get taskWeakHint => '按薄弱模块抽题';
+
+  @override
+  String get taskManualHint => '勾选完成即可，不自动开练';
+
+  @override
+  String get taskVocabHint => '今天到期的成语和易错词';
+
+  @override
+  String get taskCheckinHint => '做完打个勾，不跳任何页面';
+
+  @override
+  String get taskOpenWrongHint => '跳到错题本整理';
+
+  @override
+  String get taskUntitled => '未命名任务';
+
+  @override
+  String get taskEdit => '任务安排';
+
+  @override
+  String get taskWhat => '做什么';
+
+  @override
+  String get taskWhatHint => '例如 背 20 个成语';
+
+  @override
+  String get taskHowOften => '多久做一次';
+
+  @override
+  String get taskOnceOnly => '只出现在这一天';
+
+  @override
+  String get taskEditForever => '改这条任务，往后每次都跟着变';
+
+  @override
+  String get taskAlsoPractise => '顺便练题';
+
+  @override
+  String get taskAlsoPractiseHint => '勾完就算，不用设也行';
+
+  @override
+  String get taskType => '题型';
+
+  @override
+  String get taskCount => '题量';
+
+  @override
+  String get taskNote => '备注（可选）';
+
+  @override
+  String get taskMinutes => '限时（分钟，可选）';
+
+  @override
+  String get taskSoftLimit => '按题量软限时';
+
+  @override
+  String get taskSoftLimitHint => '未填分钟时，按题量估算时长';
+
+  @override
+  String get taskDelete => '删除此安排';
+
+  @override
+  String get taskTapHint => '点「开始」才会进入练习；点这一行只改安排，避免误触。';
+
+  @override
+  String get taskEditTitle => '编辑安排';
+
+  @override
+  String get commonRename => '重命名';
+
+  @override
+  String get repeatOnce => '只这一次';
+
+  @override
+  String get repeatDaily => '每天';
+
+  @override
+  String get repeatWeekdays => '工作日';
+
+  @override
+  String get repeatWeekly => '每周这天';
+
+  @override
+  String get repeatEveryOther => '隔一天';
 }
