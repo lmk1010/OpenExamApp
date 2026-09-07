@@ -3032,5 +3032,27 @@
         "type": "int"
       }
     }
-  }
+  },
+  "featEssay": "申论 / 主观题",
+  "featEssayHint": "写作 + AI 批改",
+  "featVocab": "词语",
+  "featVocabHint": "词卡、辨析、生词本",
+  "featTips": "技巧速查",
+  "featTipsHint": "各模块解题方法",
+  "featProvinces": "报考地区",
+  "featProvincesHint": "按省份筛选卷子",
+  "examMyProfile": "我的备考",
+  "yearAll": "不限年份",
+  "yearLast1": "最近一年",
+  "yearLast3": "最近三年",
+  "planStep1": "放慢做对",
+  "planStep2": "再来一遍",
+  "planStep3": "限时加压",
+  "planStep4": "混练验证",
+  "planStep1Hint": "不计时，把每道题的正确思路走一遍",
+  "planStep2Hint": "还是不计时，重点看昨天卡住的地方",
+  "planStep3Hint": "按考场配速做，逼自己在时间内定下来",
+  "planStep4Hint": "掺进同类新题一起做，验证是不是真会了",
+  "memoUntitled": "无标题",
+  "examGongkaoName": "公务员 · 行测申论"
 }

@@ -3960,4 +3960,73 @@ class AppLEn extends AppL {
   String minutesCount(int count) {
     return '$count minutes';
   }
+
+  @override
+  String get featEssay => 'Essay / written answers';
+
+  @override
+  String get featEssayHint => 'Writing plus AI marking';
+
+  @override
+  String get featVocab => 'Words';
+
+  @override
+  String get featVocabHint => 'Cards, comparisons, your own list';
+
+  @override
+  String get featTips => 'Method';
+
+  @override
+  String get featTipsHint => 'Per-module approaches';
+
+  @override
+  String get featProvinces => 'Region';
+
+  @override
+  String get featProvincesHint => 'Filter papers by region';
+
+  @override
+  String get examMyProfile => 'My studies';
+
+  @override
+  String get yearAll => 'Any year';
+
+  @override
+  String get yearLast1 => 'Most recent year';
+
+  @override
+  String get yearLast3 => 'Last three years';
+
+  @override
+  String get planStep1 => 'Slow and correct';
+
+  @override
+  String get planStep2 => 'Again';
+
+  @override
+  String get planStep3 => 'Against the clock';
+
+  @override
+  String get planStep4 => 'Mixed check';
+
+  @override
+  String get planStep1Hint =>
+      'No timer — walk the right reasoning through each one';
+
+  @override
+  String get planStep2Hint =>
+      'Still no timer — focus on where you stuck yesterday';
+
+  @override
+  String get planStep3Hint => 'Exam pace — force a decision inside the time';
+
+  @override
+  String get planStep4Hint =>
+      'Mix in fresh questions of the same type to check it stuck';
+
+  @override
+  String get memoUntitled => 'Untitled';
+
+  @override
+  String get examGongkaoName => 'Civil service exam';
 }

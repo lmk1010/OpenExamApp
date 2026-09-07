@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/data/db/app_database.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -9,15 +10,25 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// 里只有行测五模块的方法，省份是报考地区。备医师考试的人不该在界面上看见
 /// 它们 —— 用不上还得绕开。
 enum ExamFeature {
-  essay('申论 / 主观题', '写作 + AI 批改'),
-  vocab('词语', '词卡、辨析、生词本'),
-  tips('技巧速查', '各模块解题方法'),
-  provinces('报考地区', '按省份筛选卷子');
+  essay,
+  vocab,
+  tips,
+  provinces;
 
-  const ExamFeature(this.label, this.hint);
+  /// 名字和说明跟着界面语言走，所以不能写进枚举的构造参数里。
+  String label(AppL l) => switch (this) {
+        ExamFeature.essay => l.featEssay,
+        ExamFeature.vocab => l.featVocab,
+        ExamFeature.tips => l.featTips,
+        ExamFeature.provinces => l.featProvinces,
+      };
 
-  final String label;
-  final String hint;
+  String hint(AppL l) => switch (this) {
+        ExamFeature.essay => l.featEssayHint,
+        ExamFeature.vocab => l.featVocabHint,
+        ExamFeature.tips => l.featTipsHint,
+        ExamFeature.provinces => l.featProvincesHint,
+      };
 }
 
 /// 备考目标。
@@ -95,7 +106,8 @@ class ExamProfile {
   /// 默认值必须跟原样一致，不能让人升级完发现申论不见了。
   static const gongkao = ExamProfile(
     id: 'gongkao',
-    name: '公务员 · 行测申论',
+    // 名字留空，显示时按当前语言兜底 —— 这里是 const，取不到 context。
+    name: '',
     mockMinutes: 45,
     mockCount: 50,
   );
@@ -103,7 +115,8 @@ class ExamProfile {
   /// 新建时的起点：什么专属模块都不开，练习、错题、记录这些通用的照常。
   static ExamProfile blank(String name) => ExamProfile(
         id: 'p_${DateTime.now().millisecondsSinceEpoch}',
-        name: name.trim().isEmpty ? '我的备考' : name.trim(),
+        // 空名字留空串，显示时按当前语言兜底。
+        name: name.trim(),
         features: const {},
       );
 }

@@ -3843,4 +3843,70 @@ class AppLZh extends AppL {
   String minutesCount(int count) {
     return '$count 分钟';
   }
+
+  @override
+  String get featEssay => '申论 / 主观题';
+
+  @override
+  String get featEssayHint => '写作 + AI 批改';
+
+  @override
+  String get featVocab => '词语';
+
+  @override
+  String get featVocabHint => '词卡、辨析、生词本';
+
+  @override
+  String get featTips => '技巧速查';
+
+  @override
+  String get featTipsHint => '各模块解题方法';
+
+  @override
+  String get featProvinces => '报考地区';
+
+  @override
+  String get featProvincesHint => '按省份筛选卷子';
+
+  @override
+  String get examMyProfile => '我的备考';
+
+  @override
+  String get yearAll => '不限年份';
+
+  @override
+  String get yearLast1 => '最近一年';
+
+  @override
+  String get yearLast3 => '最近三年';
+
+  @override
+  String get planStep1 => '放慢做对';
+
+  @override
+  String get planStep2 => '再来一遍';
+
+  @override
+  String get planStep3 => '限时加压';
+
+  @override
+  String get planStep4 => '混练验证';
+
+  @override
+  String get planStep1Hint => '不计时，把每道题的正确思路走一遍';
+
+  @override
+  String get planStep2Hint => '还是不计时，重点看昨天卡住的地方';
+
+  @override
+  String get planStep3Hint => '按考场配速做，逼自己在时间内定下来';
+
+  @override
+  String get planStep4Hint => '掺进同类新题一起做，验证是不是真会了';
+
+  @override
+  String get memoUntitled => '无标题';
+
+  @override
+  String get examGongkaoName => '公务员 · 行测申论';
 }

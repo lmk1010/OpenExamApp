@@ -36,7 +36,7 @@ class _ExamProfilePageState extends State<ExamProfilePage> {
   }
 
   Future<void> _rename(ExamProfile p) async {
-    final name = await _askName(title: AppL.of(context).examRename, initial: p.name);
+    final name = await _askName(title: AppL.of(context).examRename, initial: _displayName(context, p));
     if (name == null || name.isEmpty) return;
     await ExamProfileStore.save(p.copyWith(name: name));
     if (mounted) setState(() {});
@@ -47,7 +47,7 @@ class _ExamProfilePageState extends State<ExamProfilePage> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(AppL.of(context).examDeleteProfile),
-        content: Text(AppL.of(context).examDeleteProfileBody(p.name)),
+        content: Text(AppL.of(context).examDeleteProfileBody(_displayName(context, p))),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
@@ -171,8 +171,8 @@ class _ExamProfilePageState extends State<ExamProfilePage> {
                 SwitchListTile(
                   contentPadding:
                       EdgeInsets.symmetric(horizontal: AppTheme.gutter),
-                  title: Text(f.label, style: text.titleSmall),
-                  subtitle: Text(f.hint, style: text.bodySmall),
+                  title: Text(f.label(AppL.of(context)), style: text.titleSmall),
+                  subtitle: Text(f.hint(AppL.of(context)), style: text.bodySmall),
                   value: current.has(f),
                   onChanged: (v) => _toggle(f, v),
                 ),
@@ -243,7 +243,7 @@ class _ProfileRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    profile.name,
+                    _displayName(context, profile),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: text.titleSmall
@@ -274,4 +274,15 @@ class _ProfileRow extends StatelessWidget {
       ),
     );
   }
+}
+
+/// 备考档案的显示名。
+///
+/// 内置那两份（考公、中性档）的名字是 const，取不到 context，所以存的是空串，
+/// 由这里按当前语言兜底；用户自己起的名字原样显示。
+String _displayName(BuildContext context, ExamProfile p) {
+  if (p.name.isNotEmpty) return p.name;
+  return p.id == 'gongkao'
+      ? AppL.of(context).examGongkaoName
+      : AppL.of(context).examMyProfile;
 }

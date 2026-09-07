@@ -6755,6 +6755,138 @@ abstract class AppL {
   /// In zh, this message translates to:
   /// **'{count} 分钟'**
   String minutesCount(int count);
+
+  /// No description provided for @featEssay.
+  ///
+  /// In zh, this message translates to:
+  /// **'申论 / 主观题'**
+  String get featEssay;
+
+  /// No description provided for @featEssayHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'写作 + AI 批改'**
+  String get featEssayHint;
+
+  /// No description provided for @featVocab.
+  ///
+  /// In zh, this message translates to:
+  /// **'词语'**
+  String get featVocab;
+
+  /// No description provided for @featVocabHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'词卡、辨析、生词本'**
+  String get featVocabHint;
+
+  /// No description provided for @featTips.
+  ///
+  /// In zh, this message translates to:
+  /// **'技巧速查'**
+  String get featTips;
+
+  /// No description provided for @featTipsHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'各模块解题方法'**
+  String get featTipsHint;
+
+  /// No description provided for @featProvinces.
+  ///
+  /// In zh, this message translates to:
+  /// **'报考地区'**
+  String get featProvinces;
+
+  /// No description provided for @featProvincesHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'按省份筛选卷子'**
+  String get featProvincesHint;
+
+  /// No description provided for @examMyProfile.
+  ///
+  /// In zh, this message translates to:
+  /// **'我的备考'**
+  String get examMyProfile;
+
+  /// No description provided for @yearAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'不限年份'**
+  String get yearAll;
+
+  /// No description provided for @yearLast1.
+  ///
+  /// In zh, this message translates to:
+  /// **'最近一年'**
+  String get yearLast1;
+
+  /// No description provided for @yearLast3.
+  ///
+  /// In zh, this message translates to:
+  /// **'最近三年'**
+  String get yearLast3;
+
+  /// No description provided for @planStep1.
+  ///
+  /// In zh, this message translates to:
+  /// **'放慢做对'**
+  String get planStep1;
+
+  /// No description provided for @planStep2.
+  ///
+  /// In zh, this message translates to:
+  /// **'再来一遍'**
+  String get planStep2;
+
+  /// No description provided for @planStep3.
+  ///
+  /// In zh, this message translates to:
+  /// **'限时加压'**
+  String get planStep3;
+
+  /// No description provided for @planStep4.
+  ///
+  /// In zh, this message translates to:
+  /// **'混练验证'**
+  String get planStep4;
+
+  /// No description provided for @planStep1Hint.
+  ///
+  /// In zh, this message translates to:
+  /// **'不计时，把每道题的正确思路走一遍'**
+  String get planStep1Hint;
+
+  /// No description provided for @planStep2Hint.
+  ///
+  /// In zh, this message translates to:
+  /// **'还是不计时，重点看昨天卡住的地方'**
+  String get planStep2Hint;
+
+  /// No description provided for @planStep3Hint.
+  ///
+  /// In zh, this message translates to:
+  /// **'按考场配速做，逼自己在时间内定下来'**
+  String get planStep3Hint;
+
+  /// No description provided for @planStep4Hint.
+  ///
+  /// In zh, this message translates to:
+  /// **'掺进同类新题一起做，验证是不是真会了'**
+  String get planStep4Hint;
+
+  /// No description provided for @memoUntitled.
+  ///
+  /// In zh, this message translates to:
+  /// **'无标题'**
+  String get memoUntitled;
+
+  /// No description provided for @examGongkaoName.
+  ///
+  /// In zh, this message translates to:
+  /// **'公务员 · 行测申论'**
+  String get examGongkaoName;
 }
 
 class _AppLDelegate extends LocalizationsDelegate<AppL> {

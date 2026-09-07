@@ -648,7 +648,7 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
                       },
                     ),
                     _SheetLink(
-                      label: _years.label,
+                      label: _years.label(AppL.of(context)),
                       onTap: () {
                         Navigator.of(sheetContext).pop();
                         _pickYears();
@@ -1438,7 +1438,7 @@ class _YearSheet extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              item.range.label,
+                              item.range.label(AppL.of(context)),
                               style: text.titleSmall?.copyWith(
                                 color: item.range == current ? t.brand : t.text,
                               ),

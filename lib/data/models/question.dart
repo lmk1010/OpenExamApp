@@ -1,3 +1,4 @@
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'dart:convert';
 
 /// Which slice of the bank a practice set is drawn from.
@@ -25,10 +26,10 @@ enum YearRange {
         YearRange.last3 => latest - 2,
       };
 
-  String get label => switch (this) {
-        YearRange.all => '不限年份',
-        YearRange.last1 => '最近一年',
-        YearRange.last3 => '最近三年',
+  String label(AppL l) => switch (this) {
+        YearRange.all => l.yearAll,
+        YearRange.last1 => l.yearLast1,
+        YearRange.last3 => l.yearLast3,
       };
 }
 
@@ -470,13 +471,11 @@ class ReviewPlan {
     return at.year == now.year && at.month == now.month && at.day == now.day;
   }
 
-  static const stepTitles = ['放慢做对', '再来一遍', '限时加压', '混练验证'];
-  static const stepHints = [
-    '不计时，把每道题的正确思路走一遍',
-    '还是不计时，重点看昨天卡住的地方',
-    '按考场配速做，逼自己在时间内定下来',
-    '掺进同类新题一起做，验证是不是真会了',
-  ];
+  static List<String> stepTitles(AppL l) =>
+      [l.planStep1, l.planStep2, l.planStep3, l.planStep4];
+
+  static List<String> stepHints(AppL l) =>
+      [l.planStep1Hint, l.planStep2Hint, l.planStep3Hint, l.planStep4Hint];
 }
 
 /// 一个词在真题里被考过多少次。数据来自逻辑填空的选项 —— 那些选项本身

@@ -1427,12 +1427,12 @@ class _PlanCard extends StatelessWidget {
                     Text(
                       rest
                           ? AppL.of(context).wrongPlanDoneToday
-                          : '第 $day 天 · ${ReviewPlan.stepTitles[day - 1]}',
+                          : '第 $day 天 · ${ReviewPlan.stepTitles(AppL.of(context))[day - 1]}',
                       style: text.titleSmall?.copyWith(fontSize: 14),
                     ),
                     SizedBox(height: 4),
                     Text(
-                      rest ? AppL.of(context).wrongPlanGapHint : ReviewPlan.stepHints[day - 1],
+                      rest ? AppL.of(context).wrongPlanGapHint : ReviewPlan.stepHints(AppL.of(context))[day - 1],
                       style: text.bodySmall,
                     ),
                   ],
