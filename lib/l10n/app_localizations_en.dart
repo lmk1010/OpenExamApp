@@ -4363,4 +4363,15 @@ class AppLEn extends AppL {
 
   @override
   String get importSampleAnalysis => 'Explanation';
+
+  @override
+  String get planTaskDaily => 'Daily set';
+
+  @override
+  String get planTaskWrong => 'Wrong-answer review';
+
+  @override
+  String planTaskTimed(String category) {
+    return '$category · timed';
+  }
 }

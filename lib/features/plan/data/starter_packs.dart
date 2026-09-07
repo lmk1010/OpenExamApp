@@ -86,14 +86,17 @@ class StarterPacks {
   /// 以前默认给的是「在职晚间」那套 —— 6:00 起床背词、23:55 收工，
   /// 对绝大多数人既做不到也不该照抄。
   static const _minimalTasks = <StudyTask>[
+    // 这三条是**自动**铺给每个新用户的，不是用户自己挑的模板 ——
+    // 所以名字不写死，留空由 StudyTask.displayTitle 按当前语言兜底。
+    // 下面那几个整包（在职晚间之类）是用户主动选的中文备考模板，照旧。
     StudyTask(
       id: 's_daily',
-      title: '每日一练',
+      title: '',
       action: StudyAction.daily,
     ),
     StudyTask(
       id: 's_ziliao',
-      title: '资料分析 · 限时',
+      title: '',
       action: StudyAction.practice,
       category: 'ziliao',
       count: 20,
@@ -102,7 +105,7 @@ class StarterPacks {
     ),
     StudyTask(
       id: 's_wrong',
-      title: '错题回炉',
+      title: '',
       action: StudyAction.wrong,
       count: 10,
     ),

@@ -3279,5 +3279,15 @@
   "importSampleMaterial": "共用材料，没有可省",
   "importSampleOptA": "甲",
   "importSampleOptB": "乙",
-  "importSampleAnalysis": "解析"
+  "importSampleAnalysis": "解析",
+  "planTaskDaily": "每日一练",
+  "planTaskWrong": "错题回炉",
+  "planTaskTimed": "{category} · 限时",
+  "@planTaskTimed": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  }
 }

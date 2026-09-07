@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/l10n/app_localizations.dart';
 
 /// One checklist item in a day plan. Most actions jump into practice; [note]
@@ -93,10 +94,35 @@ class StudyTask {
   /// 创建日，重复规则从这天开始算。
   final DateTime? startedOn;
 
+  /// 显示用的名字。
+  ///
+  /// [title] 可以是空的：自动给新用户铺的那三条任务不写死名字 —— 写死了
+  /// 英文用户第一次打开计划页看见的就是三行中文，而且存进去之后切语言
+  /// 也改不回来。空的就按 [action] 和 [category] 现场兜底。
+  /// 分类名（资料分析这些）跟着题库走，不跟界面语言走。
+  String displayTitle(AppL l) {
+    if (title.isNotEmpty) return title;
+    return switch (action) {
+      StudyAction.daily => l.planTaskDaily,
+      StudyAction.wrong || StudyAction.openWrongBook => l.planTaskWrong,
+      StudyAction.practice when category != null => timed
+          ? l.planTaskTimed(categoryLabel(category))
+          : categoryLabel(category),
+      _ => l.taskUntitled,
+    };
+  }
+
+  /// 是不是一条申论任务。
+  ///
+  /// 认的是**任务名里的中文**，不是界面上的「申论 / Essay」——
+  /// 这些任务是从中文备考模板来的，名字跟着题库走；拿界面文案去比，
+  /// 英文界面下一条也匹配不上，申论任务就再也点不开了。
+  bool get isEssay => title.contains('申论');
+
   /// 申论任务现在能直接进申论页作答批改，不再只是备忘。
   bool get runnable =>
       action != StudyAction.check &&
-      (action != StudyAction.note || title.contains('申论'));
+      (action != StudyAction.note || isEssay);
 
   StudyTask copyWith({
     String? id,

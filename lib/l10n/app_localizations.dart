@@ -7475,6 +7475,24 @@ abstract class AppL {
   /// In zh, this message translates to:
   /// **'解析'**
   String get importSampleAnalysis;
+
+  /// No description provided for @planTaskDaily.
+  ///
+  /// In zh, this message translates to:
+  /// **'每日一练'**
+  String get planTaskDaily;
+
+  /// No description provided for @planTaskWrong.
+  ///
+  /// In zh, this message translates to:
+  /// **'错题回炉'**
+  String get planTaskWrong;
+
+  /// No description provided for @planTaskTimed.
+  ///
+  /// In zh, this message translates to:
+  /// **'{category} · 限时'**
+  String planTaskTimed(String category);
 }
 
 class _AppLDelegate extends LocalizationsDelegate<AppL> {

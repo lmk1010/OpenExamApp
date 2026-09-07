@@ -1227,5 +1227,8 @@
   "importSampleMaterial": "Shared passage, omit if none",
   "importSampleOptA": "First",
   "importSampleOptB": "Second",
-  "importSampleAnalysis": "Explanation"
+  "importSampleAnalysis": "Explanation",
+  "planTaskDaily": "Daily set",
+  "planTaskWrong": "Wrong-answer review",
+  "planTaskTimed": "{category} · timed"
 }

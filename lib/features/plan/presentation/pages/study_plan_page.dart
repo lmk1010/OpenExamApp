@@ -143,7 +143,7 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
 
     List<Question> questions = const [];
     Duration? limit;
-    var title = task.title;
+    var title = task.displayTitle(l);
     final db = AppDatabase.instance;
 
     switch (task.action) {
@@ -163,7 +163,7 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
           shuffle: true,
         );
         title = task.category == null
-            ? task.title
+            ? task.displayTitle(l)
             : l.planCatPractice(categoryLabel(task.category));
         if (task.minutes != null) {
           limit = Duration(minutes: task.minutes!);
@@ -310,7 +310,7 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
   }
 
   Future<void> _renameTask(StudyTask task) async {
-    final name = await showRenameTaskDialog(context, initial: task.title);
+    final name = await showRenameTaskDialog(context, initial: task.displayTitle(AppL.of(context)));
     if (name == null || name.isEmpty || _store == null) return;
     await _store!.renameTask(_selected, task, name);
     await _reload();
@@ -323,7 +323,7 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
     if (task.repeat == RepeatRule.once) {
       final ok = await _confirm(
         title: AppL.of(context).planDeleteTask,
-        body: AppL.of(context).homeDeleteTaskConfirm(task.title),
+        body: AppL.of(context).homeDeleteTaskConfirm(task.displayTitle(AppL.of(context))),
         action: AppL.of(context).commonDelete,
       );
       if (ok != true) return;
@@ -337,7 +337,8 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(AppL.of(context).planDeleteTask),
-        content: Text(AppL.of(context).planRepeatNote(task.title, task.repeat.label(AppL.of(context)))),
+        content: Text(AppL.of(context).planRepeatNote(
+            task.displayTitle(AppL.of(context)), task.repeat.label(AppL.of(context)))),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),

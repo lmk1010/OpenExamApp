@@ -4235,4 +4235,15 @@ class AppLZh extends AppL {
 
   @override
   String get importSampleAnalysis => '解析';
+
+  @override
+  String get planTaskDaily => '每日一练';
+
+  @override
+  String get planTaskWrong => '错题回炉';
+
+  @override
+  String planTaskTimed(String category) {
+    return '$category · 限时';
+  }
 }

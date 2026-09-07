@@ -430,7 +430,7 @@ class _RouteRow extends StatelessWidget {
             SizedBox(width: onToggle == null ? 13 : 7),
             Expanded(
               child: Text(
-                task.title,
+                task.displayTitle(AppL.of(context)),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: text.titleSmall?.copyWith(

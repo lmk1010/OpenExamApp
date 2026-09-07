@@ -37,12 +37,25 @@ def status() -> int:
     return 0
 
 
+# flutter test 从这里读 asset，而且**不会**跟着 assets/ 的增删自己更新。
+# 换过题库不清它，测试还在拿上一次的版本跑 —— 空库版的用例会莫名其妙地
+# 看见 18686 道题，找半天以为是代码问题。
+TEST_ASSETS = os.path.join(APP, "build", "unit_test_assets")
+
+
+def _drop_test_assets() -> None:
+    if os.path.isdir(TEST_ASSETS):
+        shutil.rmtree(TEST_ASSETS)
+        print("顺手清掉 build/unit_test_assets —— 否则 flutter test 还在用旧的")
+
+
 def link() -> int:
     if not os.path.exists(SRC):
         print(f"没有 {SRC}\n先跑：python3 tool/build_seed.py", file=sys.stderr)
         return 1
     # 复制不是软链：Flutter 打包不跟随符号链接，链过去的话 asset 会是空的。
     shutil.copyfile(SRC, DST)
+    _drop_test_assets()
     print(f"已放入 assets/seed/（{_mb(DST)}）—— 接下来构建带题库")
     return 0
 
@@ -50,6 +63,7 @@ def link() -> int:
 def unlink() -> int:
     if os.path.exists(DST):
         os.remove(DST)
+        _drop_test_assets()
         print("已移出 assets/seed/ —— 接下来构建是空库版")
     else:
         print("本来就没有，构建是空库版")

@@ -313,7 +313,7 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
         return;
       case StudyAction.note:
         // 申论类任务现在有真正的去处：录题、作答、AI 批改
-        if (task.title.contains(AppL.of(context).homeEssay)) {
+        if (task.isEssay) {
           await Navigator.of(context)
               .push(MaterialPageRoute(builder: (_) => const EssayPage()));
           if (mounted) _reload();
@@ -405,7 +405,7 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
     final store = _studyPlanStore;
     final plan = _todayPlan;
     if (store == null || plan == null) return;
-    final name = await showRenameTaskDialog(context, initial: task.title);
+    final name = await showRenameTaskDialog(context, initial: task.displayTitle(AppL.of(context)));
     if (name == null || name.isEmpty) return;
     await store.renameTask(plan.date, task, name);
     await _reload();
@@ -419,7 +419,7 @@ class _PracticeHomePageState extends State<PracticeHomePage> with TabReload {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(AppL.of(context).homeDeleteTask),
-        content: Text(AppL.of(context).homeDeleteTaskConfirm(task.title)),
+        content: Text(AppL.of(context).homeDeleteTaskConfirm(task.displayTitle(AppL.of(context)))),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
