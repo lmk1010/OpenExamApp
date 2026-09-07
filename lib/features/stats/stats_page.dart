@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:openexam_app/l10n/app_localizations.dart';
 import 'package:openexam_app/core/constants/categories.dart';
 import 'package:openexam_app/core/theme/app_theme.dart';
 import 'package:openexam_app/core/theme/app_tokens.dart';
@@ -82,24 +83,24 @@ class _StatsPageState extends State<StatsPage> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, size: 21),
+          icon: Icon(Icons.arrow_back, size: 21),
           onPressed: () => Navigator.of(context).maybePop(),
         ),
         titleSpacing: 0,
-        title: const Text('学习统计'),
+        title: Text(AppL.of(context).statsTitle),
       ),
       body: _loading
-          ? const LoadingState()
+          ? LoadingState()
           : ReadableWidth(
               maxWidth: context.isExpanded ? 880 : context.readableWidth,
               child: ListView(
-              padding: const EdgeInsets.only(bottom: 30),
+              padding: EdgeInsets.only(bottom: 30),
               children: [
-                const SizedBox(height: 6),
+                SizedBox(height: 6),
                 // 三个总数装进一块卡。原来它们直接落在背景上，
                 // 跟下面的图表之间没有边界，一屏扫下来分不出块。
                 ShoreCard(
-                  padding: const EdgeInsets.symmetric(
+                  padding: EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 18,
                   ),
@@ -107,48 +108,48 @@ class _StatsPageState extends State<StatsPage> {
                     children: [
                       _Figure(
                         value: '$answered',
-                        label: '近 30 天答题',
+                        label: AppL.of(context).statsLast30,
                         onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => const ReportsPage()),
+                          MaterialPageRoute(builder: (_) => ReportsPage()),
                         ),
                       ),
                       _Figure(
                         value: answered == 0
                             ? '—'
                             : '${(correct * 100 / answered).round()}%',
-                        label: '平均正确率',
+                        label: AppL.of(context).statsAvgRate,
                         onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => const DashboardPage()),
+                          MaterialPageRoute(builder: (_) => DashboardPage()),
                         ),
                       ),
-                      _Figure(value: '$activeDays', label: '有效练习天'),
+                      _Figure(value: '$activeDays', label: AppL.of(context).statsActiveDays),
                     ],
                   ),
                 ),
-                const SizedBox(height: ShoreGap.section),
+                SizedBox(height: ShoreGap.section),
                 ShoreSection(
-                  title: '每日题量',
-                  caption: '近 30 天',
+                  title: AppL.of(context).statsDaily,
+                  caption: AppL.of(context).statsLast30Short,
                   child: ShoreCard(child: _VolumeChart(days: _days, max: best)),
                 ),
                 if (_weeks.any((w) => w.answered > 0)) ...[
-                  const SizedBox(height: ShoreGap.section),
+                  SizedBox(height: ShoreGap.section),
                   ShoreSection(
-                    title: '每周走势',
-                    caption: '近 8 周',
+                    title: AppL.of(context).statsWeekly,
+                    caption: AppL.of(context).statsLast8Weeks,
                     child: ShoreCard(child: _WeeklyChart(weeks: _weeks)),
                   ),
                 ],
-                const SizedBox(height: ShoreGap.section),
+                SizedBox(height: ShoreGap.section),
                 ShoreSection(
-                  title: '正确率趋势',
-                  caption: '练过的日子',
+                  title: AppL.of(context).statsAccuracyTrend,
+                  caption: AppL.of(context).statsDaysPractised,
                   child: ShoreCard(child: _AccuracyTrend(days: _days)),
                 ),
-                const SizedBox(height: ShoreGap.section),
+                SizedBox(height: ShoreGap.section),
                 ShoreSection(
-                  title: '成绩趋势',
-                  action: _reports.isEmpty ? null : '全部记录',
+                  title: AppL.of(context).statsScoreTrend,
+                  action: _reports.isEmpty ? null : AppL.of(context).statsAllReports,
                   onAction: _reports.isEmpty
                       ? null
                       : () async {
@@ -166,27 +167,27 @@ class _StatsPageState extends State<StatsPage> {
                   ),
                 ),
                 if (_reasons.isNotEmpty) ...[
-                  const SizedBox(height: ShoreGap.section),
+                  SizedBox(height: ShoreGap.section),
                   ShoreSection(
-                    title: '错因分布',
-                    caption: '标记过的',
+                    title: AppL.of(context).statsReasons,
+                    caption: AppL.of(context).statsTagged,
                     child: ShoreCard(child: _ReasonBreakdown(counts: _reasons)),
                   ),
                 ],
-                const SizedBox(height: ShoreGap.section),
+                SizedBox(height: ShoreGap.section),
                 ShoreSection(
-                  title: '题型强弱',
-                  caption: ranked.isEmpty ? null : '低到高',
+                  title: AppL.of(context).statsByType,
+                  caption: ranked.isEmpty ? null : AppL.of(context).statsLowToHigh,
                   child: const SizedBox.shrink(),
                 ),
                 if (ranked.isEmpty)
                   ShoreCard(
-                    padding: const EdgeInsets.symmetric(
+                    padding: EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 22,
                     ),
                     child: Text(
-                      '刷一组题后，这里会显示你的强项和弱项',
+                      AppL.of(context).statsEmptyTypes,
                       style: text.bodySmall,
                     ),
                   )
@@ -222,7 +223,7 @@ class _StatsPageState extends State<StatsPage> {
                               height: 6,
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          SizedBox(width: 12),
                           SizedBox(
                             width: 42,
                             child: Text(
@@ -236,7 +237,7 @@ class _StatsPageState extends State<StatsPage> {
                           SizedBox(
                             width: 54,
                             child: Text(
-                              ' ${s.done} 题',
+                              AppL.of(context).statsDoneCount(s.done),
                               textAlign: TextAlign.right,
                               style: text.bodySmall,
                             ),
@@ -354,10 +355,10 @@ class _VolumeChart extends StatelessWidget {
         Row(
           children: [
             Text(_label(days.first.date), style: text.bodySmall?.copyWith(fontSize: 11)),
-            const Spacer(),
-            Text('峰值 $max 题', style: text.bodySmall?.copyWith(fontSize: 11)),
-            const Spacer(),
-            Text('今天', style: text.bodySmall?.copyWith(fontSize: 11)),
+            Spacer(),
+            Text(AppL.of(context).statsPeak(max), style: text.bodySmall?.copyWith(fontSize: 11)),
+            Spacer(),
+            Text(AppL.of(context).whenToday, style: text.bodySmall?.copyWith(fontSize: 11)),
           ],
         ),
       ],
@@ -381,9 +382,9 @@ class _AccuracyTrend extends StatelessWidget {
 
     if (points.length < 2) {
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 24),
+        padding: EdgeInsets.symmetric(vertical: 24),
         child: Text(
-          points.isEmpty ? '还没有练习记录' : '再练一天就能看到趋势了',
+          points.isEmpty ? AppL.of(context).statsNoRecords : AppL.of(context).statsOneMoreDay,
           style: text.bodySmall,
         ),
       );
@@ -405,13 +406,13 @@ class _AccuracyTrend extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         Row(
           children: [
-            Text('${_pct(points.first.accuracy)} 起', style: text.bodySmall?.copyWith(fontSize: 11)),
-            const Spacer(),
+            Text(AppL.of(context).statsFrom(_pct(points.first.accuracy)), style: text.bodySmall?.copyWith(fontSize: 11)),
+            Spacer(),
             Text(
-              '最新 ${_pct(points.last.accuracy)}',
+              AppL.of(context).statsLatest(_pct(points.last.accuracy)),
               style: text.bodySmall?.copyWith(fontSize: 11, color: t.brand),
             ),
           ],
@@ -507,8 +508,8 @@ class _ScoreTrend extends StatelessWidget {
 
     if (reports.isEmpty) {
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 22),
-        child: Text('还没有成绩记录，完成一组 5 题以上的练习即可', style: text.bodySmall),
+        padding: EdgeInsets.symmetric(vertical: 22),
+        child: Text(AppL.of(context).statsNoScores, style: text.bodySmall),
       );
     }
 
@@ -544,18 +545,18 @@ class _ScoreTrend extends StatelessWidget {
               ),
             ),
             Text('%', style: text.bodySmall?.copyWith(fontSize: 13)),
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             if (reports.length >= 2)
               Text(
                 delta == 0
-                    ? '与上次持平'
-                    : (delta > 0 ? '较上次 +$delta' : '较上次 $delta'),
+                    ? AppL.of(context).statsSameAsLast
+                    : (delta > 0 ? AppL.of(context).statsUpFromLast(delta) : AppL.of(context).statsDownFromLast(delta)),
                 style: text.bodySmall?.copyWith(
                   color: delta > 0 ? t.success : (delta < 0 ? t.danger : t.muted),
                 ),
               ),
-            const Spacer(),
-            Text('平均 ${avg.round()}%', style: text.bodySmall),
+            Spacer(),
+            Text(AppL.of(context).statsAverage(avg.round()), style: text.bodySmall),
           ],
         ),
         const SizedBox(height: 14),
@@ -628,7 +629,12 @@ class _ScoreTrend extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         Text(
-          '最右为最近一次（${latest.isExam ? '模考' : '练习'} · ${latest.total} 题），点它可逐题回顾',
+          AppL.of(context).statsLatestIs(
+            latest.isExam
+                ? AppL.of(context).statsKindMock
+                : AppL.of(context).statsKindPractice,
+            latest.total,
+          ),
           style: text.bodySmall?.copyWith(fontSize: 11.5),
         ),
       ],
@@ -657,10 +663,10 @@ class _ReasonBreakdown extends StatelessWidget {
 
     final top = rows.first;
     final advice = switch (top.key) {
-      'careless' => '大部分错题是粗心 —— 别加练，先放慢做题速度、把答案带回题干核对。',
-      'unknown' => '大部分错题是知识点没掌握 —— 先回去补方法，再刷同类题。',
-      'misread' => '大部分错题栽在审题 —— 做题时把限定词、单位圈出来。',
-      _ => '大部分错题是时间不够 —— 先练单模块限时，再上整卷。',
+      'careless' => AppL.of(context).statsMostlyCareless,
+      'unknown' => AppL.of(context).statsMostlyGaps,
+      'misread' => AppL.of(context).statsMostlyMisread,
+      _ => AppL.of(context).statsMostlyTime,
     };
 
     return Column(
@@ -682,11 +688,11 @@ class _ReasonBreakdown extends StatelessWidget {
                     height: 6,
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 SizedBox(
                   width: 62,
                   child: Text(
-                    '${counts[r.key]} 题',
+                    AppL.of(context).countQuestions(counts[r.key]!),
                     textAlign: TextAlign.right,
                     style: text.bodySmall,
                   ),
@@ -811,8 +817,8 @@ class _WeeklyChart extends StatelessWidget {
                 borderRadius: BorderRadius.circular(3),
               ),
             ),
-            const SizedBox(width: 6),
-            Text('题量', style: text.bodySmall?.copyWith(fontSize: 11)),
+            SizedBox(width: 6),
+            Text(AppL.of(context).statsVolume, style: text.bodySmall?.copyWith(fontSize: 11)),
             const SizedBox(width: 16),
             Container(
               width: 14,
@@ -822,8 +828,8 @@ class _WeeklyChart extends StatelessWidget {
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-            const SizedBox(width: 6),
-            Text('正确率', style: text.bodySmall?.copyWith(fontSize: 11)),
+            SizedBox(width: 6),
+            Text(AppL.of(context).dxColAccuracy, style: text.bodySmall?.copyWith(fontSize: 11)),
           ],
         ),
       ],

@@ -2660,7 +2660,8 @@ class AppDatabase {
     return rows
         .map((r) => (
               id: '${r['id'] ?? ''}',
-              title: '${r['title'] ?? '未命名试卷'}',
+              // 空标题留空串，由界面按当前语言兜底 —— 数据层没有 context。
+              title: '${r['title'] ?? ''}',
               year: int.tryParse('${r['year'] ?? 0}') ?? 0,
               count: int.tryParse('${r['n']}') ?? 0,
             ))

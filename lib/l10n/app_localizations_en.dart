@@ -2404,4 +2404,133 @@ class AppLEn extends AppL {
 
   @override
   String get wrongPlanAgain => 'Run it again';
+
+  @override
+  String get statsTitle => 'Statistics';
+
+  @override
+  String get statsLast30 => 'Answered in 30 days';
+
+  @override
+  String get statsAvgRate => 'Average accuracy';
+
+  @override
+  String get statsActiveDays => 'Days practised';
+
+  @override
+  String get statsDaily => 'Per day';
+
+  @override
+  String get statsLast30Short => 'Last 30 days';
+
+  @override
+  String get statsWeekly => 'By week';
+
+  @override
+  String get statsLast8Weeks => 'Last 8 weeks';
+
+  @override
+  String get statsAccuracyTrend => 'Accuracy trend';
+
+  @override
+  String get statsDaysPractised => 'Days you practised';
+
+  @override
+  String get statsScoreTrend => 'Score trend';
+
+  @override
+  String get statsAllReports => 'All reports';
+
+  @override
+  String get statsReasons => 'Why you miss them';
+
+  @override
+  String get statsTagged => 'Tagged';
+
+  @override
+  String get statsByType => 'Strong and weak types';
+
+  @override
+  String get statsLowToHigh => 'Lowest first';
+
+  @override
+  String get statsEmptyTypes =>
+      'Do a set and your strong and weak types show up here';
+
+  @override
+  String statsDoneCount(int count) {
+    return ' $count questions';
+  }
+
+  @override
+  String statsPeak(int count) {
+    return 'Peak $count';
+  }
+
+  @override
+  String get statsNoRecords => 'No practice recorded yet';
+
+  @override
+  String get statsOneMoreDay => 'One more day and a trend appears';
+
+  @override
+  String statsFrom(String rate) {
+    return 'from $rate';
+  }
+
+  @override
+  String statsLatest(String rate) {
+    return 'latest $rate';
+  }
+
+  @override
+  String get statsNoScores => 'No scores yet — finish a set of 5 or more';
+
+  @override
+  String get statsSameAsLast => 'Same as last time';
+
+  @override
+  String statsUpFromLast(int delta) {
+    return '+$delta on last time';
+  }
+
+  @override
+  String statsDownFromLast(int delta) {
+    return '$delta on last time';
+  }
+
+  @override
+  String statsAverage(int rate) {
+    return 'average $rate%';
+  }
+
+  @override
+  String get statsMostlyCareless =>
+      'Most of your misses are careless — don\'t add volume; slow down and take each answer back to the question.';
+
+  @override
+  String get statsMostlyGaps =>
+      'Most of your misses are gaps — go back for the method before drilling the same type.';
+
+  @override
+  String get statsMostlyMisread =>
+      'Most of your misses are misreads — circle the qualifiers and units as you read.';
+
+  @override
+  String get statsMostlyTime =>
+      'Most of your misses are time — drill single modules against the clock before whole papers.';
+
+  @override
+  String get statsVolume => 'Volume';
+
+  @override
+  String statsLatestIs(String kind, int count) {
+    return 'Rightmost is the latest ($kind · $count questions) — tap to go through it';
+  }
+
+  @override
+  String get statsKindMock => 'mock';
+
+  @override
+  String get statsKindPractice => 'practice';
 }

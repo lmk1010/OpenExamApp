@@ -26,6 +26,9 @@ CONTENT = {
     # 诊断里剩下的中文是行测专属处方（「逻辑填空练搭配不背释义」）和喂给模型的
     # 行测知识 —— 只在 Benchmark 认得的模块上触发，也就是只在行测题库下出现。
     'lib/features/diagnosis/diagnosis.dart': '行测专属处方 + 模型系统提示',
+    # 剩下的全是 SQL LIKE 模式和中文省份名 —— 拿去 contains 匹配中文卷名的，
+    # 翻了会直接把地区分类打断。跟 bank_page 里的「国考/联考」同一类。
+    'lib/data/db/app_database.dart': '匹配中文卷名的 SQL 模式与省份名',
 }
 
 

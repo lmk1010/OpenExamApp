@@ -2348,4 +2348,128 @@ class AppLZh extends AppL {
 
   @override
   String get wrongPlanAgain => '再练一次';
+
+  @override
+  String get statsTitle => '学习统计';
+
+  @override
+  String get statsLast30 => '近 30 天答题';
+
+  @override
+  String get statsAvgRate => '平均正确率';
+
+  @override
+  String get statsActiveDays => '有效练习天';
+
+  @override
+  String get statsDaily => '每日题量';
+
+  @override
+  String get statsLast30Short => '近 30 天';
+
+  @override
+  String get statsWeekly => '每周走势';
+
+  @override
+  String get statsLast8Weeks => '近 8 周';
+
+  @override
+  String get statsAccuracyTrend => '正确率趋势';
+
+  @override
+  String get statsDaysPractised => '练过的日子';
+
+  @override
+  String get statsScoreTrend => '成绩趋势';
+
+  @override
+  String get statsAllReports => '全部记录';
+
+  @override
+  String get statsReasons => '错因分布';
+
+  @override
+  String get statsTagged => '标记过的';
+
+  @override
+  String get statsByType => '题型强弱';
+
+  @override
+  String get statsLowToHigh => '低到高';
+
+  @override
+  String get statsEmptyTypes => '刷一组题后，这里会显示你的强项和弱项';
+
+  @override
+  String statsDoneCount(int count) {
+    return ' $count 题';
+  }
+
+  @override
+  String statsPeak(int count) {
+    return '峰值 $count 题';
+  }
+
+  @override
+  String get statsNoRecords => '还没有练习记录';
+
+  @override
+  String get statsOneMoreDay => '再练一天就能看到趋势了';
+
+  @override
+  String statsFrom(String rate) {
+    return '$rate 起';
+  }
+
+  @override
+  String statsLatest(String rate) {
+    return '最新 $rate';
+  }
+
+  @override
+  String get statsNoScores => '还没有成绩记录，完成一组 5 题以上的练习即可';
+
+  @override
+  String get statsSameAsLast => '与上次持平';
+
+  @override
+  String statsUpFromLast(int delta) {
+    return '较上次 +$delta';
+  }
+
+  @override
+  String statsDownFromLast(int delta) {
+    return '较上次 $delta';
+  }
+
+  @override
+  String statsAverage(int rate) {
+    return '平均 $rate%';
+  }
+
+  @override
+  String get statsMostlyCareless => '大部分错题是粗心 —— 别加练，先放慢做题速度、把答案带回题干核对。';
+
+  @override
+  String get statsMostlyGaps => '大部分错题是知识点没掌握 —— 先回去补方法，再刷同类题。';
+
+  @override
+  String get statsMostlyMisread => '大部分错题栽在审题 —— 做题时把限定词、单位圈出来。';
+
+  @override
+  String get statsMostlyTime => '大部分错题是时间不够 —— 先练单模块限时，再上整卷。';
+
+  @override
+  String get statsVolume => '题量';
+
+  @override
+  String statsLatestIs(String kind, int count) {
+    return '最右为最近一次（$kind · $count 题），点它可逐题回顾';
+  }
+
+  @override
+  String get statsKindMock => '模考';
+
+  @override
+  String get statsKindPractice => '练习';
 }

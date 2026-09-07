@@ -1882,5 +1882,100 @@
   },
   "wrongPlanDoneToday": "今天这步做完了，明天再来",
   "wrongPlanGapHint": "中间隔一天，记忆才吃得住",
-  "wrongPlanAgain": "再练一次"
+  "wrongPlanAgain": "再练一次",
+  "statsTitle": "学习统计",
+  "statsLast30": "近 30 天答题",
+  "statsAvgRate": "平均正确率",
+  "statsActiveDays": "有效练习天",
+  "statsDaily": "每日题量",
+  "statsLast30Short": "近 30 天",
+  "statsWeekly": "每周走势",
+  "statsLast8Weeks": "近 8 周",
+  "statsAccuracyTrend": "正确率趋势",
+  "statsDaysPractised": "练过的日子",
+  "statsScoreTrend": "成绩趋势",
+  "statsAllReports": "全部记录",
+  "statsReasons": "错因分布",
+  "statsTagged": "标记过的",
+  "statsByType": "题型强弱",
+  "statsLowToHigh": "低到高",
+  "statsEmptyTypes": "刷一组题后，这里会显示你的强项和弱项",
+  "statsDoneCount": " {count} 题",
+  "@statsDoneCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statsPeak": "峰值 {count} 题",
+  "@statsPeak": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statsNoRecords": "还没有练习记录",
+  "statsOneMoreDay": "再练一天就能看到趋势了",
+  "statsFrom": "{rate} 起",
+  "@statsFrom": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
+  "statsLatest": "最新 {rate}",
+  "@statsLatest": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
+  "statsNoScores": "还没有成绩记录，完成一组 5 题以上的练习即可",
+  "statsSameAsLast": "与上次持平",
+  "statsUpFromLast": "较上次 +{delta}",
+  "@statsUpFromLast": {
+    "placeholders": {
+      "delta": {
+        "type": "int"
+      }
+    }
+  },
+  "statsDownFromLast": "较上次 {delta}",
+  "@statsDownFromLast": {
+    "placeholders": {
+      "delta": {
+        "type": "int"
+      }
+    }
+  },
+  "statsAverage": "平均 {rate}%",
+  "@statsAverage": {
+    "placeholders": {
+      "rate": {
+        "type": "int"
+      }
+    }
+  },
+  "statsMostlyCareless": "大部分错题是粗心 —— 别加练，先放慢做题速度、把答案带回题干核对。",
+  "statsMostlyGaps": "大部分错题是知识点没掌握 —— 先回去补方法，再刷同类题。",
+  "statsMostlyMisread": "大部分错题栽在审题 —— 做题时把限定词、单位圈出来。",
+  "statsMostlyTime": "大部分错题是时间不够 —— 先练单模块限时，再上整卷。",
+  "statsVolume": "题量",
+  "statsLatestIs": "最右为最近一次（{kind} · {count} 题），点它可逐题回顾",
+  "@statsLatestIs": {
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statsKindMock": "模考",
+  "statsKindPractice": "练习"
 }

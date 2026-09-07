@@ -4151,6 +4151,222 @@ abstract class AppL {
   /// In zh, this message translates to:
   /// **'再练一次'**
   String get wrongPlanAgain;
+
+  /// No description provided for @statsTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'学习统计'**
+  String get statsTitle;
+
+  /// No description provided for @statsLast30.
+  ///
+  /// In zh, this message translates to:
+  /// **'近 30 天答题'**
+  String get statsLast30;
+
+  /// No description provided for @statsAvgRate.
+  ///
+  /// In zh, this message translates to:
+  /// **'平均正确率'**
+  String get statsAvgRate;
+
+  /// No description provided for @statsActiveDays.
+  ///
+  /// In zh, this message translates to:
+  /// **'有效练习天'**
+  String get statsActiveDays;
+
+  /// No description provided for @statsDaily.
+  ///
+  /// In zh, this message translates to:
+  /// **'每日题量'**
+  String get statsDaily;
+
+  /// No description provided for @statsLast30Short.
+  ///
+  /// In zh, this message translates to:
+  /// **'近 30 天'**
+  String get statsLast30Short;
+
+  /// No description provided for @statsWeekly.
+  ///
+  /// In zh, this message translates to:
+  /// **'每周走势'**
+  String get statsWeekly;
+
+  /// No description provided for @statsLast8Weeks.
+  ///
+  /// In zh, this message translates to:
+  /// **'近 8 周'**
+  String get statsLast8Weeks;
+
+  /// No description provided for @statsAccuracyTrend.
+  ///
+  /// In zh, this message translates to:
+  /// **'正确率趋势'**
+  String get statsAccuracyTrend;
+
+  /// No description provided for @statsDaysPractised.
+  ///
+  /// In zh, this message translates to:
+  /// **'练过的日子'**
+  String get statsDaysPractised;
+
+  /// No description provided for @statsScoreTrend.
+  ///
+  /// In zh, this message translates to:
+  /// **'成绩趋势'**
+  String get statsScoreTrend;
+
+  /// No description provided for @statsAllReports.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部记录'**
+  String get statsAllReports;
+
+  /// No description provided for @statsReasons.
+  ///
+  /// In zh, this message translates to:
+  /// **'错因分布'**
+  String get statsReasons;
+
+  /// No description provided for @statsTagged.
+  ///
+  /// In zh, this message translates to:
+  /// **'标记过的'**
+  String get statsTagged;
+
+  /// No description provided for @statsByType.
+  ///
+  /// In zh, this message translates to:
+  /// **'题型强弱'**
+  String get statsByType;
+
+  /// No description provided for @statsLowToHigh.
+  ///
+  /// In zh, this message translates to:
+  /// **'低到高'**
+  String get statsLowToHigh;
+
+  /// No description provided for @statsEmptyTypes.
+  ///
+  /// In zh, this message translates to:
+  /// **'刷一组题后，这里会显示你的强项和弱项'**
+  String get statsEmptyTypes;
+
+  /// No description provided for @statsDoneCount.
+  ///
+  /// In zh, this message translates to:
+  /// **' {count} 题'**
+  String statsDoneCount(int count);
+
+  /// No description provided for @statsPeak.
+  ///
+  /// In zh, this message translates to:
+  /// **'峰值 {count} 题'**
+  String statsPeak(int count);
+
+  /// No description provided for @statsNoRecords.
+  ///
+  /// In zh, this message translates to:
+  /// **'还没有练习记录'**
+  String get statsNoRecords;
+
+  /// No description provided for @statsOneMoreDay.
+  ///
+  /// In zh, this message translates to:
+  /// **'再练一天就能看到趋势了'**
+  String get statsOneMoreDay;
+
+  /// No description provided for @statsFrom.
+  ///
+  /// In zh, this message translates to:
+  /// **'{rate} 起'**
+  String statsFrom(String rate);
+
+  /// No description provided for @statsLatest.
+  ///
+  /// In zh, this message translates to:
+  /// **'最新 {rate}'**
+  String statsLatest(String rate);
+
+  /// No description provided for @statsNoScores.
+  ///
+  /// In zh, this message translates to:
+  /// **'还没有成绩记录，完成一组 5 题以上的练习即可'**
+  String get statsNoScores;
+
+  /// No description provided for @statsSameAsLast.
+  ///
+  /// In zh, this message translates to:
+  /// **'与上次持平'**
+  String get statsSameAsLast;
+
+  /// No description provided for @statsUpFromLast.
+  ///
+  /// In zh, this message translates to:
+  /// **'较上次 +{delta}'**
+  String statsUpFromLast(int delta);
+
+  /// No description provided for @statsDownFromLast.
+  ///
+  /// In zh, this message translates to:
+  /// **'较上次 {delta}'**
+  String statsDownFromLast(int delta);
+
+  /// No description provided for @statsAverage.
+  ///
+  /// In zh, this message translates to:
+  /// **'平均 {rate}%'**
+  String statsAverage(int rate);
+
+  /// No description provided for @statsMostlyCareless.
+  ///
+  /// In zh, this message translates to:
+  /// **'大部分错题是粗心 —— 别加练，先放慢做题速度、把答案带回题干核对。'**
+  String get statsMostlyCareless;
+
+  /// No description provided for @statsMostlyGaps.
+  ///
+  /// In zh, this message translates to:
+  /// **'大部分错题是知识点没掌握 —— 先回去补方法，再刷同类题。'**
+  String get statsMostlyGaps;
+
+  /// No description provided for @statsMostlyMisread.
+  ///
+  /// In zh, this message translates to:
+  /// **'大部分错题栽在审题 —— 做题时把限定词、单位圈出来。'**
+  String get statsMostlyMisread;
+
+  /// No description provided for @statsMostlyTime.
+  ///
+  /// In zh, this message translates to:
+  /// **'大部分错题是时间不够 —— 先练单模块限时，再上整卷。'**
+  String get statsMostlyTime;
+
+  /// No description provided for @statsVolume.
+  ///
+  /// In zh, this message translates to:
+  /// **'题量'**
+  String get statsVolume;
+
+  /// No description provided for @statsLatestIs.
+  ///
+  /// In zh, this message translates to:
+  /// **'最右为最近一次（{kind} · {count} 题），点它可逐题回顾'**
+  String statsLatestIs(String kind, int count);
+
+  /// No description provided for @statsKindMock.
+  ///
+  /// In zh, this message translates to:
+  /// **'模考'**
+  String get statsKindMock;
+
+  /// No description provided for @statsKindPractice.
+  ///
+  /// In zh, this message translates to:
+  /// **'练习'**
+  String get statsKindPractice;
 }
 
 class _AppLDelegate extends LocalizationsDelegate<AppL> {
