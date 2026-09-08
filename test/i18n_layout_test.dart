@@ -52,6 +52,20 @@ void main() {
   // 宽度，往上都放得下。
   const smallPhone = Size(320, 640);
 
+  /// 界面上不该出现 Dart 的调试文本。
+  ///
+  /// 抓的是这一类：`label` 是方法不是字段，插值时漏了括号 ——
+  /// `'${tier.label}'` 编译得过、analyze 不报（插值接受任何 Object），
+  /// 跑起来渲染出的是「Closure: (AppL) => String」。i18n 把一批字段
+  /// 改成了方法，这种漏网只会在真跑起来的界面上露出来。
+  void expectNoDebugText(WidgetTester tester, String where) {
+    for (final w in tester.widgetList<Text>(find.byType(Text))) {
+      final t = w.data ?? '';
+      expect(t.contains('Closure:'), isFalse, reason: '$where 渲染出了闭包：$t');
+      expect(t.startsWith('Instance of'), isFalse, reason: '$where 渲染出了对象：$t');
+    }
+  }
+
   void useSmallPhone(WidgetTester tester) {
     tester.view.physicalSize = smallPhone;
     tester.view.devicePixelRatio = 1.0;
@@ -73,6 +87,7 @@ void main() {
       }
 
       expect(find.byType(AppShell), findsOneWidget);
+      expectNoDebugText(tester, '$lang 主页面');
 
       // 底栏只给**选中**的那个 tab 配字，其余是纯图标。所以这里只能钉住
       // 当前这一个 —— 「页面标题是英文、导航还是中文」这种夹生状态，
@@ -165,6 +180,7 @@ void main() {
       for (var i = 0; i < 10; i++) {
         await tester.pump(const Duration(milliseconds: 200));
       }
+      expectNoDebugText(tester, '$lang ${entry.key}');
     });
     }
   }

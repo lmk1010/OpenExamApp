@@ -347,7 +347,9 @@ class _BadgeDetail extends StatelessWidget {
                 borderRadius: BorderRadius.circular(9),
               ),
               child: Text(
-                '${badge.group} · ${badge.tier.label}',
+                // label 是方法不是字段：漏了括号，插值出来的是「Closure: (AppL) => String」。
+                // 编译和 analyze 都不报 —— 插值接受任何 Object。
+                '${badge.group} · ${badge.tier.label(AppL.of(context))}',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
